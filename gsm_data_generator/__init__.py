@@ -36,43 +36,6 @@ from .base import DATAGENError, __version__#, #_RUNTIME_ONLY
 # gsm_data_generator.error
 from . import error
 
-# gsm_gsm_datagen.ir
-# from .ir import IRModule
-# from .ir import transform
-# from .ir import instrument
-# from .ir import container
-# from . import ir
-
-# # gsm_gsm_datagen.tir
-# from . import tir
-
-# # gsm_gsm_datagen.target
-# from . import target
-
-# # gsm_gsm_datagen.te
-# from . import te
-
-# # gsm_data_generator.driver
-# from .driver import build, compile
-
-# # others
-# from . import arith
-
-# # support infra
-# from . import support
-
-# # Contrib initializers
-# from .contrib import rocm as _rocm, nvcc as _nvcc
-
-# # Relax contain modules that are only available in compiler package
-# # Do not import them if DATAGEN is built with runtime only
-# if not _RUNTIME_ONLY:
-#     from . import relax
-
-# NOTE: This file should be python2 compatible so we can
-# raise proper error message when user run the package using
-# an older version of the python
-
 
 def _should_print_backtrace():
     in_pytest = "PYTEST_CURRENT_TEST" in os.environ
