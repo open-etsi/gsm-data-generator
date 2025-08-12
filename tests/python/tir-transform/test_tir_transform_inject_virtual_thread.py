@@ -14,12 +14,12 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import te
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import te
+from gsm_data_generator.script import tir as T
 
-vthread_name = gsmDataGen.testing.parameter("vthread", "cthread")
+vthread_name = gsm_data_generator.testing.parameter("vthread", "cthread")
 
 
 def test_vthread(vthread_name):
@@ -31,7 +31,7 @@ def test_vthread(vthread_name):
     def get_vthread(name):
         tx = te.thread_axis(name)
         ty = te.thread_axis(name)
-        ib = gsmDataGen.tir.ir_builder.create()
+        ib = gsm_data_generator.tir.ir_builder.create()
         A = ib.pointer("float32", name="A")
         C = ib.pointer("float32", name="C")
         with ib.for_range(0, n) as i:
@@ -41,11 +41,11 @@ def test_vthread(vthread_name):
             B[i] = A[i * nthread + tx]
             bbuffer = B.asobject()
             ib.emit(
-                gsmDataGen.tir.call_extern(
+                gsm_data_generator.tir.call_extern(
                     "int32",
                     "Run",
                     bbuffer.access_ptr("r"),
-                    gsmDataGen.tir.call_intrin("int32", "tir.tvm_context_id"),
+                    gsm_data_generator.tir.call_intrin("int32", "tir.tvm_context_id"),
                 )
             )
             C[i * nthread + tx] = B[i] + 1
@@ -56,8 +56,8 @@ def test_vthread(vthread_name):
     elif vthread_name == "cthread":
         B_expected_alloc = m * nthread * nthread
 
-    stmt = gsmDataGen.tir.transform.InjectVirtualThread()(
-        gsmDataGen.IRModule.from_expr(gsmDataGen.tir.PrimFunc([], get_vthread(vthread_name)))
+    stmt = gsm_data_generator.tir.transform.InjectVirtualThread()(
+        gsm_data_generator.IRModule.from_expr(gsm_data_generator.tir.PrimFunc([], get_vthread(vthread_name)))
     )["main"]
 
     assert list(stmt.body.body.extents) == [B_expected_alloc]
@@ -72,7 +72,7 @@ def test_vthread_extern(vthread_name):
     def get_vthread(name):
         tx = te.thread_axis(name)
         ty = te.thread_axis(name)
-        ib = gsmDataGen.tir.ir_builder.create()
+        ib = gsm_data_generator.tir.ir_builder.create()
         with ib.for_range(0, n) as i:
             ib.scope_attr(tx, "virtual_thread", nthread)
             ib.scope_attr(ty, "virtual_thread", nthread)
@@ -85,7 +85,7 @@ def test_vthread_extern(vthread_name):
             A[tx] = tx + 1.0
             B[ty] = ty + 1.0
             ib.emit(
-                gsmDataGen.tir.call_extern(
+                gsm_data_generator.tir.call_extern(
                     "int32",
                     "Run",
                     abuffer.access_ptr("r"),
@@ -102,9 +102,9 @@ def test_vthread_extern(vthread_name):
 
     C_expected_alloc = m * nthread * nthread
 
-    stmt = gsmDataGen.tir.transform.InjectVirtualThread()(
-        gsmDataGen.IRModule.from_expr(
-            gsmDataGen.tir.PrimFunc([], get_vthread(vthread_name)).with_attr("global_symbol", "main")
+    stmt = gsm_data_generator.tir.transform.InjectVirtualThread()(
+        gsm_data_generator.IRModule.from_expr(
+            gsm_data_generator.tir.PrimFunc([], get_vthread(vthread_name)).with_attr("global_symbol", "main")
         )
     )["main"]
 
@@ -115,7 +115,7 @@ def test_vthread_extern(vthread_name):
 def test_vthread_if_then_else():
     nthread = 2
     tx = te.thread_axis("vthread")
-    ib = gsmDataGen.tir.ir_builder.create()
+    ib = gsm_data_generator.tir.ir_builder.create()
     A = ib.pointer("float32", name="A")
     with ib.for_range(0, 100) as i:
         ib.scope_attr(tx, "virtual_thread", nthread)
@@ -128,8 +128,8 @@ def test_vthread_if_then_else():
             B[i] = A[i * nthread + tx] + 2
     stmt = ib.get()
 
-    stmt = gsmDataGen.tir.transform.InjectVirtualThread()(
-        gsmDataGen.IRModule.from_expr(gsmDataGen.tir.PrimFunc([], stmt).with_attr("global_symbol", "main"))
+    stmt = gsm_data_generator.tir.transform.InjectVirtualThread()(
+        gsm_data_generator.IRModule.from_expr(gsm_data_generator.tir.PrimFunc([], stmt).with_attr("global_symbol", "main"))
     )["main"]
 
     assert stmt.body.body.body[0].else_case != None
@@ -162,11 +162,11 @@ def test_vthread_simplified():
         B[T.Mul(2, 4) : T.Mul(2, 4) + 4] = T.broadcast(2, 4)
         B[T.Mul(3, 4) : T.Mul(3, 4) + 4] = T.broadcast(3, 4)
 
-    before_mod = gsmDataGen.IRModule.from_expr(before_func.with_attr("global_symbol", "main"))
-    after_mod = gsmDataGen.tir.transform.InjectVirtualThread()(before_mod)
+    before_mod = gsm_data_generator.IRModule.from_expr(before_func.with_attr("global_symbol", "main"))
+    after_mod = gsm_data_generator.tir.transform.InjectVirtualThread()(before_mod)
     after_func = after_mod["main"]
 
-    gsmDataGen.ir.assert_structural_equal(after_func, expected_func.with_attr("global_symbol", "main"))
+    gsm_data_generator.ir.assert_structural_equal(after_func, expected_func.with_attr("global_symbol", "main"))
 
 
 def test_vthread_vectorized():
@@ -189,13 +189,13 @@ def test_vthread_vectorized():
         B[T.Div(T.Mul(2, 4), 4)] = T.broadcast(2, 4)
         B[T.Div(T.Mul(3, 4), 4)] = T.broadcast(3, 4)
 
-    before_mod = gsmDataGen.IRModule.from_expr(before_func.with_attr("global_symbol", "main"))
-    intermediate_mod = gsmDataGen.tir.transform.InjectVirtualThread()(before_mod)
-    after_mod = gsmDataGen.tir.transform.StorageRewrite()(intermediate_mod)
+    before_mod = gsm_data_generator.IRModule.from_expr(before_func.with_attr("global_symbol", "main"))
+    intermediate_mod = gsm_data_generator.tir.transform.InjectVirtualThread()(before_mod)
+    after_mod = gsm_data_generator.tir.transform.StorageRewrite()(intermediate_mod)
     after_func = after_mod["main"]
 
-    gsmDataGen.ir.assert_structural_equal(after_func, expected_func.with_attr("global_symbol", "main"))
+    gsm_data_generator.ir.assert_structural_equal(after_func, expected_func.with_attr("global_symbol", "main"))
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

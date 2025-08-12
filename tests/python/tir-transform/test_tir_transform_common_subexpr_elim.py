@@ -16,11 +16,11 @@
 # under the License.
 import hashlib
 
-import gsmDataGen
-from gsmDataGen import te, topi
-from gsmDataGen.ir.base import save_json
-from gsmDataGen.ir.module import IRModule
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+from gsm_data_generator import te, topi
+from gsm_data_generator.ir.base import save_json
+from gsm_data_generator.ir.module import IRModule
+from gsm_data_generator.script import tir as T
 
 
 # -----------------------------------------------------
@@ -39,7 +39,7 @@ def test_cse():
     a = te.var("a")
     b = te.var("b")
     dtype = "int32"
-    buffer = gsmDataGen.tir.decl_buffer((50,), dtype)
+    buffer = gsm_data_generator.tir.decl_buffer((50,), dtype)
     # Test prog :
     # let z1=1 in let z2=2 in
     #   Mem[i1] = z1+z2;
@@ -47,26 +47,26 @@ def test_cse():
     #     let a = (x+y) + (z1+z2) in
     #       let b = (x+y) + z3 in
     #         Mem[i2] = a+b;
-    body = gsmDataGen.tir.LetStmt(
+    body = gsm_data_generator.tir.LetStmt(
         z1,
         1,
-        gsmDataGen.tir.LetStmt(
+        gsm_data_generator.tir.LetStmt(
             z2,
             2,
-            gsmDataGen.tir.SeqStmt(
+            gsm_data_generator.tir.SeqStmt(
                 [
-                    gsmDataGen.tir.BufferStore(buffer, z1 + z2, [i1]),
-                    gsmDataGen.tir.LetStmt(
+                    gsm_data_generator.tir.BufferStore(buffer, z1 + z2, [i1]),
+                    gsm_data_generator.tir.LetStmt(
                         x,
                         1,
-                        gsmDataGen.tir.LetStmt(
+                        gsm_data_generator.tir.LetStmt(
                             y,
                             1,
-                            gsmDataGen.tir.LetStmt(
+                            gsm_data_generator.tir.LetStmt(
                                 a,
                                 (x + y) + (z1 + z2),
-                                gsmDataGen.tir.LetStmt(
-                                    b, (x + y) + z3, gsmDataGen.tir.BufferStore(buffer, a + b, [i2])
+                                gsm_data_generator.tir.LetStmt(
+                                    b, (x + y) + z3, gsm_data_generator.tir.BufferStore(buffer, a + b, [i2])
                                 ),
                             ),
                         ),
@@ -79,10 +79,10 @@ def test_cse():
     # levels and to perform replacements in the value of "a" and "b", using these new variables.
     # We will check all of that underneath and more, making also sure that nothing else has changed
 
-    mod = gsmDataGen.IRModule.from_expr(gsmDataGen.tir.PrimFunc([i1, i2, z3], body))
-    body = gsmDataGen.tir.transform.CommonSubexprElimTIR()(mod)
+    mod = gsm_data_generator.IRModule.from_expr(gsm_data_generator.tir.PrimFunc([i1, i2, z3], body))
+    body = gsm_data_generator.tir.transform.CommonSubexprElimTIR()(mod)
 
-    gsmDataGen.transform.PrintIR()(body)
+    gsm_data_generator.transform.PrintIR()(body)
 
     body = body["main"].body  # Gets the body of the main, i.e. the full statement
 
@@ -94,20 +94,20 @@ def test_cse():
     assert body.var.name == "z2"
     assert body.value == 2
     # This is the let-in for the first variable generated cse_v1
-    assert isinstance(body.body, gsmDataGen.tir.LetStmt)
+    assert isinstance(body.body, gsm_data_generator.tir.LetStmt)
 
     body = body.body
 
     # And this is the name and value of this variable
     cse_v1 = body.var  # Keep the variable accessible for later checking the replacements
     assert body.var.name == "cse_v1"
-    gsmDataGen.ir.assert_structural_equal(body.value, z1 + z2)
-    assert isinstance(body.body, gsmDataGen.tir.SeqStmt)
+    gsm_data_generator.ir.assert_structural_equal(body.value, z1 + z2)
+    assert isinstance(body.body, gsm_data_generator.tir.SeqStmt)
 
     body = body.body
 
-    assert isinstance(body[0], gsmDataGen.tir.BufferStore)
-    assert isinstance(body[1], gsmDataGen.tir.LetStmt)
+    assert isinstance(body[0], gsm_data_generator.tir.BufferStore)
+    assert isinstance(body[1], gsm_data_generator.tir.LetStmt)
 
     body = body[1]
 
@@ -119,28 +119,28 @@ def test_cse():
     assert body.var.name == "y"
     assert body.value == 1
     # This is the let-in for the second variable generated cse_v2
-    assert isinstance(body.body, gsmDataGen.tir.LetStmt)
+    assert isinstance(body.body, gsm_data_generator.tir.LetStmt)
 
     body = body.body
 
     # And this is the name and value of this variable
     cse_v2 = body.var  # Keep the variable accessible for later checking the replacements
     assert body.var.name == "cse_v2"
-    gsmDataGen.ir.assert_structural_equal(body.value, x + y)
+    gsm_data_generator.ir.assert_structural_equal(body.value, x + y)
 
     body = body.body
 
     body.var.name == "a"
     # Check that the replacement has been done correctly!
-    gsmDataGen.ir.assert_structural_equal(body.value, cse_v2 + cse_v1)
+    gsm_data_generator.ir.assert_structural_equal(body.value, cse_v2 + cse_v1)
 
     body = body.body
 
     body.var.name == "b"
     # Check that the replacement has been done correctly!
-    gsmDataGen.ir.assert_structural_equal(body.value, cse_v2 + z3)
+    gsm_data_generator.ir.assert_structural_equal(body.value, cse_v2 + z3)
 
-    assert isinstance(body.body, gsmDataGen.tir.BufferStore)
+    assert isinstance(body.body, gsm_data_generator.tir.BufferStore)
 
 
 # -----------------------------------------------------
@@ -159,7 +159,7 @@ def test_cse_ifNode_1():
     y = te.var("y")
     z = te.var("z")
     dtype = "int32"
-    buffer = gsmDataGen.tir.decl_buffer((50,), dtype)
+    buffer = gsm_data_generator.tir.decl_buffer((50,), dtype)
     # Test prog :
     # let b=1 in
     #   if(b) {
@@ -169,39 +169,39 @@ def test_cse_ifNode_1():
     #   else {
     #     Mem[i3] = y
     #   }
-    body = gsmDataGen.tir.LetStmt(
+    body = gsm_data_generator.tir.LetStmt(
         b,
         1,
-        gsmDataGen.tir.IfThenElse(
+        gsm_data_generator.tir.IfThenElse(
             b,
-            gsmDataGen.tir.SeqStmt(
-                [gsmDataGen.tir.BufferStore(buffer, y + z, [i1]), gsmDataGen.tir.BufferStore(buffer, y + z, [i2])]
+            gsm_data_generator.tir.SeqStmt(
+                [gsm_data_generator.tir.BufferStore(buffer, y + z, [i1]), gsm_data_generator.tir.BufferStore(buffer, y + z, [i2])]
             ),
-            gsmDataGen.tir.BufferStore(buffer, y, [i3]),
+            gsm_data_generator.tir.BufferStore(buffer, y, [i3]),
         ),
     )
 
-    mod = gsmDataGen.IRModule.from_expr(gsmDataGen.tir.PrimFunc([i1, i2, i3, y, z], body))
-    body = gsmDataGen.tir.transform.CommonSubexprElimTIR()(mod)
+    mod = gsm_data_generator.IRModule.from_expr(gsm_data_generator.tir.PrimFunc([i1, i2, i3, y, z], body))
+    body = gsm_data_generator.tir.transform.CommonSubexprElimTIR()(mod)
 
-    gsmDataGen.transform.PrintIR()(body)
+    gsm_data_generator.transform.PrintIR()(body)
 
     body = body["main"].body  # Gets the body of the main, i.e. the full statement
 
     assert body.var.name == "b"
     assert body.value == 1
-    assert isinstance(body.body, gsmDataGen.tir.IfThenElse)
+    assert isinstance(body.body, gsm_data_generator.tir.IfThenElse)
 
     body = body.body
 
-    assert isinstance(body.then_case, gsmDataGen.tir.LetStmt)
+    assert isinstance(body.then_case, gsm_data_generator.tir.LetStmt)
 
     body = body.then_case
 
     # The let-in introduced by the CSE should appear now, inside the Then branch of the If node
     assert body.var.name == "cse_v1"
     # and it should contain the expression (y+z) that was redundant
-    gsmDataGen.ir.assert_structural_equal(body.value, y + z)
+    gsm_data_generator.ir.assert_structural_equal(body.value, y + z)
 
 
 # Second test for if nodes : Some duplicated computations appear in both the Then and Else branch.
@@ -215,7 +215,7 @@ def test_cse_ifNode_2():
     y = te.var("y")
     z = te.var("z")
     dtype = "int32"
-    buffer = gsmDataGen.tir.decl_buffer((50,), dtype)
+    buffer = gsm_data_generator.tir.decl_buffer((50,), dtype)
     # Test prog :
     # let b=1 in
     #   if(b) {
@@ -225,34 +225,34 @@ def test_cse_ifNode_2():
     #   else {
     #     Mem[i3] = y+z
     #   }
-    body = gsmDataGen.tir.LetStmt(
+    body = gsm_data_generator.tir.LetStmt(
         b,
         1,
-        gsmDataGen.tir.IfThenElse(
+        gsm_data_generator.tir.IfThenElse(
             b,
-            gsmDataGen.tir.SeqStmt(
+            gsm_data_generator.tir.SeqStmt(
                 [
-                    gsmDataGen.tir.BufferStore(buffer, y + z, [i1]),  # (y+z) is present in Then branch
-                    gsmDataGen.tir.BufferStore(buffer, y, [i2]),
+                    gsm_data_generator.tir.BufferStore(buffer, y + z, [i1]),  # (y+z) is present in Then branch
+                    gsm_data_generator.tir.BufferStore(buffer, y, [i2]),
                 ]
             ),
-            gsmDataGen.tir.BufferStore(buffer, y + z, [i3]),  # and also present in the Else branch
+            gsm_data_generator.tir.BufferStore(buffer, y + z, [i3]),  # and also present in the Else branch
         ),
     )
 
-    mod = gsmDataGen.IRModule.from_expr(gsmDataGen.tir.PrimFunc([i1, i2, i3, y, z], body))
-    body = gsmDataGen.tir.transform.CommonSubexprElimTIR()(mod)
+    mod = gsm_data_generator.IRModule.from_expr(gsm_data_generator.tir.PrimFunc([i1, i2, i3, y, z], body))
+    body = gsm_data_generator.tir.transform.CommonSubexprElimTIR()(mod)
 
-    gsmDataGen.transform.PrintIR()(body)
+    gsm_data_generator.transform.PrintIR()(body)
 
     body = body["main"].body  # Gets the body of the main, i.e. the full statement
 
-    assert isinstance(body, gsmDataGen.tir.LetStmt)
+    assert isinstance(body, gsm_data_generator.tir.LetStmt)
 
     # The let-in introduced by the CSE should appear now, at the toplevel (i.e. before the If)
     assert body.var.name == "cse_v1"
     # and it should contain the expression (y+z) that was redundant
-    gsmDataGen.ir.assert_structural_equal(body.value, y + z)
+    gsm_data_generator.ir.assert_structural_equal(body.value, y + z)
 
 
 # -------------------------------------------------------------------------------------------------
@@ -268,58 +268,58 @@ def test_cse_cascade():
     y = te.var("y")
     z = te.var("z")
     dtype = "int32"
-    buffer = gsmDataGen.tir.decl_buffer((50,), dtype)
+    buffer = gsm_data_generator.tir.decl_buffer((50,), dtype)
     # Test prog :
     # Mem[i1] = (x+y)+z;
     # Mem[i2] = (x+y)+z;
     # Mem[i3] = x+y
-    body = gsmDataGen.tir.SeqStmt(
+    body = gsm_data_generator.tir.SeqStmt(
         [
-            gsmDataGen.tir.BufferStore(buffer, (x + y) + z, [i1]),
-            gsmDataGen.tir.BufferStore(buffer, (x + y) + z, [i2]),
-            gsmDataGen.tir.BufferStore(buffer, (x + y), [i3]),
+            gsm_data_generator.tir.BufferStore(buffer, (x + y) + z, [i1]),
+            gsm_data_generator.tir.BufferStore(buffer, (x + y) + z, [i2]),
+            gsm_data_generator.tir.BufferStore(buffer, (x + y), [i3]),
         ]
     )
 
-    mod = gsmDataGen.IRModule.from_expr(gsmDataGen.tir.PrimFunc([i1, i2, i3, x, y, z], body))
-    body = gsmDataGen.tir.transform.CommonSubexprElimTIR()(mod)
+    mod = gsm_data_generator.IRModule.from_expr(gsm_data_generator.tir.PrimFunc([i1, i2, i3, x, y, z], body))
+    body = gsm_data_generator.tir.transform.CommonSubexprElimTIR()(mod)
 
-    gsmDataGen.transform.PrintIR()(body)
+    gsm_data_generator.transform.PrintIR()(body)
 
     body = body["main"].body  # Gets the body of the main, i.e. the full statement
 
-    assert isinstance(body, gsmDataGen.tir.LetStmt)
+    assert isinstance(body, gsm_data_generator.tir.LetStmt)
 
     # The second let-in (by order introduced) introduced by the CSE should appear first
     cse_v2 = body.var  # Keep the variable accessible for later checking the replacements
     assert body.var.name == "cse_v2"
     # and it should contain the expression (x+y)
-    gsmDataGen.ir.assert_structural_equal(body.value, (x + y))
+    gsm_data_generator.ir.assert_structural_equal(body.value, (x + y))
 
     body = body.body
 
-    assert isinstance(body, gsmDataGen.tir.LetStmt)
+    assert isinstance(body, gsm_data_generator.tir.LetStmt)
 
     # The first let-in (by order introduced) introduced by the CSE should appear now, after the 2nd
     cse_v1 = body.var  # Keep the variable accessible for later checking the replacements
     assert body.var.name == "cse_v1"
     # and it should contain the expression cse_v2+z
-    gsmDataGen.ir.assert_structural_equal(body.value, cse_v2 + z)
+    gsm_data_generator.ir.assert_structural_equal(body.value, cse_v2 + z)
 
     body = body.body
 
-    assert isinstance(body, gsmDataGen.tir.SeqStmt)
-    assert isinstance(body[0], gsmDataGen.tir.BufferStore)
-    assert isinstance(body[1], gsmDataGen.tir.BufferStore)
-    assert isinstance(body[2], gsmDataGen.tir.BufferStore)
+    assert isinstance(body, gsm_data_generator.tir.SeqStmt)
+    assert isinstance(body[0], gsm_data_generator.tir.BufferStore)
+    assert isinstance(body[1], gsm_data_generator.tir.BufferStore)
+    assert isinstance(body[2], gsm_data_generator.tir.BufferStore)
 
     store1 = body[0]
     store2 = body[1]
     store3 = body[2]
 
-    gsmDataGen.ir.assert_structural_equal(store1.value, cse_v1)
-    gsmDataGen.ir.assert_structural_equal(store2.value, cse_v1)
-    gsmDataGen.ir.assert_structural_equal(store3.value, cse_v2)
+    gsm_data_generator.ir.assert_structural_equal(store1.value, cse_v1)
+    gsm_data_generator.ir.assert_structural_equal(store2.value, cse_v1)
+    gsm_data_generator.ir.assert_structural_equal(store3.value, cse_v2)
 
 
 # -----------------------------------------------------------------------------------------
@@ -332,17 +332,17 @@ def test_no_normalization_without_commoning():
     a = te.var("a")
     # Test prog :
     # let a = x + (y + z) in a
-    body = gsmDataGen.tir.LetStmt(a, x + (y + z), gsmDataGen.tir.Evaluate(a))
+    body = gsm_data_generator.tir.LetStmt(a, x + (y + z), gsm_data_generator.tir.Evaluate(a))
 
-    mod = gsmDataGen.IRModule.from_expr(gsmDataGen.tir.PrimFunc([x, y, z], body))
-    body = gsmDataGen.tir.transform.CommonSubexprElimTIR(identify_equiv_terms=True)(mod)
+    mod = gsm_data_generator.IRModule.from_expr(gsm_data_generator.tir.PrimFunc([x, y, z], body))
+    body = gsm_data_generator.tir.transform.CommonSubexprElimTIR(identify_equiv_terms=True)(mod)
 
-    gsmDataGen.transform.PrintIR()(body)
+    gsm_data_generator.transform.PrintIR()(body)
 
     body = body["main"].body  # Gets the body of the main, i.e. the full statement
 
     assert body.var.name == "a"
-    gsmDataGen.ir.assert_structural_equal(body.value, x + (y + z))
+    gsm_data_generator.ir.assert_structural_equal(body.value, x + (y + z))
 
 
 # -------------------------------------------------
@@ -384,10 +384,10 @@ def func_associativity_expected(
 
 def _check(original, transformed):
     func = original
-    mod = gsmDataGen.IRModule.from_expr(func.with_attr("global_symbol", "main"))
-    body = gsmDataGen.tir.transform.CommonSubexprElimTIR(identify_equiv_terms=True)(mod)
-    gsmDataGen.transform.PrintIR()(body)
-    gsmDataGen.ir.assert_structural_equal(body["main"], transformed.with_attr("global_symbol", "main"))
+    mod = gsm_data_generator.IRModule.from_expr(func.with_attr("global_symbol", "main"))
+    body = gsm_data_generator.tir.transform.CommonSubexprElimTIR(identify_equiv_terms=True)(mod)
+    gsm_data_generator.transform.PrintIR()(body)
+    gsm_data_generator.ir.assert_structural_equal(body["main"], transformed.with_attr("global_symbol", "main"))
 
 
 def test_semantic_equiv_distributivity():
@@ -428,12 +428,12 @@ def test_deterministic_cse():
     expression = x
     for add in inc1 + inc2:
         expression = expression + add
-    let_stmt = gsmDataGen.tir.LetStmt(result, expression, gsmDataGen.tir.Evaluate(result))
-    mod = gsmDataGen.IRModule.from_expr(gsmDataGen.tir.PrimFunc([x], let_stmt))
+    let_stmt = gsm_data_generator.tir.LetStmt(result, expression, gsm_data_generator.tir.Evaluate(result))
+    mod = gsm_data_generator.IRModule.from_expr(gsm_data_generator.tir.PrimFunc([x], let_stmt))
 
     initial_hash = None
     for _ in range(REPEATS):
-        body = gsmDataGen.tir.transform.CommonSubexprElimTIR()(mod)
+        body = gsm_data_generator.tir.transform.CommonSubexprElimTIR()(mod)
 
         body = body["main"]
 

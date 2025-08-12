@@ -17,14 +17,14 @@
 
 import pytest
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen.script import tir as T
-from gsmDataGen.script.highlight import cprint, _format
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.script.highlight import cprint, _format
 
 
 def test_highlight_script():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Module:
         @T.prim_func
         def main(  # type: ignore
@@ -51,4 +51,4 @@ def test_highlight_script():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

@@ -17,13 +17,13 @@
 
 from typing import Dict, List
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen.ir import GlobalVar
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator.ir import GlobalVar
 
-from gsmDataGen.script import ir as I, tir as T, relax as R
+from gsm_data_generator.script import ir as I, tir as T, relax as R
 
-from gsmDataGen.ir.analysis import collect_call_map
+from gsm_data_generator.ir.analysis import collect_call_map
 
 
 def _build_str_map(call_map: Dict[GlobalVar, List[GlobalVar]]) -> Dict[str, List[str]]:
@@ -94,4 +94,4 @@ def test_collect_tir_to_tir():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

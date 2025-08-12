@@ -22,8 +22,8 @@ from typing import Dict, List, Tuple, Union, Callable
 import pytest
 import _pytest
 
-import gsmDataGen
-from gsmDataGen.tir.schedule._type_checker import type_checked
+import gsm_data_generator
+from gsm_data_generator.tir.schedule._type_checker import type_checked
 
 
 def int_func(x: int) -> int:
@@ -188,4 +188,4 @@ def test_not_matches(type_annotation, case):
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

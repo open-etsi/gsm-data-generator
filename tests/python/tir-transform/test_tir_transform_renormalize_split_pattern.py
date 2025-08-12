@@ -15,14 +15,14 @@
 # specific language governing permissions and limitations
 # under the License.
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator.script import tir as T
 
 # fmt: off
 # pylint: disable=no-member,invalid-name,unused-variable,line-too-long,redefined-outer-name,redundant-keyword-arg
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Before:
     @T.prim_func
     def main(inputs: T.Buffer((1, 4, 4, 512), "float32"), weight: T.Buffer((4, 4, 512, 256), "float32"), conv2d_transpose_nhwc: T.Buffer((1, 8, 8, 256), "float32")) -> None:
@@ -53,7 +53,7 @@ class Before:
             conv2d_transpose_nhwc_flat[threadIdx_x // 8 * 4096 + ax1 * 2048 + blockIdx_x // 32 * 1024 + ax2 * 256 + blockIdx_x % 32 * 8 + threadIdx_x % 8] = conv2d_transpose_nhwc_local[ax1 * 4 + ax2]
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class After:
     @T.prim_func
     def main(inputs: T.Buffer((1, 4, 4, 512), "float32"), weight: T.Buffer((4, 4, 512, 256), "float32"), conv2d_transpose_nhwc: T.Buffer((1, 8, 8, 256), "float32")) -> None:
@@ -84,7 +84,7 @@ class After:
             conv2d_transpose_nhwc_flat[threadIdx_x // 8 * 4096 + ax1 * 2048 + blockIdx_x // 32 * 1024 + ax2 * 256 + blockIdx_x % 32 * 8 + threadIdx_x % 8] = conv2d_transpose_nhwc_local[ax1 * 4 + ax2]
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class After_simplified:
     @T.prim_func
     def main(inputs: T.Buffer((1, 4, 4, 512), "float32"), weight: T.Buffer((4, 4, 512, 256), "float32"), conv2d_transpose_nhwc: T.Buffer((1, 8, 8, 256), "float32")) -> None:
@@ -119,10 +119,10 @@ class After_simplified:
 
 
 def test_renormalize_split_pattern():
-    after = gsmDataGen.tir.transform.RenormalizeSplitPattern()(Before)
-    gsmDataGen.ir.assert_structural_equal(after, After)
-    after = gsmDataGen.tir.transform.Simplify()(after)
-    gsmDataGen.ir.assert_structural_equal(after, After_simplified)
+    after = gsm_data_generator.tir.transform.RenormalizeSplitPattern()(Before)
+    gsm_data_generator.ir.assert_structural_equal(after, After)
+    after = gsm_data_generator.tir.transform.Simplify()(after)
+    gsm_data_generator.ir.assert_structural_equal(after, After_simplified)
 
 
 @T.prim_func
@@ -145,7 +145,7 @@ def impossible_inequality(n: T.int32):
             T.evaluate(0)
 
 
-integer_condition = gsmDataGen.testing.parameter(
+integer_condition = gsm_data_generator.testing.parameter(
     impossible_equality,
     impossible_inequality,
 )
@@ -168,12 +168,12 @@ def test_analyze_inside_integer_conditional(integer_condition):
     # exception, as it rewrites the integer conditionals first.  These
     # tests are written using RenormalizeSplitPattern as it is the
     # first case identified.
-    transform = gsmDataGen.tir.transform.RenormalizeSplitPattern()
+    transform = gsm_data_generator.tir.transform.RenormalizeSplitPattern()
 
     # Issue would result in an error through while applying the transformation.
-    mod = gsmDataGen.IRModule.from_expr(integer_condition)
+    mod = gsm_data_generator.IRModule.from_expr(integer_condition)
     transform(mod)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

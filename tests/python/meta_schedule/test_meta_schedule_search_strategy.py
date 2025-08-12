@@ -19,20 +19,20 @@
 from typing import List
 
 import pytest
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import meta_schedule as ms
-from gsmDataGen.meta_schedule.utils import derived_object
-from gsmDataGen.meta_schedule.testing.dummy_object import DummyMutator
-from gsmDataGen.script import tir as T
-from gsmDataGen.tir.schedule import Schedule, Trace
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import meta_schedule as ms
+from gsm_data_generator.meta_schedule.utils import derived_object
+from gsm_data_generator.meta_schedule.testing.dummy_object import DummyMutator
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.tir.schedule import Schedule, Trace
 
 MATMUL_M = 32
 
 # pylint: disable=missing-class-docstring,invalid-name,no-member,line-too-long,too-many-nested-blocks,no-self-argument, unbalanced-tuple-unpacking
 # fmt: off
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Matmul:
     @T.prim_func
     def main(a: T.handle, b: T.handle, c: T.handle) -> None: # type: ignore
@@ -153,7 +153,7 @@ def test_meta_schedule_evolutionary_search():  # pylint: disable = invalid-name
             genetic_max_fail_count=10,
             eps_greedy=0.9,
         ),
-        target=gsmDataGen.target.Target("llvm"),
+        target=gsm_data_generator.target.Target("llvm"),
         num_threads=1,  # because we are using a mutator from the python side
     )
     strategy = context.search_strategy
@@ -218,7 +218,7 @@ def test_meta_schedule_evolutionary_search_early_stop():  # pylint: disable = in
                 DummyMutator(): 1.0,
             },
         ),
-        target=gsmDataGen.target.Target("llvm"),
+        target=gsm_data_generator.target.Target("llvm"),
         num_threads=1,
     )
     strategy = context.search_strategy
@@ -291,7 +291,7 @@ def test_meta_schedule_evolutionary_search_fail_init_population():  # pylint: di
             genetic_max_fail_count=10,
             eps_greedy=0.9,
         ),
-        target=gsmDataGen.target.Target("llvm"),
+        target=gsm_data_generator.target.Target("llvm"),
         num_threads=1,  # because we are using a mutator from the python side
     )
     strategy = context.search_strategy

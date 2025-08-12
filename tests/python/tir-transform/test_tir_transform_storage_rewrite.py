@@ -18,17 +18,17 @@ import sys
 
 import pytest
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import te
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import te
+from gsm_data_generator.script import tir as T
 
 
 def register_mem(scope_tb, max_bits):
     # Register mem
-    @gsmDataGen.register_func("tvm.info.mem.%s" % scope_tb)
+    @gsm_data_generator.register_func("tvm.info.mem.%s" % scope_tb)
     def mem_info_inp_buffer():
-        return gsmDataGen.ir.make_node(
+        return gsm_data_generator.ir.make_node(
             "target.MemoryInfo",
             unit_bits=16,
             max_simd_bits=32,
@@ -43,7 +43,7 @@ def test_alloc_seq():
 
     register_mem(scope_tb, max_bits)
 
-    ib = gsmDataGen.tir.ir_builder.create()
+    ib = gsm_data_generator.tir.ir_builder.create()
     n = te.var("n")
     with ib.for_range(0, n, name="i") as i:
         with ib.for_range(0, 10, name="j") as j:
@@ -55,42 +55,42 @@ def test_alloc_seq():
 
     body = ib.get()
 
-    mod = gsmDataGen.IRModule.from_expr(gsmDataGen.tir.PrimFunc([n], body))
-    body = gsmDataGen.tir.transform.StorageRewrite()(mod)["main"].body
+    mod = gsm_data_generator.IRModule.from_expr(gsm_data_generator.tir.PrimFunc([n], body))
+    body = gsm_data_generator.tir.transform.StorageRewrite()(mod)["main"].body
 
     num_alloc = [0]
 
     def verify(n):
-        if isinstance(n, gsmDataGen.tir.Allocate):
+        if isinstance(n, gsm_data_generator.tir.Allocate):
             num_alloc[0] += 1
             assert n.extents[0].value == 200
 
-    gsmDataGen.tir.stmt_functor.post_order_visit(body, verify)
+    gsm_data_generator.tir.stmt_functor.post_order_visit(body, verify)
     assert num_alloc[0] == 1
 
 
 def test_alloc_different_dtypes():
     def stmt_generater(dtype_list, length):
-        ib = gsmDataGen.tir.ir_builder.create()
+        ib = gsm_data_generator.tir.ir_builder.create()
         base_dtype = dtype_list[0]
         global_a = te.placeholder((length,), name="global_a", dtype=base_dtype)
         assert len(dtype_list) == 4
         with ib.for_range(0, length, name="j") as j:
             dtype = dtype_list[0]
             A = ib.allocate(dtype, length, name="A", scope="local.L0A")
-            A[j] = gsmDataGen.tir.const(1, dtype=dtype)
+            A[j] = gsm_data_generator.tir.const(1, dtype=dtype)
         with ib.for_range(0, length, name="j") as j:
             dtype = dtype_list[1]
             B = ib.allocate(dtype, length, name="B", scope="local.L0A")
-            B[j] = gsmDataGen.tir.const(1, dtype=dtype)
+            B[j] = gsm_data_generator.tir.const(1, dtype=dtype)
         with ib.for_range(0, length, name="j") as j:
             dtype = dtype_list[2]
             C = ib.allocate(dtype, length, name="C", scope="local.L0A")
-            C[j] = gsmDataGen.tir.const(1, dtype=dtype)
+            C[j] = gsm_data_generator.tir.const(1, dtype=dtype)
         with ib.for_range(0, length, name="j") as j:
             dtype = dtype_list[3]
             D = ib.allocate(dtype, length, name="D", scope="local.L0A")
-            D[j] = gsmDataGen.tir.const(1, dtype=dtype)
+            D[j] = gsm_data_generator.tir.const(1, dtype=dtype)
         with ib.for_range(0, length, name="j") as j:
             dtype = "int8"
             E = ib.allocate(dtype, length, name="E", scope="local.L0A")
@@ -112,16 +112,16 @@ def test_alloc_different_dtypes():
 
     def dtype_test(dtype_list, length):
         def verify(n):
-            if isinstance(n, gsmDataGen.tir.Allocate):
+            if isinstance(n, gsm_data_generator.tir.Allocate):
                 assert n.extents[0].value == offset
 
         body = stmt_generater(dtype_list, length)
         offset = offset_generater(dtype_list, length)
 
-        mod = gsmDataGen.IRModule.from_expr(gsmDataGen.tir.PrimFunc([], body))
-        body = gsmDataGen.tir.transform.StorageRewrite()(mod)["main"].body
+        mod = gsm_data_generator.IRModule.from_expr(gsm_data_generator.tir.PrimFunc([], body))
+        body = gsm_data_generator.tir.transform.StorageRewrite()(mod)["main"].body
 
-        gsmDataGen.tir.stmt_functor.post_order_visit(body, verify)
+        gsm_data_generator.tir.stmt_functor.post_order_visit(body, verify)
 
     length = 1024
     dtype_list = ["float16", "int32", "uint16", "int8"]
@@ -174,24 +174,24 @@ def test_address_of():
             )
 
     def verify(n):
-        if isinstance(n, gsmDataGen.tir.Allocate):
+        if isinstance(n, gsm_data_generator.tir.Allocate):
             total_alloc[0] += n.extents[0].value
 
     total_alloc = [0]
-    mod = gsmDataGen.IRModule.from_expr(before.with_attr("global_symbol", "main"))
+    mod = gsm_data_generator.IRModule.from_expr(before.with_attr("global_symbol", "main"))
     mod.show()
-    gsmDataGen.tir.stmt_functor.post_order_visit(mod["main"].body, verify)
+    gsm_data_generator.tir.stmt_functor.post_order_visit(mod["main"].body, verify)
     assert total_alloc[0] == 24
 
     total_alloc[0] = 0
-    mod = gsmDataGen.tir.transform.StorageRewrite()(mod)
+    mod = gsm_data_generator.tir.transform.StorageRewrite()(mod)
     mod.show()
-    gsmDataGen.tir.stmt_functor.post_order_visit(mod["main"].body, verify)
+    gsm_data_generator.tir.stmt_functor.post_order_visit(mod["main"].body, verify)
     assert total_alloc[0] == 16
 
 
 def test_parallel_alloc():
-    ib = gsmDataGen.tir.ir_builder.create()
+    ib = gsm_data_generator.tir.ir_builder.create()
     n = te.var("n")
     with ib.for_range(0, n, name="i", kind="parallel") as i:
         with ib.for_range(0, 10, name="j") as j:
@@ -199,16 +199,16 @@ def test_parallel_alloc():
             A[j] = A[j] + 2
 
     body = ib.get()
-    mod = gsmDataGen.IRModule.from_expr(gsmDataGen.tir.PrimFunc([n], body))
-    body = gsmDataGen.tir.transform.StorageRewrite()(mod)["main"]
+    mod = gsm_data_generator.IRModule.from_expr(gsm_data_generator.tir.PrimFunc([n], body))
+    body = gsm_data_generator.tir.transform.StorageRewrite()(mod)["main"]
 
-    assert isinstance(body.body.body, gsmDataGen.tir.Allocate)
+    assert isinstance(body.body.body, gsm_data_generator.tir.Allocate)
 
-    ib = gsmDataGen.tir.ir_builder.create()
+    ib = gsm_data_generator.tir.ir_builder.create()
     n = te.var("n")
     with ib.for_range(0, n, name="t") as i:
         ib.scope_attr(
-            gsmDataGen.tir.const(1, "int32"), "pragma_scope", gsmDataGen.tir.StringImm("parallel_launch_point")
+            gsm_data_generator.tir.const(1, "int32"), "pragma_scope", gsm_data_generator.tir.StringImm("parallel_launch_point")
         )
         with ib.for_range(0, n, name="i", kind="parallel") as i:
             with ib.for_range(0, 10, name="j") as j:
@@ -216,15 +216,15 @@ def test_parallel_alloc():
                 A[j] = A[j] + 2
     body = ib.get()
 
-    mod = gsmDataGen.IRModule.from_expr(gsmDataGen.tir.PrimFunc([n], body))
-    body = gsmDataGen.tir.transform.StorageRewrite()(mod)["main"]
+    mod = gsm_data_generator.IRModule.from_expr(gsm_data_generator.tir.PrimFunc([n], body))
+    body = gsm_data_generator.tir.transform.StorageRewrite()(mod)["main"]
 
-    assert isinstance(body.body.body.body.body, gsmDataGen.tir.Allocate)
+    assert isinstance(body.body.body.body.body, gsm_data_generator.tir.Allocate)
 
 
 def test_while_alloc():
     def get_mod(kind="serial"):
-        ib = gsmDataGen.tir.ir_builder.create()
+        ib = gsm_data_generator.tir.ir_builder.create()
         n = te.var("n")
         with ib.for_range(0, n, name="i", kind=kind) as i:
             j = ib.allocate("int32", 1, name="j", scope="global")
@@ -235,7 +235,7 @@ def test_while_alloc():
                 j[0] += j[0] + 1
 
         body = ib.get()
-        return gsmDataGen.IRModule.from_expr(gsmDataGen.tir.PrimFunc([n], body))
+        return gsm_data_generator.IRModule.from_expr(gsm_data_generator.tir.PrimFunc([n], body))
 
     mod = get_mod(kind="parallel")
     # parallel (i, 0, n) {
@@ -248,7 +248,7 @@ def test_while_alloc():
     #     j[0] = (j[0] + (j[0] + 1))
     #   }
     # }
-    body = gsmDataGen.tir.transform.StorageRewrite()(mod)["main"]
+    body = gsm_data_generator.tir.transform.StorageRewrite()(mod)["main"]
     # parallel (i, 0, n) {
     #   allocate j[int32 * 1]
     #   allocate A[float32 * n]
@@ -258,8 +258,8 @@ def test_while_alloc():
     #     j[0] = (j[0] + (j[0] + 1))
     #   }
     # }
-    assert isinstance(body.body.body, gsmDataGen.tir.Allocate)  # j
-    assert isinstance(body.body.body.body, gsmDataGen.tir.Allocate)  # A
+    assert isinstance(body.body.body, gsm_data_generator.tir.Allocate)  # j
+    assert isinstance(body.body.body.body, gsm_data_generator.tir.Allocate)  # A
 
     mod = get_mod(kind="serial")
     # for (i, 0, n) {
@@ -272,7 +272,7 @@ def test_while_alloc():
     #     j[0] = (j[0] + (j[0] + 1))
     #   }
     # }
-    body = gsmDataGen.tir.transform.StorageRewrite()(mod)["main"]
+    body = gsm_data_generator.tir.transform.StorageRewrite()(mod)["main"]
     # allocate j[int32 * 1]
     # allocate A[float32 * n]
     # for (i, 0, n) {
@@ -282,12 +282,12 @@ def test_while_alloc():
     #     j[0] = (j[0] + (j[0] + 1))
     #   }
     # }
-    assert isinstance(body.body, gsmDataGen.tir.Allocate)  # j
-    assert isinstance(body.body.body, gsmDataGen.tir.Allocate)  # A
+    assert isinstance(body.body, gsm_data_generator.tir.Allocate)  # j
+    assert isinstance(body.body.body, gsm_data_generator.tir.Allocate)  # A
 
 
 def test_alloc_seq_type():
-    ib = gsmDataGen.tir.ir_builder.create()
+    ib = gsm_data_generator.tir.ir_builder.create()
     n = te.var("n")
     with ib.for_range(0, n, name="i") as i:
         with ib.for_range(0, 10, name="j") as j:
@@ -296,9 +296,9 @@ def test_alloc_seq_type():
             A[j] = 1.2
             A1[j] = 1.3
             B = ib.allocate("int16", 200, name="B", scope="local.L0A")
-            B[j] = gsmDataGen.tir.const(1, "int16")
+            B[j] = gsm_data_generator.tir.const(1, "int16")
             C = ib.allocate("int16", 200, name="C", scope="local.L0A")
-            C[j] = gsmDataGen.tir.const(1, "int16")
+            C[j] = gsm_data_generator.tir.const(1, "int16")
             D = ib.allocate("int16", 200, name="D", scope="local.L0A")
             D[j] = B[j] + C[j]
             A2 = ib.allocate("float32", 200, name="A2", scope="local.L0A")
@@ -306,17 +306,17 @@ def test_alloc_seq_type():
 
     body = ib.get()
 
-    mod = gsmDataGen.IRModule.from_expr(gsmDataGen.tir.PrimFunc([n], body))
-    body = gsmDataGen.tir.transform.StorageRewrite()(mod)["main"].body
+    mod = gsm_data_generator.IRModule.from_expr(gsm_data_generator.tir.PrimFunc([n], body))
+    body = gsm_data_generator.tir.transform.StorageRewrite()(mod)["main"].body
 
     num_alloc = [0]
 
     def verify(n):
-        if isinstance(n, gsmDataGen.tir.Allocate):
+        if isinstance(n, gsm_data_generator.tir.Allocate):
             num_alloc[0] += 1
             assert n.extents[0].value == 500
 
-    gsmDataGen.tir.stmt_functor.post_order_visit(body, verify)
+    gsm_data_generator.tir.stmt_functor.post_order_visit(body, verify)
     assert num_alloc[0] == 1
 
 
@@ -326,7 +326,7 @@ def test_alloc_seq_type2():
 
     register_mem(scope_tb, max_bits)
 
-    ib = gsmDataGen.tir.ir_builder.create()
+    ib = gsm_data_generator.tir.ir_builder.create()
     n = te.var("n")
     with ib.for_range(0, n, name="i") as i:
         with ib.for_range(0, 10, name="j") as j:
@@ -334,58 +334,58 @@ def test_alloc_seq_type2():
             A[j] = 1.2
         with ib.for_range(0, 20, name="j") as j:
             B = ib.allocate("int16", 400, name="B", scope=scope_tb)
-            B[j] = gsmDataGen.tir.const(1, "int16")
+            B[j] = gsm_data_generator.tir.const(1, "int16")
         with ib.for_range(0, 10, name="j") as j:
             C = ib.allocate("float32", 200, name="C", scope=scope_tb)
             C[j] = 1.2
 
     body = ib.get()
 
-    mod = gsmDataGen.IRModule.from_expr(gsmDataGen.tir.PrimFunc([n], body))
-    body = gsmDataGen.tir.transform.StorageRewrite()(mod)["main"].body
+    mod = gsm_data_generator.IRModule.from_expr(gsm_data_generator.tir.PrimFunc([n], body))
+    body = gsm_data_generator.tir.transform.StorageRewrite()(mod)["main"].body
 
     num_alloc = [0]
 
     def verify(n):
-        if isinstance(n, gsmDataGen.tir.Allocate):
+        if isinstance(n, gsm_data_generator.tir.Allocate):
             num_alloc[0] += 1
             assert n.extents[0].value == 200
 
-    gsmDataGen.tir.stmt_functor.post_order_visit(body, verify)
+    gsm_data_generator.tir.stmt_functor.post_order_visit(body, verify)
     assert num_alloc[0] == 1
 
 
 def test_reuse_small_buffer():
-    ib = gsmDataGen.tir.ir_builder.create()
+    ib = gsm_data_generator.tir.ir_builder.create()
     n = te.var("n")
     with ib.for_range(0, n, name="i") as i:
         with ib.for_range(0, 10, name="j") as j:
             A = ib.allocate("int16", 200, name="A", scope="local.L0A")
-            A[j] = gsmDataGen.tir.const(1, "int16")
+            A[j] = gsm_data_generator.tir.const(1, "int16")
             B = ib.allocate("int16", 200, name="B", scope="local.L0A")
-            B[j] = gsmDataGen.tir.const(1, "int16")
+            B[j] = gsm_data_generator.tir.const(1, "int16")
             B1 = ib.allocate("int16", 200, name="B1", scope="local.L0A")
             B1[j] = A[j] + B[j]
             C = ib.allocate("int16", 400, name="C", scope="local.L0A")
-            C[j] = gsmDataGen.tir.const(1, "int16")
+            C[j] = gsm_data_generator.tir.const(1, "int16")
             D = ib.allocate("int16", 400, name="D", scope="local.L0A")
-            D[j] = gsmDataGen.tir.const(1, "int16")
+            D[j] = gsm_data_generator.tir.const(1, "int16")
             E = ib.allocate("int16", 400, name="E", scope="local.L0A")
             E[j] = C[j]
 
     body = ib.get()
 
-    mod = gsmDataGen.IRModule.from_expr(gsmDataGen.tir.PrimFunc([n], body))
-    body = gsmDataGen.tir.transform.StorageRewrite()(mod)["main"].body
+    mod = gsm_data_generator.IRModule.from_expr(gsm_data_generator.tir.PrimFunc([n], body))
+    body = gsm_data_generator.tir.transform.StorageRewrite()(mod)["main"].body
 
     num_alloc = [0]
 
     def verify(n):
-        if isinstance(n, gsmDataGen.tir.Allocate):
+        if isinstance(n, gsm_data_generator.tir.Allocate):
             num_alloc[0] += 1
             assert n.extents[0].value == 800
 
-    gsmDataGen.tir.stmt_functor.post_order_visit(body, verify)
+    gsm_data_generator.tir.stmt_functor.post_order_visit(body, verify)
     assert num_alloc[0] == 1
 
 
@@ -408,14 +408,14 @@ def test_access_in_let_value():
             x: T.float32 = T.exp(B[0], dtype="float32")
             A[i] = (x + 1.0) / (x - 1.0)
 
-    mod = gsmDataGen.tir.transform.StorageRewrite()(
-        gsmDataGen.IRModule.from_expr(func.with_attr("global_symbol", "main"))
+    mod = gsm_data_generator.tir.transform.StorageRewrite()(
+        gsm_data_generator.IRModule.from_expr(func.with_attr("global_symbol", "main"))
     )
-    gsmDataGen.ir.assert_structural_equal(mod["main"], func_rewritten.with_attr("global_symbol", "main"))
+    gsm_data_generator.ir.assert_structural_equal(mod["main"], func_rewritten.with_attr("global_symbol", "main"))
 
 
-class BaseCompare(gsmDataGen.testing.CompareBeforeAfter):
-    transform = gsmDataGen.tir.transform.StorageRewrite()
+class BaseCompare(gsm_data_generator.testing.CompareBeforeAfter):
+    transform = gsm_data_generator.tir.transform.StorageRewrite()
 
 
 class TestLetBufferRewrite(BaseCompare):
@@ -615,4 +615,4 @@ class TestNoOrphanedDeclBuffer(BaseCompare):
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

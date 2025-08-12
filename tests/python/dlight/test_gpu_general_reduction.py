@@ -15,13 +15,13 @@
 # specific language governing permissions and limitations
 # under the License.
 # pylint: disable=missing-docstring
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import dlight as dl
-from gsmDataGen.ir import IRModule, assert_structural_equal
-from gsmDataGen.script import ir as I
-from gsmDataGen.script import tir as T
-from gsmDataGen.target import Target
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import dlight as dl
+from gsm_data_generator.ir import IRModule, assert_structural_equal
+from gsm_data_generator.script import ir as I
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.target import Target
 
 
 def _check(mod_before: IRModule, mod_after: IRModule):
@@ -694,4 +694,4 @@ def test_logsumexp():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

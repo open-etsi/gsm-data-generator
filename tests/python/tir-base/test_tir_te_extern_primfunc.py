@@ -19,10 +19,10 @@ import sys
 import pytest
 import numpy as np
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import te
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import te
+from gsm_data_generator.script import tir as T
 
 
 # TODO(csullivan): Additional tests cases needed:
@@ -48,13 +48,13 @@ def func_1(A: T.Buffer((16,), "float32"), C: T.Buffer((1,), "float32")):
 def verify_func_1(module):
     a_np = np.random.randint(low=-128, high=127, size=(16,)).astype(np.float32)
     c_np = np.zeros((1,), dtype=np.float32)
-    a = gsmDataGen.nd.array(a_np, device=gsmDataGen.cpu(0))
-    c = gsmDataGen.nd.array(c_np, device=gsmDataGen.cpu(0))
+    a = gsm_data_generator.nd.array(a_np, device=gsm_data_generator.cpu(0))
+    c = gsm_data_generator.nd.array(c_np, device=gsm_data_generator.cpu(0))
 
     module(a, c)
-    gsmDataGen.testing.assert_allclose(c_np + np.sum(3 * a_np + 1), c.numpy(), rtol=1e-4)
+    gsm_data_generator.testing.assert_allclose(c_np + np.sum(3 * a_np + 1), c.numpy(), rtol=1e-4)
     # also test in place update
-    gsmDataGen.testing.assert_allclose(a_np * 2 + 1, a.numpy(), rtol=1e-4)
+    gsm_data_generator.testing.assert_allclose(a_np * 2 + 1, a.numpy(), rtol=1e-4)
 
 
 @T.prim_func
@@ -78,13 +78,13 @@ def verify_func_2(module):
     a_np = np.random.randint(low=-128, high=127, size=(16,)).astype(np.float32)
     d_np = np.random.randint(low=-128, high=127, size=(2,)).astype(np.float32)
     c_np = np.zeros((1,), dtype=np.float32)
-    a = gsmDataGen.nd.array(a_np, device=gsmDataGen.cpu(0))
-    d = gsmDataGen.nd.array(d_np, device=gsmDataGen.cpu(0))
-    c = gsmDataGen.nd.array(c_np, device=gsmDataGen.cpu(0))
+    a = gsm_data_generator.nd.array(a_np, device=gsm_data_generator.cpu(0))
+    d = gsm_data_generator.nd.array(d_np, device=gsm_data_generator.cpu(0))
+    c = gsm_data_generator.nd.array(c_np, device=gsm_data_generator.cpu(0))
 
     module(c, a, d)
-    gsmDataGen.testing.assert_allclose(c_np + np.sum(3 * a_np + 1 + d_np[0]), c.numpy(), rtol=1e-4)
-    gsmDataGen.testing.assert_allclose(a_np * 2 + 1 + d_np[1], a.numpy(), rtol=1e-4)
+    gsm_data_generator.testing.assert_allclose(c_np + np.sum(3 * a_np + 1 + d_np[0]), c.numpy(), rtol=1e-4)
+    gsm_data_generator.testing.assert_allclose(a_np * 2 + 1 + d_np[1], a.numpy(), rtol=1e-4)
 
 
 @T.prim_func
@@ -116,17 +116,17 @@ def verify_func_3(module):
     c_np = np.zeros((1,), dtype=np.float32)
     e_np = np.zeros((16,), dtype=np.float32)
     f_np = np.zeros((16,), dtype=np.float32)
-    a = gsmDataGen.nd.array(a_np, device=gsmDataGen.cpu(0))
-    d = gsmDataGen.nd.array(d_np, device=gsmDataGen.cpu(0))
-    c = gsmDataGen.nd.array(c_np, device=gsmDataGen.cpu(0))
-    e = gsmDataGen.nd.array(e_np, device=gsmDataGen.cpu(0))
-    f = gsmDataGen.nd.array(f_np, device=gsmDataGen.cpu(0))
+    a = gsm_data_generator.nd.array(a_np, device=gsm_data_generator.cpu(0))
+    d = gsm_data_generator.nd.array(d_np, device=gsm_data_generator.cpu(0))
+    c = gsm_data_generator.nd.array(c_np, device=gsm_data_generator.cpu(0))
+    e = gsm_data_generator.nd.array(e_np, device=gsm_data_generator.cpu(0))
+    f = gsm_data_generator.nd.array(f_np, device=gsm_data_generator.cpu(0))
 
     module(c, a, d, e, f)
-    gsmDataGen.testing.assert_allclose(c_np + np.sum(3 * a_np + 1 + d_np[0]), c.numpy(), rtol=1e-4)
-    gsmDataGen.testing.assert_allclose(a_np * 2 + 1 + d_np[1], a.numpy(), rtol=1e-4)
-    gsmDataGen.testing.assert_allclose(a_np, e.numpy(), rtol=1e-4)
-    gsmDataGen.testing.assert_allclose(a_np + 1, f.numpy(), rtol=1e-4)
+    gsm_data_generator.testing.assert_allclose(c_np + np.sum(3 * a_np + 1 + d_np[0]), c.numpy(), rtol=1e-4)
+    gsm_data_generator.testing.assert_allclose(a_np * 2 + 1 + d_np[1], a.numpy(), rtol=1e-4)
+    gsm_data_generator.testing.assert_allclose(a_np, e.numpy(), rtol=1e-4)
+    gsm_data_generator.testing.assert_allclose(a_np + 1, f.numpy(), rtol=1e-4)
 
 
 @T.prim_func
@@ -158,21 +158,21 @@ def verify_func_4(module):
     c_np = np.zeros((1,), dtype=np.float32)
     e_np = np.zeros((16,), dtype=np.float32)
     f_np = np.zeros((16,), dtype=np.float32)
-    a = gsmDataGen.nd.array(a_np, device=gsmDataGen.cpu(0))
-    d = gsmDataGen.nd.array(d_np, device=gsmDataGen.cpu(0))
-    c = gsmDataGen.nd.array(c_np, device=gsmDataGen.cpu(0))
-    e = gsmDataGen.nd.array(e_np, device=gsmDataGen.cpu(0))
-    f = gsmDataGen.nd.array(f_np, device=gsmDataGen.cpu(0))
+    a = gsm_data_generator.nd.array(a_np, device=gsm_data_generator.cpu(0))
+    d = gsm_data_generator.nd.array(d_np, device=gsm_data_generator.cpu(0))
+    c = gsm_data_generator.nd.array(c_np, device=gsm_data_generator.cpu(0))
+    e = gsm_data_generator.nd.array(e_np, device=gsm_data_generator.cpu(0))
+    f = gsm_data_generator.nd.array(f_np, device=gsm_data_generator.cpu(0))
 
     module(c, a, f, d, e)
-    gsmDataGen.testing.assert_allclose(c_np + np.sum(3 * a_np + 1 + d_np[0]), c.numpy(), rtol=1e-4)
-    gsmDataGen.testing.assert_allclose(a_np * 2 + 1 + d_np[1], a.numpy(), rtol=1e-4)
-    gsmDataGen.testing.assert_allclose(a_np, e.numpy(), rtol=1e-4)
-    gsmDataGen.testing.assert_allclose(a_np + 1, f.numpy(), rtol=1e-4)
+    gsm_data_generator.testing.assert_allclose(c_np + np.sum(3 * a_np + 1 + d_np[0]), c.numpy(), rtol=1e-4)
+    gsm_data_generator.testing.assert_allclose(a_np * 2 + 1 + d_np[1], a.numpy(), rtol=1e-4)
+    gsm_data_generator.testing.assert_allclose(a_np, e.numpy(), rtol=1e-4)
+    gsm_data_generator.testing.assert_allclose(a_np + 1, f.numpy(), rtol=1e-4)
 
 
 class TestPrimFuncs:
-    func, params, verify = gsmDataGen.testing.parameters(
+    func, params, verify = gsm_data_generator.testing.parameters(
         [func_1, ("A"), verify_func_1],
         [func_2, ("C", "D"), verify_func_2],
         [func_3, ("C", "A", "D", "E"), verify_func_3],
@@ -180,12 +180,12 @@ class TestPrimFuncs:
     )
 
     def test_primfunc_call(self, func, verify):
-        target = gsmDataGen.target.Target("llvm")
-        func = gsmDataGen.compile(func, target=target)
+        target = gsm_data_generator.target.Target("llvm")
+        func = gsm_data_generator.compile(func, target=target)
         verify(func)
 
     def test_te_extern_call(self, func, params, verify):
-        ir_mod = gsmDataGen.IRModule.from_expr(func.with_attr("global_symbol", "main"))
+        ir_mod = gsm_data_generator.IRModule.from_expr(func.with_attr("global_symbol", "main"))
         prim_func = ir_mod["main"]
 
         buf_name_map = {buf.name: buf for buf in func.buffer_map.values()}
@@ -193,8 +193,8 @@ class TestPrimFuncs:
         output = te.extern_primfunc(input_tensors, prim_func)
         rt_prim_func = te.create_prim_func(tensors_from_extern_op(output, prim_func))
 
-        target = gsmDataGen.target.Target("llvm")
-        func = gsmDataGen.compile(rt_prim_func, target=target)
+        target = gsm_data_generator.target.Target("llvm")
+        func = gsm_data_generator.compile(rt_prim_func, target=target)
         verify(func)
 
 
@@ -221,4 +221,4 @@ def tensors_from_extern_op(extern, func):
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

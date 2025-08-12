@@ -16,11 +16,11 @@
 # under the License.
 # pylint: disable=missing-function-docstring,missing-module-docstring
 import pytest
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import tir
-from gsmDataGen.script import tir as T
-from gsmDataGen.tir.schedule.testing import (
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import tir
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.tir.schedule.testing import (
     assert_structural_equal_ignore_global_symbol,
     verify_trace_roundtrip,
 )
@@ -90,8 +90,8 @@ def element_wise_subregion_match_set_scope(A: T.Buffer((128, 128), "float32"), C
 
 # pylint: enable=no-member,invalid-name,unused-variable,unexpected-keyword-arg
 
-use_block_name = gsmDataGen.testing.parameter(by_dict={"block_obj": False, "block_name": True})
-use_buffer_name = gsmDataGen.testing.parameter(by_dict={"buffer_index": False, "buffer_name": True})
+use_block_name = gsm_data_generator.testing.parameter(by_dict={"block_obj": False, "block_name": True})
+use_buffer_name = gsm_data_generator.testing.parameter(by_dict={"buffer_index": False, "buffer_name": True})
 
 def test_set_scope(use_block_name, use_buffer_name):
     func = element_wise
@@ -104,23 +104,23 @@ def test_set_scope(use_block_name, use_buffer_name):
 def test_set_scope_fail_on_output_buffer(use_block_name, use_buffer_name):
     func = element_wise
     s = tir.Schedule(func, debug_mask='all')
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         s.set_scope('C' if use_block_name else s.get_block("C"), 'C' if use_buffer_name else 0, "shared")
 
 
 def test_set_scope_fail_on_index_out_of_bound():
     func = element_wise
     s = tir.Schedule(func, debug_mask='all')
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         s.set_scope(s.get_block("B"), 1, "shared")
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         s.set_scope(s.get_block("B"), -1, "shared")
 
 
 def test_set_scope_fail_on_invalid_scope():
     func = element_wise
     s = tir.Schedule(func, debug_mask='all')
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         s.set_scope(s.get_block("B"), 0, "test_scope")
 
 
@@ -133,4 +133,4 @@ def test_set_scope_subregion():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

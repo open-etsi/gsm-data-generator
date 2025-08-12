@@ -17,22 +17,22 @@
 
 import pytest
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import relax
-from gsmDataGen.script import ir as I
-from gsmDataGen.script import relax as R
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import relax
+from gsm_data_generator.script import ir as I
+from gsm_data_generator.script import relax as R
+from gsm_data_generator.script import tir as T
 
 
-class BaseCompare(gsmDataGen.testing.CompareBeforeAfter):
+class BaseCompare(gsm_data_generator.testing.CompareBeforeAfter):
     transform = relax.transform.RewriteCUDAGraph()
 
 
 @pytest.fixture(autouse=True)
 def enable_cuda_graph():
     """Enable cuda graph transform for all tests in this file"""
-    with gsmDataGen.transform.PassContext(config={"relax.backend.use_cuda_graph": True}):
+    with gsm_data_generator.transform.PassContext(config={"relax.backend.use_cuda_graph": True}):
         yield
 
 
@@ -145,7 +145,7 @@ def test_rewrite_cuda_graph():
     # fmt: on
 
     after = relax.transform.RewriteCUDAGraph()(Before)
-    gsmDataGen.ir.assert_structural_equal(after, Expected)
+    gsm_data_generator.ir.assert_structural_equal(after, Expected)
 
 
 def test_tuple():
@@ -253,7 +253,7 @@ def test_tuple():
     # fmt: on
 
     after = relax.transform.RewriteCUDAGraph()(Before)
-    gsmDataGen.ir.assert_structural_equal(after, Expected)
+    gsm_data_generator.ir.assert_structural_equal(after, Expected)
 
 
 def test_vm_builtin():
@@ -351,11 +351,11 @@ def test_vm_builtin():
     # fmt: on
 
     after = relax.transform.RewriteCUDAGraph()(Before)
-    gsmDataGen.ir.assert_structural_equal(after, Expected)
+    gsm_data_generator.ir.assert_structural_equal(after, Expected)
 
 
 def test_capture_fixed_inputs():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Conv2dx3:
         @R.function
         def main(
@@ -660,7 +660,7 @@ def test_capture_fixed_inputs():
             _4: R.Tuple = R.memory.kill_storage(storage1)
             return gv_1
 
-    mod = gsmDataGen.transform.Sequential(
+    mod = gsm_data_generator.transform.Sequential(
         [
             relax.pipeline.get_pipeline(),
             relax.transform.LiftTransformParams(),
@@ -673,7 +673,7 @@ def test_capture_fixed_inputs():
 
     mod["main"] = mod["main"].with_attr({"num_input": 1})
     after = relax.transform.RewriteCUDAGraph()(mod)
-    gsmDataGen.ir.assert_structural_equal(after, after)
+    gsm_data_generator.ir.assert_structural_equal(after, after)
 
 
 class TestNullValue(BaseCompare):
@@ -697,13 +697,13 @@ def test_transform_is_no_op_when_disabled():
             alloc3 = R.memory.alloc_tensor(storage, 0, R.shape([8]), "float32")
             return R.tuple()
 
-    with gsmDataGen.transform.PassContext(config={"relax.backend.use_cuda_graph": True}):
+    with gsm_data_generator.transform.PassContext(config={"relax.backend.use_cuda_graph": True}):
         AfterWhenEnabled = relax.transform.RewriteCUDAGraph()(Before)
-    with gsmDataGen.transform.PassContext(config={"relax.backend.use_cuda_graph": False}):
+    with gsm_data_generator.transform.PassContext(config={"relax.backend.use_cuda_graph": False}):
         AfterWhenDisabled = relax.transform.RewriteCUDAGraph()(Before)
 
-    assert not gsmDataGen.ir.structural_equal(Before, AfterWhenEnabled)
-    gsmDataGen.ir.assert_structural_equal(Before, AfterWhenDisabled)
+    assert not gsm_data_generator.ir.structural_equal(Before, AfterWhenEnabled)
+    gsm_data_generator.ir.assert_structural_equal(Before, AfterWhenDisabled)
 
 
 def test_static_args():
@@ -754,7 +754,7 @@ def test_static_args():
             return R.tuple()
 
     mod = relax.transform.RewriteCUDAGraph()(Before)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_dynamic_capture():
@@ -872,7 +872,7 @@ def test_dynamic_capture():
             return alloc3
 
     mod = relax.transform.RewriteCUDAGraph()(Before)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 class TestMergeAllocFuncs(BaseCompare):
@@ -1177,4 +1177,4 @@ class TestStaticInputWithSymbolicShape(BaseCompare):
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

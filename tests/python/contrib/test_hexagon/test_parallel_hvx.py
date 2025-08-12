@@ -20,8 +20,8 @@ Test parallelizing HVX workloads and compare them to single thread examples.
 """
 import numpy as np
 
-import gsmDataGen
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+from gsm_data_generator.script import tir as T
 
 from .infrastructure import get_hexagon_target
 
@@ -144,16 +144,16 @@ def evaluate(hexagon_session, shape_dtypes, expected_output_producer, sch):
     """Evaluate schedule."""
     a_shape, a_dtype, b_shape, b_dtype, c_shape, c_dtype = shape_dtypes
 
-    func_tir = gsmDataGen.compile(sch.mod["main"], target=get_hexagon_target("v68"))
+    func_tir = gsm_data_generator.compile(sch.mod["main"], target=get_hexagon_target("v68"))
     module = hexagon_session.load_module(func_tir)
 
     a = np.random.randint(0, 16, a_shape, dtype=a_dtype)
     b = np.random.randint(0, 16, b_shape, dtype=b_dtype)
     c = np.zeros(c_shape, dtype=c_dtype)
 
-    a_hexagon = gsmDataGen.runtime.ndarray.array(a, device=hexagon_session.device)
-    b_hexagon = gsmDataGen.runtime.ndarray.array(b, device=hexagon_session.device)
-    c_hexagon = gsmDataGen.runtime.ndarray.array(c, device=hexagon_session.device)
+    a_hexagon = gsm_data_generator.runtime.ndarray.array(a, device=hexagon_session.device)
+    b_hexagon = gsm_data_generator.runtime.ndarray.array(b, device=hexagon_session.device)
+    c_hexagon = gsm_data_generator.runtime.ndarray.array(c, device=hexagon_session.device)
 
     # These are reduced for CI but number=100 and repeat=10 does a good job of removing noise.
     number = 1
@@ -163,7 +163,7 @@ def evaluate(hexagon_session, shape_dtypes, expected_output_producer, sch):
         "__tvm_main__", hexagon_session.device, number=number, repeat=repeat
     )
     runtime = timer(a_hexagon, b_hexagon, c_hexagon)
-    gsmDataGen.testing.assert_allclose(c_hexagon.numpy(), expected_output_producer(c_shape, a, b))
+    gsm_data_generator.testing.assert_allclose(c_hexagon.numpy(), expected_output_producer(c_shape, a, b))
 
     return round(runtime.mean * 1000, 6)
 
@@ -176,7 +176,7 @@ class TestMatMulVec:
         operator_producer,
         shape_dtypes_producer,
         expected_output_producer,
-    ) = gsmDataGen.testing.parameters(
+    ) = gsm_data_generator.testing.parameters(
         ("vrmpy", get_vrmpy_operator, get_vrmpy_shape_dtypes, vrmpy_expected_producer),
         ("vmpy", get_vmpy_operator, get_vmpy_vadd_shape_dtype, vmpy_expected_producer),
         ("vadd", get_vadd_operator, get_vmpy_vadd_shape_dtype, vadd_expected_producer),
@@ -185,10 +185,10 @@ class TestMatMulVec:
     # Experimentally best split factor but all multiples of 4 perform pretty well.
     # This is because there are 4 HVX untis available on the device and pipelining
     # works best with parallels of the number of available HVX.
-    split_factor = gsmDataGen.testing.parameter(4)
+    split_factor = gsm_data_generator.testing.parameter(4)
 
     # Removed most of these to speedup CI.
-    operation_count = gsmDataGen.testing.parameter(
+    operation_count = gsm_data_generator.testing.parameter(
         128,
         # 256,
         # 512,
@@ -201,7 +201,7 @@ class TestMatMulVec:
         # 16384,
     )
 
-    @gsmDataGen.testing.requires_hexagon
+    @gsm_data_generator.testing.requires_hexagon
     def test(
         self,
         hexagon_session,
@@ -214,12 +214,12 @@ class TestMatMulVec:
     ):
         """Test function handler."""
 
-        sch = gsmDataGen.tir.Schedule(operator_producer(operation_count))
+        sch = gsm_data_generator.tir.Schedule(operator_producer(operation_count))
         single_thread_runtime = evaluate(
             hexagon_session, shape_dtypes_producer(operation_count), expected_output_producer, sch
         )
 
-        sch = gsmDataGen.tir.Schedule(operator_producer(operation_count))
+        sch = gsm_data_generator.tir.Schedule(operator_producer(operation_count))
         block = sch.get_block("c_buffer")
         b = sch.get_loops(block)
         b_output, _ = sch.split(b[0], factors=[split_factor, None])
@@ -239,4 +239,4 @@ class TestMatMulVec:
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

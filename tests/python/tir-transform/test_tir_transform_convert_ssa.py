@@ -15,14 +15,14 @@
 # specific language governing permissions and limitations
 # under the License.
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import tir, ir
-from gsmDataGen.script import tir as T, ir as I
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import tir, ir
+from gsm_data_generator.script import tir as T, ir as I
 
 
-class BaseBeforeAfter(gsmDataGen.testing.CompareBeforeAfter):
-    transform = gsmDataGen.tir.transform.ConvertSSA()
+class BaseBeforeAfter(gsm_data_generator.testing.CompareBeforeAfter):
+    transform = gsm_data_generator.tir.transform.ConvertSSA()
 
 
 class TestReuseInSequentialLetStmt(BaseBeforeAfter):
@@ -103,7 +103,7 @@ class TestReusedVarAcrossModule(BaseBeforeAfter):
             with T.LetStmt(10) as var:
                 T.evaluate(var)
 
-        return gsmDataGen.IRModule(
+        return gsm_data_generator.IRModule(
             {
                 "func_a": func.with_attr("global_symbol", "func_a"),
                 "func_b": func.with_attr("global_symbol", "func_b"),
@@ -138,7 +138,7 @@ class TestReusedParameter(BaseBeforeAfter):
         def func(n: T.int32):
             T.evaluate(n)
 
-        return gsmDataGen.IRModule(
+        return gsm_data_generator.IRModule(
             {
                 "func_a": func.with_attr("global_symbol", "func_a"),
                 "func_b": func.with_attr("global_symbol", "func_b"),
@@ -168,7 +168,7 @@ class TestReusedBufferObj(BaseBeforeAfter):
             A = T.Buffer(shape=1, dtype="float32", data=a)
             T.evaluate(A[0])
 
-        return gsmDataGen.IRModule(
+        return gsm_data_generator.IRModule(
             {
                 "func_a": func.with_attr("global_symbol", "func_a"),
                 "func_b": func.with_attr("global_symbol", "func_b"),
@@ -199,7 +199,7 @@ class TestReusedBufferParameter(BaseBeforeAfter):
         def func(A: T.Buffer(1, "float32")):
             T.evaluate(A[0])
 
-        return gsmDataGen.IRModule(
+        return gsm_data_generator.IRModule(
             {
                 "func_a": func.with_attr("global_symbol", "func_a"),
                 "func_b": func.with_attr("global_symbol", "func_b"),
@@ -229,8 +229,8 @@ def test_no_change_if_already_ssa():
         def func(A: T.Buffer(1, "float32")):
             T.evaluate(A[0])
 
-    after = gsmDataGen.tir.transform.ConvertSSA()(before)
-    gsmDataGen.ir.assert_structural_equal(before, after)
+    after = gsm_data_generator.tir.transform.ConvertSSA()(before)
+    gsm_data_generator.ir.assert_structural_equal(before, after)
     assert before.same_as(after)
 
 
@@ -290,7 +290,7 @@ class TestDeDuplicateThreadIdxAcrossMultipleFunctions(BaseBeforeAfter):
     """
 
     def before(self):
-        threadIdx_x = gsmDataGen.tir.Var("threadIdx_x", "int32")
+        threadIdx_x = gsm_data_generator.tir.Var("threadIdx_x", "int32")
 
         # threadIdx_x is defined outside
         @I.ir_module(check_well_formed=False)
@@ -350,9 +350,9 @@ class TestDeDuplicateThreadIdxIterVarAcrossMultipleFunctions(BaseBeforeAfter):
     """
 
     def before(self):
-        threadIdx_x = gsmDataGen.tir.Var("threadIdx_x", "int32")
-        iter_var = gsmDataGen.tir.IterVar(
-            gsmDataGen.ir.Range(0, 256), threadIdx_x, gsmDataGen.tir.IterVar.ThreadIndex, "threadIdx.x"
+        threadIdx_x = gsm_data_generator.tir.Var("threadIdx_x", "int32")
+        iter_var = gsm_data_generator.tir.IterVar(
+            gsm_data_generator.ir.Range(0, 256), threadIdx_x, gsm_data_generator.tir.IterVar.ThreadIndex, "threadIdx.x"
         )
 
         # complaints of multiple definitions for threadIdx_x
@@ -407,9 +407,9 @@ class TestThreadIdxReusedWithinAndAcrossFunctions(BaseBeforeAfter):
     """
 
     def before(self):
-        threadIdx_x = gsmDataGen.tir.Var("threadIdx_x", "int32")
-        iter_var = gsmDataGen.tir.IterVar(
-            gsmDataGen.ir.Range(0, 256), threadIdx_x, gsmDataGen.tir.IterVar.ThreadIndex, "threadIdx.x"
+        threadIdx_x = gsm_data_generator.tir.Var("threadIdx_x", "int32")
+        iter_var = gsm_data_generator.tir.IterVar(
+            gsm_data_generator.ir.Range(0, 256), threadIdx_x, gsm_data_generator.tir.IterVar.ThreadIndex, "threadIdx.x"
         )
 
         # complaints of multiple definitions of threadIdx_x
@@ -513,4 +513,4 @@ class TestTrackForwardDeclarationsInAttrStmt(BaseBeforeAfter):
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

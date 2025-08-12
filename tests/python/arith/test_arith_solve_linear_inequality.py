@@ -17,9 +17,9 @@
 import random
 import sys
 import pytest
-import gsmDataGen
-from gsmDataGen import te, arith, ir, tir, testing
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+from gsm_data_generator import te, arith, ir, tir, testing
+from gsm_data_generator.script import tir as T
 
 
 @pytest.mark.skip(reason="See https://github.com/apache/tvm/issues/11458")
@@ -43,7 +43,7 @@ def test_solution_consistency():
             op = random.choice([tir.expr.EQ, tir.expr.LE, tir.expr.LT, tir.expr.GE, tir.expr.GT])
             fs.append(op(s1, s2))
 
-        vranges = {v: gsmDataGen.ir.expr.Range(bounds[0], bounds[1] + 1) for v in vs}
+        vranges = {v: gsm_data_generator.ir.expr.Range(bounds[0], bounds[1] + 1) for v in vs}
         before = te.all(tir.const(1, "bool"), *fs)
         after = arith._ffi_api.SolveInequalitiesAsCondition(vs, vranges, fs)
         after = te.all(tir.const(1, "bool"), *after)
@@ -85,12 +85,12 @@ def test_dual_variable():
 
     variables = [x, y]
     ranges = {
-        x: gsmDataGen.ir.Range(-100, 100),
-        y: gsmDataGen.ir.Range(0, 10),
+        x: gsm_data_generator.ir.Range(-100, 100),
+        y: gsm_data_generator.ir.Range(0, 10),
     }
     problem = [
-        gsmDataGen.tir.LE(x + y, 20),
-        gsmDataGen.tir.GE(x - y, 10),
+        gsm_data_generator.tir.LE(x + y, 20),
+        gsm_data_generator.tir.GE(x - y, 10),
     ]
 
     # solution as conditions
@@ -127,9 +127,9 @@ def test_dual_variable():
 def test_equal():
     x, y = te.var("x"), te.var("y")
     problem = [
-        gsmDataGen.tir.GE(x + y, 10),
-        gsmDataGen.tir.GE(x - y, 2),
-        gsmDataGen.tir.LE(x, 6),
+        gsm_data_generator.tir.GE(x + y, 10),
+        gsm_data_generator.tir.GE(x - y, 2),
+        gsm_data_generator.tir.LE(x, 6),
     ]
 
     solution = arith.solve_linear_inequalities(problem, [x, y])
@@ -149,10 +149,10 @@ def test_equal():
 def test_multi_equal():
     x, y, z = te.var("x"), te.var("y"), te.var("z")
     problem = [
-        gsmDataGen.tir.LE(x, 6),
-        gsmDataGen.tir.GE(x, 6),
-        gsmDataGen.tir.GE(x - z * y, 0),
-        gsmDataGen.tir.LE(x - z * y, 0),
+        gsm_data_generator.tir.LE(x, 6),
+        gsm_data_generator.tir.GE(x, 6),
+        gsm_data_generator.tir.GE(x - z * y, 0),
+        gsm_data_generator.tir.LE(x - z * y, 0),
     ]
 
     solution = arith.solve_linear_inequalities(problem, [x, y, z])
@@ -161,12 +161,12 @@ def test_multi_equal():
     assert len(solution.relations) == 3
     assert ir.structural_equal(solution.relations[0], x == z * y)
 
-    assert isinstance(solution.relations[1], gsmDataGen.tir.LE)
+    assert isinstance(solution.relations[1], gsm_data_generator.tir.LE)
     assert solution.relations[1].b == 0
-    assert isinstance(solution.relations[2], gsmDataGen.tir.LE)
+    assert isinstance(solution.relations[2], gsm_data_generator.tir.LE)
     assert solution.relations[2].b == 0
     # (z*y - 6) <= 0 && (6 - z*y) <= 0
-    ana = gsmDataGen.arith.Analyzer()
+    ana = gsm_data_generator.arith.Analyzer()
     assert ana.simplify(solution.relations[1].a + solution.relations[2].a) == 0
     assert ir.structural_equal(solution.relations[1].a, (z * y - 6)) or ir.structural_equal(
         solution.relations[2].a, (z * y - 6)
@@ -180,7 +180,7 @@ def test_multi_equal():
 
 def test_no_solution():
     x = te.var("x0")
-    vranges = {x: gsmDataGen.ir.Range.from_min_extent(-20, 41)}
+    vranges = {x: gsm_data_generator.ir.Range.from_min_extent(-20, 41)}
     problem = [-x - 4 <= -5 * x + 2, x * 4 + 5 <= x * 5]
 
     solution = arith.solve_linear_inequalities(problem, [x], vranges, deskew_range=True)
@@ -200,7 +200,7 @@ def test_no_solution():
 def test_unbound_var_range():
     x = te.var("x0")
     free_var = te.var("fv")
-    vranges = {x: gsmDataGen.ir.Range.from_min_extent(0, gsmDataGen.tir.Cast("int32", 1 + gsmDataGen.tir.log(free_var)))}
+    vranges = {x: gsm_data_generator.ir.Range.from_min_extent(0, gsm_data_generator.tir.Cast("int32", 1 + gsm_data_generator.tir.log(free_var)))}
     problem = [x > 3]
     solution = arith.solve_linear_inequalities(
         problem,
@@ -213,4 +213,4 @@ def test_unbound_var_range():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

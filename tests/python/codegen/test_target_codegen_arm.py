@@ -14,8 +14,8 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-import gsmDataGen
-from gsmDataGen import te
+import gsm_data_generator
+from gsm_data_generator import te
 import re
 
 
@@ -23,12 +23,12 @@ def test_popcount():
     target = "llvm -mtriple=armv7l-none-linux-gnueabihf -mcpu=cortex-a53 -mattr=+neon"
 
     def check_correct_assembly(type, elements, counts):
-        n = gsmDataGen.runtime.convert(elements)
+        n = gsm_data_generator.runtime.convert(elements)
         A = te.placeholder(n, dtype=type, name="A")
-        B = te.compute(A.shape, lambda i: gsmDataGen.tir.popcount(A[i]), name="B")
-        sch = gsmDataGen.tir.Schedule(te.create_prim_func([A, B]))
+        B = te.compute(A.shape, lambda i: gsm_data_generator.tir.popcount(A[i]), name="B")
+        sch = gsm_data_generator.tir.Schedule(te.create_prim_func([A, B]))
         sch.vectorize(sch.get_loops("B")[0])
-        f = gsmDataGen.tir.build(sch.mod, target=target)
+        f = gsm_data_generator.tir.build(sch.mod, target=target)
         # Verify we see the correct number of vpaddl and vcnt instructions in the assembly
         assembly = f.get_source("asm")
         matches = re.findall("vpaddl", assembly)
@@ -56,9 +56,9 @@ def test_vmlal_s16():
             lambda n: te.sum(A[k, n].astype("int32") * B[k, n].astype("int32"), axis=[k]),
             name="C",
         )
-        sch = gsmDataGen.tir.Schedule(te.create_prim_func([A, B, C]))
+        sch = gsm_data_generator.tir.Schedule(te.create_prim_func([A, B, C]))
         sch.vectorize(sch.get_loops("C")[0])
-        f = gsmDataGen.tir.build(sch.mod, target=target)
+        f = gsm_data_generator.tir.build(sch.mod, target=target)
 
         # Verify we see the correct number of vmlal.s16 instructions
         assembly = f.get_source("asm")
@@ -80,9 +80,9 @@ def test_vmlal_s16():
             lambda n: te.sum(A[k, n].astype("int32") * B[k].astype("int32"), axis=[k]),
             name="C",
         )
-        sch = gsmDataGen.tir.Schedule(te.create_prim_func([A, B, C]))
+        sch = gsm_data_generator.tir.Schedule(te.create_prim_func([A, B, C]))
         sch.vectorize(sch.get_loops("C")[0])
-        f = gsmDataGen.tir.build(sch.mod, target=target)
+        f = gsm_data_generator.tir.build(sch.mod, target=target)
 
         # Verify we see the correct number of vmlal.s16 instructions
         assembly = f.get_source("asm")

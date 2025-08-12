@@ -16,18 +16,18 @@
 # under the License.
 
 import numpy as np
-import gsmDataGen
-import gsmDataGen.script
-import gsmDataGen.testing
-from gsmDataGen import relax
-from gsmDataGen.script import relax as R
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.script
+import gsm_data_generator.testing
+from gsm_data_generator import relax
+from gsm_data_generator.script import relax as R
+from gsm_data_generator.script import tir as T
 
-use_np_array = gsmDataGen.testing.parameter(False, True)
+use_np_array = gsm_data_generator.testing.parameter(False, True)
 
 
 def test_bind_params(use_np_array):
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class InputModule:
         @T.prim_func
         def tir_matmul(x: T.handle, y: T.handle, z: T.handle) -> None:
@@ -53,26 +53,26 @@ def test_bind_params(use_np_array):
 
     x_np = np.random.rand(16, 16).astype(np.float32)
     w_np = np.random.rand(16, 16).astype(np.float32)
-    x_tvm = gsmDataGen.nd.array(x_np)
-    w_tvm = gsmDataGen.nd.array(w_np)
+    x_tvm = gsm_data_generator.nd.array(x_np)
+    w_tvm = gsm_data_generator.nd.array(w_np)
     params_dict = {"w": w_np if use_np_array else w_tvm}
     mod = relax.transform.BindParams("main", params_dict)(InputModule)
     assert len(mod["main"].params) == 1
 
-    target = gsmDataGen.target.Target("llvm")
-    ex_after = gsmDataGen.compile(mod, target)
-    vm_after = relax.VirtualMachine(ex_after, gsmDataGen.cpu())
+    target = gsm_data_generator.target.Target("llvm")
+    ex_after = gsm_data_generator.compile(mod, target)
+    vm_after = relax.VirtualMachine(ex_after, gsm_data_generator.cpu())
     res_after = vm_after["main"](x_tvm)
 
-    ex_before = gsmDataGen.compile(InputModule, target)
-    vm_before = relax.VirtualMachine(ex_before, gsmDataGen.cpu())
+    ex_before = gsm_data_generator.compile(InputModule, target)
+    vm_before = relax.VirtualMachine(ex_before, gsm_data_generator.cpu())
     res_before = vm_before["main"](x_tvm, w_tvm)
 
-    gsmDataGen.testing.assert_allclose(res_before.numpy(), res_after.numpy())
+    gsm_data_generator.testing.assert_allclose(res_before.numpy(), res_after.numpy())
 
 
 def test_bind_params_symbolic_vars():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Before:
         @R.function
         def main(
@@ -97,10 +97,10 @@ def test_bind_params_symbolic_vars():
             return out
 
     m, n, k = 4, 6, 8
-    w0_tvm = gsmDataGen.nd.array(np.random.rand(n, m).astype(np.float32))
-    b0_tvm = gsmDataGen.nd.array(np.random.rand(n).astype(np.float32))
-    w1_tvm = gsmDataGen.nd.array(np.random.rand(k, n).astype(np.float32))
-    b1_tvm = gsmDataGen.nd.array(np.random.rand(k).astype(np.float32))
+    w0_tvm = gsm_data_generator.nd.array(np.random.rand(n, m).astype(np.float32))
+    b0_tvm = gsm_data_generator.nd.array(np.random.rand(n).astype(np.float32))
+    w1_tvm = gsm_data_generator.nd.array(np.random.rand(k, n).astype(np.float32))
+    b1_tvm = gsm_data_generator.nd.array(np.random.rand(k).astype(np.float32))
     params_dict = {"w0": w0_tvm, "b0": b0_tvm, "w1": w1_tvm, "b1": b1_tvm}
     mod = relax.transform.BindParams("main", params_dict)(Before)
 
@@ -108,26 +108,26 @@ def test_bind_params_symbolic_vars():
     func = mod["main"]
     assert len(func.params) == 1
     batch = func.params[0].struct_info.shape[0]
-    gsmDataGen.ir.assert_structural_equal(
+    gsm_data_generator.ir.assert_structural_equal(
         func.params[0].struct_info, relax.TensorStructInfo((batch, 4), "float32")
     )
-    gsmDataGen.ir.assert_structural_equal(
+    gsm_data_generator.ir.assert_structural_equal(
         func.ret_struct_info, relax.TensorStructInfo((batch, 8), "float32")
     )
     bindings = func.body.blocks[0].bindings
-    gsmDataGen.ir.assert_structural_equal(
+    gsm_data_generator.ir.assert_structural_equal(
         bindings[0].var.struct_info, relax.TensorStructInfo((batch, 6), "float32")
     )
-    gsmDataGen.ir.assert_structural_equal(
+    gsm_data_generator.ir.assert_structural_equal(
         bindings[1].var.struct_info, relax.TensorStructInfo((batch, 8), "float32")
     )
 
 
-param_specification = gsmDataGen.testing.parameter("by_string", "by_var")
+param_specification = gsm_data_generator.testing.parameter("by_string", "by_var")
 
 
 def test_bind_params_by_var_obj(param_specification):
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Before:
         @R.function
         def main(A: R.Tensor([16], "float32")):
@@ -136,7 +136,7 @@ def test_bind_params_by_var_obj(param_specification):
     np_data = np.arange(16).astype("float32")
     inlined_relax_const = relax.const(np_data)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main():
@@ -151,11 +151,11 @@ def test_bind_params_by_var_obj(param_specification):
 
     After = relax.transform.BindParams("main", {var: np_data})(Before)
 
-    gsmDataGen.ir.assert_structural_equal(Expected, After)
+    gsm_data_generator.ir.assert_structural_equal(Expected, After)
 
 
 def test_bind_params_by_var_name():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Before:
         @R.function
         def main(A: R.Tensor([16], "float32")):
@@ -164,7 +164,7 @@ def test_bind_params_by_var_name():
     np_data = np.arange(16).astype("float32")
     inlined_relax_const = relax.const(np_data)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main():
@@ -172,8 +172,8 @@ def test_bind_params_by_var_name():
 
     After = relax.transform.BindParams("main", {"A": np_data})(Before)
 
-    gsmDataGen.ir.assert_structural_equal(Expected, After)
+    gsm_data_generator.ir.assert_structural_equal(Expected, After)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

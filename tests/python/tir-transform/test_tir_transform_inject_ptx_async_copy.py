@@ -15,9 +15,9 @@
 # specific language governing permissions and limitations
 # under the License.
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator.script import tir as T
 
 import pytest
 import numpy as np
@@ -27,16 +27,16 @@ def count_cp_async(stmt):
     num_alloc = [0]
 
     def verify(n):
-        if isinstance(n, gsmDataGen.tir.Call) and n.op.name == "tir.ptx_cp_async":
+        if isinstance(n, gsm_data_generator.tir.Call) and n.op.name == "tir.ptx_cp_async":
             num_alloc[0] += 1
 
-    gsmDataGen.tir.stmt_functor.post_order_visit(stmt, verify)
+    gsm_data_generator.tir.stmt_functor.post_order_visit(stmt, verify)
     return num_alloc[0]
 
 
 def generate_global_to_shared_vectorized_copy(dtype, vector_size):
     num_iters = 128 // vector_size
-    vector_size_expr = gsmDataGen.runtime.convert(vector_size)
+    vector_size_expr = gsm_data_generator.runtime.convert(vector_size)
 
     @T.prim_func
     def ptx_global_to_shared_copy(
@@ -121,7 +121,7 @@ def ptx_global_to_shared_dyn_copy_fp16x8(
             C[tx, i] = A_shared[tx, i] + B_shared[tx, i]
 
 
-@gsmDataGen.testing.requires_cuda
+@gsm_data_generator.testing.requires_cuda
 def test_inject_async_copy():
     for dtype, vec_size in [("float16", 8), ("float16", 4), ("float32", 4), ("float32", 1)]:
         if vec_size == 1:
@@ -129,58 +129,58 @@ def test_inject_async_copy():
         else:
             f = generate_global_to_shared_vectorized_copy(dtype, vec_size)
 
-        mod = gsmDataGen.IRModule.from_expr(f)
-        mod = gsmDataGen.tir.transform.LowerOpaqueBlock()(mod)
-        mod = gsmDataGen.tir.transform.FlattenBuffer()(mod)
+        mod = gsm_data_generator.IRModule.from_expr(f)
+        mod = gsm_data_generator.tir.transform.LowerOpaqueBlock()(mod)
+        mod = gsm_data_generator.tir.transform.FlattenBuffer()(mod)
         if vec_size > 1:
-            mod = gsmDataGen.tir.transform.VectorizeLoop()(mod)
-        mod = gsmDataGen.tir.transform.InjectPTXAsyncCopy()(mod)
+            mod = gsm_data_generator.tir.transform.VectorizeLoop()(mod)
+        mod = gsm_data_generator.tir.transform.InjectPTXAsyncCopy()(mod)
 
         assert count_cp_async(mod["main"].body) == 1
 
-        if not gsmDataGen.testing.is_ampere_or_newer():
+        if not gsm_data_generator.testing.is_ampere_or_newer():
             continue
 
-        with gsmDataGen.transform.PassContext(config={"tir.use_async_copy": 1}):
-            mod = gsmDataGen.compile(gsmDataGen.IRModule.from_expr(f), target="cuda")
+        with gsm_data_generator.transform.PassContext(config={"tir.use_async_copy": 1}):
+            mod = gsm_data_generator.compile(gsm_data_generator.IRModule.from_expr(f), target="cuda")
 
         A_np = np.random.rand(32, 128).astype(dtype)
         B_np = np.zeros((32, 128)).astype(dtype)
-        dev = gsmDataGen.cuda(0)
-        A_nd = gsmDataGen.nd.array(A_np, device=dev)
-        B_nd = gsmDataGen.nd.array(B_np, device=dev)
+        dev = gsm_data_generator.cuda(0)
+        A_nd = gsm_data_generator.nd.array(A_np, device=dev)
+        B_nd = gsm_data_generator.nd.array(B_np, device=dev)
         mod(A_nd, B_nd)
-        gsmDataGen.testing.assert_allclose(B_nd.numpy(), A_np)
+        gsm_data_generator.testing.assert_allclose(B_nd.numpy(), A_np)
 
 
-@gsmDataGen.testing.requires_cuda
+@gsm_data_generator.testing.requires_cuda
 def test_inject_async_copy_shared_dyn():
     f = ptx_global_to_shared_dyn_copy_fp16x8
 
-    mod = gsmDataGen.IRModule.from_expr(f)
-    mod = gsmDataGen.tir.transform.LowerOpaqueBlock()(mod)
-    mod = gsmDataGen.tir.transform.FlattenBuffer()(mod)
-    mod = gsmDataGen.tir.transform.VectorizeLoop()(mod)
-    mod = gsmDataGen.tir.transform.MergeSharedMemoryAllocations()(mod)
-    mod = gsmDataGen.tir.transform.InjectPTXAsyncCopy()(mod)
+    mod = gsm_data_generator.IRModule.from_expr(f)
+    mod = gsm_data_generator.tir.transform.LowerOpaqueBlock()(mod)
+    mod = gsm_data_generator.tir.transform.FlattenBuffer()(mod)
+    mod = gsm_data_generator.tir.transform.VectorizeLoop()(mod)
+    mod = gsm_data_generator.tir.transform.MergeSharedMemoryAllocations()(mod)
+    mod = gsm_data_generator.tir.transform.InjectPTXAsyncCopy()(mod)
 
     assert count_cp_async(mod["main"].body) == 2
 
-    if not gsmDataGen.testing.is_ampere_or_newer():
+    if not gsm_data_generator.testing.is_ampere_or_newer():
         return
 
-    with gsmDataGen.transform.PassContext(config={"tir.use_async_copy": 1}):
-        mod = gsmDataGen.compile(gsmDataGen.IRModule.from_expr(f), target="cuda")
+    with gsm_data_generator.transform.PassContext(config={"tir.use_async_copy": 1}):
+        mod = gsm_data_generator.compile(gsm_data_generator.IRModule.from_expr(f), target="cuda")
 
     A_np = np.random.rand(32, 128).astype("float16")
     B_np = np.random.rand(32, 128).astype("float16")
     C_np = np.zeros((32, 128)).astype("float16")
-    dev = gsmDataGen.cuda(0)
-    A_nd = gsmDataGen.nd.array(A_np, device=dev)
-    B_nd = gsmDataGen.nd.array(B_np, device=dev)
-    C_nd = gsmDataGen.nd.array(C_np, device=dev)
+    dev = gsm_data_generator.cuda(0)
+    A_nd = gsm_data_generator.nd.array(A_np, device=dev)
+    B_nd = gsm_data_generator.nd.array(B_np, device=dev)
+    C_nd = gsm_data_generator.nd.array(C_np, device=dev)
     mod(A_nd, B_nd, C_nd)
-    gsmDataGen.testing.assert_allclose(C_nd.numpy(), A_np + B_np)
+    gsm_data_generator.testing.assert_allclose(C_nd.numpy(), A_np + B_np)
 
 
 @T.prim_func
@@ -213,30 +213,30 @@ def ptx_global_to_shared_copy_fp32x1_barrier(
             B[tx, i] = A_shared[tx, i]
 
 
-@gsmDataGen.testing.requires_cuda
+@gsm_data_generator.testing.requires_cuda
 def test_inject_async_copy_barrier():
     dtype = "float32"
     vec_size = 1
     f = ptx_global_to_shared_copy_fp32x1_barrier
 
-    mod = gsmDataGen.IRModule.from_expr(f)
-    mod = gsmDataGen.tir.transform.LowerOpaqueBlock()(mod)
-    mod = gsmDataGen.tir.transform.FlattenBuffer()(mod)
-    mod = gsmDataGen.tir.transform.InjectPTXAsyncCopy()(mod)
+    mod = gsm_data_generator.IRModule.from_expr(f)
+    mod = gsm_data_generator.tir.transform.LowerOpaqueBlock()(mod)
+    mod = gsm_data_generator.tir.transform.FlattenBuffer()(mod)
+    mod = gsm_data_generator.tir.transform.InjectPTXAsyncCopy()(mod)
 
     assert count_cp_async(mod["main"].body) == 1
 
-    if gsmDataGen.testing.is_ampere_or_newer():
-        with gsmDataGen.transform.PassContext(config={"tir.use_async_copy": 1}):
-            mod = gsmDataGen.compile(gsmDataGen.IRModule.from_expr(f), target="cuda")
+    if gsm_data_generator.testing.is_ampere_or_newer():
+        with gsm_data_generator.transform.PassContext(config={"tir.use_async_copy": 1}):
+            mod = gsm_data_generator.compile(gsm_data_generator.IRModule.from_expr(f), target="cuda")
 
         A_np = np.random.rand(32, 128).astype(dtype)
         B_np = np.zeros((32, 128)).astype(dtype)
-        dev = gsmDataGen.cuda(0)
-        A_nd = gsmDataGen.nd.array(A_np, device=dev)
-        B_nd = gsmDataGen.nd.array(B_np, device=dev)
+        dev = gsm_data_generator.cuda(0)
+        A_nd = gsm_data_generator.nd.array(A_np, device=dev)
+        B_nd = gsm_data_generator.nd.array(B_np, device=dev)
         mod(A_nd, B_nd)
-        gsmDataGen.testing.assert_allclose(B_nd.numpy(), A_np)
+        gsm_data_generator.testing.assert_allclose(B_nd.numpy(), A_np)
 
 
 expected_cuda_script = r"""#include <cuda.h>
@@ -382,12 +382,12 @@ __asm__ __volatile__("cp.async.wait_group 0;");
 
 @pytest.fixture
 def postproc_if_missing_async_support():
-    arch = gsmDataGen.contrib.nvcc.get_target_compute_version()
-    major, _ = gsmDataGen.contrib.nvcc.parse_compute_version(arch)
+    arch = gsm_data_generator.contrib.nvcc.get_target_compute_version()
+    major, _ = gsm_data_generator.contrib.nvcc.parse_compute_version(arch)
     support_async = major >= 8
 
     func_name = "tvm_callback_cuda_postproc"
-    prev_postproc = gsmDataGen.get_global_func(func_name, allow_missing=True)
+    prev_postproc = gsm_data_generator.get_global_func(func_name, allow_missing=True)
 
     # Store the generated code prior to the post-processing.  This
     # way, even though the generated code doesn't compile on platforms
@@ -401,7 +401,7 @@ def postproc_if_missing_async_support():
         nonlocal original_code
         return original_code
 
-    @gsmDataGen.register_func(func_name, override=True)
+    @gsm_data_generator.register_func(func_name, override=True)
     def tvm_callback_cuda_postproc(code, _):
         nonlocal original_code
         original_code = code
@@ -421,12 +421,12 @@ def postproc_if_missing_async_support():
 
     # Restore previous postproc func to avoid impacting other tests
     if prev_postproc is None:
-        gsmDataGen.ffi.registry.remove_global_func(func_name)
+        gsm_data_generator.ffi.registry.remove_global_func(func_name)
     else:
-        gsmDataGen.register_func(func_name, prev_postproc, override=True)
+        gsm_data_generator.register_func(func_name, prev_postproc, override=True)
 
 
-@gsmDataGen.testing.requires_cuda
+@gsm_data_generator.testing.requires_cuda
 def test_cp_async_in_if_then_else(postproc_if_missing_async_support):
     @T.prim_func
     def simple_compute(
@@ -466,9 +466,9 @@ def test_cp_async_in_if_then_else(postproc_if_missing_async_support):
                         T.writes(C[tx, i])
                         C[tx, i] = A_shared[tx, 0] + B_shared[tx, 0]
 
-    mod = gsmDataGen.IRModule.from_expr(simple_compute)
-    with gsmDataGen.transform.PassContext(config={"tir.use_async_copy": 1}):
-        gsmDataGen.compile(mod, target="cuda")
+    mod = gsm_data_generator.IRModule.from_expr(simple_compute)
+    with gsm_data_generator.transform.PassContext(config={"tir.use_async_copy": 1}):
+        gsm_data_generator.compile(mod, target="cuda")
     generated_code = postproc_if_missing_async_support()
     print(generated_code)
     assert generated_code == expected_cuda_script
@@ -480,7 +480,7 @@ def test_cp_async_in_if_then_else(postproc_if_missing_async_support):
     "This bug should be addressed. See discussion in https://github.com/apache/tvm/pull/16769 "
     "and https://github.com/apache/tvm/pull/16569#issuecomment-1992720448"
 )
-@gsmDataGen.testing.requires_cuda
+@gsm_data_generator.testing.requires_cuda
 def test_vectorize_cp_async_in_if_then_else(postproc_if_missing_async_support):
     @T.prim_func
     def complex_compute(
@@ -928,16 +928,16 @@ def test_vectorize_cp_async_in_if_then_else(postproc_if_missing_async_support):
                                     "row_major",
                                 )
 
-    mod = gsmDataGen.IRModule.from_expr(complex_compute)
-    with gsmDataGen.transform.PassContext(config={"tir.use_async_copy": 1}):
-        gsmDataGen.compile(mod, target="cuda")
+    mod = gsm_data_generator.IRModule.from_expr(complex_compute)
+    with gsm_data_generator.transform.PassContext(config={"tir.use_async_copy": 1}):
+        gsm_data_generator.compile(mod, target="cuda")
     generated_code = postproc_if_missing_async_support()
     # generated_code must contain "  setp.ne.b32 p, %0, 0;"
     assert "setp.ne.b32" in generated_code
 
 
-class TestMultiplicationNodesAreInligned(gsmDataGen.testing.CompareBeforeAfter):
-    transform = gsmDataGen.tir.transform.InjectPTXAsyncCopy()
+class TestMultiplicationNodesAreInligned(gsm_data_generator.testing.CompareBeforeAfter):
+    transform = gsm_data_generator.tir.transform.InjectPTXAsyncCopy()
 
     def before(A: T.Buffer((32, 128), "float16")):
         tx = T.launch_thread("threadIdx.x", T.int64(32))
@@ -971,4 +971,4 @@ class TestMultiplicationNodesAreInligned(gsmDataGen.testing.CompareBeforeAfter):
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

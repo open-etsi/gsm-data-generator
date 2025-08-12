@@ -17,16 +17,16 @@
 import numpy as np
 import pytest
 
-import gsmDataGen
-import gsmDataGen.testing
-import gsmDataGen.topi.testing
-from gsmDataGen import relax
-from gsmDataGen.contrib.pickle_memoize import memoize
-from gsmDataGen.relax.backend.cuda.cudnn import partition_for_cudnn
-from gsmDataGen.relax.testing import get_relax_stacked_attention_module
-from gsmDataGen.script import relax as R
-from gsmDataGen.script.ir_builder import IRBuilder
-from gsmDataGen.script.ir_builder import relax as relax_builder
+import gsm_data_generator
+import gsm_data_generator.testing
+import gsm_data_generator.topi.testing
+from gsm_data_generator import relax
+from gsm_data_generator.contrib.pickle_memoize import memoize
+from gsm_data_generator.relax.backend.cuda.cudnn import partition_for_cudnn
+from gsm_data_generator.relax.testing import get_relax_stacked_attention_module
+from gsm_data_generator.script import relax as R
+from gsm_data_generator.script.ir_builder import IRBuilder
+from gsm_data_generator.script.ir_builder import relax as relax_builder
 
 
 @pytest.fixture(autouse=True)
@@ -34,7 +34,7 @@ def reset_seed():
     np.random.seed(0)
 
 
-pytestmark = gsmDataGen.testing.requires_cudnn.marks()
+pytestmark = gsm_data_generator.testing.requires_cudnn.marks()
 
 
 _activation_table = {
@@ -93,7 +93,7 @@ def get_relax_conv2d_module(
             R.func_ret_value(frame.output_vars[0])
 
     func = builder.get()
-    return gsmDataGen.IRModule({"main": func})
+    return gsm_data_generator.IRModule({"main": func})
 
 
 def get_result_with_relax_cudnn_offload(mod, np_inputs, cuda_graph=False):
@@ -103,17 +103,17 @@ def get_result_with_relax_cudnn_offload(mod, np_inputs, cuda_graph=False):
 
 
 def build_and_run(mod, inputs_np, target, legalize=False, cuda_graph=False):
-    dev = gsmDataGen.device(target, 0)
-    with gsmDataGen.transform.PassContext(
+    dev = gsm_data_generator.device(target, 0)
+    with gsm_data_generator.transform.PassContext(
         config={
             "relax.backend.use_cuda_graph": cuda_graph,
             "relax.transform.apply_legalize_ops": legalize,
         }
     ):
-        ex = gsmDataGen.compile(mod, target)
+        ex = gsm_data_generator.compile(mod, target)
     vm = relax.VirtualMachine(ex, dev)
     f = vm["main"]
-    inputs = [gsmDataGen.nd.array(inp, dev) for inp in inputs_np]
+    inputs = [gsm_data_generator.nd.array(inp, dev) for inp in inputs_np]
 
     # For cuda graph, run the compiled function twice to make sure that we can launch the cached
     # graph on the second run.
@@ -193,9 +193,9 @@ def test_conv2d_offload(data_shape, weight_shape, dtype, with_bias, activation):
     out = get_result_with_relax_cudnn_offload(mod, args)
     ref = build_and_run(mod, args, "llvm", legalize=True)
     if dtype == "float16":
-        gsmDataGen.testing.assert_allclose(out, ref, rtol=1e-1, atol=1e-1)
+        gsm_data_generator.testing.assert_allclose(out, ref, rtol=1e-1, atol=1e-1)
     else:
-        gsmDataGen.testing.assert_allclose(out, ref, rtol=1e-2, atol=1e-2)
+        gsm_data_generator.testing.assert_allclose(out, ref, rtol=1e-2, atol=1e-2)
 
 
 @pytest.mark.skip(reason="flaky test")
@@ -239,9 +239,9 @@ def test_conv2d_nchw_oihw_offload(data_shape, weight_shape, dtype, with_bias, ac
     out = get_result_with_relax_cudnn_offload(mod, args)
     ref = build_and_run(mod, args, "llvm", legalize=True)
     if dtype == "float16":
-        gsmDataGen.testing.assert_allclose(out, ref, rtol=1e-1, atol=1e-1)
+        gsm_data_generator.testing.assert_allclose(out, ref, rtol=1e-1, atol=1e-1)
     else:
-        gsmDataGen.testing.assert_allclose(out, ref, rtol=1e-2, atol=1e-2)
+        gsm_data_generator.testing.assert_allclose(out, ref, rtol=1e-2, atol=1e-2)
 
 
 @memoize("topi.tests.test_codegen_cudnn.test_stacked_attention_offload")
@@ -264,7 +264,7 @@ def get_numpy_stacked_attention_ref(b, s, n, h, h_v, bias_shape, qk_scale, dtype
         score = score + bias  # b, n, s, s
     else:
         bias = None
-    ref = gsmDataGen.topi.testing.attention_python(q, k, v, bias, qk_scale, "none", None, layout)
+    ref = gsm_data_generator.topi.testing.attention_python(q, k, v, bias, qk_scale, "none", None, layout)
     return qkv, bias, ref
 
 
@@ -301,8 +301,8 @@ def test_stacked_attention_split_offload(stacked_attention_size):
         out = get_result_with_relax_cudnn_offload(mod, [qkv])
     else:
         out = get_result_with_relax_cudnn_offload(mod, [qkv, bias])
-    gsmDataGen.testing.assert_allclose(out, ref, rtol=1e-2, atol=2e-2)
+    gsm_data_generator.testing.assert_allclose(out, ref, rtol=1e-2, atol=2e-2)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

@@ -26,14 +26,14 @@ import sys
 from multiprocessing import Process
 from typing import Any, Callable, List
 
-from gsmDataGen.script import tir as T
+from gsm_data_generator.script import tir as T
 
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen.runtime import ShapeTuple
-from gsmDataGen.runtime import disco as di
-from gsmDataGen.exec import disco_worker as _  # pylint: disable=unused-import
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator.runtime import ShapeTuple
+from gsm_data_generator.runtime import disco as di
+from gsm_data_generator.exec import disco_worker as _  # pylint: disable=unused-import
 
 _SOCKET_SESSION_TESTER = None
 
@@ -102,11 +102,11 @@ def create_socket_session(num_workers):
 
 
 def test_nvshmem_init_finalize(session_kind: di.Session, num_workers: int):
-    if gsmDataGen.get_global_func("runtime.disco.nvshmem.init_nvshmem_uid", True) is None:
+    if gsm_data_generator.get_global_func("runtime.disco.nvshmem.init_nvshmem_uid", True) is None:
         return
 
     sess = session_kind(num_workers=num_workers)
-    f_init_nvshmem_uid = gsmDataGen.get_global_func("runtime.disco.nvshmem.init_nvshmem_uid")
+    f_init_nvshmem_uid = gsm_data_generator.get_global_func("runtime.disco.nvshmem.init_nvshmem_uid")
     uid = f_init_nvshmem_uid()
     init_dfunc = sess.get_global_func("runtime.disco.nvshmem.init_nvshmem")
     init_dfunc(uid, num_workers, 0)
@@ -117,12 +117,12 @@ def test_nvshmem_init_finalize(session_kind: di.Session, num_workers: int):
 
 
 def test_nvshmem_empty(session_kind: di.Session, num_workers: int):
-    if gsmDataGen.get_global_func("runtime.disco.nvshmem.init_nvshmem_uid", True) is None:
+    if gsm_data_generator.get_global_func("runtime.disco.nvshmem.init_nvshmem_uid", True) is None:
         return
 
-    device = gsmDataGen.cuda()
+    device = gsm_data_generator.cuda()
     sess = session_kind(num_workers=num_workers)
-    f_init_nvshmem_uid = gsmDataGen.get_global_func("runtime.disco.nvshmem.init_nvshmem_uid")
+    f_init_nvshmem_uid = gsm_data_generator.get_global_func("runtime.disco.nvshmem.init_nvshmem_uid")
     uid = f_init_nvshmem_uid()
     init_dfunc = sess.get_global_func("runtime.disco.nvshmem.init_nvshmem")
     init_dfunc(uid, num_workers, 0)
@@ -137,13 +137,13 @@ def test_nvshmem_empty(session_kind: di.Session, num_workers: int):
 
 
 def test_nvshmem_compile():
-    if gsmDataGen.get_global_func("runtime.disco.nvshmem.init_nvshmem_uid", True) is None:
+    if gsm_data_generator.get_global_func("runtime.disco.nvshmem.init_nvshmem_uid", True) is None:
         return
 
     num_workers = 4
     sess = di.ProcessSession(num_workers=num_workers)
 
-    f_init_nvshmem_uid = gsmDataGen.get_global_func("runtime.disco.nvshmem.init_nvshmem_uid")
+    f_init_nvshmem_uid = gsm_data_generator.get_global_func("runtime.disco.nvshmem.init_nvshmem_uid")
     uid = f_init_nvshmem_uid()
     init_dfunc = sess.get_global_func("runtime.disco.nvshmem.init_nvshmem")
     init_dfunc(uid, num_workers, 0)
@@ -168,8 +168,8 @@ def test_nvshmem_compile():
         B_array = sess.empty(B_np.shape, "float32")
         A_array.debug_copy_from(0, A_np)
 
-        target = gsmDataGen.target.Target("cuda")
-        gsmDataGen.compile(main, target=target).export_library(path)
+        target = gsm_data_generator.target.Target("cuda")
+        gsm_data_generator.compile(main, target=target).export_library(path)
         mod = sess.load_vm_module(path)
         mod["main"](A_array, B_array)
 

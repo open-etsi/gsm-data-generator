@@ -16,12 +16,12 @@
 # under the License.
 # pylint: disable=missing-function-docstring,missing-module-docstring
 import pytest
-import gsmDataGen
-import gsmDataGen.testing
-import gsmDataGen.tir.tensor_intrin
-from gsmDataGen import tir
-from gsmDataGen.script import tir as T
-from gsmDataGen.tir.schedule.testing import (
+import gsm_data_generator
+import gsm_data_generator.testing
+import gsm_data_generator.tir.tensor_intrin
+from gsm_data_generator import tir
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.tir.schedule.testing import (
     verify_trace_roundtrip,
     assert_structural_equal_ignore_global_symbol,
 )
@@ -744,7 +744,7 @@ def elementwise_predicate_producer_inlined(a: T.handle, c: T.handle) -> None:
 
 
 # fmt: off
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Conv2dInt8_TensorCore_with_predicate_before:
     @T.prim_func
     def main(p0: T.Buffer((16, 56, 56, 64), "int8"), p1: T.Buffer((256, 1, 1, 64), "int8"), p2: T.Buffer((1, 1, 1, 256), "int32"), p3: T.Buffer((1, 1, 1, 256), "int32"), p4: T.Buffer(256, "int32"), p5: T.Buffer(256, "int32"), p6: T.Buffer(256, "int32"), p7: T.Buffer((), "int32"), p8: T.Buffer(1, "int32"), p9: T.Buffer((16, 56, 56, 256), "int32"), compute: T.Buffer((16, 56, 56, 256), "int32")):
@@ -865,7 +865,7 @@ class Conv2dInt8_TensorCore_with_predicate_before:
                     T.writes(compute[i0_13, i1_13, i2_13, i3_13])
                     compute[i0_13, i1_13, i2_13, i3_13] = T.max(T.min(compute_3[i0_13, i1_13, i2_13, i3_13] + T.q_multiply_shift(p9[i0_13, i1_13, i2_13, i3_13], 2101000910, 31, 0, dtype="int32"), 255), 0)
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Conv2dInt8_TensorCore_with_predicate_after:
     @T.prim_func
     def main(p0: T.Buffer((16, 56, 56, 64), "int8"), p1: T.Buffer((256, 1, 1, 64), "int8"), p2: T.Buffer((1, 1, 1, 256), "int32"), p3: T.Buffer((1, 1, 1, 256), "int32"), p4: T.Buffer((256,), "int32"), p5: T.Buffer((256,), "int32"), p6: T.Buffer((256,), "int32"), p7: T.Buffer((), "int32"), p8: T.Buffer((1,), "int32"), p9: T.Buffer((16, 56, 56, 256), "int32"), compute: T.Buffer((16, 56, 56, 256), "int32")):
@@ -980,7 +980,7 @@ class Conv2dInt8_TensorCore_with_predicate_after:
 
 # pylint: enable=no-member,invalid-name,unused-variable
 
-use_block_name = gsmDataGen.testing.parameter(by_dict={"block_obj": False, "block_name": True})
+use_block_name = gsm_data_generator.testing.parameter(by_dict={"block_obj": False, "block_name": True})
 
 
 def test_compute_inline_elementwise(use_block_name):
@@ -1030,7 +1030,7 @@ def test_compute_inline_multi_consumer(use_block_name):
 def test_compute_inline_fail_multi_writer(use_block_name):
     sch = tir.Schedule(fail_multi_reader_writer, debug_mask="all")
     block_b = "B" if use_block_name else sch.get_block("B")
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         sch.compute_inline(block_b)
 
 
@@ -1057,21 +1057,21 @@ def test_reverse_compute_inline_under_loop(use_block_name):
 def test_reverse_compute_inline_fail_as_dce(use_block_name):
     sch = tir.Schedule(elementwise_standalone, debug_mask="all")
     block_b = "B" if use_block_name else sch.get_block("B")
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         sch.reverse_compute_inline(block_b)
 
 
 def test_reverse_compute_inline_fail_multi_producer(use_block_name):
     sch = tir.Schedule(elementwise_multi_producer_consumer, debug_mask="all")
     block_d = "D" if use_block_name else sch.get_block("D")
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         sch.reverse_compute_inline(block_d)
 
 
 def test_reverse_compute_inline_fail_multi_reader(use_block_name):
     sch = tir.Schedule(fail_multi_reader_writer, debug_mask="all")
     block_c = "C" if use_block_name else sch.get_block("C")
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         sch.reverse_compute_inline(block_c)
 
 
@@ -1145,51 +1145,51 @@ def test_reverse_compute_inline_affine_chain(use_block_name, reverse_order):
 def test_reverse_compute_fail_non_affine_load(use_block_name):
     sch = tir.Schedule(elementwise_reverse_non_affine_load, debug_mask="all")
     block_c = "C" if use_block_name else sch.get_block("C")
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         sch.reverse_compute_inline(block_c)
 
 
 def test_reverse_compute_fail_multi_reverse_loads(use_block_name):
     sch = tir.Schedule(elementwise_multi_loads, debug_mask="all")
     block_c = "C" if use_block_name else sch.get_block("C")
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         sch.reverse_compute_inline(block_c)
 
 
 def test_opaque_access_load(use_block_name):
     sch = tir.Schedule(opaque_access_load, debug_mask="all")
     block_b = "B" if use_block_name else sch.get_block("B")
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         sch.compute_inline(block_b)
 
 
 def test_opaque_access_store(use_block_name):
     sch = tir.Schedule(opaque_access_store, debug_mask="all")
     block_b = "B" if use_block_name else sch.get_block("B")
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         sch.compute_inline(block_b)
 
 
 def test_buffer_matched(use_block_name):
     sch = tir.Schedule(buffer_matched, debug_mask="all")
     block_b = "B" if use_block_name else sch.get_block("B")
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         sch.compute_inline(block_b)
 
 
 def test_output_block(use_block_name):
     sch = tir.Schedule(matmul_relu, debug_mask="all")
     block = sch.get_block("compute")
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         sch.compute_inline(block)
 
     sch = tir.Schedule(elementwise_output, debug_mask="all")
     block = sch.get_block("B")
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         sch.compute_inline(block)
 
     block = sch.get_block("C")
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         sch.reverse_compute_inline(block)
 
 
@@ -1222,7 +1222,7 @@ def test_compute_inline_with_opaque_access(use_block_name):
 def test_inline_block_with_init():
     sch = tir.Schedule(inline_block_with_init, debug_mask="all")
     block = sch.get_block(name="tensor_rf", func_name="main")
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         sch.compute_inline(block=block)
 
 
@@ -1272,7 +1272,7 @@ def test_reverse_compute_inline_error_producer_not_cover_consumer(use_block_name
     """
     sch = tir.Schedule(elementwise_producer_not_cover_consumer, debug_mask="all")
     compute = "C" if use_block_name else sch.get_block("C")
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         sch.reverse_compute_inline(compute)
 
 
@@ -1303,7 +1303,7 @@ def test_reverse_compute_inline_producer_predicate_disallowed():
 def test_reverse_compute_inline_producer_is_reduction():
     """Test reverse comput inline when producer is reduction"""
     sch = tir.Schedule(elementwise_producer_is_reduction, debug_mask="all")
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         sch.reverse_compute_inline(sch.get_block("C"))
 
 
@@ -1579,4 +1579,4 @@ def test_inline_with_reduction():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

@@ -14,14 +14,14 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-import gsmDataGen
-from gsmDataGen import te
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+from gsm_data_generator import te
+from gsm_data_generator.script import tir as T
 
 # pylint: disable=no-self-argument
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class WithInit:
     @T.prim_func
     def main(a: T.handle, b: T.handle) -> None:
@@ -37,7 +37,7 @@ class WithInit:
                     B[i] += A[i, j, k]
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class WithBranch:
     @T.prim_func
     def main(a: T.handle, b: T.handle) -> None:
@@ -55,7 +55,7 @@ class WithBranch:
                     B[i] += A[i, j, k]
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class InitWithMatchBuffer:
     @T.prim_func
     def main(a: T.handle, b: T.handle) -> None:
@@ -73,7 +73,7 @@ class InitWithMatchBuffer:
                     BB[()] += AA[j, k]
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class BranchWithMatchBuffer:
     @T.prim_func
     def main(a: T.handle, b: T.handle) -> None:
@@ -95,14 +95,14 @@ class BranchWithMatchBuffer:
 
 def test_lower_reduction():
     origin_mod = WithInit
-    mod = gsmDataGen.tir.transform.LowerInitBlock()(origin_mod)
-    gsmDataGen.ir.assert_structural_equal(mod, WithBranch, True)
+    mod = gsm_data_generator.tir.transform.LowerInitBlock()(origin_mod)
+    gsm_data_generator.ir.assert_structural_equal(mod, WithBranch, True)
 
 
 def test_lower_match_buffer():
     origin_mod = InitWithMatchBuffer
-    mod = gsmDataGen.tir.transform.LowerInitBlock()(origin_mod)
-    gsmDataGen.ir.assert_structural_equal(mod, BranchWithMatchBuffer, True)
+    mod = gsm_data_generator.tir.transform.LowerInitBlock()(origin_mod)
+    gsm_data_generator.ir.assert_structural_equal(mod, BranchWithMatchBuffer, True)
 
 
 if __name__ == "__main__":

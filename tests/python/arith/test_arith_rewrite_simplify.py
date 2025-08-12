@@ -19,15 +19,15 @@ import inspect
 
 import pytest
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import te, tir
-from gsmDataGen.tir import floordiv as fld
-from gsmDataGen.tir import floormod as flm
-from gsmDataGen.tir import truncdiv as tdiv
-from gsmDataGen.tir import truncmod as tmod
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import te, tir
+from gsm_data_generator.tir import floordiv as fld
+from gsm_data_generator.tir import floormod as flm
+from gsm_data_generator.tir import truncdiv as tdiv
+from gsm_data_generator.tir import truncmod as tmod
 
-from gsmDataGen.script import tir as T
+from gsm_data_generator.script import tir as T
 
 
 class TestCase:
@@ -56,10 +56,10 @@ class TestCase:
     def constraint(self):
         if self.preconditions is None:
             return True
-        elif isinstance(self.preconditions, gsmDataGen.ir.PrimExpr):
+        elif isinstance(self.preconditions, gsm_data_generator.ir.PrimExpr):
             return self.preconditions
         else:
-            return gsmDataGen.tir.all(*self.preconditions)
+            return gsm_data_generator.tir.all(*self.preconditions)
 
     @property
     def __name__(self):
@@ -67,10 +67,10 @@ class TestCase:
 
 
 class BaseCompare:
-    extensions = gsmDataGen.arith.Extension.NoExtensions
+    extensions = gsm_data_generator.arith.Extension.NoExtensions
 
     def test_simplify(self, test_case):
-        analyzer = gsmDataGen.arith.Analyzer()
+        analyzer = gsm_data_generator.arith.Analyzer()
         analyzer.enabled_extensions = self.extensions
 
         if inspect.isclass(test_case.expected) and issubclass(test_case.expected, Exception):
@@ -81,7 +81,7 @@ class BaseCompare:
             with analyzer.constraint_scope(test_case.constraint):
                 after = analyzer.rewrite_simplify(test_case.before)
 
-            assert gsmDataGen.ir.structural_equal(after, test_case.expected), (
+            assert gsm_data_generator.ir.structural_equal(after, test_case.expected), (
                 f"Rewrite didn't match expected.\n"
                 f"Before   = {test_case.before}\n"
                 f"After    = {after}\n"
@@ -94,213 +94,213 @@ class TestVector(BaseCompare):
     x64 = te.var("x", dtype="int64")
     vx = te.var("vx", dtype="int32x2")
     vc = te.var("vc", dtype="uint1")
-    test_case = gsmDataGen.testing.parameter(
+    test_case = gsm_data_generator.testing.parameter(
         # Add rules
-        TestCase(gsmDataGen.tir.Ramp(x, 1, 4) + gsmDataGen.tir.Ramp(y, 2, 4), gsmDataGen.tir.Ramp(x + y, 3, 4)),
-        TestCase(gsmDataGen.tir.Ramp(x, 1, 2) + y, gsmDataGen.tir.Ramp(x + y, 1, 2)),
-        TestCase(y + gsmDataGen.tir.Ramp(x, 1, 2), gsmDataGen.tir.Ramp(y + x, 1, 2)),
+        TestCase(gsm_data_generator.tir.Ramp(x, 1, 4) + gsm_data_generator.tir.Ramp(y, 2, 4), gsm_data_generator.tir.Ramp(x + y, 3, 4)),
+        TestCase(gsm_data_generator.tir.Ramp(x, 1, 2) + y, gsm_data_generator.tir.Ramp(x + y, 1, 2)),
+        TestCase(y + gsm_data_generator.tir.Ramp(x, 1, 2), gsm_data_generator.tir.Ramp(y + x, 1, 2)),
         TestCase(
-            gsmDataGen.tir.Ramp(x, 1, tir.vscale() * 4) + gsmDataGen.tir.Ramp(y, 2, tir.vscale() * 4),
-            gsmDataGen.tir.Ramp(x + y, 3, tir.vscale() * 4),
+            gsm_data_generator.tir.Ramp(x, 1, tir.vscale() * 4) + gsm_data_generator.tir.Ramp(y, 2, tir.vscale() * 4),
+            gsm_data_generator.tir.Ramp(x + y, 3, tir.vscale() * 4),
         ),
         TestCase(y.astype("int32x2") + x.astype("int32x2"), (y + x).astype("int32x2")),
-        TestCase(gsmDataGen.tir.Broadcast(0, 4) + y, gsmDataGen.tir.Broadcast(y, 4)),
+        TestCase(gsm_data_generator.tir.Broadcast(0, 4) + y, gsm_data_generator.tir.Broadcast(y, 4)),
         # int64 lanes
         TestCase(
-            gsmDataGen.tir.Broadcast(x, 4) + gsmDataGen.tir.Ramp(0, 1, gsmDataGen.tir.IntImm(dtype="int64", value=4)),
-            gsmDataGen.tir.Ramp(x, 1, 4),
+            gsm_data_generator.tir.Broadcast(x, 4) + gsm_data_generator.tir.Ramp(0, 1, gsm_data_generator.tir.IntImm(dtype="int64", value=4)),
+            gsm_data_generator.tir.Ramp(x, 1, 4),
         ),
         TestCase(
-            gsmDataGen.tir.Broadcast(x, gsmDataGen.tir.IntImm(dtype="int64", value=4)) + gsmDataGen.tir.Ramp(0, 1, 4),
-            gsmDataGen.tir.Ramp(x, 1, 4),
+            gsm_data_generator.tir.Broadcast(x, gsm_data_generator.tir.IntImm(dtype="int64", value=4)) + gsm_data_generator.tir.Ramp(0, 1, 4),
+            gsm_data_generator.tir.Ramp(x, 1, 4),
         ),
         # int64 iterators with int32 lanes
         TestCase(
-            gsmDataGen.tir.Broadcast(x64, 4) + gsmDataGen.tir.Ramp(gsmDataGen.tir.IntImm(dtype="int64", value=0), 1, 4),
-            gsmDataGen.tir.Ramp(x64, 1, 4),
+            gsm_data_generator.tir.Broadcast(x64, 4) + gsm_data_generator.tir.Ramp(gsm_data_generator.tir.IntImm(dtype="int64", value=0), 1, 4),
+            gsm_data_generator.tir.Ramp(x64, 1, 4),
         ),
         TestCase(
-            gsmDataGen.tir.Broadcast(0, tir.vscale() * 8) + y, gsmDataGen.tir.Broadcast(y, tir.vscale() * 8)
+            gsm_data_generator.tir.Broadcast(0, tir.vscale() * 8) + y, gsm_data_generator.tir.Broadcast(y, tir.vscale() * 8)
         ),
         TestCase(
-            gsmDataGen.tir.Ramp(x, 1, 4).astype("float32x4") + gsmDataGen.tir.Broadcast(0.0, 4),
-            gsmDataGen.tir.Ramp(x, 1, 4).astype("float32x4"),
+            gsm_data_generator.tir.Ramp(x, 1, 4).astype("float32x4") + gsm_data_generator.tir.Broadcast(0.0, 4),
+            gsm_data_generator.tir.Ramp(x, 1, 4).astype("float32x4"),
         ),
         # Sub rules
-        TestCase(gsmDataGen.tir.Ramp(x, 4, 4) - gsmDataGen.tir.Ramp(y, 2, 4), gsmDataGen.tir.Ramp(x - y, 2, 4)),
-        TestCase(gsmDataGen.tir.Ramp(x, 1, 2) - y, gsmDataGen.tir.Ramp(x - y, 1, 2)),
-        TestCase(y - gsmDataGen.tir.Ramp(x, 1, 2), gsmDataGen.tir.Ramp(y - x, -1, 2)),
+        TestCase(gsm_data_generator.tir.Ramp(x, 4, 4) - gsm_data_generator.tir.Ramp(y, 2, 4), gsm_data_generator.tir.Ramp(x - y, 2, 4)),
+        TestCase(gsm_data_generator.tir.Ramp(x, 1, 2) - y, gsm_data_generator.tir.Ramp(x - y, 1, 2)),
+        TestCase(y - gsm_data_generator.tir.Ramp(x, 1, 2), gsm_data_generator.tir.Ramp(y - x, -1, 2)),
         TestCase(y.astype("int32x2") - x.astype("int32x2"), (y - x).astype("int32x2")),
         # Mul rules
         TestCase(y.astype("int32x2") * x.astype("int32x2"), (y * x).astype("int32x2")),
-        TestCase(gsmDataGen.tir.Ramp(x, 4, 4) * 2, gsmDataGen.tir.Ramp(x * 2, 8, 4)),
-        TestCase(2 * gsmDataGen.tir.Ramp(x, 4, 4), gsmDataGen.tir.Ramp(x * 2, 8, 4)),
-        TestCase(gsmDataGen.tir.Broadcast(0, 4) * x, gsmDataGen.tir.Broadcast(0, 4)),
-        TestCase(gsmDataGen.tir.Broadcast(0.0, 4) * x, gsmDataGen.tir.Broadcast(0.0, 4)),
+        TestCase(gsm_data_generator.tir.Ramp(x, 4, 4) * 2, gsm_data_generator.tir.Ramp(x * 2, 8, 4)),
+        TestCase(2 * gsm_data_generator.tir.Ramp(x, 4, 4), gsm_data_generator.tir.Ramp(x * 2, 8, 4)),
+        TestCase(gsm_data_generator.tir.Broadcast(0, 4) * x, gsm_data_generator.tir.Broadcast(0, 4)),
+        TestCase(gsm_data_generator.tir.Broadcast(0.0, 4) * x, gsm_data_generator.tir.Broadcast(0.0, 4)),
         ## DivMod rules
         # trunc div
         TestCase(tdiv(y.astype("int32x2"), x.astype("int32x2")), tdiv(y, x).astype("int32x2")),
-        TestCase(tdiv(gsmDataGen.tir.Ramp(x, 4, 4), 2), gsmDataGen.tir.Ramp(tdiv(x, 2), 2, 4)),
+        TestCase(tdiv(gsm_data_generator.tir.Ramp(x, 4, 4), 2), gsm_data_generator.tir.Ramp(tdiv(x, 2), 2, 4)),
         TestCase(
-            tdiv(gsmDataGen.tir.Ramp(x, 4, tir.vscale() * 5), 2),
-            gsmDataGen.tir.Ramp(tdiv(x, 2), 2, tir.vscale() * 5),
+            tdiv(gsm_data_generator.tir.Ramp(x, 4, tir.vscale() * 5), 2),
+            gsm_data_generator.tir.Ramp(tdiv(x, 2), 2, tir.vscale() * 5),
         ),
-        TestCase(tdiv(gsmDataGen.tir.Ramp(x * 8 + 1, 1, 4), 8), x.astype("int32x4"), x >= 0),
-        TestCase(tdiv(gsmDataGen.tir.Ramp(x * 8 + 15, 1, 4), 8), tdiv(gsmDataGen.tir.Ramp(x * 8 + 15, 1, 4), 8)),
+        TestCase(tdiv(gsm_data_generator.tir.Ramp(x * 8 + 1, 1, 4), 8), x.astype("int32x4"), x >= 0),
+        TestCase(tdiv(gsm_data_generator.tir.Ramp(x * 8 + 15, 1, 4), 8), tdiv(gsm_data_generator.tir.Ramp(x * 8 + 15, 1, 4), 8)),
         # trunc mod
         TestCase(tmod(y.astype("int32x2"), x.astype("int32x2")), tmod(y, x).astype("int32x2")),
-        TestCase(tmod(gsmDataGen.tir.Ramp(x, 4, 4), 2), gsmDataGen.tir.Broadcast(tmod(x, 2), 4)),
-        TestCase(tmod(gsmDataGen.tir.Ramp(x * 8 + 1, 1, 4), 8), gsmDataGen.tir.Ramp(1, 1, 4), x >= 0),
+        TestCase(tmod(gsm_data_generator.tir.Ramp(x, 4, 4), 2), gsm_data_generator.tir.Broadcast(tmod(x, 2), 4)),
+        TestCase(tmod(gsm_data_generator.tir.Ramp(x * 8 + 1, 1, 4), 8), gsm_data_generator.tir.Ramp(1, 1, 4), x >= 0),
         TestCase(
-            tmod(gsmDataGen.tir.Ramp(x * 8 + 1, 1, tir.vscale() * 4), 8),
-            tmod(gsmDataGen.tir.Ramp(1, 1, tir.vscale() * 4), 8),
+            tmod(gsm_data_generator.tir.Ramp(x * 8 + 1, 1, tir.vscale() * 4), 8),
+            tmod(gsm_data_generator.tir.Ramp(1, 1, tir.vscale() * 4), 8),
             x >= 0,
         ),
-        TestCase(tmod(gsmDataGen.tir.Ramp(x * 8 + 1, 15, 4), 8), tmod(gsmDataGen.tir.Ramp(1, 15, 4), 8), x >= 0),
+        TestCase(tmod(gsm_data_generator.tir.Ramp(x * 8 + 1, 15, 4), 8), tmod(gsm_data_generator.tir.Ramp(1, 15, 4), 8), x >= 0),
         # floor div
         TestCase(fld(y.astype("int32x2"), x.astype("int32x2")), fld(y, x).astype("int32x2")),
-        TestCase(fld(gsmDataGen.tir.Ramp(x, 4, 4), 2), gsmDataGen.tir.Ramp(fld(x, 2), 2, 4)),
+        TestCase(fld(gsm_data_generator.tir.Ramp(x, 4, 4), 2), gsm_data_generator.tir.Ramp(fld(x, 2), 2, 4)),
         TestCase(
-            fld(gsmDataGen.tir.Ramp(x, 4, tir.vscale() * 4), 2),
-            gsmDataGen.tir.Ramp(fld(x, 2), 2, tir.vscale() * 4),
+            fld(gsm_data_generator.tir.Ramp(x, 4, tir.vscale() * 4), 2),
+            gsm_data_generator.tir.Ramp(fld(x, 2), 2, tir.vscale() * 4),
         ),
-        TestCase(fld(gsmDataGen.tir.Ramp(x * 8 + 1, 1, 4), 8), (x).astype("int32x4")),
-        TestCase(fld(gsmDataGen.tir.Ramp(x * 8 + 15, 1, 4), 8), fld(gsmDataGen.tir.Ramp(x * 8 + 15, 1, 4), 8)),
+        TestCase(fld(gsm_data_generator.tir.Ramp(x * 8 + 1, 1, 4), 8), (x).astype("int32x4")),
+        TestCase(fld(gsm_data_generator.tir.Ramp(x * 8 + 15, 1, 4), 8), fld(gsm_data_generator.tir.Ramp(x * 8 + 15, 1, 4), 8)),
         TestCase(
-            fld(gsmDataGen.tir.Ramp(x, 8, 5), gsmDataGen.tir.Broadcast(4, 5)), gsmDataGen.tir.Ramp(fld(x, 4), 2, 5)
-        ),
-        TestCase(
-            fld(gsmDataGen.tir.Ramp(x, 8, tir.vscale() * 4), gsmDataGen.tir.Broadcast(4, tir.vscale() * 4)),
-            gsmDataGen.tir.Ramp(fld(x, 4), 2, tir.vscale() * 4),
+            fld(gsm_data_generator.tir.Ramp(x, 8, 5), gsm_data_generator.tir.Broadcast(4, 5)), gsm_data_generator.tir.Ramp(fld(x, 4), 2, 5)
         ),
         TestCase(
-            fld(gsmDataGen.tir.Ramp(flm(x * 4, 256), 1, 4), gsmDataGen.tir.Broadcast(8, 4)),
-            gsmDataGen.tir.Broadcast(fld(flm(x * 4, 256), 8), 4),
+            fld(gsm_data_generator.tir.Ramp(x, 8, tir.vscale() * 4), gsm_data_generator.tir.Broadcast(4, tir.vscale() * 4)),
+            gsm_data_generator.tir.Ramp(fld(x, 4), 2, tir.vscale() * 4),
         ),
         TestCase(
-            fld(gsmDataGen.tir.Ramp(x, 7, 4), gsmDataGen.tir.Broadcast(4, 4)),
-            fld(gsmDataGen.tir.Ramp(x, 7, 4), gsmDataGen.tir.Broadcast(4, 4)),
+            fld(gsm_data_generator.tir.Ramp(flm(x * 4, 256), 1, 4), gsm_data_generator.tir.Broadcast(8, 4)),
+            gsm_data_generator.tir.Broadcast(fld(flm(x * 4, 256), 8), 4),
         ),
         TestCase(
-            fld(gsmDataGen.tir.Ramp(x * 8, 1, 4), gsmDataGen.tir.Broadcast(4, 4)), gsmDataGen.tir.Broadcast(x * 2, 4)
+            fld(gsm_data_generator.tir.Ramp(x, 7, 4), gsm_data_generator.tir.Broadcast(4, 4)),
+            fld(gsm_data_generator.tir.Ramp(x, 7, 4), gsm_data_generator.tir.Broadcast(4, 4)),
         ),
         TestCase(
-            fld(gsmDataGen.tir.Ramp(x * 8, 1, tir.vscale() * 4), gsmDataGen.tir.Broadcast(4, tir.vscale() * 4)),
-            fld(gsmDataGen.tir.Ramp(x * 8, 1, tir.vscale() * 4), gsmDataGen.tir.Broadcast(4, tir.vscale() * 4)),
+            fld(gsm_data_generator.tir.Ramp(x * 8, 1, 4), gsm_data_generator.tir.Broadcast(4, 4)), gsm_data_generator.tir.Broadcast(x * 2, 4)
         ),
         TestCase(
-            fld(gsmDataGen.tir.Ramp(x * 8, 3, 4), gsmDataGen.tir.Broadcast(4, 4)),
-            fld(gsmDataGen.tir.Ramp(x * 8, 3, 4), gsmDataGen.tir.Broadcast(4, 4)),
+            fld(gsm_data_generator.tir.Ramp(x * 8, 1, tir.vscale() * 4), gsm_data_generator.tir.Broadcast(4, tir.vscale() * 4)),
+            fld(gsm_data_generator.tir.Ramp(x * 8, 1, tir.vscale() * 4), gsm_data_generator.tir.Broadcast(4, tir.vscale() * 4)),
         ),
         TestCase(
-            fld(gsmDataGen.tir.Ramp(x * 8 + 15, 1, 4), gsmDataGen.tir.Broadcast(4, 4)),
-            fld(gsmDataGen.tir.Ramp(x * 8 + 15, 1, 4), gsmDataGen.tir.Broadcast(4, 4)),
+            fld(gsm_data_generator.tir.Ramp(x * 8, 3, 4), gsm_data_generator.tir.Broadcast(4, 4)),
+            fld(gsm_data_generator.tir.Ramp(x * 8, 3, 4), gsm_data_generator.tir.Broadcast(4, 4)),
         ),
         TestCase(
-            fld(gsmDataGen.tir.Ramp(x * 4, 1, 4), gsmDataGen.tir.Broadcast(64, 4)),
-            gsmDataGen.tir.Broadcast(fld(x, 16), 4),
+            fld(gsm_data_generator.tir.Ramp(x * 8 + 15, 1, 4), gsm_data_generator.tir.Broadcast(4, 4)),
+            fld(gsm_data_generator.tir.Ramp(x * 8 + 15, 1, 4), gsm_data_generator.tir.Broadcast(4, 4)),
         ),
         TestCase(
-            fld(gsmDataGen.tir.Ramp(x * 8, 2, 4), gsmDataGen.tir.Broadcast(64, 4)),
-            gsmDataGen.tir.Broadcast(fld(x, 8), 4),
+            fld(gsm_data_generator.tir.Ramp(x * 4, 1, 4), gsm_data_generator.tir.Broadcast(64, 4)),
+            gsm_data_generator.tir.Broadcast(fld(x, 16), 4),
         ),
         TestCase(
-            fld(gsmDataGen.tir.Ramp(x * 4, 1, 5), gsmDataGen.tir.Broadcast(64, 5)),
-            fld(gsmDataGen.tir.Ramp(x * 4, 1, 5), gsmDataGen.tir.Broadcast(64, 5)),
+            fld(gsm_data_generator.tir.Ramp(x * 8, 2, 4), gsm_data_generator.tir.Broadcast(64, 4)),
+            gsm_data_generator.tir.Broadcast(fld(x, 8), 4),
+        ),
+        TestCase(
+            fld(gsm_data_generator.tir.Ramp(x * 4, 1, 5), gsm_data_generator.tir.Broadcast(64, 5)),
+            fld(gsm_data_generator.tir.Ramp(x * 4, 1, 5), gsm_data_generator.tir.Broadcast(64, 5)),
         ),  # Example negative case: x = 15; [60, 61, 62, 63, 64] / 64 = [0, 0, 0, 0, 1]
         TestCase(
-            fld(gsmDataGen.tir.Ramp(x * 4 + 3, 1, 4), gsmDataGen.tir.Broadcast(64, 4)),
-            fld(gsmDataGen.tir.Ramp(x * 4 + 3, 1, 4), gsmDataGen.tir.Broadcast(64, 4)),
+            fld(gsm_data_generator.tir.Ramp(x * 4 + 3, 1, 4), gsm_data_generator.tir.Broadcast(64, 4)),
+            fld(gsm_data_generator.tir.Ramp(x * 4 + 3, 1, 4), gsm_data_generator.tir.Broadcast(64, 4)),
         ),  # Example negative case: x = 15; [63, 64, 65, 66] % 64 = [0, 1, 1, 1]
         TestCase(
-            fld(gsmDataGen.tir.Ramp(x * 7, 1, 4), gsmDataGen.tir.Broadcast(64, 4)),
-            fld(gsmDataGen.tir.Ramp(x * 7, 1, 4), gsmDataGen.tir.Broadcast(64, 4)),
+            fld(gsm_data_generator.tir.Ramp(x * 7, 1, 4), gsm_data_generator.tir.Broadcast(64, 4)),
+            fld(gsm_data_generator.tir.Ramp(x * 7, 1, 4), gsm_data_generator.tir.Broadcast(64, 4)),
         ),  # Example negative case: x = 9; [63, 70, 77, 84] % 64 = [0, 1, 1, 1]
         # floor mod
         TestCase(flm(y.astype("int32x2"), x.astype("int32x2")), flm(y, x).astype("int32x2")),
-        TestCase(flm(gsmDataGen.tir.Ramp(x, 4, 4), 2), gsmDataGen.tir.Broadcast(flm(x, 2), 4)),
+        TestCase(flm(gsm_data_generator.tir.Ramp(x, 4, 4), 2), gsm_data_generator.tir.Broadcast(flm(x, 2), 4)),
         TestCase(
-            flm(gsmDataGen.tir.Ramp(x, 4, tir.vscale() * 8), 2),
-            gsmDataGen.tir.Broadcast(flm(x, 2), tir.vscale() * 8),
+            flm(gsm_data_generator.tir.Ramp(x, 4, tir.vscale() * 8), 2),
+            gsm_data_generator.tir.Broadcast(flm(x, 2), tir.vscale() * 8),
         ),
-        TestCase(flm(gsmDataGen.tir.Ramp(x * 8 + 1, 1, 4), 8), gsmDataGen.tir.Ramp(1, 1, 4)),
+        TestCase(flm(gsm_data_generator.tir.Ramp(x * 8 + 1, 1, 4), 8), gsm_data_generator.tir.Ramp(1, 1, 4)),
         TestCase(
-            flm(gsmDataGen.tir.Ramp(x * 8 + 1, 1, tir.vscale() * 4), 8),
-            flm(gsmDataGen.tir.Ramp(1, 1, tir.vscale() * 4), 8),
+            flm(gsm_data_generator.tir.Ramp(x * 8 + 1, 1, tir.vscale() * 4), 8),
+            flm(gsm_data_generator.tir.Ramp(1, 1, tir.vscale() * 4), 8),
         ),
-        TestCase(flm(gsmDataGen.tir.Ramp(x * 8 + 1, 15, 4), 8), flm(gsmDataGen.tir.Ramp(1, 15, 4), 8)),
+        TestCase(flm(gsm_data_generator.tir.Ramp(x * 8 + 1, 15, 4), 8), flm(gsm_data_generator.tir.Ramp(1, 15, 4), 8)),
         TestCase(
-            flm(gsmDataGen.tir.Ramp(x, 8, 4), gsmDataGen.tir.Broadcast(4, 4)), gsmDataGen.tir.Broadcast(flm(x, 4), 4)
-        ),
-        TestCase(
-            flm(gsmDataGen.tir.Ramp(x, 7, 4), gsmDataGen.tir.Broadcast(4, 4)),
-            flm(gsmDataGen.tir.Ramp(x, 7, 4), gsmDataGen.tir.Broadcast(4, 4)),
-        ),
-        TestCase(flm(gsmDataGen.tir.Ramp(x * 8, 1, 4), gsmDataGen.tir.Broadcast(4, 4)), gsmDataGen.tir.Ramp(0, 1, 4)),
-        TestCase(
-            flm(gsmDataGen.tir.Ramp(x * 8, 1, 5), gsmDataGen.tir.Broadcast(4, 5)),
-            flm(gsmDataGen.tir.Ramp(0, 1, 5), gsmDataGen.tir.Broadcast(4, 5)),
+            flm(gsm_data_generator.tir.Ramp(x, 8, 4), gsm_data_generator.tir.Broadcast(4, 4)), gsm_data_generator.tir.Broadcast(flm(x, 4), 4)
         ),
         TestCase(
-            flm(gsmDataGen.tir.Ramp(x * 8 + 7, 1, 4), gsmDataGen.tir.Broadcast(4, 4)),
-            flm(gsmDataGen.tir.Ramp(3, 1, 4), gsmDataGen.tir.Broadcast(4, 4)),
+            flm(gsm_data_generator.tir.Ramp(x, 7, 4), gsm_data_generator.tir.Broadcast(4, 4)),
+            flm(gsm_data_generator.tir.Ramp(x, 7, 4), gsm_data_generator.tir.Broadcast(4, 4)),
+        ),
+        TestCase(flm(gsm_data_generator.tir.Ramp(x * 8, 1, 4), gsm_data_generator.tir.Broadcast(4, 4)), gsm_data_generator.tir.Ramp(0, 1, 4)),
+        TestCase(
+            flm(gsm_data_generator.tir.Ramp(x * 8, 1, 5), gsm_data_generator.tir.Broadcast(4, 5)),
+            flm(gsm_data_generator.tir.Ramp(0, 1, 5), gsm_data_generator.tir.Broadcast(4, 5)),
         ),
         TestCase(
-            flm(gsmDataGen.tir.Ramp(x * 4, 1, 4), gsmDataGen.tir.Broadcast(64, 4)),
-            gsmDataGen.tir.Ramp(flm(x * 4, 64), 1, 4),
+            flm(gsm_data_generator.tir.Ramp(x * 8 + 7, 1, 4), gsm_data_generator.tir.Broadcast(4, 4)),
+            flm(gsm_data_generator.tir.Ramp(3, 1, 4), gsm_data_generator.tir.Broadcast(4, 4)),
         ),
         TestCase(
-            flm(gsmDataGen.tir.Ramp(x * 8, 2, 4), gsmDataGen.tir.Broadcast(64, 4)),
-            gsmDataGen.tir.Ramp(flm(x * 8, 64), 2, 4),
+            flm(gsm_data_generator.tir.Ramp(x * 4, 1, 4), gsm_data_generator.tir.Broadcast(64, 4)),
+            gsm_data_generator.tir.Ramp(flm(x * 4, 64), 1, 4),
         ),
         TestCase(
-            flm(gsmDataGen.tir.Ramp(x * 4, 1, 5), gsmDataGen.tir.Broadcast(64, 5)),
-            flm(gsmDataGen.tir.Ramp(x * 4, 1, 5), gsmDataGen.tir.Broadcast(64, 5)),
+            flm(gsm_data_generator.tir.Ramp(x * 8, 2, 4), gsm_data_generator.tir.Broadcast(64, 4)),
+            gsm_data_generator.tir.Ramp(flm(x * 8, 64), 2, 4),
+        ),
+        TestCase(
+            flm(gsm_data_generator.tir.Ramp(x * 4, 1, 5), gsm_data_generator.tir.Broadcast(64, 5)),
+            flm(gsm_data_generator.tir.Ramp(x * 4, 1, 5), gsm_data_generator.tir.Broadcast(64, 5)),
         ),  # Example negative case: x = 15; [60, 61, 62, 63, 64] % 64 = [60, 61, 62, 63, 0]
         TestCase(
-            flm(gsmDataGen.tir.Ramp(x * 4 + 3, 1, 4), gsmDataGen.tir.Broadcast(64, 4)),
-            flm(gsmDataGen.tir.Ramp(x * 4 + 3, 1, 4), gsmDataGen.tir.Broadcast(64, 4)),
+            flm(gsm_data_generator.tir.Ramp(x * 4 + 3, 1, 4), gsm_data_generator.tir.Broadcast(64, 4)),
+            flm(gsm_data_generator.tir.Ramp(x * 4 + 3, 1, 4), gsm_data_generator.tir.Broadcast(64, 4)),
         ),  # Example negative case: x = 15; [63, 64, 65, 66] % 64 = [63, 0, 1, 2]
         TestCase(
-            flm(gsmDataGen.tir.Ramp(x * 2, 1, 8), gsmDataGen.tir.Broadcast(20, 8)),
-            flm(gsmDataGen.tir.Ramp(x * 2, 1, 8), gsmDataGen.tir.Broadcast(20, 8)),
+            flm(gsm_data_generator.tir.Ramp(x * 2, 1, 8), gsm_data_generator.tir.Broadcast(20, 8)),
+            flm(gsm_data_generator.tir.Ramp(x * 2, 1, 8), gsm_data_generator.tir.Broadcast(20, 8)),
         ),  # Example negative case: x = 9; [18, 19, 20, ..., 25] % 20 = [18, 19, 0, 1, ..., 5]
         TestCase(
-            flm(gsmDataGen.tir.Ramp(x * 7, 1, 4), gsmDataGen.tir.Broadcast(64, 4)),
-            flm(gsmDataGen.tir.Ramp(x * 7, 1, 4), gsmDataGen.tir.Broadcast(64, 4)),
+            flm(gsm_data_generator.tir.Ramp(x * 7, 1, 4), gsm_data_generator.tir.Broadcast(64, 4)),
+            flm(gsm_data_generator.tir.Ramp(x * 7, 1, 4), gsm_data_generator.tir.Broadcast(64, 4)),
         ),  # Example negative case: x = 9; [63, 70, 77, 84] % 64 = [63, 6, 13, 20]
         # Min/Max rules
         TestCase(
-            gsmDataGen.te.min(y.astype("int32x2"), x.astype("int32x2")), gsmDataGen.te.min(y, x).astype("int32x2")
+            gsm_data_generator.te.min(y.astype("int32x2"), x.astype("int32x2")), gsm_data_generator.te.min(y, x).astype("int32x2")
         ),
         TestCase(
-            gsmDataGen.te.min(gsmDataGen.te.min(vx, y.astype("int32x2")), x.astype("int32x2")),
-            gsmDataGen.te.min(vx, gsmDataGen.te.min(y, x).astype("int32x2")),
+            gsm_data_generator.te.min(gsm_data_generator.te.min(vx, y.astype("int32x2")), x.astype("int32x2")),
+            gsm_data_generator.te.min(vx, gsm_data_generator.te.min(y, x).astype("int32x2")),
         ),
         TestCase(
-            gsmDataGen.te.max(y.astype("int32x2"), x.astype("int32x2")), gsmDataGen.te.max(y, x).astype("int32x2")
+            gsm_data_generator.te.max(y.astype("int32x2"), x.astype("int32x2")), gsm_data_generator.te.max(y, x).astype("int32x2")
         ),
         TestCase(
-            gsmDataGen.te.max(gsmDataGen.te.max(vx, y.astype("int32x2")), x.astype("int32x2")),
-            gsmDataGen.te.max(vx, gsmDataGen.te.max(y, x).astype("int32x2")),
+            gsm_data_generator.te.max(gsm_data_generator.te.max(vx, y.astype("int32x2")), x.astype("int32x2")),
+            gsm_data_generator.te.max(vx, gsm_data_generator.te.max(y, x).astype("int32x2")),
         ),
         ## Logical rules
         TestCase(y.astype("int32x2").equal(x.astype("int32x2")), (y.equal(x)).astype("uint1x2")),
         TestCase(
-            gsmDataGen.tir.NE(y.astype("int32x2"), (x.astype("int32x2"))),
-            (gsmDataGen.tir.NE(y, x)).astype("uint1x2"),
+            gsm_data_generator.tir.NE(y.astype("int32x2"), (x.astype("int32x2"))),
+            (gsm_data_generator.tir.NE(y, x)).astype("uint1x2"),
         ),
         TestCase(y.astype("int32x2") > x.astype("int32x2"), (x < y).astype("uint1x2")),
         TestCase(y.astype("int32x2") >= x.astype("int32x2"), (x <= y).astype("uint1x2")),
         TestCase(y.astype("int32x2") < x.astype("int32x2"), (y < x).astype("uint1x2")),
         TestCase(y.astype("int32x2") <= x.astype("int32x2"), (y <= x).astype("uint1x2")),
         TestCase(
-            gsmDataGen.tir.And(y.astype("int32x2") <= x.astype("int32x2"), vc.astype("uint1x2")),
-            (gsmDataGen.tir.And(y <= x, vc)).astype("uint1x2"),
+            gsm_data_generator.tir.And(y.astype("int32x2") <= x.astype("int32x2"), vc.astype("uint1x2")),
+            (gsm_data_generator.tir.And(y <= x, vc)).astype("uint1x2"),
         ),
         TestCase(
-            gsmDataGen.tir.Or(y.astype("int32x2") <= x.astype("int32x2"), vc.astype("uint1x2")),
-            (gsmDataGen.tir.Or(y <= x, vc)).astype("uint1x2"),
+            gsm_data_generator.tir.Or(y.astype("int32x2") <= x.astype("int32x2"), vc.astype("uint1x2")),
+            (gsm_data_generator.tir.Or(y <= x, vc)).astype("uint1x2"),
         ),
     )
 
@@ -308,29 +308,29 @@ class TestVector(BaseCompare):
 class TestSelect(BaseCompare):
     x, y, z = te.var("x"), te.var("y"), te.var("z")
 
-    test_case = gsmDataGen.testing.parameter(
+    test_case = gsm_data_generator.testing.parameter(
         # Add rules
         TestCase(
-            gsmDataGen.tir.Select(x < 0, y, 0) + gsmDataGen.tir.Select(x < 0, 1, z),
-            gsmDataGen.tir.Select(x < 0, y + 1, z),
+            gsm_data_generator.tir.Select(x < 0, y, 0) + gsm_data_generator.tir.Select(x < 0, 1, z),
+            gsm_data_generator.tir.Select(x < 0, y + 1, z),
         ),
         TestCase(
-            gsmDataGen.tir.Select(x < 0, y, 1) - gsmDataGen.tir.Select(x < 0, 1, z),
-            gsmDataGen.tir.Select(x < 0, y + (-1), 1 - z),
+            gsm_data_generator.tir.Select(x < 0, y, 1) - gsm_data_generator.tir.Select(x < 0, 1, z),
+            gsm_data_generator.tir.Select(x < 0, y + (-1), 1 - z),
         ),
-        TestCase(gsmDataGen.tir.Select(x < 0, y, z) - y, gsmDataGen.tir.Select(x < 0, 0, z - y)),
-        TestCase(gsmDataGen.tir.Select(x < 0, y, z) - z, gsmDataGen.tir.Select(x < 0, y - z, 0)),
+        TestCase(gsm_data_generator.tir.Select(x < 0, y, z) - y, gsm_data_generator.tir.Select(x < 0, 0, z - y)),
+        TestCase(gsm_data_generator.tir.Select(x < 0, y, z) - z, gsm_data_generator.tir.Select(x < 0, y - z, 0)),
         TestCase(
-            gsmDataGen.te.min(gsmDataGen.tir.Select(x < 0, y, 0), gsmDataGen.tir.Select(x < 0, 1, z)),
-            gsmDataGen.tir.Select(x < 0, gsmDataGen.te.min(y, 1), gsmDataGen.te.min(0, z)),
+            gsm_data_generator.te.min(gsm_data_generator.tir.Select(x < 0, y, 0), gsm_data_generator.tir.Select(x < 0, 1, z)),
+            gsm_data_generator.tir.Select(x < 0, gsm_data_generator.te.min(y, 1), gsm_data_generator.te.min(0, z)),
         ),
         TestCase(
-            gsmDataGen.te.max(gsmDataGen.tir.Select(x < 0, y, 0), gsmDataGen.tir.Select(x < 0, 1, z)),
-            gsmDataGen.tir.Select(x < 0, gsmDataGen.te.max(y, 1), gsmDataGen.te.max(0, z)),
+            gsm_data_generator.te.max(gsm_data_generator.tir.Select(x < 0, y, 0), gsm_data_generator.tir.Select(x < 0, 1, z)),
+            gsm_data_generator.tir.Select(x < 0, gsm_data_generator.te.max(y, 1), gsm_data_generator.te.max(0, z)),
         ),
-        TestCase(gsmDataGen.tir.Select(x * 3 + 1 != 0, y, z), y),
-        TestCase(gsmDataGen.tir.Select(x * 3 + 1 == 0, y, z), z),
-        TestCase(gsmDataGen.tir.Select(x > 0, y + 1, y + 1), y + 1),
+        TestCase(gsm_data_generator.tir.Select(x * 3 + 1 != 0, y, z), y),
+        TestCase(gsm_data_generator.tir.Select(x * 3 + 1 == 0, y, z), z),
+        TestCase(gsm_data_generator.tir.Select(x > 0, y + 1, y + 1), y + 1),
     )
 
 
@@ -342,7 +342,7 @@ class TestCancellation(BaseCompare):
     var_uint32 = tir.Var("var_uint32", "uint32")
     var_uint64 = tir.Var("var_uint64", "uint64")
 
-    test_case = gsmDataGen.testing.parameter(
+    test_case = gsm_data_generator.testing.parameter(
         TestCase(tir.const(5, "int64") - tir.const(5, "int64"), tir.const(0, "int64")),
         TestCase(tir.const(5, "uint8") - tir.const(5, "uint8"), tir.const(0, "uint8")),
         TestCase(var_int8 - var_int8, tir.const(0, "int8")),
@@ -373,29 +373,29 @@ class TestCancellation(BaseCompare):
 class TestAddIndex(BaseCompare):
     x, y, z = te.var("x"), te.var("y"), te.var("z")
 
-    test_case = gsmDataGen.testing.parameter(
+    test_case = gsm_data_generator.testing.parameter(
         TestCase(x + (y - x), y),
         TestCase(x - (y + 1) + (y + 1), x),
         TestCase((x - 10) + (10 - z), x - z),
         TestCase((x - y) + (z - x), z - y),
-        TestCase(gsmDataGen.te.min(x, y - z) + z, gsmDataGen.te.min(x + z, y)),
-        TestCase(gsmDataGen.te.min(x - z, y) + z, gsmDataGen.te.min(x, y + z)),
-        TestCase(gsmDataGen.te.max(x, y - 10) + 10, gsmDataGen.te.max(x + 10, y)),
-        TestCase(gsmDataGen.te.max(x - 11, y) + 11, gsmDataGen.te.max(x, y + 11)),
-        TestCase(gsmDataGen.te.max(x, y * 2) + gsmDataGen.te.min(x, y * 2), x + y * 2),
-        TestCase(gsmDataGen.te.min(x, y * 2) + gsmDataGen.te.max(x, y * 2), x + y * 2),
-        TestCase(gsmDataGen.te.max(x, y + 2) + (-2), gsmDataGen.te.max(x + (-2), y)),
-        TestCase(gsmDataGen.te.min(x, y + 2) + (-2), gsmDataGen.te.min(x + (-2), y)),
-        TestCase(gsmDataGen.te.min(x + 2, y + 3) + (-2), gsmDataGen.te.min(x, y + 1)),
-        TestCase(gsmDataGen.te.max(0, 1 - x * 4) + x * 4, gsmDataGen.te.max(x * 4, 1)),
-        TestCase(gsmDataGen.te.max(2 - x * 4, 0) + x * 4, gsmDataGen.te.max(x * 4, 2)),
-        TestCase(gsmDataGen.te.min(0, 1 - x * 4) + x * 4, gsmDataGen.te.min(x * 4, 1)),
-        TestCase(gsmDataGen.te.min(2 - x * 4, 0) + x * 4, gsmDataGen.te.min(x * 4, 2)),
+        TestCase(gsm_data_generator.te.min(x, y - z) + z, gsm_data_generator.te.min(x + z, y)),
+        TestCase(gsm_data_generator.te.min(x - z, y) + z, gsm_data_generator.te.min(x, y + z)),
+        TestCase(gsm_data_generator.te.max(x, y - 10) + 10, gsm_data_generator.te.max(x + 10, y)),
+        TestCase(gsm_data_generator.te.max(x - 11, y) + 11, gsm_data_generator.te.max(x, y + 11)),
+        TestCase(gsm_data_generator.te.max(x, y * 2) + gsm_data_generator.te.min(x, y * 2), x + y * 2),
+        TestCase(gsm_data_generator.te.min(x, y * 2) + gsm_data_generator.te.max(x, y * 2), x + y * 2),
+        TestCase(gsm_data_generator.te.max(x, y + 2) + (-2), gsm_data_generator.te.max(x + (-2), y)),
+        TestCase(gsm_data_generator.te.min(x, y + 2) + (-2), gsm_data_generator.te.min(x + (-2), y)),
+        TestCase(gsm_data_generator.te.min(x + 2, y + 3) + (-2), gsm_data_generator.te.min(x, y + 1)),
+        TestCase(gsm_data_generator.te.max(0, 1 - x * 4) + x * 4, gsm_data_generator.te.max(x * 4, 1)),
+        TestCase(gsm_data_generator.te.max(2 - x * 4, 0) + x * 4, gsm_data_generator.te.max(x * 4, 2)),
+        TestCase(gsm_data_generator.te.min(0, 1 - x * 4) + x * 4, gsm_data_generator.te.min(x * 4, 1)),
+        TestCase(gsm_data_generator.te.min(2 - x * 4, 0) + x * 4, gsm_data_generator.te.min(x * 4, 2)),
         TestCase(x * y + x * 10, (y + 10) * x),
         TestCase(y * x + x * 10, (y + 10) * x),
         TestCase(y * x + 10 * x, (y + 10) * x),
         TestCase(x * y + 10 * x, (y + 10) * x),
-        TestCase((2 * z) + gsmDataGen.te.min(x, y - (2 * z)), gsmDataGen.te.min(x + (z * 2), y)),
+        TestCase((2 * z) + gsm_data_generator.te.min(x, y - (2 * z)), gsm_data_generator.te.min(x + (z * 2), y)),
         TestCase(y * x + x, (y + 1) * x),
         TestCase(x * y + x, (y + 1) * x),
         TestCase((x + 10) + 13, x + 23),
@@ -421,19 +421,19 @@ class TestAddIndex(BaseCompare):
 class TestSubIndex(BaseCompare):
     x, y, z = te.var("x"), te.var("y"), te.var("z")
 
-    test_case = gsmDataGen.testing.parameter(
+    test_case = gsm_data_generator.testing.parameter(
         TestCase(x + y - y, x),
         TestCase(x + y - x, y),
         TestCase(x - (y + x), 0 - y),
         TestCase(x - (x + y), 0 - y),
-        TestCase(gsmDataGen.te.min(x, y) - x, gsmDataGen.te.min(0, y - x)),
-        TestCase(gsmDataGen.te.min(x, y) - y, gsmDataGen.te.min(x - y, 0)),
-        TestCase(gsmDataGen.te.max(x, y) - x, gsmDataGen.te.max(0, y - x)),
-        TestCase(gsmDataGen.te.max(x, y) - y, gsmDataGen.te.max(x - y, 0)),
-        TestCase(x - gsmDataGen.te.min(x, y), gsmDataGen.te.max(0, x - y)),
-        TestCase(y - gsmDataGen.te.min(x, y), gsmDataGen.te.max(y - x, 0)),
-        TestCase(x - gsmDataGen.te.max(x, y), gsmDataGen.te.min(0, x - y)),
-        TestCase(y - gsmDataGen.te.max(x, y), gsmDataGen.te.min(y - x, 0)),
+        TestCase(gsm_data_generator.te.min(x, y) - x, gsm_data_generator.te.min(0, y - x)),
+        TestCase(gsm_data_generator.te.min(x, y) - y, gsm_data_generator.te.min(x - y, 0)),
+        TestCase(gsm_data_generator.te.max(x, y) - x, gsm_data_generator.te.max(0, y - x)),
+        TestCase(gsm_data_generator.te.max(x, y) - y, gsm_data_generator.te.max(x - y, 0)),
+        TestCase(x - gsm_data_generator.te.min(x, y), gsm_data_generator.te.max(0, x - y)),
+        TestCase(y - gsm_data_generator.te.min(x, y), gsm_data_generator.te.max(y - x, 0)),
+        TestCase(x - gsm_data_generator.te.max(x, y), gsm_data_generator.te.min(0, x - y)),
+        TestCase(y - gsm_data_generator.te.max(x, y), gsm_data_generator.te.min(y - x, 0)),
         # mul co-efficient foldng
         TestCase(x - x, 0),
         TestCase(x * y - x, (y + (-1)) * x),
@@ -446,26 +446,26 @@ class TestSubIndex(BaseCompare):
         TestCase((y + x) - (x + z), y - z),
         TestCase((x + y) - (z + x), y - z),
         TestCase((y + x) - (z + x), y - z),
-        TestCase(gsmDataGen.te.min(x + y, z) - x, gsmDataGen.te.min(y, z - x)),
-        TestCase(gsmDataGen.te.min(y + x, z) - x, gsmDataGen.te.min(y, z - x)),
-        TestCase(gsmDataGen.te.min(z, x + y) - x, gsmDataGen.te.min(z - x, y)),
-        TestCase(gsmDataGen.te.min(z, y + x) - x, gsmDataGen.te.min(z - x, y)),
-        TestCase(gsmDataGen.te.max(x + y, z) - x, gsmDataGen.te.max(y, z - x)),
-        TestCase(gsmDataGen.te.max(y + x, z) - x, gsmDataGen.te.max(y, z - x)),
-        TestCase(gsmDataGen.te.max(z, x + y) - x, gsmDataGen.te.max(z - x, y)),
-        TestCase(gsmDataGen.te.max(z, y + x) - x, gsmDataGen.te.max(z - x, y)),
-        TestCase(x - gsmDataGen.te.min(x + y, z), gsmDataGen.te.max(0 - y, x - z)),
-        TestCase(x - gsmDataGen.te.min(y + x, z), gsmDataGen.te.max(0 - y, x - z)),
-        TestCase(x - gsmDataGen.te.min(z, x + y), gsmDataGen.te.max(x - z, 0 - y)),
-        TestCase(x - gsmDataGen.te.min(z, y + x), gsmDataGen.te.max(x - z, 0 - y)),
-        TestCase(gsmDataGen.te.min(x, y) - gsmDataGen.te.min(y, x), 0),
-        TestCase(gsmDataGen.te.max(x, y) - gsmDataGen.te.max(y, x), 0),
-        TestCase(gsmDataGen.te.min(x, y) - gsmDataGen.te.min(x + 10, y + 10), -10),
-        TestCase(gsmDataGen.te.min(x + 10, y + 1) - gsmDataGen.te.min(x, y - 9), 10),
-        TestCase(x - gsmDataGen.te.max(x + y, 0), gsmDataGen.te.min(0 - y, x)),
-        TestCase(x - gsmDataGen.te.max(0, x + y), gsmDataGen.te.min(x, 0 - y)),
-        TestCase(x - gsmDataGen.te.min(x + y, 0), gsmDataGen.te.max(0 - y, x)),
-        TestCase(x - gsmDataGen.te.min(0, x + y), gsmDataGen.te.max(x, 0 - y)),
+        TestCase(gsm_data_generator.te.min(x + y, z) - x, gsm_data_generator.te.min(y, z - x)),
+        TestCase(gsm_data_generator.te.min(y + x, z) - x, gsm_data_generator.te.min(y, z - x)),
+        TestCase(gsm_data_generator.te.min(z, x + y) - x, gsm_data_generator.te.min(z - x, y)),
+        TestCase(gsm_data_generator.te.min(z, y + x) - x, gsm_data_generator.te.min(z - x, y)),
+        TestCase(gsm_data_generator.te.max(x + y, z) - x, gsm_data_generator.te.max(y, z - x)),
+        TestCase(gsm_data_generator.te.max(y + x, z) - x, gsm_data_generator.te.max(y, z - x)),
+        TestCase(gsm_data_generator.te.max(z, x + y) - x, gsm_data_generator.te.max(z - x, y)),
+        TestCase(gsm_data_generator.te.max(z, y + x) - x, gsm_data_generator.te.max(z - x, y)),
+        TestCase(x - gsm_data_generator.te.min(x + y, z), gsm_data_generator.te.max(0 - y, x - z)),
+        TestCase(x - gsm_data_generator.te.min(y + x, z), gsm_data_generator.te.max(0 - y, x - z)),
+        TestCase(x - gsm_data_generator.te.min(z, x + y), gsm_data_generator.te.max(x - z, 0 - y)),
+        TestCase(x - gsm_data_generator.te.min(z, y + x), gsm_data_generator.te.max(x - z, 0 - y)),
+        TestCase(gsm_data_generator.te.min(x, y) - gsm_data_generator.te.min(y, x), 0),
+        TestCase(gsm_data_generator.te.max(x, y) - gsm_data_generator.te.max(y, x), 0),
+        TestCase(gsm_data_generator.te.min(x, y) - gsm_data_generator.te.min(x + 10, y + 10), -10),
+        TestCase(gsm_data_generator.te.min(x + 10, y + 1) - gsm_data_generator.te.min(x, y - 9), 10),
+        TestCase(x - gsm_data_generator.te.max(x + y, 0), gsm_data_generator.te.min(0 - y, x)),
+        TestCase(x - gsm_data_generator.te.max(0, x + y), gsm_data_generator.te.min(x, 0 - y)),
+        TestCase(x - gsm_data_generator.te.min(x + y, 0), gsm_data_generator.te.max(0 - y, x)),
+        TestCase(x - gsm_data_generator.te.min(0, x + y), gsm_data_generator.te.max(x, 0 - y)),
         # DivMod patterns
         # truc div
         TestCase(x - tdiv(x, 3) * 3, tmod(x, 3)),
@@ -515,11 +515,11 @@ class TestSubIndex(BaseCompare):
 
 class TestMulIndex(BaseCompare):
     x, y, z = te.var("x"), te.var("y"), te.var("z")
-    test_case = gsmDataGen.testing.parameter(
+    test_case = gsm_data_generator.testing.parameter(
         TestCase((x + 2) * 3, x * 3 + 6),
         TestCase((x * 2) * 3, x * 6),
-        TestCase(gsmDataGen.te.min(x, y) * gsmDataGen.te.max(x, y), x * y),
-        TestCase(gsmDataGen.te.max(x, y) * gsmDataGen.te.min(x, y), x * y),
+        TestCase(gsm_data_generator.te.min(x, y) * gsm_data_generator.te.max(x, y), x * y),
+        TestCase(gsm_data_generator.te.max(x, y) * gsm_data_generator.te.min(x, y), x * y),
         TestCase((x - y) * (-2), (y - x) * 2),
     )
 
@@ -528,18 +528,18 @@ class TestDivIndex(BaseCompare):
     x, y, z = te.var("x"), te.var("y"), te.var("z")
     non_negative = [x >= 0, y >= 0, z >= 0]
 
-    test_case = gsmDataGen.testing.parameter(
+    test_case = gsm_data_generator.testing.parameter(
         TestCase(tdiv(x, x), 1),
         TestCase(tdiv(tdiv(x, 2), 3), tdiv(x, 6)),
         TestCase(tdiv(tdiv(x, 2) + 1, 3), tdiv(x + 2, 6), non_negative),
         TestCase(tdiv(x * 2, 4), tdiv(x, 2)),
         TestCase(tdiv(x * 4, 2), x * 2),
         TestCase(tdiv(x * 4 + y, 2), x * 2 + tdiv(y, 2), non_negative),
-        TestCase(tdiv(gsmDataGen.te.min(x * 6, y), 2), gsmDataGen.te.min(x * 3, tdiv(y, 2)), non_negative),
-        TestCase(tdiv(gsmDataGen.te.max(x * 6, y), 2), gsmDataGen.te.max(x * 3, tdiv(y, 2)), non_negative),
+        TestCase(tdiv(gsm_data_generator.te.min(x * 6, y), 2), gsm_data_generator.te.min(x * 3, tdiv(y, 2)), non_negative),
+        TestCase(tdiv(gsm_data_generator.te.max(x * 6, y), 2), gsm_data_generator.te.max(x * 3, tdiv(y, 2)), non_negative),
         TestCase(tdiv(y + x * 4, 2), tdiv(y, 2) + x * 2, non_negative),
-        TestCase(tdiv(gsmDataGen.te.min(y, x * 6), 2), gsmDataGen.te.min(tdiv(y, 2), x * 3), non_negative),
-        TestCase(tdiv(gsmDataGen.te.max(y, x * 6), 2), gsmDataGen.te.max(tdiv(y, 2), x * 3), non_negative),
+        TestCase(tdiv(gsm_data_generator.te.min(y, x * 6), 2), gsm_data_generator.te.min(tdiv(y, 2), x * 3), non_negative),
+        TestCase(tdiv(gsm_data_generator.te.max(y, x * 6), 2), gsm_data_generator.te.max(tdiv(y, 2), x * 3), non_negative),
         # 3-operands
         TestCase(tdiv(x * 6 + y + z, 2), x * 3 + tdiv(y + z, 2), non_negative),
         TestCase(tdiv(x * 6 - y + (y + 3), 2), x * 3 + 1, non_negative),
@@ -564,7 +564,7 @@ class TestDivIndex(BaseCompare):
 class TestFloordivIndex(BaseCompare):
     x, y, z = te.var("x"), te.var("y"), te.var("z")
 
-    test_case = gsmDataGen.testing.parameter(
+    test_case = gsm_data_generator.testing.parameter(
         TestCase(fld(fld(x, 2), 3), fld(x, 6)),
         TestCase(fld(fld(x, 2) + 1, 3), fld(x + 2, 6)),
         TestCase(fld(x - flm(x, 21), 21), fld(x, 21)),
@@ -581,11 +581,11 @@ class TestFloordivIndex(BaseCompare):
         TestCase(fld(x * 360 + y, 25), x * 14, [x >= 0, x < 2, y >= 0, y < 7]),
         TestCase(fld(x * 360 - 8, 25), fld(x * 360 + -8, 25)),
         TestCase(fld(x * 4 + y, 2), x * 2 + fld(y, 2)),
-        TestCase(fld(gsmDataGen.te.min(x * 6, y), 2), gsmDataGen.te.min(x * 3, fld(y, 2))),
-        TestCase(fld(gsmDataGen.te.max(x * 6, y), 2), gsmDataGen.te.max(x * 3, fld(y, 2))),
+        TestCase(fld(gsm_data_generator.te.min(x * 6, y), 2), gsm_data_generator.te.min(x * 3, fld(y, 2))),
+        TestCase(fld(gsm_data_generator.te.max(x * 6, y), 2), gsm_data_generator.te.max(x * 3, fld(y, 2))),
         TestCase(fld(y + x * 4, 2), x * 2 + fld(y, 2)),
-        TestCase(fld(gsmDataGen.te.min(y, x * 6), 2), gsmDataGen.te.min(fld(y, 2), x * 3)),
-        TestCase(fld(gsmDataGen.te.max(y, x * 6), 2), gsmDataGen.te.max(fld(y, 2), x * 3)),
+        TestCase(fld(gsm_data_generator.te.min(y, x * 6), 2), gsm_data_generator.te.min(fld(y, 2), x * 3)),
+        TestCase(fld(gsm_data_generator.te.max(y, x * 6), 2), gsm_data_generator.te.max(fld(y, 2), x * 3)),
         # 3-operands
         #
         # TODO(Lunderberg): Remove the necessity for the preconditions
@@ -617,7 +617,7 @@ class TestFloordivIndex(BaseCompare):
 class TestModIndex(BaseCompare):
     x, y, nx, ny, z = te.var("x"), te.var("y"), te.var("nx"), te.var("ny"), te.var("z")
 
-    test_case = gsmDataGen.testing.parameter(
+    test_case = gsm_data_generator.testing.parameter(
         # TODO(Lunderberg): Loosen these preconditions.  When there's
         # a single term whose factor is divisible by the denominator,
         # the sign of the argument doesn't matter.
@@ -649,7 +649,7 @@ class TestModIndex(BaseCompare):
 class TestFloormodIndex(BaseCompare):
     x, y, z = te.var("x"), te.var("y"), te.var("z")
 
-    test_case = gsmDataGen.testing.parameter(
+    test_case = gsm_data_generator.testing.parameter(
         TestCase(flm(x * 10, 2), 0),
         TestCase(flm(x * 9600, 6400), flm(x * 3200, 6400)),
         TestCase(flm(x * 10 + y, 2), flm(y, 2)),
@@ -686,7 +686,7 @@ class TestFloorModTwo(BaseCompare):
     """
 
     x, y, z = te.var("x"), te.var("y"), te.var("z")
-    test_case = gsmDataGen.testing.parameter(
+    test_case = gsm_data_generator.testing.parameter(
         # Removing offsets from floormod
         TestCase(flm(x, 2) + flm(x + 1, 2), 1),
         TestCase(flm(x + 1, 2) + flm(x, 2), 1),
@@ -715,7 +715,7 @@ class TestFloorModPadded(BaseCompare):
     """
 
     x, y = te.var("x"), te.var("y")
-    test_case = gsmDataGen.testing.parameter(
+    test_case = gsm_data_generator.testing.parameter(
         TestCase(flm(x - flm(x, 9), 9), 0),
         TestCase(flm(x - flm(x, -9), 9), 0),
         TestCase(flm(x + flm(-x, 9), 9), 0),
@@ -728,158 +728,158 @@ class TestFloorModPadded(BaseCompare):
 
 class TestMinIndex(BaseCompare):
     x, y, z = te.var("x"), te.var("y"), te.var("z")
-    test_case = gsmDataGen.testing.parameter(
+    test_case = gsm_data_generator.testing.parameter(
         # const int bound
-        TestCase(gsmDataGen.te.min(tmod(x, 2), tmod(y, 2) + 10), tmod(x, 2)),
-        TestCase(gsmDataGen.te.min(flm(x, 2), flm(y, 2) + 10), flm(x, 2)),
-        TestCase(gsmDataGen.te.min(x + 1, x + 10), x + 1),
-        TestCase(gsmDataGen.te.min(x + 111, x + 10), x + 10),
-        TestCase(gsmDataGen.te.min(x + 1, x), x),
-        TestCase(gsmDataGen.te.min(x, x + 2), x),
-        TestCase(gsmDataGen.te.min(1 - x, 2 - x), 1 - x),
-        TestCase(gsmDataGen.te.min(3 - x, 2 - x), 2 - x),
-        TestCase(gsmDataGen.te.min(gsmDataGen.te.max(x, y), gsmDataGen.te.min(x, y)), gsmDataGen.te.min(x, y)),
-        TestCase(gsmDataGen.te.min(gsmDataGen.te.max(x, y), gsmDataGen.te.min(y, x)), gsmDataGen.te.min(x, y)),
-        TestCase(gsmDataGen.te.min(gsmDataGen.te.max(x, y), x), x),
-        TestCase(gsmDataGen.te.min(gsmDataGen.te.max(y, x), x), x),
-        TestCase(gsmDataGen.te.min(gsmDataGen.te.min(x, y), x), gsmDataGen.te.min(x, y)),
-        TestCase(gsmDataGen.te.min(gsmDataGen.te.min(x, y), y), gsmDataGen.te.min(x, y)),
-        TestCase(gsmDataGen.te.min(x, gsmDataGen.te.max(x, y)), x),
-        TestCase(gsmDataGen.te.min(x, gsmDataGen.te.max(y, x)), x),
-        TestCase(gsmDataGen.te.min(x, gsmDataGen.te.min(x, y)), gsmDataGen.te.min(x, y)),
-        TestCase(gsmDataGen.te.min(y, gsmDataGen.te.min(x, y)), gsmDataGen.te.min(x, y)),
-        TestCase(gsmDataGen.te.min(gsmDataGen.te.min(gsmDataGen.te.min(x, y), z), y), gsmDataGen.te.min(gsmDataGen.te.min(x, y), z)),
+        TestCase(gsm_data_generator.te.min(tmod(x, 2), tmod(y, 2) + 10), tmod(x, 2)),
+        TestCase(gsm_data_generator.te.min(flm(x, 2), flm(y, 2) + 10), flm(x, 2)),
+        TestCase(gsm_data_generator.te.min(x + 1, x + 10), x + 1),
+        TestCase(gsm_data_generator.te.min(x + 111, x + 10), x + 10),
+        TestCase(gsm_data_generator.te.min(x + 1, x), x),
+        TestCase(gsm_data_generator.te.min(x, x + 2), x),
+        TestCase(gsm_data_generator.te.min(1 - x, 2 - x), 1 - x),
+        TestCase(gsm_data_generator.te.min(3 - x, 2 - x), 2 - x),
+        TestCase(gsm_data_generator.te.min(gsm_data_generator.te.max(x, y), gsm_data_generator.te.min(x, y)), gsm_data_generator.te.min(x, y)),
+        TestCase(gsm_data_generator.te.min(gsm_data_generator.te.max(x, y), gsm_data_generator.te.min(y, x)), gsm_data_generator.te.min(x, y)),
+        TestCase(gsm_data_generator.te.min(gsm_data_generator.te.max(x, y), x), x),
+        TestCase(gsm_data_generator.te.min(gsm_data_generator.te.max(y, x), x), x),
+        TestCase(gsm_data_generator.te.min(gsm_data_generator.te.min(x, y), x), gsm_data_generator.te.min(x, y)),
+        TestCase(gsm_data_generator.te.min(gsm_data_generator.te.min(x, y), y), gsm_data_generator.te.min(x, y)),
+        TestCase(gsm_data_generator.te.min(x, gsm_data_generator.te.max(x, y)), x),
+        TestCase(gsm_data_generator.te.min(x, gsm_data_generator.te.max(y, x)), x),
+        TestCase(gsm_data_generator.te.min(x, gsm_data_generator.te.min(x, y)), gsm_data_generator.te.min(x, y)),
+        TestCase(gsm_data_generator.te.min(y, gsm_data_generator.te.min(x, y)), gsm_data_generator.te.min(x, y)),
+        TestCase(gsm_data_generator.te.min(gsm_data_generator.te.min(gsm_data_generator.te.min(x, y), z), y), gsm_data_generator.te.min(gsm_data_generator.te.min(x, y), z)),
         TestCase(
-            gsmDataGen.te.min(gsmDataGen.te.min(gsmDataGen.te.min(gsmDataGen.te.min(x, y), z), x * 2), y),
-            gsmDataGen.te.min(gsmDataGen.te.min(gsmDataGen.te.min(x, y), z), x * 2),
+            gsm_data_generator.te.min(gsm_data_generator.te.min(gsm_data_generator.te.min(gsm_data_generator.te.min(x, y), z), x * 2), y),
+            gsm_data_generator.te.min(gsm_data_generator.te.min(gsm_data_generator.te.min(x, y), z), x * 2),
         ),
         TestCase(
-            gsmDataGen.te.min(gsmDataGen.te.min(gsmDataGen.te.min(gsmDataGen.te.min(gsmDataGen.te.min(x, y), z), x * 2), z * 2), y),
-            gsmDataGen.te.min(gsmDataGen.te.min(gsmDataGen.te.min(gsmDataGen.te.min(x, y), z), x * 2), z * 2),
+            gsm_data_generator.te.min(gsm_data_generator.te.min(gsm_data_generator.te.min(gsm_data_generator.te.min(gsm_data_generator.te.min(x, y), z), x * 2), z * 2), y),
+            gsm_data_generator.te.min(gsm_data_generator.te.min(gsm_data_generator.te.min(gsm_data_generator.te.min(x, y), z), x * 2), z * 2),
         ),
-        TestCase(gsmDataGen.te.min(gsmDataGen.te.max(x, y), gsmDataGen.te.max(x, z)), gsmDataGen.te.max(gsmDataGen.te.min(y, z), x)),
-        TestCase(gsmDataGen.te.min(gsmDataGen.te.max(x, y), gsmDataGen.te.max(z, x)), gsmDataGen.te.max(gsmDataGen.te.min(y, z), x)),
-        TestCase(gsmDataGen.te.min(gsmDataGen.te.max(y, x), gsmDataGen.te.max(x, z)), gsmDataGen.te.max(gsmDataGen.te.min(y, z), x)),
-        TestCase(gsmDataGen.te.min(gsmDataGen.te.max(y, x), gsmDataGen.te.max(z, x)), gsmDataGen.te.max(gsmDataGen.te.min(y, z), x)),
-        TestCase(gsmDataGen.te.min(y + x, z + x), gsmDataGen.te.min(y, z) + x),
-        TestCase(gsmDataGen.te.min(y + x, x + z), gsmDataGen.te.min(y, z) + x),
-        TestCase(gsmDataGen.te.min(x + y, z + x), gsmDataGen.te.min(y, z) + x),
-        TestCase(gsmDataGen.te.min(x + y, x + z), gsmDataGen.te.min(y, z) + x),
-        TestCase(gsmDataGen.te.min(x - y, x - z), x - gsmDataGen.te.max(y, z)),
-        TestCase(gsmDataGen.te.min(y - x, z - x), gsmDataGen.te.min(y, z) - x),
-        TestCase(gsmDataGen.te.min(gsmDataGen.te.min(x, 1), 10), gsmDataGen.te.min(x, 1)),
-        TestCase(gsmDataGen.te.min(gsmDataGen.te.min(x, 11), 10), gsmDataGen.te.min(x, 10)),
-        TestCase(gsmDataGen.te.min(x * 3, 9), gsmDataGen.te.min(x, 3) * 3),
-        TestCase(gsmDataGen.te.min(x * 2, 0), gsmDataGen.te.min(x, 0) * 2),
-        TestCase(gsmDataGen.te.min(0 - x * 2, 0), gsmDataGen.te.max(x, 0) * -2),
-        TestCase(gsmDataGen.te.min(3 - x, 2), 3 - gsmDataGen.te.max(x, 1)),
-        TestCase(gsmDataGen.te.min(x * (-2), -4), gsmDataGen.te.max(x, 2) * -2),
-        TestCase(gsmDataGen.te.min(x * (-2), 4), gsmDataGen.te.max(x, -2) * -2),
-        TestCase(gsmDataGen.te.min(x * (0), 4), 0),
-        TestCase(gsmDataGen.te.min(x * (0), -4), -4),
+        TestCase(gsm_data_generator.te.min(gsm_data_generator.te.max(x, y), gsm_data_generator.te.max(x, z)), gsm_data_generator.te.max(gsm_data_generator.te.min(y, z), x)),
+        TestCase(gsm_data_generator.te.min(gsm_data_generator.te.max(x, y), gsm_data_generator.te.max(z, x)), gsm_data_generator.te.max(gsm_data_generator.te.min(y, z), x)),
+        TestCase(gsm_data_generator.te.min(gsm_data_generator.te.max(y, x), gsm_data_generator.te.max(x, z)), gsm_data_generator.te.max(gsm_data_generator.te.min(y, z), x)),
+        TestCase(gsm_data_generator.te.min(gsm_data_generator.te.max(y, x), gsm_data_generator.te.max(z, x)), gsm_data_generator.te.max(gsm_data_generator.te.min(y, z), x)),
+        TestCase(gsm_data_generator.te.min(y + x, z + x), gsm_data_generator.te.min(y, z) + x),
+        TestCase(gsm_data_generator.te.min(y + x, x + z), gsm_data_generator.te.min(y, z) + x),
+        TestCase(gsm_data_generator.te.min(x + y, z + x), gsm_data_generator.te.min(y, z) + x),
+        TestCase(gsm_data_generator.te.min(x + y, x + z), gsm_data_generator.te.min(y, z) + x),
+        TestCase(gsm_data_generator.te.min(x - y, x - z), x - gsm_data_generator.te.max(y, z)),
+        TestCase(gsm_data_generator.te.min(y - x, z - x), gsm_data_generator.te.min(y, z) - x),
+        TestCase(gsm_data_generator.te.min(gsm_data_generator.te.min(x, 1), 10), gsm_data_generator.te.min(x, 1)),
+        TestCase(gsm_data_generator.te.min(gsm_data_generator.te.min(x, 11), 10), gsm_data_generator.te.min(x, 10)),
+        TestCase(gsm_data_generator.te.min(x * 3, 9), gsm_data_generator.te.min(x, 3) * 3),
+        TestCase(gsm_data_generator.te.min(x * 2, 0), gsm_data_generator.te.min(x, 0) * 2),
+        TestCase(gsm_data_generator.te.min(0 - x * 2, 0), gsm_data_generator.te.max(x, 0) * -2),
+        TestCase(gsm_data_generator.te.min(3 - x, 2), 3 - gsm_data_generator.te.max(x, 1)),
+        TestCase(gsm_data_generator.te.min(x * (-2), -4), gsm_data_generator.te.max(x, 2) * -2),
+        TestCase(gsm_data_generator.te.min(x * (-2), 4), gsm_data_generator.te.max(x, -2) * -2),
+        TestCase(gsm_data_generator.te.min(x * (0), 4), 0),
+        TestCase(gsm_data_generator.te.min(x * (0), -4), -4),
         # DivMod rules
         # truc div
-        TestCase(gsmDataGen.te.min(tdiv(x + 3, 4) * 4, x), x),
-        TestCase(gsmDataGen.te.min(x, tdiv(x + 3, 4) * 4), x),
-        TestCase(gsmDataGen.te.min(tdiv(x + 3, 4) * 4, gsmDataGen.te.max(x, 4)), gsmDataGen.te.max(x, 4), x > 0),
-        TestCase(gsmDataGen.te.min(gsmDataGen.te.max(x, 4), tdiv(x + 3, 4) * 4), gsmDataGen.te.max(x, 4), x > 0),
-        TestCase(gsmDataGen.te.min(tdiv(x, 10), tdiv(y, 10)), tdiv(gsmDataGen.te.min(x, y), 10)),
-        TestCase(gsmDataGen.te.min(tdiv(x, (-10)), tdiv(y, (-10))), tdiv(gsmDataGen.te.max(x, y), (-10))),
+        TestCase(gsm_data_generator.te.min(tdiv(x + 3, 4) * 4, x), x),
+        TestCase(gsm_data_generator.te.min(x, tdiv(x + 3, 4) * 4), x),
+        TestCase(gsm_data_generator.te.min(tdiv(x + 3, 4) * 4, gsm_data_generator.te.max(x, 4)), gsm_data_generator.te.max(x, 4), x > 0),
+        TestCase(gsm_data_generator.te.min(gsm_data_generator.te.max(x, 4), tdiv(x + 3, 4) * 4), gsm_data_generator.te.max(x, 4), x > 0),
+        TestCase(gsm_data_generator.te.min(tdiv(x, 10), tdiv(y, 10)), tdiv(gsm_data_generator.te.min(x, y), 10)),
+        TestCase(gsm_data_generator.te.min(tdiv(x, (-10)), tdiv(y, (-10))), tdiv(gsm_data_generator.te.max(x, y), (-10))),
         # floor div
-        TestCase(gsmDataGen.te.min(fld(x + 3, 4) * 4, x), x),
-        TestCase(gsmDataGen.te.min(x, fld(x + 3, 4) * 4), x),
-        TestCase(gsmDataGen.te.min(x, fld(x, 4) * 4), fld(x, 4) * 4),
-        TestCase(gsmDataGen.te.min(fld(x + 3, 4) * 4, gsmDataGen.te.max(x, 4)), gsmDataGen.te.max(x, 4), x > 0),
-        TestCase(gsmDataGen.te.min(gsmDataGen.te.max(x, 4), fld(x + 3, 4) * 4), gsmDataGen.te.max(x, 4), x > 0),
-        TestCase(gsmDataGen.te.min(fld(x, 10), fld(y, 10)), fld(gsmDataGen.te.min(x, y), 10)),
-        TestCase(gsmDataGen.te.min(fld(x, (-10)), fld(y, (-10))), fld(gsmDataGen.te.max(x, y), (-10))),
+        TestCase(gsm_data_generator.te.min(fld(x + 3, 4) * 4, x), x),
+        TestCase(gsm_data_generator.te.min(x, fld(x + 3, 4) * 4), x),
+        TestCase(gsm_data_generator.te.min(x, fld(x, 4) * 4), fld(x, 4) * 4),
+        TestCase(gsm_data_generator.te.min(fld(x + 3, 4) * 4, gsm_data_generator.te.max(x, 4)), gsm_data_generator.te.max(x, 4), x > 0),
+        TestCase(gsm_data_generator.te.min(gsm_data_generator.te.max(x, 4), fld(x + 3, 4) * 4), gsm_data_generator.te.max(x, 4), x > 0),
+        TestCase(gsm_data_generator.te.min(fld(x, 10), fld(y, 10)), fld(gsm_data_generator.te.min(x, y), 10)),
+        TestCase(gsm_data_generator.te.min(fld(x, (-10)), fld(y, (-10))), fld(gsm_data_generator.te.max(x, y), (-10))),
     )
 
 
 class TestMaxIndex(BaseCompare):
     x, y, z = te.var("x"), te.var("y"), te.var("z")
 
-    test_case = gsmDataGen.testing.parameter(
+    test_case = gsm_data_generator.testing.parameter(
         # const int bound
-        TestCase(gsmDataGen.te.max(tmod(x, 2), tmod(y, 2) + 10), tmod(y, 2) + 10),
-        TestCase(gsmDataGen.te.max(flm(x, 2), flm(y, 2) + 10), flm(y, 2) + 10),
-        TestCase(gsmDataGen.te.max(x + 1, x + 10), x + 10),
-        TestCase(gsmDataGen.te.max(x + 111, x + 10), x + 111),
-        TestCase(gsmDataGen.te.max(x + 1, x), x + 1),
-        TestCase(gsmDataGen.te.max(x, x + 2), x + 2),
-        TestCase(gsmDataGen.te.max(1 - x, 2 - x), 2 - x),
-        TestCase(gsmDataGen.te.max(3 - x, 2 - x), 3 - x),
-        TestCase(gsmDataGen.te.max(gsmDataGen.te.min(x, y), gsmDataGen.te.max(x, y)), gsmDataGen.te.max(x, y)),
-        TestCase(gsmDataGen.te.max(gsmDataGen.te.min(x, y), gsmDataGen.te.max(y, x)), gsmDataGen.te.max(x, y)),
-        TestCase(gsmDataGen.te.max(gsmDataGen.te.min(x, y), x), x),
-        TestCase(gsmDataGen.te.max(gsmDataGen.te.min(y, x), x), x),
-        TestCase(gsmDataGen.te.max(gsmDataGen.te.max(x, y), x), gsmDataGen.te.max(x, y)),
-        TestCase(gsmDataGen.te.max(gsmDataGen.te.max(x, y), y), gsmDataGen.te.max(x, y)),
-        TestCase(gsmDataGen.te.max(x, gsmDataGen.te.min(x, y)), x),
-        TestCase(gsmDataGen.te.max(x, gsmDataGen.te.min(y, x)), x),
-        TestCase(gsmDataGen.te.max(x, gsmDataGen.te.max(x, y)), gsmDataGen.te.max(x, y)),
-        TestCase(gsmDataGen.te.max(y, gsmDataGen.te.max(x, y)), gsmDataGen.te.max(x, y)),
-        TestCase(gsmDataGen.te.max(gsmDataGen.te.max(gsmDataGen.te.max(x, y), z), y), gsmDataGen.te.max(gsmDataGen.te.max(x, y), z)),
+        TestCase(gsm_data_generator.te.max(tmod(x, 2), tmod(y, 2) + 10), tmod(y, 2) + 10),
+        TestCase(gsm_data_generator.te.max(flm(x, 2), flm(y, 2) + 10), flm(y, 2) + 10),
+        TestCase(gsm_data_generator.te.max(x + 1, x + 10), x + 10),
+        TestCase(gsm_data_generator.te.max(x + 111, x + 10), x + 111),
+        TestCase(gsm_data_generator.te.max(x + 1, x), x + 1),
+        TestCase(gsm_data_generator.te.max(x, x + 2), x + 2),
+        TestCase(gsm_data_generator.te.max(1 - x, 2 - x), 2 - x),
+        TestCase(gsm_data_generator.te.max(3 - x, 2 - x), 3 - x),
+        TestCase(gsm_data_generator.te.max(gsm_data_generator.te.min(x, y), gsm_data_generator.te.max(x, y)), gsm_data_generator.te.max(x, y)),
+        TestCase(gsm_data_generator.te.max(gsm_data_generator.te.min(x, y), gsm_data_generator.te.max(y, x)), gsm_data_generator.te.max(x, y)),
+        TestCase(gsm_data_generator.te.max(gsm_data_generator.te.min(x, y), x), x),
+        TestCase(gsm_data_generator.te.max(gsm_data_generator.te.min(y, x), x), x),
+        TestCase(gsm_data_generator.te.max(gsm_data_generator.te.max(x, y), x), gsm_data_generator.te.max(x, y)),
+        TestCase(gsm_data_generator.te.max(gsm_data_generator.te.max(x, y), y), gsm_data_generator.te.max(x, y)),
+        TestCase(gsm_data_generator.te.max(x, gsm_data_generator.te.min(x, y)), x),
+        TestCase(gsm_data_generator.te.max(x, gsm_data_generator.te.min(y, x)), x),
+        TestCase(gsm_data_generator.te.max(x, gsm_data_generator.te.max(x, y)), gsm_data_generator.te.max(x, y)),
+        TestCase(gsm_data_generator.te.max(y, gsm_data_generator.te.max(x, y)), gsm_data_generator.te.max(x, y)),
+        TestCase(gsm_data_generator.te.max(gsm_data_generator.te.max(gsm_data_generator.te.max(x, y), z), y), gsm_data_generator.te.max(gsm_data_generator.te.max(x, y), z)),
         TestCase(
-            gsmDataGen.te.max(gsmDataGen.te.max(gsmDataGen.te.max(gsmDataGen.te.max(x, y), z), x * 2), y),
-            gsmDataGen.te.max(gsmDataGen.te.max(gsmDataGen.te.max(x, y), z), x * 2),
+            gsm_data_generator.te.max(gsm_data_generator.te.max(gsm_data_generator.te.max(gsm_data_generator.te.max(x, y), z), x * 2), y),
+            gsm_data_generator.te.max(gsm_data_generator.te.max(gsm_data_generator.te.max(x, y), z), x * 2),
         ),
         TestCase(
-            gsmDataGen.te.max(gsmDataGen.te.max(gsmDataGen.te.max(gsmDataGen.te.max(gsmDataGen.te.max(x, y), z), x * 2), z * 2), y),
-            gsmDataGen.te.max(gsmDataGen.te.max(gsmDataGen.te.max(gsmDataGen.te.max(x, y), z), x * 2), z * 2),
+            gsm_data_generator.te.max(gsm_data_generator.te.max(gsm_data_generator.te.max(gsm_data_generator.te.max(gsm_data_generator.te.max(x, y), z), x * 2), z * 2), y),
+            gsm_data_generator.te.max(gsm_data_generator.te.max(gsm_data_generator.te.max(gsm_data_generator.te.max(x, y), z), x * 2), z * 2),
         ),
-        TestCase(gsmDataGen.te.max(gsmDataGen.te.min(x, y), gsmDataGen.te.min(x, z)), gsmDataGen.te.min(gsmDataGen.te.max(y, z), x)),
-        TestCase(gsmDataGen.te.max(gsmDataGen.te.min(x, y), gsmDataGen.te.min(z, x)), gsmDataGen.te.min(gsmDataGen.te.max(y, z), x)),
-        TestCase(gsmDataGen.te.max(gsmDataGen.te.min(y, x), gsmDataGen.te.min(x, z)), gsmDataGen.te.min(gsmDataGen.te.max(y, z), x)),
-        TestCase(gsmDataGen.te.max(gsmDataGen.te.min(y, x), gsmDataGen.te.min(z, x)), gsmDataGen.te.min(gsmDataGen.te.max(y, z), x)),
-        TestCase(gsmDataGen.te.max(y + x, z + x), gsmDataGen.te.max(y, z) + x),
-        TestCase(gsmDataGen.te.max(y + x, x + z), gsmDataGen.te.max(y, z) + x),
-        TestCase(gsmDataGen.te.max(x + y, z + x), gsmDataGen.te.max(y, z) + x),
-        TestCase(gsmDataGen.te.max(x + y, x + z), gsmDataGen.te.max(y, z) + x),
-        TestCase(gsmDataGen.te.max(x - y, x - z), x - gsmDataGen.te.min(y, z)),
-        TestCase(gsmDataGen.te.max(y - x, z - x), gsmDataGen.te.max(y, z) - x),
-        TestCase(gsmDataGen.te.max(gsmDataGen.te.max(x, 1), 10), gsmDataGen.te.max(x, 10)),
-        TestCase(gsmDataGen.te.max(gsmDataGen.te.max(x, 11), 10), gsmDataGen.te.max(x, 11)),
-        TestCase(gsmDataGen.te.max(x * 3, 9), gsmDataGen.te.max(x, 3) * 3),
-        TestCase(gsmDataGen.te.max(3 - x, 1), 3 - gsmDataGen.te.min(x, 2)),
-        TestCase(gsmDataGen.te.max(x * 2, 0), gsmDataGen.te.max(x, 0) * 2),
-        TestCase(gsmDataGen.te.max(0 - x * 2, 0), gsmDataGen.te.min(x, 0) * -2),
-        TestCase(gsmDataGen.te.max(x * (-2), -4), gsmDataGen.te.min(x, 2) * -2),
-        TestCase(gsmDataGen.te.max(x * (-2), 4), gsmDataGen.te.min(x, -2) * -2),
-        TestCase(gsmDataGen.te.max(x * (0), 4), 4),
-        TestCase(gsmDataGen.te.max(x * (0), -4), 0),
+        TestCase(gsm_data_generator.te.max(gsm_data_generator.te.min(x, y), gsm_data_generator.te.min(x, z)), gsm_data_generator.te.min(gsm_data_generator.te.max(y, z), x)),
+        TestCase(gsm_data_generator.te.max(gsm_data_generator.te.min(x, y), gsm_data_generator.te.min(z, x)), gsm_data_generator.te.min(gsm_data_generator.te.max(y, z), x)),
+        TestCase(gsm_data_generator.te.max(gsm_data_generator.te.min(y, x), gsm_data_generator.te.min(x, z)), gsm_data_generator.te.min(gsm_data_generator.te.max(y, z), x)),
+        TestCase(gsm_data_generator.te.max(gsm_data_generator.te.min(y, x), gsm_data_generator.te.min(z, x)), gsm_data_generator.te.min(gsm_data_generator.te.max(y, z), x)),
+        TestCase(gsm_data_generator.te.max(y + x, z + x), gsm_data_generator.te.max(y, z) + x),
+        TestCase(gsm_data_generator.te.max(y + x, x + z), gsm_data_generator.te.max(y, z) + x),
+        TestCase(gsm_data_generator.te.max(x + y, z + x), gsm_data_generator.te.max(y, z) + x),
+        TestCase(gsm_data_generator.te.max(x + y, x + z), gsm_data_generator.te.max(y, z) + x),
+        TestCase(gsm_data_generator.te.max(x - y, x - z), x - gsm_data_generator.te.min(y, z)),
+        TestCase(gsm_data_generator.te.max(y - x, z - x), gsm_data_generator.te.max(y, z) - x),
+        TestCase(gsm_data_generator.te.max(gsm_data_generator.te.max(x, 1), 10), gsm_data_generator.te.max(x, 10)),
+        TestCase(gsm_data_generator.te.max(gsm_data_generator.te.max(x, 11), 10), gsm_data_generator.te.max(x, 11)),
+        TestCase(gsm_data_generator.te.max(x * 3, 9), gsm_data_generator.te.max(x, 3) * 3),
+        TestCase(gsm_data_generator.te.max(3 - x, 1), 3 - gsm_data_generator.te.min(x, 2)),
+        TestCase(gsm_data_generator.te.max(x * 2, 0), gsm_data_generator.te.max(x, 0) * 2),
+        TestCase(gsm_data_generator.te.max(0 - x * 2, 0), gsm_data_generator.te.min(x, 0) * -2),
+        TestCase(gsm_data_generator.te.max(x * (-2), -4), gsm_data_generator.te.min(x, 2) * -2),
+        TestCase(gsm_data_generator.te.max(x * (-2), 4), gsm_data_generator.te.min(x, -2) * -2),
+        TestCase(gsm_data_generator.te.max(x * (0), 4), 4),
+        TestCase(gsm_data_generator.te.max(x * (0), -4), 0),
         # DivMod rules
         # truc div
-        TestCase(gsmDataGen.te.max(tdiv(x, 10), tdiv(y, 10)), tdiv(gsmDataGen.te.max(x, y), 10)),
-        TestCase(gsmDataGen.te.max(tdiv(x, (-10)), tdiv(y, (-10))), tdiv(gsmDataGen.te.min(x, y), (-10))),
-        TestCase(gsmDataGen.te.max(tdiv(x + 3, 4) * 4, x), tdiv(x + 3, 4) * 4),
+        TestCase(gsm_data_generator.te.max(tdiv(x, 10), tdiv(y, 10)), tdiv(gsm_data_generator.te.max(x, y), 10)),
+        TestCase(gsm_data_generator.te.max(tdiv(x, (-10)), tdiv(y, (-10))), tdiv(gsm_data_generator.te.min(x, y), (-10))),
+        TestCase(gsm_data_generator.te.max(tdiv(x + 3, 4) * 4, x), tdiv(x + 3, 4) * 4),
         # floordiv
-        TestCase(gsmDataGen.te.max(fld(x, 10), fld(y, 10)), fld(gsmDataGen.te.max(x, y), 10)),
-        TestCase(gsmDataGen.te.max(fld(x, (-10)), fld(y, (-10))), fld(gsmDataGen.te.min(x, y), (-10))),
-        TestCase(gsmDataGen.te.max(fld(x + 3, 4) * 4, x), fld(x + 3, 4) * 4),
-        TestCase(gsmDataGen.te.max(fld(x, 4) * 4, x), x),
-        TestCase(gsmDataGen.te.max(x, fld(x, 4) * 4), x),
+        TestCase(gsm_data_generator.te.max(fld(x, 10), fld(y, 10)), fld(gsm_data_generator.te.max(x, y), 10)),
+        TestCase(gsm_data_generator.te.max(fld(x, (-10)), fld(y, (-10))), fld(gsm_data_generator.te.min(x, y), (-10))),
+        TestCase(gsm_data_generator.te.max(fld(x + 3, 4) * 4, x), fld(x + 3, 4) * 4),
+        TestCase(gsm_data_generator.te.max(fld(x, 4) * 4, x), x),
+        TestCase(gsm_data_generator.te.max(x, fld(x, 4) * 4), x),
     )
 
 
 class TestScalableIndex(BaseCompare):
     x, y = te.var("x"), te.var("y")
-    test_case = gsmDataGen.testing.parameter(
+    test_case = gsm_data_generator.testing.parameter(
         # MinNode
-        TestCase(gsmDataGen.te.min(x + tir.vscale() * 4, x), x),
-        TestCase(gsmDataGen.te.min(x - tir.vscale() * 4, x), x + tir.vscale() * -4),
-        TestCase(gsmDataGen.te.min(x + tir.vscale() * 4, x + tir.vscale() * 8), tir.vscale() * 4 + x),
-        TestCase(gsmDataGen.te.min(x + tir.vscale() * 4 - flm(4, tir.vscale() * 4), x), x),
-        TestCase(gsmDataGen.te.min(tir.vscale() * x, tir.vscale() * y), tir.vscale() * x, x < y),
+        TestCase(gsm_data_generator.te.min(x + tir.vscale() * 4, x), x),
+        TestCase(gsm_data_generator.te.min(x - tir.vscale() * 4, x), x + tir.vscale() * -4),
+        TestCase(gsm_data_generator.te.min(x + tir.vscale() * 4, x + tir.vscale() * 8), tir.vscale() * 4 + x),
+        TestCase(gsm_data_generator.te.min(x + tir.vscale() * 4 - flm(4, tir.vscale() * 4), x), x),
+        TestCase(gsm_data_generator.te.min(tir.vscale() * x, tir.vscale() * y), tir.vscale() * x, x < y),
         # MaxNode
-        TestCase(gsmDataGen.te.max(x + tir.vscale() * 4, x), x + tir.vscale() * 4),
-        TestCase(gsmDataGen.te.max(x - tir.vscale() * 4, x), x),
-        TestCase(gsmDataGen.te.max(x + tir.vscale() * 4, x + tir.vscale() * 4), x + tir.vscale() * 4),
+        TestCase(gsm_data_generator.te.max(x + tir.vscale() * 4, x), x + tir.vscale() * 4),
+        TestCase(gsm_data_generator.te.max(x - tir.vscale() * 4, x), x),
+        TestCase(gsm_data_generator.te.max(x + tir.vscale() * 4, x + tir.vscale() * 4), x + tir.vscale() * 4),
         TestCase(
-            gsmDataGen.te.max(x + tir.vscale() * 4 - flm(4, tir.vscale() * 4), x),
+            gsm_data_generator.te.max(x + tir.vscale() * 4 - flm(4, tir.vscale() * 4), x),
             x + tir.vscale() * 4 - flm(4, tir.vscale() * 4),
         ),
-        TestCase(gsmDataGen.te.max(tir.vscale() * x, tir.vscale() * y), tir.vscale() * x, x > y),
+        TestCase(gsm_data_generator.te.max(tir.vscale() * x, tir.vscale() * y), tir.vscale() * x, x > y),
         # FloorDiv
         TestCase(fld(x * tir.vscale() * 4 + y, tir.vscale() * 4), x + fld(y, tir.vscale() * 4)),
         TestCase(fld(x, tir.vscale() * 4), 0, [x >= 0, x < tir.vscale() * 4]),
@@ -889,27 +889,27 @@ class TestScalableIndex(BaseCompare):
     )
 
     def test_simplify(self, test_case):
-        with gsmDataGen.target.Target("llvm -mtriple=aarch64-linux-gnu -mattr=+sve"):
+        with gsm_data_generator.target.Target("llvm -mtriple=aarch64-linux-gnu -mattr=+sve"):
             super().test_simplify(test_case)
 
 
 class TestComparisons(BaseCompare):
     x, y, z = te.var("x"), te.var("y"), te.var("z")
 
-    test_case = gsmDataGen.testing.parameter(
+    test_case = gsm_data_generator.testing.parameter(
         # const int bound
-        TestCase((tmod(x, 2) + 10).equal(0), gsmDataGen.tir.const(0, "bool")),
-        TestCase(gsmDataGen.tir.NE(tmod(x, 2) + 10, 0), gsmDataGen.tir.const(1, "bool")),
-        TestCase(tmod(x, 2) + 10 > 1, gsmDataGen.tir.const(1, "bool")),
-        TestCase(tmod(x, 2) + 10 <= 1, gsmDataGen.tir.const(0, "bool")),
-        TestCase(flm(x, 2) + 2 > 1, gsmDataGen.tir.const(1, "bool")),
-        TestCase(flm(x, 2) + 10 <= 1, gsmDataGen.tir.const(0, "bool")),
-        TestCase(x * 3 + 10 == 0, gsmDataGen.tir.const(0, "bool")),
-        TestCase(x * 3 + 10 != 0, gsmDataGen.tir.const(1, "bool")),
+        TestCase((tmod(x, 2) + 10).equal(0), gsm_data_generator.tir.const(0, "bool")),
+        TestCase(gsm_data_generator.tir.NE(tmod(x, 2) + 10, 0), gsm_data_generator.tir.const(1, "bool")),
+        TestCase(tmod(x, 2) + 10 > 1, gsm_data_generator.tir.const(1, "bool")),
+        TestCase(tmod(x, 2) + 10 <= 1, gsm_data_generator.tir.const(0, "bool")),
+        TestCase(flm(x, 2) + 2 > 1, gsm_data_generator.tir.const(1, "bool")),
+        TestCase(flm(x, 2) + 10 <= 1, gsm_data_generator.tir.const(0, "bool")),
+        TestCase(x * 3 + 10 == 0, gsm_data_generator.tir.const(0, "bool")),
+        TestCase(x * 3 + 10 != 0, gsm_data_generator.tir.const(1, "bool")),
         # canonicalization
         TestCase((x - 10).equal(0), x.equal(10)),
         TestCase((10 - x).equal(0), x.equal(10)),
-        TestCase((x * y).equal(0), gsmDataGen.tir.Or(x.equal(0), y.equal(0))),
+        TestCase((x * y).equal(0), gsm_data_generator.tir.Or(x.equal(0), y.equal(0))),
         # Write LT as LE for integer arguments, if possible
         TestCase(x - 1 < y, x <= y),
         TestCase(x + (-1) < y, x <= y),
@@ -934,83 +934,83 @@ class TestComparisons(BaseCompare):
         TestCase(y + x < z + x, y < z),
         TestCase(y - x < z - x, y < z),
         TestCase(x - y < x - z, z < y),
-        TestCase(x < z + x, gsmDataGen.tir.LT(0, z)),
-        TestCase(x < x + z, gsmDataGen.tir.LT(0, z)),
-        TestCase(100 < x + 1, gsmDataGen.tir.LT(99, x)),
-        TestCase(1 < 100 - x, gsmDataGen.tir.LT(x, 99)),
+        TestCase(x < z + x, gsm_data_generator.tir.LT(0, z)),
+        TestCase(x < x + z, gsm_data_generator.tir.LT(0, z)),
+        TestCase(100 < x + 1, gsm_data_generator.tir.LT(99, x)),
+        TestCase(1 < 100 - x, gsm_data_generator.tir.LT(x, 99)),
         TestCase(x * 3 < y * 3, x < y),
         TestCase(x * (-3) < y * (-3), y < x),
         TestCase(x * 3 >= y * 3, y <= x),
-        TestCase(x * 4 >= 2, gsmDataGen.tir.LE(1, x)),
-        TestCase(x * 2 >= 50, gsmDataGen.tir.LE(25, x)),
+        TestCase(x * 4 >= 2, gsm_data_generator.tir.LE(1, x)),
+        TestCase(x * 2 >= 50, gsm_data_generator.tir.LE(25, x)),
         TestCase(x * 4 <= 2, x <= 0),
-        TestCase((0 - x * 3) <= 0, gsmDataGen.tir.LE(0, x)),
-        TestCase((0 - x * 3) >= 0, gsmDataGen.tir.LE(x, 0)),
+        TestCase((0 - x * 3) <= 0, gsm_data_generator.tir.LE(0, x)),
+        TestCase((0 - x * 3) >= 0, gsm_data_generator.tir.LE(x, 0)),
         TestCase(2 * x <= 0, x <= 0),
-        TestCase(x * 2 >= 3, gsmDataGen.tir.LE(2, x)),
-        TestCase(x * 2 >= 2, gsmDataGen.tir.LE(1, x)),
-        TestCase(x * 2 >= 1, gsmDataGen.tir.LE(1, x)),
-        TestCase(x * 2 >= 0, gsmDataGen.tir.LE(0, x)),
-        TestCase(x * 2 >= -1, gsmDataGen.tir.LE(0, x)),
-        TestCase(x * 2 >= -2, gsmDataGen.tir.LE(-1, x)),
-        TestCase(x * 2 >= -3, gsmDataGen.tir.LE(-1, x)),
-        TestCase(x * 2 <= 3, gsmDataGen.tir.LE(x, 1)),
-        TestCase(x * 2 <= 2, gsmDataGen.tir.LE(x, 1)),
-        TestCase(x * 2 <= 1, gsmDataGen.tir.LE(x, 0)),
-        TestCase(x * 2 <= 0, gsmDataGen.tir.LE(x, 0)),
-        TestCase(x * 2 <= -1, gsmDataGen.tir.LE(x, -1)),
-        TestCase(x * 2 <= -2, gsmDataGen.tir.LE(x, -1)),
-        TestCase(x * 2 <= -3, gsmDataGen.tir.LE(x, -2)),
-        TestCase(x * (-2) >= 3, gsmDataGen.tir.LE(x, -2)),
-        TestCase(x * (-2) >= 2, gsmDataGen.tir.LE(x, -1)),
-        TestCase(x * (-2) >= 1, gsmDataGen.tir.LE(x, -1)),
-        TestCase(x * (-2) >= 0, gsmDataGen.tir.LE(x, 0)),
-        TestCase(x * (-2) >= -1, gsmDataGen.tir.LE(x, 0)),
-        TestCase(x * (-2) >= -2, gsmDataGen.tir.LE(x, 1)),
-        TestCase(x * (-2) >= -3, gsmDataGen.tir.LE(x, 1)),
-        TestCase(x * (-2) <= 3, gsmDataGen.tir.LE(-1, x)),
-        TestCase(x * (-2) <= 2, gsmDataGen.tir.LE(-1, x)),
-        TestCase(x * (-2) <= 1, gsmDataGen.tir.LE(0, x)),
-        TestCase(x * (-2) <= 0, gsmDataGen.tir.LE(0, x)),
-        TestCase(x * (-2) <= -1, gsmDataGen.tir.LE(1, x)),
-        TestCase(x * (-2) <= -2, gsmDataGen.tir.LE(1, x)),
-        TestCase(x * (-2) <= -3, gsmDataGen.tir.LE(2, x)),
+        TestCase(x * 2 >= 3, gsm_data_generator.tir.LE(2, x)),
+        TestCase(x * 2 >= 2, gsm_data_generator.tir.LE(1, x)),
+        TestCase(x * 2 >= 1, gsm_data_generator.tir.LE(1, x)),
+        TestCase(x * 2 >= 0, gsm_data_generator.tir.LE(0, x)),
+        TestCase(x * 2 >= -1, gsm_data_generator.tir.LE(0, x)),
+        TestCase(x * 2 >= -2, gsm_data_generator.tir.LE(-1, x)),
+        TestCase(x * 2 >= -3, gsm_data_generator.tir.LE(-1, x)),
+        TestCase(x * 2 <= 3, gsm_data_generator.tir.LE(x, 1)),
+        TestCase(x * 2 <= 2, gsm_data_generator.tir.LE(x, 1)),
+        TestCase(x * 2 <= 1, gsm_data_generator.tir.LE(x, 0)),
+        TestCase(x * 2 <= 0, gsm_data_generator.tir.LE(x, 0)),
+        TestCase(x * 2 <= -1, gsm_data_generator.tir.LE(x, -1)),
+        TestCase(x * 2 <= -2, gsm_data_generator.tir.LE(x, -1)),
+        TestCase(x * 2 <= -3, gsm_data_generator.tir.LE(x, -2)),
+        TestCase(x * (-2) >= 3, gsm_data_generator.tir.LE(x, -2)),
+        TestCase(x * (-2) >= 2, gsm_data_generator.tir.LE(x, -1)),
+        TestCase(x * (-2) >= 1, gsm_data_generator.tir.LE(x, -1)),
+        TestCase(x * (-2) >= 0, gsm_data_generator.tir.LE(x, 0)),
+        TestCase(x * (-2) >= -1, gsm_data_generator.tir.LE(x, 0)),
+        TestCase(x * (-2) >= -2, gsm_data_generator.tir.LE(x, 1)),
+        TestCase(x * (-2) >= -3, gsm_data_generator.tir.LE(x, 1)),
+        TestCase(x * (-2) <= 3, gsm_data_generator.tir.LE(-1, x)),
+        TestCase(x * (-2) <= 2, gsm_data_generator.tir.LE(-1, x)),
+        TestCase(x * (-2) <= 1, gsm_data_generator.tir.LE(0, x)),
+        TestCase(x * (-2) <= 0, gsm_data_generator.tir.LE(0, x)),
+        TestCase(x * (-2) <= -1, gsm_data_generator.tir.LE(1, x)),
+        TestCase(x * (-2) <= -2, gsm_data_generator.tir.LE(1, x)),
+        TestCase(x * (-2) <= -3, gsm_data_generator.tir.LE(2, x)),
         # DivMod rules
         # truc div
         TestCase(tdiv(x, 2) < 3, x < 6),
-        TestCase(3 < tdiv(x, 2), gsmDataGen.tir.LT(7, x)),
-        TestCase(tdiv(x, 3) >= 0, gsmDataGen.tir.LE(-2, x)),
-        TestCase(tdiv(x, 2) >= 1, gsmDataGen.tir.LE(2, x)),
-        TestCase(tdiv(x, 2) >= 0, gsmDataGen.tir.LE(-1, x)),
-        TestCase(tdiv(x, 2) >= -1, gsmDataGen.tir.LE(-3, x)),
-        TestCase(tdiv(x, 2) <= 1, gsmDataGen.tir.LE(x, 3)),
-        TestCase(tdiv(x, 2) <= 0, gsmDataGen.tir.LE(x, 1)),
-        TestCase(tdiv(x, 2) <= -1, gsmDataGen.tir.LE(x, -2)),
-        TestCase(tdiv(x, 4) * 4 < x, gsmDataGen.tir.LT(0, tmod(x, 4))),
-        TestCase(tdiv(x, 4) * 4 >= x, gsmDataGen.tir.LE(tmod(x, 4), 0)),
-        TestCase(tdiv(x, 4) * 4 < x + y, gsmDataGen.tir.LT(0, tmod(x, 4) + y)),
-        TestCase(tdiv(x, 4) * 4 < x - y, gsmDataGen.tir.LT(y, tmod(x, 4))),
-        TestCase(tdiv(x + 2, 4) * 4 >= x, gsmDataGen.tir.LE(tmod(x + 2, 4), 2)),
-        TestCase(tdiv(x + 2, 4) * 4 >= x + y, gsmDataGen.tir.LE(tmod(x + 2, 4) + y, 2)),
-        TestCase(tdiv(x + 2, 4) * 4 >= x - y, gsmDataGen.tir.LE(tmod(x + 2, 4), y + 2)),
+        TestCase(3 < tdiv(x, 2), gsm_data_generator.tir.LT(7, x)),
+        TestCase(tdiv(x, 3) >= 0, gsm_data_generator.tir.LE(-2, x)),
+        TestCase(tdiv(x, 2) >= 1, gsm_data_generator.tir.LE(2, x)),
+        TestCase(tdiv(x, 2) >= 0, gsm_data_generator.tir.LE(-1, x)),
+        TestCase(tdiv(x, 2) >= -1, gsm_data_generator.tir.LE(-3, x)),
+        TestCase(tdiv(x, 2) <= 1, gsm_data_generator.tir.LE(x, 3)),
+        TestCase(tdiv(x, 2) <= 0, gsm_data_generator.tir.LE(x, 1)),
+        TestCase(tdiv(x, 2) <= -1, gsm_data_generator.tir.LE(x, -2)),
+        TestCase(tdiv(x, 4) * 4 < x, gsm_data_generator.tir.LT(0, tmod(x, 4))),
+        TestCase(tdiv(x, 4) * 4 >= x, gsm_data_generator.tir.LE(tmod(x, 4), 0)),
+        TestCase(tdiv(x, 4) * 4 < x + y, gsm_data_generator.tir.LT(0, tmod(x, 4) + y)),
+        TestCase(tdiv(x, 4) * 4 < x - y, gsm_data_generator.tir.LT(y, tmod(x, 4))),
+        TestCase(tdiv(x + 2, 4) * 4 >= x, gsm_data_generator.tir.LE(tmod(x + 2, 4), 2)),
+        TestCase(tdiv(x + 2, 4) * 4 >= x + y, gsm_data_generator.tir.LE(tmod(x + 2, 4) + y, 2)),
+        TestCase(tdiv(x + 2, 4) * 4 >= x - y, gsm_data_generator.tir.LE(tmod(x + 2, 4), y + 2)),
         # floor div
         TestCase(fld(x, 2) < 3, x < 6),
-        TestCase(3 < fld(x, 2), gsmDataGen.tir.LT(7, x)),
-        TestCase(-3 < fld(x, 2), gsmDataGen.tir.LT(-5, x)),
-        TestCase(fld(x, 3) >= 0, gsmDataGen.tir.LE(0, x)),
-        TestCase(fld(x, 2) >= 1, gsmDataGen.tir.LE(2, x)),
-        TestCase(fld(x, 2) >= 0, gsmDataGen.tir.LE(0, x)),
-        TestCase(fld(x, 2) >= -1, gsmDataGen.tir.LE(-2, x)),
-        TestCase(fld(x, 2) <= 1, gsmDataGen.tir.LE(x, 3)),
-        TestCase(fld(x, 2) <= 0, gsmDataGen.tir.LE(x, 1)),
-        TestCase(fld(x, 2) <= -1, gsmDataGen.tir.LE(x, -1)),
-        TestCase(fld(x, 4) * 4 < x, gsmDataGen.tir.LT(0, flm(x, 4))),
-        TestCase(fld(x, 4) * 4 >= x, gsmDataGen.tir.EQ(flm(x, 4), 0)),
-        TestCase(fld(x, 4) * 4 < x + y, gsmDataGen.tir.LT(0, flm(x, 4) + y)),
-        TestCase(fld(x, 4) * 4 < x - y, gsmDataGen.tir.LT(y, flm(x, 4))),
-        TestCase(fld(x + 2, 4) * 4 >= x, gsmDataGen.tir.LE(flm(x + 2, 4), 2)),
-        TestCase(fld(x + 2, 4) * 4 >= x + y, gsmDataGen.tir.LE(flm(x + 2, 4) + y, 2)),
-        TestCase(fld(x + 2, 4) * 4 >= x - y, gsmDataGen.tir.LE(flm(x + 2, 4), y + 2)),
+        TestCase(3 < fld(x, 2), gsm_data_generator.tir.LT(7, x)),
+        TestCase(-3 < fld(x, 2), gsm_data_generator.tir.LT(-5, x)),
+        TestCase(fld(x, 3) >= 0, gsm_data_generator.tir.LE(0, x)),
+        TestCase(fld(x, 2) >= 1, gsm_data_generator.tir.LE(2, x)),
+        TestCase(fld(x, 2) >= 0, gsm_data_generator.tir.LE(0, x)),
+        TestCase(fld(x, 2) >= -1, gsm_data_generator.tir.LE(-2, x)),
+        TestCase(fld(x, 2) <= 1, gsm_data_generator.tir.LE(x, 3)),
+        TestCase(fld(x, 2) <= 0, gsm_data_generator.tir.LE(x, 1)),
+        TestCase(fld(x, 2) <= -1, gsm_data_generator.tir.LE(x, -1)),
+        TestCase(fld(x, 4) * 4 < x, gsm_data_generator.tir.LT(0, flm(x, 4))),
+        TestCase(fld(x, 4) * 4 >= x, gsm_data_generator.tir.EQ(flm(x, 4), 0)),
+        TestCase(fld(x, 4) * 4 < x + y, gsm_data_generator.tir.LT(0, flm(x, 4) + y)),
+        TestCase(fld(x, 4) * 4 < x - y, gsm_data_generator.tir.LT(y, flm(x, 4))),
+        TestCase(fld(x + 2, 4) * 4 >= x, gsm_data_generator.tir.LE(flm(x + 2, 4), 2)),
+        TestCase(fld(x + 2, 4) * 4 >= x + y, gsm_data_generator.tir.LE(flm(x + 2, 4) + y, 2)),
+        TestCase(fld(x + 2, 4) * 4 >= x - y, gsm_data_generator.tir.LE(flm(x + 2, 4), y + 2)),
         # End DivMod Rules
         # merging flm/fld into known value
         TestCase(tir.all(fld(x, 8) == 3, flm(x, 8) == 4), x == 28),
@@ -1066,53 +1066,53 @@ class TestComparisons(BaseCompare):
             tir.all(fld(x, 10) == -5, T.int32(7) <= flm(x, 10)),
             tir.all(T.int32(-43) <= x, x < -40),
         ),
-        TestCase(gsmDataGen.te.min(x, 11) < 10, x < 10),
-        TestCase(gsmDataGen.te.min(x, 8) < 10, gsmDataGen.tir.const(1, "bool")),
-        TestCase(gsmDataGen.te.max(8, x) > 10, gsmDataGen.tir.LT(10, x)),
-        TestCase(x + 1 < gsmDataGen.te.max(8, x), x < 7),
-        TestCase(x < 11, gsmDataGen.tir.const(1, "bool"), x <= 10),
-        TestCase(x <= 10, gsmDataGen.tir.const(1, "bool"), x <= 10),
-        TestCase(z <= 5, gsmDataGen.tir.const(1, "bool"), z <= 5),
-        TestCase(x + y <= 10, gsmDataGen.tir.const(1, "bool"), [x <= 10, y <= 0]),
-        TestCase(x + y >= -10, gsmDataGen.tir.const(1, "bool"), [x >= 0, y >= -10]),
-        TestCase(z - 5 <= y + 10, gsmDataGen.tir.const(1, "bool"), [z <= 5, y >= -10]),
-        TestCase(gsmDataGen.tir.all(x > -1, z <= x + 5), gsmDataGen.tir.const(1, "bool"), [x >= 0, z <= 5]),
-        TestCase(x * y <= 0, gsmDataGen.tir.const(1, "bool"), [x >= 0, y <= 0]),
-        TestCase((x + 1) * (y - 1) < 0, gsmDataGen.tir.const(1, "bool"), [x >= 0, y <= 0]),
-        TestCase(y * y >= 0, gsmDataGen.tir.const(1, "bool"), y <= 0),
-        TestCase(x * 6 <= -3, gsmDataGen.tir.const(0, "bool"), x >= 0),
+        TestCase(gsm_data_generator.te.min(x, 11) < 10, x < 10),
+        TestCase(gsm_data_generator.te.min(x, 8) < 10, gsm_data_generator.tir.const(1, "bool")),
+        TestCase(gsm_data_generator.te.max(8, x) > 10, gsm_data_generator.tir.LT(10, x)),
+        TestCase(x + 1 < gsm_data_generator.te.max(8, x), x < 7),
+        TestCase(x < 11, gsm_data_generator.tir.const(1, "bool"), x <= 10),
+        TestCase(x <= 10, gsm_data_generator.tir.const(1, "bool"), x <= 10),
+        TestCase(z <= 5, gsm_data_generator.tir.const(1, "bool"), z <= 5),
+        TestCase(x + y <= 10, gsm_data_generator.tir.const(1, "bool"), [x <= 10, y <= 0]),
+        TestCase(x + y >= -10, gsm_data_generator.tir.const(1, "bool"), [x >= 0, y >= -10]),
+        TestCase(z - 5 <= y + 10, gsm_data_generator.tir.const(1, "bool"), [z <= 5, y >= -10]),
+        TestCase(gsm_data_generator.tir.all(x > -1, z <= x + 5), gsm_data_generator.tir.const(1, "bool"), [x >= 0, z <= 5]),
+        TestCase(x * y <= 0, gsm_data_generator.tir.const(1, "bool"), [x >= 0, y <= 0]),
+        TestCase((x + 1) * (y - 1) < 0, gsm_data_generator.tir.const(1, "bool"), [x >= 0, y <= 0]),
+        TestCase(y * y >= 0, gsm_data_generator.tir.const(1, "bool"), y <= 0),
+        TestCase(x * 6 <= -3, gsm_data_generator.tir.const(0, "bool"), x >= 0),
         TestCase(tmod(y - 1, 3) == 0, tmod(y + (-1), 3) == 0),
     )
 
 
 class TestComparisonOfProductAndSum(BaseCompare):
-    extensions = gsmDataGen.arith.Extension.ComparisonOfProductAndSum
+    extensions = gsm_data_generator.arith.Extension.ComparisonOfProductAndSum
 
     x, y, z = te.var("x"), te.var("y"), te.var("z")
 
-    test_case = gsmDataGen.testing.parameter(
+    test_case = gsm_data_generator.testing.parameter(
         # Special inequality cases
         TestCase(
             x * y < (x + y) * 2048,
-            gsmDataGen.tir.const(1, "bool"),
+            gsm_data_generator.tir.const(1, "bool"),
             [x > 0, y > 0, x < 2048],
         ),
         TestCase(
             x * y < (x + y) * 2048,
-            gsmDataGen.tir.const(1, "bool"),
+            gsm_data_generator.tir.const(1, "bool"),
             [x > 0, y > 0, x < 4096, y < 4096],
         ),
         TestCase(
             # Both sides are divisible by 8192
             x * y * 8192 < (y + x) * 16777216,
-            gsmDataGen.tir.const(1, "bool"),
+            gsm_data_generator.tir.const(1, "bool"),
             [x > 0, y > 0, x < 4096, y < 4096],
         ),
         TestCase(
             # The two sides have co-prime factors, but the bounds are
             # still sufficient to prove the inequality.
             x * y * 59 < (y + x) * 176128,
-            gsmDataGen.tir.const(1, "bool"),
+            gsm_data_generator.tir.const(1, "bool"),
             [x > 0, y > 0, x < 4096, y < 4096],
         ),
     )
@@ -1121,53 +1121,53 @@ class TestComparisonOfProductAndSum(BaseCompare):
 class TestLogical(BaseCompare):
     x, y, z = te.var("x"), te.var("y"), te.var("z")
 
-    test_case = gsmDataGen.testing.parameter(
-        TestCase(gsmDataGen.tir.And(gsmDataGen.tir.EQ(x, y), gsmDataGen.tir.NE(x, y)), gsmDataGen.tir.const(False, "bool")),
-        TestCase(gsmDataGen.tir.And(gsmDataGen.tir.NE(x, y), gsmDataGen.tir.EQ(x, y)), gsmDataGen.tir.const(False, "bool")),
-        TestCase(gsmDataGen.tir.And(x > 1, gsmDataGen.tir.Not(x > 1)), gsmDataGen.tir.const(False, "bool")),
-        TestCase(gsmDataGen.tir.And(x <= y, y < x), gsmDataGen.tir.const(False, "bool")),
-        TestCase(gsmDataGen.tir.And(y < x, x <= y), gsmDataGen.tir.const(False, "bool")),
-        TestCase(gsmDataGen.tir.And(x < 1, 0 < x), gsmDataGen.tir.const(False, "bool")),
-        TestCase(gsmDataGen.tir.And(x < 0, 1 < x), gsmDataGen.tir.const(False, "bool")),
-        TestCase(gsmDataGen.tir.And(x < 1, 1 <= x), gsmDataGen.tir.const(False, "bool")),
-        TestCase(gsmDataGen.tir.And(x <= 1, 1 < x), gsmDataGen.tir.const(False, "bool")),
-        TestCase(gsmDataGen.tir.And(1 <= x, x < 1), gsmDataGen.tir.const(False, "bool")),
-        TestCase(gsmDataGen.tir.And(1 < x, x <= 1), gsmDataGen.tir.const(False, "bool")),
-        TestCase(gsmDataGen.tir.And(x <= 1, 2 <= x), gsmDataGen.tir.const(False, "bool")),
-        TestCase(gsmDataGen.tir.And(2 <= x, x <= 1), gsmDataGen.tir.const(False, "bool")),
-        TestCase(gsmDataGen.tir.And(x == 1, x != 2), x == 1),
-        TestCase(gsmDataGen.tir.And(x == 1, x == 2), gsmDataGen.tir.const(False, "bool")),
-        TestCase(gsmDataGen.tir.Or(gsmDataGen.tir.EQ(x, y), gsmDataGen.tir.NE(x, y)), gsmDataGen.tir.const(True, "bool")),
-        TestCase(gsmDataGen.tir.Or(gsmDataGen.tir.NE(x, y), gsmDataGen.tir.EQ(x, y)), gsmDataGen.tir.const(True, "bool")),
-        TestCase(gsmDataGen.tir.Or(x > y, gsmDataGen.tir.Not(x > y)), gsmDataGen.tir.const(True, "bool")),
-        TestCase(gsmDataGen.tir.Or(x <= y, y < x), gsmDataGen.tir.const(True, "bool")),
-        TestCase(gsmDataGen.tir.Or(y < x, y >= x), gsmDataGen.tir.const(True, "bool")),
-        TestCase(gsmDataGen.tir.Or(x < 1, 0 < x), gsmDataGen.tir.const(True, "bool")),
-        TestCase(gsmDataGen.tir.Or(0 < x, x < 1), gsmDataGen.tir.const(True, "bool")),
-        TestCase(gsmDataGen.tir.Or(x < 1, 1 <= x), gsmDataGen.tir.const(True, "bool")),
-        TestCase(gsmDataGen.tir.Or(x <= 1, 1 < x), gsmDataGen.tir.const(True, "bool")),
-        TestCase(gsmDataGen.tir.Or(1 <= x, x < 1), gsmDataGen.tir.const(True, "bool")),
-        TestCase(gsmDataGen.tir.Or(1 < x, x <= 1), gsmDataGen.tir.const(True, "bool")),
-        TestCase(gsmDataGen.tir.Or(x <= 1, 2 <= x), gsmDataGen.tir.const(True, "bool")),
-        TestCase(gsmDataGen.tir.Or(2 <= x, x <= 1), gsmDataGen.tir.const(True, "bool")),
-        TestCase(gsmDataGen.tir.Or(x != 1, x == 2), x != 1),
-        TestCase(gsmDataGen.tir.Or(x != 1, x != 2), gsmDataGen.tir.const(True, "bool")),
+    test_case = gsm_data_generator.testing.parameter(
+        TestCase(gsm_data_generator.tir.And(gsm_data_generator.tir.EQ(x, y), gsm_data_generator.tir.NE(x, y)), gsm_data_generator.tir.const(False, "bool")),
+        TestCase(gsm_data_generator.tir.And(gsm_data_generator.tir.NE(x, y), gsm_data_generator.tir.EQ(x, y)), gsm_data_generator.tir.const(False, "bool")),
+        TestCase(gsm_data_generator.tir.And(x > 1, gsm_data_generator.tir.Not(x > 1)), gsm_data_generator.tir.const(False, "bool")),
+        TestCase(gsm_data_generator.tir.And(x <= y, y < x), gsm_data_generator.tir.const(False, "bool")),
+        TestCase(gsm_data_generator.tir.And(y < x, x <= y), gsm_data_generator.tir.const(False, "bool")),
+        TestCase(gsm_data_generator.tir.And(x < 1, 0 < x), gsm_data_generator.tir.const(False, "bool")),
+        TestCase(gsm_data_generator.tir.And(x < 0, 1 < x), gsm_data_generator.tir.const(False, "bool")),
+        TestCase(gsm_data_generator.tir.And(x < 1, 1 <= x), gsm_data_generator.tir.const(False, "bool")),
+        TestCase(gsm_data_generator.tir.And(x <= 1, 1 < x), gsm_data_generator.tir.const(False, "bool")),
+        TestCase(gsm_data_generator.tir.And(1 <= x, x < 1), gsm_data_generator.tir.const(False, "bool")),
+        TestCase(gsm_data_generator.tir.And(1 < x, x <= 1), gsm_data_generator.tir.const(False, "bool")),
+        TestCase(gsm_data_generator.tir.And(x <= 1, 2 <= x), gsm_data_generator.tir.const(False, "bool")),
+        TestCase(gsm_data_generator.tir.And(2 <= x, x <= 1), gsm_data_generator.tir.const(False, "bool")),
+        TestCase(gsm_data_generator.tir.And(x == 1, x != 2), x == 1),
+        TestCase(gsm_data_generator.tir.And(x == 1, x == 2), gsm_data_generator.tir.const(False, "bool")),
+        TestCase(gsm_data_generator.tir.Or(gsm_data_generator.tir.EQ(x, y), gsm_data_generator.tir.NE(x, y)), gsm_data_generator.tir.const(True, "bool")),
+        TestCase(gsm_data_generator.tir.Or(gsm_data_generator.tir.NE(x, y), gsm_data_generator.tir.EQ(x, y)), gsm_data_generator.tir.const(True, "bool")),
+        TestCase(gsm_data_generator.tir.Or(x > y, gsm_data_generator.tir.Not(x > y)), gsm_data_generator.tir.const(True, "bool")),
+        TestCase(gsm_data_generator.tir.Or(x <= y, y < x), gsm_data_generator.tir.const(True, "bool")),
+        TestCase(gsm_data_generator.tir.Or(y < x, y >= x), gsm_data_generator.tir.const(True, "bool")),
+        TestCase(gsm_data_generator.tir.Or(x < 1, 0 < x), gsm_data_generator.tir.const(True, "bool")),
+        TestCase(gsm_data_generator.tir.Or(0 < x, x < 1), gsm_data_generator.tir.const(True, "bool")),
+        TestCase(gsm_data_generator.tir.Or(x < 1, 1 <= x), gsm_data_generator.tir.const(True, "bool")),
+        TestCase(gsm_data_generator.tir.Or(x <= 1, 1 < x), gsm_data_generator.tir.const(True, "bool")),
+        TestCase(gsm_data_generator.tir.Or(1 <= x, x < 1), gsm_data_generator.tir.const(True, "bool")),
+        TestCase(gsm_data_generator.tir.Or(1 < x, x <= 1), gsm_data_generator.tir.const(True, "bool")),
+        TestCase(gsm_data_generator.tir.Or(x <= 1, 2 <= x), gsm_data_generator.tir.const(True, "bool")),
+        TestCase(gsm_data_generator.tir.Or(2 <= x, x <= 1), gsm_data_generator.tir.const(True, "bool")),
+        TestCase(gsm_data_generator.tir.Or(x != 1, x == 2), x != 1),
+        TestCase(gsm_data_generator.tir.Or(x != 1, x != 2), gsm_data_generator.tir.const(True, "bool")),
         TestCase(
-            gsmDataGen.tir.Or(x == 1, gsmDataGen.tir.Or(y == 1, z == 1)),
-            gsmDataGen.tir.Or(gsmDataGen.tir.Or(x == 1, y == 1), z == 1),
+            gsm_data_generator.tir.Or(x == 1, gsm_data_generator.tir.Or(y == 1, z == 1)),
+            gsm_data_generator.tir.Or(gsm_data_generator.tir.Or(x == 1, y == 1), z == 1),
         ),
         TestCase(
-            gsmDataGen.tir.And(x == 1, gsmDataGen.tir.And(y == 1, z == 1)),
-            gsmDataGen.tir.And(gsmDataGen.tir.And(x == 1, y == 1), z == 1),
+            gsm_data_generator.tir.And(x == 1, gsm_data_generator.tir.And(y == 1, z == 1)),
+            gsm_data_generator.tir.And(gsm_data_generator.tir.And(x == 1, y == 1), z == 1),
         ),
     )
 
 
 class TestLet(BaseCompare):
     x, y = te.var("x"), te.var("y")
-    z = gsmDataGen.tir.Let(x, 1, x + 1)
+    z = gsm_data_generator.tir.Let(x, 1, x + 1)
 
-    test_case = gsmDataGen.testing.parameter(
+    test_case = gsm_data_generator.testing.parameter(
         TestCase(z + z, 4),
     )
 
@@ -1177,42 +1177,42 @@ class TestCast(BaseCompare):
         x = te.var("x")
         dtypes = ["float32", "float16", "int32", "int8", "bool"]
         for dtype1 in dtypes:
-            yield TestCase(gsmDataGen.tir.Cast(dtype1, x - x), gsmDataGen.tir.const(0, dtype1))
-            yield TestCase(gsmDataGen.tir.Cast(dtype1, x == x), gsmDataGen.tir.const(1, dtype1))
+            yield TestCase(gsm_data_generator.tir.Cast(dtype1, x - x), gsm_data_generator.tir.const(0, dtype1))
+            yield TestCase(gsm_data_generator.tir.Cast(dtype1, x == x), gsm_data_generator.tir.const(1, dtype1))
             for dtype2 in dtypes:
                 for i in [0, 1, 2, 3]:
                     if i <= 1 or (dtype1 != "bool" and dtype2 != "bool"):
                         yield TestCase(
-                            gsmDataGen.tir.Cast(dtype1, gsmDataGen.tir.const(i, dtype2)), gsmDataGen.tir.const(i, dtype1)
+                            gsm_data_generator.tir.Cast(dtype1, gsm_data_generator.tir.const(i, dtype2)), gsm_data_generator.tir.const(i, dtype1)
                         )
 
-    test_case = gsmDataGen.testing.parameter(*_generate_tests())
+    test_case = gsm_data_generator.testing.parameter(*_generate_tests())
 
 
 class TestShiftLeft(BaseCompare):
-    z = gsmDataGen.tir.op.call_intrin("int32", "tir.shift_left", 1, 10)
-    test_case = gsmDataGen.testing.parameter(
-        TestCase(z, gsmDataGen.tir.const(1 << 10, "int32")),
+    z = gsm_data_generator.tir.op.call_intrin("int32", "tir.shift_left", 1, 10)
+    test_case = gsm_data_generator.testing.parameter(
+        TestCase(z, gsm_data_generator.tir.const(1 << 10, "int32")),
     )
 
 
 class TestDivZero(BaseCompare):
-    ramp = gsmDataGen.tir.Ramp(1, 1, 2)
-    broadcast = gsmDataGen.tir.Broadcast(0, 2)
+    ramp = gsm_data_generator.tir.Ramp(1, 1, 2)
+    broadcast = gsm_data_generator.tir.Broadcast(0, 2)
 
-    test_case = gsmDataGen.testing.parameter(
-        TestCase(gsmDataGen.tir.Div(ramp, broadcast), gsmDataGen.error.TVMError),
-        TestCase(gsmDataGen.tir.Mod(ramp, broadcast), gsmDataGen.error.TVMError),
-        TestCase(gsmDataGen.tir.FloorDiv(ramp, broadcast), gsmDataGen.error.TVMError),
-        TestCase(gsmDataGen.tir.FloorMod(ramp, broadcast), gsmDataGen.error.TVMError),
+    test_case = gsm_data_generator.testing.parameter(
+        TestCase(gsm_data_generator.tir.Div(ramp, broadcast), gsm_data_generator.error.TVMError),
+        TestCase(gsm_data_generator.tir.Mod(ramp, broadcast), gsm_data_generator.error.TVMError),
+        TestCase(gsm_data_generator.tir.FloorDiv(ramp, broadcast), gsm_data_generator.error.TVMError),
+        TestCase(gsm_data_generator.tir.FloorMod(ramp, broadcast), gsm_data_generator.error.TVMError),
     )
 
 
 class TestSubBufferload(BaseCompare):
-    buf = gsmDataGen.tir.decl_buffer([1], dtype="float32")
-    load = gsmDataGen.tir.BufferLoad(buf, [0])
+    buf = gsm_data_generator.tir.decl_buffer([1], dtype="float32")
+    load = gsm_data_generator.tir.BufferLoad(buf, [0])
 
-    test_case = gsmDataGen.testing.parameter(
+    test_case = gsm_data_generator.testing.parameter(
         TestCase(load - load, 0.0),
     )
 
@@ -1220,32 +1220,32 @@ class TestSubBufferload(BaseCompare):
 class TestIfThenElse(BaseCompare):
     x = te.var("x", "int32")
 
-    test_case = gsmDataGen.testing.parameter(
+    test_case = gsm_data_generator.testing.parameter(
         TestCase(
-            gsmDataGen.tir.if_then_else(x < 5, gsmDataGen.tir.if_then_else(x > 1, 1, 0), 0),
-            gsmDataGen.tir.if_then_else(gsmDataGen.tir.And(gsmDataGen.tir.LT(x, 5), gsmDataGen.tir.LT(1, x)), 1, 0),
+            gsm_data_generator.tir.if_then_else(x < 5, gsm_data_generator.tir.if_then_else(x > 1, 1, 0), 0),
+            gsm_data_generator.tir.if_then_else(gsm_data_generator.tir.And(gsm_data_generator.tir.LT(x, 5), gsm_data_generator.tir.LT(1, x)), 1, 0),
         ),
         TestCase(
-            gsmDataGen.tir.if_then_else(x > 2, gsmDataGen.tir.if_then_else(x > 1, 1, 0), 0),
-            gsmDataGen.tir.if_then_else(gsmDataGen.tir.LT(2, x), 1, 0),
+            gsm_data_generator.tir.if_then_else(x > 2, gsm_data_generator.tir.if_then_else(x > 1, 1, 0), 0),
+            gsm_data_generator.tir.if_then_else(gsm_data_generator.tir.LT(2, x), 1, 0),
         ),
     )
 
 
 class TestCLZ(BaseCompare):
-    test_case = gsmDataGen.testing.parameter(
-        TestCase(gsmDataGen.tir.call_intrin("int32", "tir.clz", 0), T.int32(32)),
-        TestCase(gsmDataGen.tir.call_intrin("int32", "tir.clz", 1), T.int32(31)),
-        TestCase(gsmDataGen.tir.call_intrin("int32", "tir.clz", 2), T.int32(30)),
-        TestCase(gsmDataGen.tir.call_intrin("int32", "tir.clz", 128), T.int32(24)),
-        TestCase(gsmDataGen.tir.call_intrin("int32", "tir.clz", gsmDataGen.tir.IntImm("int64", 0)), T.int32(64)),
-        TestCase(gsmDataGen.tir.call_intrin("int32", "tir.clz", gsmDataGen.tir.IntImm("int64", 1)), T.int32(63)),
-        TestCase(gsmDataGen.tir.call_intrin("int32", "tir.clz", gsmDataGen.tir.IntImm("int64", 2)), T.int32(62)),
+    test_case = gsm_data_generator.testing.parameter(
+        TestCase(gsm_data_generator.tir.call_intrin("int32", "tir.clz", 0), T.int32(32)),
+        TestCase(gsm_data_generator.tir.call_intrin("int32", "tir.clz", 1), T.int32(31)),
+        TestCase(gsm_data_generator.tir.call_intrin("int32", "tir.clz", 2), T.int32(30)),
+        TestCase(gsm_data_generator.tir.call_intrin("int32", "tir.clz", 128), T.int32(24)),
+        TestCase(gsm_data_generator.tir.call_intrin("int32", "tir.clz", gsm_data_generator.tir.IntImm("int64", 0)), T.int32(64)),
+        TestCase(gsm_data_generator.tir.call_intrin("int32", "tir.clz", gsm_data_generator.tir.IntImm("int64", 1)), T.int32(63)),
+        TestCase(gsm_data_generator.tir.call_intrin("int32", "tir.clz", gsm_data_generator.tir.IntImm("int64", 2)), T.int32(62)),
         TestCase(
-            gsmDataGen.tir.call_intrin("int32", "tir.clz", gsmDataGen.tir.IntImm("int64", 128)), T.int32(56)
+            gsm_data_generator.tir.call_intrin("int32", "tir.clz", gsm_data_generator.tir.IntImm("int64", 128)), T.int32(56)
         ),
     )
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

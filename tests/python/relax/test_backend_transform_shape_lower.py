@@ -15,14 +15,14 @@
 # specific language governing permissions and limitations
 # under the License.
 
-import gsmDataGen.script
-import gsmDataGen.testing
-from gsmDataGen import relax
-from gsmDataGen.ir import assert_structural_equal
-from gsmDataGen.relax.testing.runtime_builtin import MakeShapeCode, MatchShapeCode
-from gsmDataGen.script import relax as R
-from gsmDataGen.script import tir as T
-from gsmDataGen.script import ir as I
+import gsm_data_generator.script
+import gsm_data_generator.testing
+from gsm_data_generator import relax
+from gsm_data_generator.ir import assert_structural_equal
+from gsm_data_generator.relax.testing.runtime_builtin import MakeShapeCode, MatchShapeCode
+from gsm_data_generator.script import relax as R
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.script import ir as I
 
 # note: we expected RemovePurityChecking to be run first, so we force purity in most test cases
 
@@ -30,7 +30,7 @@ from gsmDataGen.script import ir as I
 def test_const_shape_arg():
     MS = MatchShapeCode
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Before:
         @R.function
         def main(x: R.Shape([1, 2]), y: R.Shape):
@@ -42,7 +42,7 @@ def test_const_shape_arg():
             """Extra function, checks if the pass preserves it."""
             H[T.int64(1)] = H[T.int64(0)] + T.int64(1)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(x: R.Shape([1, 2]), y: R.Shape):
@@ -78,14 +78,14 @@ def test_static_fn_check():
     """Check static shape and function."""
     MS = MatchShapeCode
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Before:
         @R.function
         def main(f: R.Callable([R.Object], R.Object), y: R.Shape([1, 2])):
             R.func_attr({"relax.force_pure": True})
             return y
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(f: R.Callable([R.Object], R.Object), y: R.Shape([1, 2])):
@@ -116,7 +116,7 @@ def test_static_fn_check():
 def test_simple_symbolic_shape():
     MS = MatchShapeCode
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Before:
         @R.function
         def main(x: R.Tensor(["n", 2, "m"], "float32")):
@@ -128,7 +128,7 @@ def test_simple_symbolic_shape():
         "m": 1,
     }
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(x: R.Tensor(["n", 2, "m"], "float32")):
@@ -172,7 +172,7 @@ def test_symbolic_compute():
     MS = MatchShapeCode
     MK = MakeShapeCode
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Before:
         @R.function
         def main(
@@ -188,7 +188,7 @@ def test_symbolic_compute():
     # 0: n, 1: m, 2:k, 3: k+1
     sindex = {"n": 0, "m": 1, "k": 2, "k+1": 3}
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @T.prim_func(private=True)
         def shape_func(H: T.Buffer(T.int64(4), "int64")):
@@ -287,7 +287,7 @@ def test_symbolic_compute():
 def test_tuple_handling():
     MS = MatchShapeCode
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Before:
         @R.function
         def main(
@@ -301,7 +301,7 @@ def test_tuple_handling():
     # slot assignment:
     sindex = {"n": 0, "m": 1, "k": 2}
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(
@@ -376,7 +376,7 @@ def test_return_match_check():
     """Test when return body is not same as ret_struct_info, runtime match check needed."""
     MS = MatchShapeCode
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Before:
         @R.function
         def main(
@@ -391,7 +391,7 @@ def test_return_match_check():
         "m": 1,
     }
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(
@@ -461,7 +461,7 @@ def test_return_match_check_with_new_expr():
     """
     MS = MatchShapeCode
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Before:
         @R.function
         def main(x: R.Tensor(["n", "n"], "float32")) -> R.Tensor(["n * n"], "float32"):
@@ -475,7 +475,7 @@ def test_return_match_check_with_new_expr():
         "n * n": 1,
     }
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(x: R.Tensor(["n", "n"], "float32")) -> R.Tensor(["n * n"], "float32"):
@@ -894,4 +894,4 @@ def test_update_symbolic_vars_in_match_cast_rhs():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

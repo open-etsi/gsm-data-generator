@@ -16,11 +16,11 @@
 # under the License.
 """Unittests for tvm.script.ir_builder.ir"""
 import pytest
-import gsmDataGen.testing
-from gsmDataGen.script.ir_builder import IRBuilder
-from gsmDataGen.script.ir_builder import ir as I
-from gsmDataGen import ir
-from gsmDataGen.ir.base import assert_structural_equal
+import gsm_data_generator.testing
+from gsm_data_generator.script.ir_builder import IRBuilder
+from gsm_data_generator.script.ir_builder import ir as I
+from gsm_data_generator import ir
+from gsm_data_generator.ir.base import assert_structural_equal
 
 
 def test_ir_builder_irmodule():
@@ -38,4 +38,4 @@ def test_ir_builder_irmodule():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

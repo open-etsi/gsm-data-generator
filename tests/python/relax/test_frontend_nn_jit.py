@@ -18,11 +18,11 @@ import pytest
 from typing import Tuple, List
 import torch
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import tir
-from gsmDataGen.relax.frontend.nn import spec
-from gsmDataGen.relax.frontend import nn
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import tir
+from gsm_data_generator.relax.frontend.nn import spec
+from gsm_data_generator.relax.frontend import nn
 
 
 @pytest.mark.parametrize("debug", [True, False])
@@ -84,7 +84,7 @@ def test_jit_with_effect(debug):
     }
     mod = Layer()
 
-    with gsmDataGen.transform.PassContext(opt_level=3):
+    with gsm_data_generator.transform.PassContext(opt_level=3):
         model = mod.jit(spec=forward_spec, debug=debug)
 
     x0 = torch.rand((1, 10, 5), dtype=torch.float32)
@@ -205,4 +205,4 @@ def test_jit_tuple_input_with_int(debug):
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

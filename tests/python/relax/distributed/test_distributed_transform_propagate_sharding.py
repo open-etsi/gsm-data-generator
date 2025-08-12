@@ -17,13 +17,13 @@
 
 #  type: ignore
 
-from gsmDataGen.script.parser import ir as I
-from gsmDataGen.script.parser import relax as R
-from gsmDataGen.script.parser import tir as T
-import gsmDataGen
-from gsmDataGen import relax
-from gsmDataGen.ir import assert_structural_equal
-import gsmDataGen.testing
+from gsm_data_generator.script.parser import ir as I
+from gsm_data_generator.script.parser import relax as R
+from gsm_data_generator.script.parser import tir as T
+import gsm_data_generator
+from gsm_data_generator import relax
+from gsm_data_generator.ir import assert_structural_equal
+import gsm_data_generator.testing
 
 
 def test_mlp():
@@ -2018,4 +2018,4 @@ def test_decoder_layer_dynamic_shape():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

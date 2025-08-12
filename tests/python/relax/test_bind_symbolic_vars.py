@@ -17,11 +17,11 @@
 
 import pytest
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen.script import relax as R, tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator.script import relax as R, tir as T
 
-replace_by_tir_var = gsmDataGen.testing.parameter(
+replace_by_tir_var = gsm_data_generator.testing.parameter(
     by_dict={"replace-by-string": False, "replace-by-tir-var": True}
 )
 
@@ -48,7 +48,7 @@ def test_bind_static_value(replace_by_tir_var):
         symbolic_var_map = {"M": 128, "K": 64, "N": 32}
 
     after = before.bind_symbolic_vars(symbolic_var_map)
-    gsmDataGen.ir.assert_structural_equal(expected, after)
+    gsm_data_generator.ir.assert_structural_equal(expected, after)
 
 
 def test_error_with_duplicate_var_names():
@@ -58,15 +58,15 @@ def test_error_with_duplicate_var_names():
     variables share the same name, the replacement map may not refer
     to that variable by string.
     """
-    N1 = gsmDataGen.tir.Var("N", "int64")
-    N2 = gsmDataGen.tir.Var("N", "int64")
+    N1 = gsm_data_generator.tir.Var("N", "int64")
+    N2 = gsm_data_generator.tir.Var("N", "int64")
 
     @R.function(private=True)
     def func(A: R.Tensor((N1, N1)), B: R.Tensor((N1, N2))) -> R.Tensor((N1, N2)):
         out: R.Tensor((N1, N2)) = R.matmul(A, B)
         return out
 
-    with pytest.raises(gsmDataGen.TVMError):
+    with pytest.raises(gsm_data_generator.TVMError):
         func.bind_symbolic_vars({"N": 64})
 
 
@@ -77,9 +77,9 @@ def test_string_var_when_other_var_has_duplicate_var_names():
     replacing variables by name only applies to those duplicate names.
     Other variables may still be replaced by name.
     """
-    N1 = gsmDataGen.tir.Var("N", "int64")
-    N2 = gsmDataGen.tir.Var("N", "int64")
-    BatchSize = gsmDataGen.tir.Var("BatchSize", "int64")
+    N1 = gsm_data_generator.tir.Var("N", "int64")
+    N2 = gsm_data_generator.tir.Var("N", "int64")
+    BatchSize = gsm_data_generator.tir.Var("BatchSize", "int64")
 
     @R.function(private=True)
     def before(
@@ -94,7 +94,7 @@ def test_string_var_when_other_var_has_duplicate_var_names():
         return out
 
     after = before.bind_symbolic_vars({"BatchSize": 16})
-    gsmDataGen.ir.assert_structural_equal(expected, after)
+    gsm_data_generator.ir.assert_structural_equal(expected, after)
 
 
 def test_error_with_nonexisting_var_name():
@@ -104,7 +104,7 @@ def test_error_with_nonexisting_var_name():
     def func(A: R.Tensor(("M", "N"))):
         return A
 
-    with pytest.raises(gsmDataGen.TVMError):
+    with pytest.raises(gsm_data_generator.TVMError):
         func.bind_symbolic_vars({"non_existing_symbolic_var": 64})
 
 
@@ -115,8 +115,8 @@ def test_error_with_nonexisting_tir_var():
     def func(A: R.Tensor(["M", "N"])):
         return A
 
-    with pytest.raises(gsmDataGen.TVMError):
-        func.bind_symbolic_vars({gsmDataGen.tir.Var("M", "int64"): 64})
+    with pytest.raises(gsm_data_generator.TVMError):
+        func.bind_symbolic_vars({gsm_data_generator.tir.Var("M", "int64"): 64})
 
 
 def test_error_with_multiple_definitions():
@@ -129,7 +129,7 @@ def test_error_with_multiple_definitions():
     tir_var = func.params[0].struct_info.shape[0]
     symbolic_var_map = {tir_var: 0, "M": 0}
 
-    with pytest.raises(gsmDataGen.TVMError):
+    with pytest.raises(gsm_data_generator.TVMError):
         func.bind_symbolic_vars(symbolic_var_map)
 
 
@@ -140,9 +140,9 @@ def test_error_if_output_has_undefined():
     def func(A: R.Tensor(["M", "N"])):
         return A
 
-    outside_var = gsmDataGen.tir.Var("outside_var", "int64")
+    outside_var = gsm_data_generator.tir.Var("outside_var", "int64")
 
-    with pytest.raises(gsmDataGen.TVMError):
+    with pytest.raises(gsm_data_generator.TVMError):
         func.bind_symbolic_vars({"M": outside_var * 2})
 
 
@@ -157,10 +157,10 @@ def test_replacements_may_produce_new_symbolic_vars():
     def expected(A: R.Tensor(["outside_var * 2", "outside_var"])):
         return A
 
-    outside_var = gsmDataGen.tir.Var("outside_var", "int64")
+    outside_var = gsm_data_generator.tir.Var("outside_var", "int64")
 
     after = before.bind_symbolic_vars({"M": outside_var * 2, "N": outside_var})
-    gsmDataGen.ir.assert_structural_equal(expected, after)
+    gsm_data_generator.ir.assert_structural_equal(expected, after)
 
 
 def test_bind_symbolic_vars_in_tensor_shape():
@@ -180,7 +180,7 @@ def test_bind_symbolic_vars_in_tensor_shape():
         return B
 
     after = before.bind_symbolic_vars({"N": 16})
-    gsmDataGen.ir.assert_structural_equal(expected, after)
+    gsm_data_generator.ir.assert_structural_equal(expected, after)
 
 
 def test_bind_symbolic_vars_in_shape_expr():
@@ -199,7 +199,7 @@ def test_bind_symbolic_vars_in_shape_expr():
         return B
 
     after = before.bind_symbolic_vars({"N": 16})
-    gsmDataGen.ir.assert_structural_equal(expected, after)
+    gsm_data_generator.ir.assert_structural_equal(expected, after)
 
 
 def test_bind_defining_of_symbolic_vars_in_prim_value():
@@ -235,7 +235,7 @@ def test_bind_defining_of_symbolic_vars_in_prim_value():
         return B
 
     after = before.bind_symbolic_vars({"N": 16})
-    gsmDataGen.ir.assert_structural_equal(expected, after)
+    gsm_data_generator.ir.assert_structural_equal(expected, after)
 
 
 def test_bind_usage_of_symbolic_vars_in_prim_value():
@@ -265,7 +265,7 @@ def test_bind_usage_of_symbolic_vars_in_prim_value():
         return B
 
     after = before.bind_symbolic_vars({"M": 16, "N": 16})
-    gsmDataGen.ir.assert_structural_equal(expected, after)
+    gsm_data_generator.ir.assert_structural_equal(expected, after)
 
 
 def test_bind_strided_slice():
@@ -283,7 +283,7 @@ def test_bind_strided_slice():
         return B
 
     after = before.bind_symbolic_vars({"N": 32})
-    gsmDataGen.ir.assert_structural_equal(expected, after)
+    gsm_data_generator.ir.assert_structural_equal(expected, after)
 
 
 def test_bind_inside_match_cast():
@@ -305,8 +305,8 @@ def test_bind_inside_match_cast():
         return D
 
     after = before.bind_symbolic_vars({"N": 32})
-    gsmDataGen.ir.assert_structural_equal(expected, after)
+    gsm_data_generator.ir.assert_structural_equal(expected, after)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

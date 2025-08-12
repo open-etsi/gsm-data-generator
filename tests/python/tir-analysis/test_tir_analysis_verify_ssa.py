@@ -14,26 +14,26 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-import gsmDataGen
-from gsmDataGen import te
+import gsm_data_generator
+from gsm_data_generator import te
 
 
 def test_verify_ssa():
     x = te.var("x")
     y = te.var()
-    z = gsmDataGen.tir.Evaluate(x + y)
-    assert gsmDataGen.tir.analysis.verify_ssa(gsmDataGen.tir.PrimFunc([x, y], z))
+    z = gsm_data_generator.tir.Evaluate(x + y)
+    assert gsm_data_generator.tir.analysis.verify_ssa(gsm_data_generator.tir.PrimFunc([x, y], z))
 
-    assert not gsmDataGen.tir.analysis.verify_ssa(gsmDataGen.tir.PrimFunc([x, y], gsmDataGen.tir.LetStmt(x, 1, z)))
+    assert not gsm_data_generator.tir.analysis.verify_ssa(gsm_data_generator.tir.PrimFunc([x, y], gsm_data_generator.tir.LetStmt(x, 1, z)))
 
 
 def test_verify_weak_let_ssa():
     x = te.var("x")
-    z1 = gsmDataGen.tir.Let(x, 1, x + 1)
-    z2 = gsmDataGen.tir.Let(x, 2, x + 2)
+    z1 = gsm_data_generator.tir.Let(x, 1, x + 1)
+    z2 = gsm_data_generator.tir.Let(x, 2, x + 2)
 
-    assert gsmDataGen.tir.analysis.verify_ssa(gsmDataGen.tir.PrimFunc([], gsmDataGen.tir.Evaluate(z1 + z1)))
-    assert not gsmDataGen.tir.analysis.verify_ssa(gsmDataGen.tir.PrimFunc([], gsmDataGen.tir.Evaluate(z1 * z2)))
+    assert gsm_data_generator.tir.analysis.verify_ssa(gsm_data_generator.tir.PrimFunc([], gsm_data_generator.tir.Evaluate(z1 + z1)))
+    assert not gsm_data_generator.tir.analysis.verify_ssa(gsm_data_generator.tir.PrimFunc([], gsm_data_generator.tir.Evaluate(z1 * z2)))
 
 
 if __name__ == "__main__":

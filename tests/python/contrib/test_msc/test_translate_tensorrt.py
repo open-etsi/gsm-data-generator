@@ -23,15 +23,15 @@ import torch
 from torch import fx
 from torch.nn import Module
 
-import gsmDataGen.testing
-from gsmDataGen.relax import PyExprVisitor
-from gsmDataGen.relax.frontend.torch import from_fx
-from gsmDataGen.contrib.msc.framework.tensorrt.frontend import translate
-from gsmDataGen.contrib.msc.framework.tensorrt import codegen
-from gsmDataGen.contrib.msc.core import utils as msc_utils
+import gsm_data_generator.testing
+from gsm_data_generator.relax import PyExprVisitor
+from gsm_data_generator.relax.frontend.torch import from_fx
+from gsm_data_generator.contrib.msc.framework.tensorrt.frontend import translate
+from gsm_data_generator.contrib.msc.framework.tensorrt import codegen
+from gsm_data_generator.contrib.msc.core import utils as msc_utils
 
 requires_tensorrt = pytest.mark.skipif(
-    gsmDataGen.get_global_func("relax.ext.tensorrt", True) is None,
+    gsm_data_generator.get_global_func("relax.ext.tensorrt", True) is None,
     reason="TENSORRT is not enabled",
 )
 
@@ -39,15 +39,15 @@ requires_tensorrt = pytest.mark.skipif(
 def build_and_run(mod, inputs):
     """Build and run the virtual machine"""
 
-    target = gsmDataGen.target.Target("cuda")
-    mod = gsmDataGen.relax.transform.LegalizeOps()(mod)
+    target = gsm_data_generator.target.Target("cuda")
+    mod = gsm_data_generator.relax.transform.LegalizeOps()(mod)
     with target:
-        mod = gsmDataGen.tir.transform.DefaultGPUSchedule()(mod)
-    with gsmDataGen.transform.PassContext(opt_level=3):
-        rt_mod = gsmDataGen.compile(mod, target)
-        runnable = gsmDataGen.relax.VirtualMachine(rt_mod, gsmDataGen.cuda())
+        mod = gsm_data_generator.tir.transform.DefaultGPUSchedule()(mod)
+    with gsm_data_generator.transform.PassContext(opt_level=3):
+        rt_mod = gsm_data_generator.compile(mod, target)
+        runnable = gsm_data_generator.relax.VirtualMachine(rt_mod, gsm_data_generator.cuda())
     res = runnable["main"](*inputs)
-    if isinstance(res, gsmDataGen.runtime.NDArray):
+    if isinstance(res, gsm_data_generator.runtime.NDArray):
         return [res.numpy()]
     return [e.numpy() for e in res]
 
@@ -55,18 +55,18 @@ def build_and_run(mod, inputs):
 def check_names(mod):
     """Check the byoc name and unique_name"""
 
-    @gsmDataGen.relax.expr_functor.visitor
+    @gsm_data_generator.relax.expr_functor.visitor
     class NameChecker(PyExprVisitor):
         """Checker to check if any non-target ops exist"""
 
         def check(self, expr):
             self._recorded_names = set()
-            if isinstance(expr, gsmDataGen.relax.Expr):
+            if isinstance(expr, gsm_data_generator.relax.Expr):
                 self.visit_expr(expr)
-            elif isinstance(expr, gsmDataGen.relax.BindingBlock):
+            elif isinstance(expr, gsm_data_generator.relax.BindingBlock):
                 self.visit_binding_block(expr)
 
-        def visit_function_(self, op: gsmDataGen.relax.Function) -> None:
+        def visit_function_(self, op: gsm_data_generator.relax.Function) -> None:
             if "Composite" in op.attrs:
                 assert "Unique" in op.attrs, "Can not find unique_name for func " + str(op)
                 name = str(op.attrs["Unique"])
@@ -104,10 +104,10 @@ def verify_model(torch_model, input_info, **trans_config):
     output_folder = msc_utils.msc_dir()
     # tranalte to tensorrt
     mod = codegen.to_tensorrt(mod, graphs, weights, output_folder=output_folder)
-    tvm_datas = [gsmDataGen.nd.array(i, device=gsmDataGen.cuda()) for i in datas]
+    tvm_datas = [gsm_data_generator.nd.array(i, device=gsm_data_generator.cuda()) for i in datas]
     results = build_and_run(mod, tvm_datas)
     for gol, res in zip(golden, results):
-        gsmDataGen.testing.assert_allclose(gol, res, atol=1e-3, rtol=1e-3)
+        gsm_data_generator.testing.assert_allclose(gol, res, atol=1e-3, rtol=1e-3)
     output_folder.destory()
 
 
@@ -916,4 +916,4 @@ def test_cat():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

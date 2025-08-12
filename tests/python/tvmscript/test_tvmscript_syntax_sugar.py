@@ -19,10 +19,10 @@ import sys
 from typing import Any
 
 import pytest
-import gsmDataGen.testing
-from gsmDataGen.script import from_source
-from gsmDataGen.script import tir as T
-from gsmDataGen.tir.schedule.testing import assert_structural_equal_ignore_global_symbol
+import gsm_data_generator.testing
+from gsm_data_generator.script import from_source
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.tir.schedule.testing import assert_structural_equal_ignore_global_symbol
 
 
 @T.prim_func
@@ -231,7 +231,7 @@ def test_match_buffer_region_has_implicit_shape_dtype():
 
 
 def test_match_buffer_input_requires_shape_arg():
-    with pytest.raises(gsmDataGen.error.DiagnosticError):
+    with pytest.raises(gsm_data_generator.error.DiagnosticError):
 
         @T.prim_func
         def func(a: T.handle):
@@ -507,4 +507,4 @@ def test_return_statement():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

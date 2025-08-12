@@ -15,9 +15,9 @@
 # specific language governing permissions and limitations
 # under the License.
 # pylint: disable=missing-docstring
-import gsmDataGen.testing
-from gsmDataGen.script.parser import ir as I
-from gsmDataGen.script.parser import tir as T
+import gsm_data_generator.testing
+from gsm_data_generator.script.parser import ir as I
+from gsm_data_generator.script.parser import tir as T
 
 
 def test_str_metadata():
@@ -44,4 +44,4 @@ def test_str_metadata():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

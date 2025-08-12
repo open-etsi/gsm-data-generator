@@ -14,9 +14,9 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator.script import tir as T
 
 
 def test_detect_cs():
@@ -24,10 +24,10 @@ def test_detect_cs():
     y = T.int32()
     z = T.int32()
     c = T.floor(x + y + 0.5) + x + z * (T.floor(x + y + 0.5))
-    m = gsmDataGen.arith.detect_common_subexpr(c, 2)
+    m = gsm_data_generator.arith.detect_common_subexpr(c, 2)
     assert c.a.a in m
     assert m[c.a.a] == 2
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

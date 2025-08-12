@@ -21,12 +21,12 @@ from pathlib import Path
 
 import numpy as np
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import relax
-from gsmDataGen.relax.frontend import nn
-from gsmDataGen.relax.frontend.nn import spec
-from gsmDataGen.relax.transform import AttachExternModules
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import relax
+from gsm_data_generator.relax.frontend import nn
+from gsm_data_generator.relax.frontend.nn import spec
+from gsm_data_generator.relax.transform import AttachExternModules
 
 
 def _infer_scalar_add(x, y):  # pylint: disable=invalid-name
@@ -39,7 +39,7 @@ def _infer_scalar_add(x, y):  # pylint: disable=invalid-name
 
 def _infer_test_sym(a, b):  # pylint: disable=invalid-name
     def _var_equal(a, b):  # pylint: disable=invalid-name
-        return gsmDataGen.ir.structural_equal(a, b, map_free_vars=True)
+        return gsm_data_generator.ir.structural_equal(a, b, map_free_vars=True)
 
     assert isinstance(a, nn.Tensor)
     assert isinstance(b, nn.Tensor)
@@ -57,8 +57,8 @@ def _infer_test_sym(a, b):  # pylint: disable=invalid-name
 
 def _test_scalar_add(func):
     # pylint: disable=invalid-name
-    x = gsmDataGen.nd.array(np.array(1.0).astype("float32"))
-    y = gsmDataGen.nd.array(np.array(3.0).astype("float32"))
+    x = gsm_data_generator.nd.array(np.array(1.0).astype("float32"))
+    y = gsm_data_generator.nd.array(np.array(3.0).astype("float32"))
     z = func(x, y).numpy()
     # pylint: enable=invalid-name
     assert z.ndim == 0
@@ -68,8 +68,8 @@ def _test_scalar_add(func):
 
 def _test_infer_sym(func, x, y, z):  # pylint: disable=invalid-name
     # pylint: disable=invalid-name
-    a = gsmDataGen.nd.array(np.random.uniform(size=(x, y, 1)).astype("float32"))
-    b = gsmDataGen.nd.array(np.random.uniform(size=(y, z, 5)).astype("float32"))
+    a = gsm_data_generator.nd.array(np.random.uniform(size=(x, y, 1)).astype("float32"))
+    b = gsm_data_generator.nd.array(np.random.uniform(size=(y, z, 5)).astype("float32"))
     c = func(a, b).numpy()
     # pylint: enable=invalid-name
     assert c.shape == (x, y, z, 9)
@@ -77,9 +77,9 @@ def _test_infer_sym(func, x, y, z):  # pylint: disable=invalid-name
 
 def _check_ir_equality(mod):
     # pylint: disable=import-outside-toplevel
-    from gsmDataGen.script import ir as I
-    from gsmDataGen.script import relax as R
-    from gsmDataGen.script import tir as T
+    from gsm_data_generator.script import ir as I
+    from gsm_data_generator.script import relax as R
+    from gsm_data_generator.script import tir as T
 
     # pylint: enable=import-outside-toplevel
 
@@ -114,13 +114,13 @@ def _check_ir_equality(mod):
                 R.output(gv1)
             return gv1
 
-    gsmDataGen.ir.assert_structural_equal(ExpectedModule, mod)
+    gsm_data_generator.ir.assert_structural_equal(ExpectedModule, mod)
 
 
 def _compile_cc(src: Path, dst: Path):
     # pylint: disable=import-outside-toplevel
-    from gsmDataGen.base import py_str
-    from gsmDataGen.libinfo import find_include_path
+    from gsm_data_generator.base import py_str
+    from gsm_data_generator.libinfo import find_include_path
 
     # pylint: enable=import-outside-toplevel
 
@@ -189,9 +189,9 @@ def test_extern_object():
         )
         _check_ir_equality(mod)
         mod = AttachExternModules(ext_mods)(mod)  # pylint: disable=not-callable
-        compiled = gsmDataGen.runtime.vm.VirtualMachine(
-            gsmDataGen.compile(mod, target="llvm"),
-            device=gsmDataGen.cpu(),
+        compiled = gsm_data_generator.runtime.vm.VirtualMachine(
+            gsm_data_generator.compile(mod, target="llvm"),
+            device=gsm_data_generator.cpu(),
         )
         _test_scalar_add(compiled["scalar_add"])
         _test_infer_sym(compiled["test_sym"], x=3, y=4, z=2)
@@ -238,9 +238,9 @@ def test_extern_source():
     )
     _check_ir_equality(mod)
     mod = AttachExternModules(ext_mods)(mod)  # pylint: disable=not-callable
-    compiled = gsmDataGen.runtime.vm.VirtualMachine(
-        gsmDataGen.compile(mod, target="llvm"),
-        device=gsmDataGen.cpu(),
+    compiled = gsm_data_generator.runtime.vm.VirtualMachine(
+        gsm_data_generator.compile(mod, target="llvm"),
+        device=gsm_data_generator.cpu(),
     )
     _test_scalar_add(compiled["scalar_add"])
     _test_infer_sym(compiled["test_sym"], x=3, y=4, z=2)

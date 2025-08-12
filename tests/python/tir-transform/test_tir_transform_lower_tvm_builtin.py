@@ -15,18 +15,18 @@
 # specific language governing permissions and limitations
 # under the License.
 
-import gsmDataGen
-import gsmDataGen.testing
+import gsm_data_generator
+import gsm_data_generator.testing
 
-from gsmDataGen.script import ir as I
-from gsmDataGen.script import tir as T
+from gsm_data_generator.script import ir as I
+from gsm_data_generator.script import tir as T
 
 import numpy as np
 
-from gsmDataGen.tir.schedule.testing import assert_structural_equal_ignore_global_symbol
+from gsm_data_generator.tir.schedule.testing import assert_structural_equal_ignore_global_symbol
 
 
-@gsmDataGen.register_func("tvm.test_matmul")
+@gsm_data_generator.register_func("tvm.test_matmul")
 def my_matmul(a, b, c):
     c.copyfrom(np.dot(a.numpy(), b.numpy()))
 
@@ -40,7 +40,7 @@ def test_lower_call_packed():
             B: T.Buffer((64, 64), "float32"),
             C: T.Buffer((64, 64), "float32"),
         ):
-            T.func_attr({"target": gsmDataGen.target.Target("llvm")})
+            T.func_attr({"target": gsm_data_generator.target.Target("llvm")})
             T.attr("", "device_id", T.int32(0))
             T.call_packed("tvm.test_matmul", A, B, C)
 
@@ -52,7 +52,7 @@ def test_lower_call_packed():
             B: T.Buffer((64, 64), "float32"),
             C: T.Buffer((64, 64), "float32"),
         ):
-            T.func_attr({"target": gsmDataGen.target.Target("llvm")})
+            T.func_attr({"target": gsm_data_generator.target.Target("llvm")})
             stack_ffi_any: T.handle = T.tvm_stack_alloca("tvm_ffi_any", 4)
             stack_array: T.handle = T.tvm_stack_alloca("array", 3)
             stack_shape: T.handle("int64") = T.tvm_stack_alloca("shape", 6)
@@ -110,42 +110,42 @@ def test_lower_call_packed():
             T.tvm_struct_set(stack_ffi_any, 3, 15, T.int64(0))
             T.call_packed_lowered("tvm.test_matmul", stack_ffi_any, 0, 3)
 
-    After = gsmDataGen.tir.transform.LowerTVMBuiltin()(Before)
-    gsmDataGen.ir.assert_structural_equal(After, Expected)
+    After = gsm_data_generator.tir.transform.LowerTVMBuiltin()(Before)
+    gsm_data_generator.ir.assert_structural_equal(After, Expected)
 
 
-@gsmDataGen.testing.requires_llvm
+@gsm_data_generator.testing.requires_llvm
 def test_call_packed_return_non_i32():
     # This call packed that return non i32 types
     expected_value = np.array([1.2, 1.4], dtype="float32")
 
     def packed_echo(value):
-        return gsmDataGen.tir.call_intrin(
-            value.dtype, gsmDataGen.ir.Op.get("tir.tvm_call_packed"), "testing.echo", value
+        return gsm_data_generator.tir.call_intrin(
+            value.dtype, gsm_data_generator.ir.Op.get("tir.tvm_call_packed"), "testing.echo", value
         )
 
     def build_tir():
-        Ab = gsmDataGen.tir.decl_buffer((2,), "float32")
-        ib = gsmDataGen.tir.ir_builder.create()
+        Ab = gsm_data_generator.tir.decl_buffer((2,), "float32")
+        ib = gsm_data_generator.tir.ir_builder.create()
         Aptr = ib.buffer_ptr(Ab)
         # return f32
         # Aptr[0] = testing.echo(expected_value[0])
-        Aptr[0] = packed_echo(gsmDataGen.tir.const(expected_value[0], "float32"))
+        Aptr[0] = packed_echo(gsm_data_generator.tir.const(expected_value[0], "float32"))
         # return handle
         # let Aptr_var = testing.echo(Aptr) in Aptr_var[1] = expected_value[1]
         Aptr_var = ib.let("Aptr_dup", packed_echo(Aptr.asobject().data))
-        ib.emit(gsmDataGen.tir.BufferStore(Aptr, gsmDataGen.tir.const(expected_value[1], "float32"), [1]))
+        ib.emit(gsm_data_generator.tir.BufferStore(Aptr, gsm_data_generator.tir.const(expected_value[1], "float32"), [1]))
 
         stmt = ib.get()
-        return gsmDataGen.IRModule.from_expr(
-            gsmDataGen.tir.PrimFunc([Ab], stmt).with_attr("global_symbol", "packed_test")
+        return gsm_data_generator.IRModule.from_expr(
+            gsm_data_generator.tir.PrimFunc([Ab], stmt).with_attr("global_symbol", "packed_test")
         )
 
     mod = build_tir()
-    f = gsmDataGen.compile(mod, None)
-    a = gsmDataGen.nd.array(np.zeros(2, dtype="float32"))
+    f = gsm_data_generator.compile(mod, None)
+    a = gsm_data_generator.nd.array(np.zeros(2, dtype="float32"))
     f(a)
-    gsmDataGen.testing.assert_allclose(a.numpy(), expected_value)
+    gsm_data_generator.testing.assert_allclose(a.numpy(), expected_value)
 
 
 def test_lower_overflow_int32():
@@ -162,10 +162,10 @@ def test_lower_overflow_int32():
             T_subtract_1[cse_v1] = rxplaceholder_1[cse_v1] - rxplaceholder_red_1[ax1]
 
     func = variance4
-    gsmDataGen.compile(func, target="llvm")  # should not crash
+    gsm_data_generator.compile(func, target="llvm")  # should not crash
 
 
-class TestLowerDeviceAllocate(gsmDataGen.testing.CompareBeforeAfter):
+class TestLowerDeviceAllocate(gsm_data_generator.testing.CompareBeforeAfter):
     """Device allocations are lowered to TVMBackend* calls
 
     This test validates the current behavior of LowerTVMBuiltin.  This
@@ -176,7 +176,7 @@ class TestLowerDeviceAllocate(gsmDataGen.testing.CompareBeforeAfter):
       dtype.
     """
 
-    transform = gsmDataGen.tir.transform.LowerTVMBuiltin()
+    transform = gsm_data_generator.tir.transform.LowerTVMBuiltin()
 
     def before():
         T.func_attr({"target": T.target("llvm")})
@@ -202,10 +202,10 @@ class TestLowerDeviceAllocate(gsmDataGen.testing.CompareBeforeAfter):
         assert_structural_equal_ignore_global_symbol(after, expected, map_free_vars=True)
 
 
-class TestLowerCPUAllocation(gsmDataGen.testing.CompareBeforeAfter):
+class TestLowerCPUAllocation(gsm_data_generator.testing.CompareBeforeAfter):
     """CPU allocations can be handled at codegen time"""
 
-    transform = gsmDataGen.tir.transform.LowerTVMBuiltin()
+    transform = gsm_data_generator.tir.transform.LowerTVMBuiltin()
 
     def before():
         T.func_attr({"target": T.target("llvm")})
@@ -222,10 +222,10 @@ class TestLowerCPUAllocation(gsmDataGen.testing.CompareBeforeAfter):
         buf[0] = 0.0
 
 
-class TestLowerAllocateRequiresDeviceID(gsmDataGen.testing.CompareBeforeAfter):
+class TestLowerAllocateRequiresDeviceID(gsm_data_generator.testing.CompareBeforeAfter):
     """If device id is missing, error."""
 
-    transform = gsmDataGen.tir.transform.LowerTVMBuiltin()
+    transform = gsm_data_generator.tir.transform.LowerTVMBuiltin()
 
     def before():
         T.func_attr({"target": T.target("llvm")})
@@ -234,10 +234,10 @@ class TestLowerAllocateRequiresDeviceID(gsmDataGen.testing.CompareBeforeAfter):
         buf = T.decl_buffer(16, "float32", data=ptr)
         buf[0] = 0.0
 
-    expected = gsmDataGen.TVMError
+    expected = gsm_data_generator.TVMError
 
 
-class TestLowerAllocateRequiresDeviceType(gsmDataGen.testing.CompareBeforeAfter):
+class TestLowerAllocateRequiresDeviceType(gsm_data_generator.testing.CompareBeforeAfter):
     """If device type is missing, error.
 
     The device type can be inferred either from the `"device_type"`
@@ -247,7 +247,7 @@ class TestLowerAllocateRequiresDeviceType(gsmDataGen.testing.CompareBeforeAfter)
     LowerTVMBuiltin.
     """
 
-    transform = gsmDataGen.tir.transform.LowerTVMBuiltin()
+    transform = gsm_data_generator.tir.transform.LowerTVMBuiltin()
 
     def before():
         T.func_attr({"tir.is_host_func": True})
@@ -256,10 +256,10 @@ class TestLowerAllocateRequiresDeviceType(gsmDataGen.testing.CompareBeforeAfter)
         buf = T.decl_buffer(1024 * 1024, "float32", data=ptr)
         buf[0] = 0.0
 
-    expected = gsmDataGen.TVMError
+    expected = gsm_data_generator.TVMError
 
 
-class TestLowerCPUAllocWithFunctionAttr(gsmDataGen.testing.CompareBeforeAfter):
+class TestLowerCPUAllocWithFunctionAttr(gsm_data_generator.testing.CompareBeforeAfter):
     """CPU allocations can be handled at codegen time
 
     Like `TestLowerCPUAllocation`, but the device type is taken from
@@ -268,7 +268,7 @@ class TestLowerCPUAllocWithFunctionAttr(gsmDataGen.testing.CompareBeforeAfter):
     function's target.
     """
 
-    transform = gsmDataGen.tir.transform.LowerTVMBuiltin()
+    transform = gsm_data_generator.tir.transform.LowerTVMBuiltin()
 
     def before():
         T.func_attr({"target": T.target("llvm")})
@@ -280,4 +280,4 @@ class TestLowerCPUAllocWithFunctionAttr(gsmDataGen.testing.CompareBeforeAfter):
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

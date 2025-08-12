@@ -17,18 +17,18 @@
 
 import pytest
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import relax
-from gsmDataGen.script import relax as R, tir as T
-from gsmDataGen.script import ir as I
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import relax
+from gsm_data_generator.script import relax as R, tir as T
+from gsm_data_generator.script import ir as I
 import numpy as np
-import gsmDataGen.topi.testing
+import gsm_data_generator.topi.testing
 
 
 @pytest.mark.parametrize("consume_params", [True, False])
 def test_basic(consume_params):
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Before:
         @T.prim_func
         def transform_layout_IOHW_to_OIHW(
@@ -60,7 +60,7 @@ def test_basic(consume_params):
                 R.output(conv2)
             return conv2
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(
@@ -133,7 +133,7 @@ def test_basic(consume_params):
                 R.output(gv)
             return gv
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class ExpectedConsumeParams:
         @R.function
         def main(
@@ -220,11 +220,11 @@ def test_basic(consume_params):
 
     mod = Before
     expected = Expected if not consume_params else ExpectedConsumeParams
-    with gsmDataGen.transform.PassContext(
+    with gsm_data_generator.transform.PassContext(
         config={"relax.lift_transform_params.consume_params": consume_params}
     ):
         after = relax.transform.LiftTransformParams()(mod)
-    gsmDataGen.ir.assert_structural_equal(after, expected)
+    gsm_data_generator.ir.assert_structural_equal(after, expected)
 
     names_after = [param.name_hint for param in after["main"].params]
     names_expected = [param.name_hint for param in expected["main"].params]
@@ -232,7 +232,7 @@ def test_basic(consume_params):
 
 
 def test_tuple():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Before:
         @R.function
         def main(
@@ -251,7 +251,7 @@ def test_tuple():
                 R.output(conv2)
             return conv2
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(
@@ -304,13 +304,13 @@ def test_tuple():
 
     mod = Before
     after = relax.transform.LiftTransformParams()(mod)
-    gsmDataGen.ir.assert_structural_equal(after, Expected)
+    gsm_data_generator.ir.assert_structural_equal(after, Expected)
 
 
 def test_condition():
     """Test case that the conditional statement can't be lifted"""
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Before:
         @R.function
         def main(
@@ -329,7 +329,7 @@ def test_condition():
                 R.output(conv1)
             return conv1
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main_transform_params(
@@ -365,11 +365,11 @@ def test_condition():
 
     mod = Before
     after = relax.transform.LiftTransformParams()(mod)
-    gsmDataGen.ir.assert_structural_equal(after, Expected)
+    gsm_data_generator.ir.assert_structural_equal(after, Expected)
 
 
 def test_multiple_functions():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Before:
         @R.function
         def func1(
@@ -406,7 +406,7 @@ def test_multiple_functions():
                 R.output(y)
             return y
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def func1(
@@ -466,7 +466,7 @@ def test_multiple_functions():
 
     mod = Before
     after = relax.transform.LiftTransformParams()(mod)
-    gsmDataGen.ir.assert_structural_equal(after, Expected)
+    gsm_data_generator.ir.assert_structural_equal(after, Expected)
 
 
 def test_share_identical_transform_across_multiple_functions():
@@ -559,7 +559,7 @@ def test_share_identical_transform_across_multiple_functions():
             return output
 
     after = relax.transform.LiftTransformParams(shared_transform=True)(Before)
-    gsmDataGen.ir.assert_structural_equal(after, Expected)
+    gsm_data_generator.ir.assert_structural_equal(after, Expected)
 
 
 def test_incompatible_weights_in_shared_transform_raises_error():
@@ -599,7 +599,7 @@ def test_incompatible_weights_in_shared_transform_raises_error():
                 R.output(output)
             return output
 
-    with pytest.raises(gsmDataGen.TVMError):
+    with pytest.raises(gsm_data_generator.TVMError):
         relax.transform.LiftTransformParams(shared_transform=True)(Before)
 
 
@@ -644,7 +644,7 @@ def test_incompatible_shape_in_shared_transform_raises_error():
                 R.output(output)
             return output
 
-    with pytest.raises(gsmDataGen.TVMError):
+    with pytest.raises(gsm_data_generator.TVMError):
         relax.transform.LiftTransformParams(shared_transform=True)(Before)
 
 
@@ -689,7 +689,7 @@ def test_incompatible_dtype_in_shared_transform_raises_error():
                 R.output(output)
             return output
 
-    with pytest.raises(gsmDataGen.TVMError):
+    with pytest.raises(gsm_data_generator.TVMError):
         relax.transform.LiftTransformParams(shared_transform=True)(Before)
 
 
@@ -808,7 +808,7 @@ def test_share_transform_across_multiple_functions_has_intersection_of_transform
             return y
 
     after = relax.transform.LiftTransformParams(shared_transform=True)(Before)
-    gsmDataGen.ir.assert_structural_equal(after, Expected)
+    gsm_data_generator.ir.assert_structural_equal(after, Expected)
 
 
 def test_share_transforms_with_different_binding_order():
@@ -913,7 +913,7 @@ def test_share_transforms_with_different_binding_order():
             return output
 
     after = relax.transform.LiftTransformParams(shared_transform=True)(Before)
-    gsmDataGen.ir.assert_structural_equal(after, Expected)
+    gsm_data_generator.ir.assert_structural_equal(after, Expected)
 
 
 def test_share_transforms_resulting_in_identical_functions():
@@ -1007,7 +1007,7 @@ def test_share_transforms_resulting_in_identical_functions():
             return output
 
     after = relax.transform.LiftTransformParams(shared_transform=True)(Before)
-    gsmDataGen.ir.assert_structural_equal(after, Expected)
+    gsm_data_generator.ir.assert_structural_equal(after, Expected)
 
 
 def test_share_transform_across_specified_functions():
@@ -1156,7 +1156,7 @@ def test_share_transform_across_specified_functions():
             return y
 
     after = relax.transform.LiftTransformParams(shared_transform=["func1", "func2"])(Before)
-    gsmDataGen.ir.assert_structural_equal(after, Expected)
+    gsm_data_generator.ir.assert_structural_equal(after, Expected)
 
 
 def test_share_transform_with_unused_parameter():
@@ -1252,7 +1252,7 @@ def test_share_transform_with_unused_parameter():
             return y1
 
     after = relax.transform.LiftTransformParams(shared_transform=True)(Before)
-    gsmDataGen.ir.assert_structural_equal(after, Expected)
+    gsm_data_generator.ir.assert_structural_equal(after, Expected)
 
 
 @pytest.mark.xfail
@@ -1346,11 +1346,11 @@ def test_share_transform_with_no_shared_preprocessing():
             return y1
 
     after = relax.transform.LiftTransformParams(shared_transform=True)(Before)
-    gsmDataGen.ir.assert_structural_equal(after, Expected)
+    gsm_data_generator.ir.assert_structural_equal(after, Expected)
 
 
 def test_stop_lifting():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Before:
         @R.function
         def func1(
@@ -1394,11 +1394,11 @@ def test_stop_lifting():
 
     mod = Before
     after = relax.transform.LiftTransformParams()(mod)
-    gsmDataGen.ir.assert_structural_equal(after, Expected)
+    gsm_data_generator.ir.assert_structural_equal(after, Expected)
 
 
 def test_symbolic_var_1():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Before:
         @R.function
         def main(shape: R.Shape(["n"])):
@@ -1428,7 +1428,7 @@ def test_symbolic_var_1():
 
     mod = Before
     after = relax.transform.LiftTransformParams()(mod)
-    gsmDataGen.ir.assert_structural_equal(after, Expected)
+    gsm_data_generator.ir.assert_structural_equal(after, Expected)
 
 
 def test_symbolic_var_2():
@@ -1492,7 +1492,7 @@ def test_symbolic_var_2():
 
     mod = Before
     after = relax.transform.LiftTransformParams()(mod)
-    gsmDataGen.ir.assert_structural_equal(after, Expected)
+    gsm_data_generator.ir.assert_structural_equal(after, Expected)
 
 
 def test_symbolic_var_from_shape():
@@ -1592,11 +1592,11 @@ def test_symbolic_var_from_shape():
 
     mod = Before
     after = relax.transform.LiftTransformParams()(mod)
-    gsmDataGen.ir.assert_structural_equal(Expected, after)
+    gsm_data_generator.ir.assert_structural_equal(Expected, after)
 
 
 def test_symbolic_var_in_param_shape():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Before:
         @R.function
         def main(
@@ -1681,7 +1681,7 @@ def test_symbolic_var_in_param_shape():
 
     mod = Before
     after = relax.transform.LiftTransformParams()(mod)
-    gsmDataGen.ir.assert_structural_equal(after, Expected)
+    gsm_data_generator.ir.assert_structural_equal(after, Expected)
 
 
 # not supported yet
@@ -1697,7 +1697,7 @@ def test_symbolic_var_defined_in_params_but_used_in_weights():
     not variable definitions.
     """
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Before:
         @R.function
         def main(
@@ -1714,7 +1714,7 @@ def test_symbolic_var_defined_in_params_but_used_in_weights():
                 R.output(output)
             return output
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main_transform_params(
@@ -1745,7 +1745,7 @@ def test_symbolic_var_defined_in_params_but_used_in_weights():
             return output
 
     After = relax.transform.LiftTransformParams()(Before)
-    gsmDataGen.ir.assert_structural_equal(Expected, After)
+    gsm_data_generator.ir.assert_structural_equal(Expected, After)
 
 
 def test_only_lift_when_variable_uses_constants():
@@ -1755,7 +1755,7 @@ def test_only_lift_when_variable_uses_constants():
     calls.
     """
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Before:
         @R.function
         def main(
@@ -1771,7 +1771,7 @@ def test_only_lift_when_variable_uses_constants():
                 R.output(output)
             return output
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(
@@ -1799,7 +1799,7 @@ def test_only_lift_when_variable_uses_constants():
 
     mod = Before
     after = relax.transform.LiftTransformParams()(mod)
-    gsmDataGen.ir.assert_structural_equal(after, Expected)
+    gsm_data_generator.ir.assert_structural_equal(after, Expected)
 
 
 @pytest.mark.parametrize("shared_transform", [True, False])
@@ -1828,7 +1828,7 @@ def test_lift_transform_is_idempotent(shared_transform):
     AfterTwoRounds = transform(AfterOneRound)
     assert len(AfterTwoRounds.functions) == 2
 
-    gsmDataGen.ir.assert_structural_equal(AfterOneRound, AfterTwoRounds)
+    gsm_data_generator.ir.assert_structural_equal(AfterOneRound, AfterTwoRounds)
 
 
 def test_lift_transform_when_one_already_exists():
@@ -1866,11 +1866,11 @@ def test_lift_transform_when_one_already_exists():
     del Module["main_transform_params"]
     after_lift_without_previous_identity_function = transform(Module)
 
-    gsmDataGen.ir.assert_structural_equal(
+    gsm_data_generator.ir.assert_structural_equal(
         after_lift_without_previous_identity_function,
         after_lift_with_previous_identity_function,
     )
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

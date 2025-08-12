@@ -18,9 +18,9 @@
 import pytest
 import pickle
 import numpy as np
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import ffi as tvm_ffi
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import ffi as tvm_ffi
 
 
 def test_dtype():
@@ -84,4 +84,4 @@ def test_dtype_with_lanes(dtype_str):
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

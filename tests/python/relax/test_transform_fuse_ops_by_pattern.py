@@ -17,24 +17,24 @@
 import numpy as np
 import pytest
 
-import gsmDataGen
-from gsmDataGen import relax
-from gsmDataGen.relax.backend.cuda.cublas import partition_for_cublas
-from gsmDataGen.relax.backend.cuda.cutlass import partition_for_cutlass
-from gsmDataGen.relax.dpl.pattern import (
+import gsm_data_generator
+from gsm_data_generator import relax
+from gsm_data_generator.relax.backend.cuda.cublas import partition_for_cublas
+from gsm_data_generator.relax.backend.cuda.cutlass import partition_for_cutlass
+from gsm_data_generator.relax.dpl.pattern import (
     is_op,
     is_tuple_get_item,
     make_fused_bias_activation_pattern,
     wildcard,
     is_tuple,
 )
-from gsmDataGen.relax.transform import PatternCheckContext
-from gsmDataGen.script import ir as I
-from gsmDataGen.script import relax as R
-from gsmDataGen.script import tir as T
+from gsm_data_generator.relax.transform import PatternCheckContext
+from gsm_data_generator.script import ir as I
+from gsm_data_generator.script import relax as R
+from gsm_data_generator.script import tir as T
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Conv2dReLU:
     @R.function
     def main(
@@ -48,7 +48,7 @@ class Conv2dReLU:
         return conv1
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Conv2dReLU_composite_annotated:
     @R.function
     def main(
@@ -96,7 +96,7 @@ class Conv2dReLU_composite_annotated:
         return gv11
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Conv2dReLUx2:
     @R.function
     def main(
@@ -112,7 +112,7 @@ class Conv2dReLUx2:
         return conv2
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Conv2dReLUx2Partitioned:
     @R.function
     def main(
@@ -162,7 +162,7 @@ class Conv2dReLUx2Partitioned:
         return gv2
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Conv2dReLUx2Partitioned_only_conv2d:
     @R.function
     def main(
@@ -210,7 +210,7 @@ class Conv2dReLUx2Partitioned_only_conv2d:
         return gv1
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Conv2dConv2dReLU:
     @R.function
     def main(
@@ -226,7 +226,7 @@ class Conv2dConv2dReLU:
         return conv2d
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Conv2dConv2dReLUPartitioned:
     @R.function
     def main(
@@ -274,7 +274,7 @@ class Conv2dConv2dReLUPartitioned:
         return gv2
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class BranchTupleOutput:
     @R.function
     def main(
@@ -292,7 +292,7 @@ class BranchTupleOutput:
         return out
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class BranchTupleOutputPartitioned:
     @R.function
     def main(
@@ -329,7 +329,7 @@ class BranchTupleOutputPartitioned:
         return (gv1, gv)
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Branch:
     @R.function
     def main(
@@ -347,7 +347,7 @@ class Branch:
         return out
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Conv2dx2:
     @R.function
     def main2(
@@ -386,7 +386,7 @@ class Conv2dx2:
         return result
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Conv2dx2_partitioned:
     @R.function
     def fused_relax_nn_conv2d_cutlass(
@@ -463,7 +463,7 @@ conv2d_relu_pat = make_fused_bias_activation_pattern("relax.nn.conv2d", activati
 
 def check(mod, patterns, expected, bind_constants=True, annotate_codegen=False):
     partitioned = relax.transform.FuseOpsByPattern(patterns, bind_constants, annotate_codegen)(mod)
-    gsmDataGen.ir.assert_structural_equal(partitioned, expected)
+    gsm_data_generator.ir.assert_structural_equal(partitioned, expected)
 
 
 def test_partition_conv2d_relu():
@@ -499,7 +499,7 @@ def test_cyclic_dependency():
     relu_pat = is_op("relax.nn.relu")(conv_pat)
     add_pat = is_op("relax.add")(relu_pat, wildcard())
 
-    with pytest.raises(gsmDataGen.error.TVMError) as err:
+    with pytest.raises(gsm_data_generator.error.TVMError) as err:
         relax.transform.FuseOpsByPattern(
             [("compiler_A.conv2d_relu_add", add_pat)], bind_constants=True
         )(Branch)
@@ -509,7 +509,7 @@ def test_cyclic_dependency():
 
 def test_bind_params():
     weight_np = np.random.randn(64, 64, 3, 3).astype("float32")
-    mod = gsmDataGen.transform.Sequential(
+    mod = gsm_data_generator.transform.Sequential(
         [
             relax.transform.BindParams("main", {"weight1": weight_np}),
             relax.transform.FuseOpsByPattern(
@@ -556,7 +556,7 @@ def test_unmatched_calls_may_include_lambda_functions(annotate_codegen):
     attribute.
     """
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Module:
         @R.function
         def main(
@@ -611,7 +611,7 @@ def test_compare_with_merge_composite_path():
     mod1 = relax.transform.FuseOpsByPattern(patterns, bind_constants=True, annotate_codegen=True)(
         mod
     )
-    assert gsmDataGen.relax.analysis.well_formed(mod1)
+    assert gsm_data_generator.relax.analysis.well_formed(mod1)
 
     @I.ir_module
     class Expected1:
@@ -646,13 +646,13 @@ def test_compare_with_merge_composite_path():
                 R.output(gv)
             return gv
 
-    gsmDataGen.ir.assert_structural_equal(mod1, Expected1)
+    gsm_data_generator.ir.assert_structural_equal(mod1, Expected1)
 
     mod2 = relax.transform.FuseOpsByPattern(patterns, bind_constants=True, annotate_codegen=False)(
         mod
     )
     mod2 = relax.transform.MergeCompositeFunctions()(mod2)
-    assert gsmDataGen.relax.analysis.well_formed(mod2)
+    assert gsm_data_generator.relax.analysis.well_formed(mod2)
 
     @I.ir_module
     class Expected2:
@@ -688,7 +688,7 @@ def test_compare_with_merge_composite_path():
                 R.output(gv)
             return gv
 
-    gsmDataGen.ir.assert_structural_equal(mod2, Expected2)
+    gsm_data_generator.ir.assert_structural_equal(mod2, Expected2)
 
 
 def test_multiple_entries_multiple_calls_same_extern():
@@ -905,7 +905,7 @@ def test_split():
             R.output(out)
         return out
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected1:
         @R.function(private=True)
         def fused_relax_split(
@@ -960,7 +960,7 @@ def test_split():
                 R.output(gv)
             return gv
 
-    mod = gsmDataGen.IRModule({"main": func})
+    mod = gsm_data_generator.IRModule({"main": func})
 
     split = is_op("relax.split")(wildcard())
     it1 = is_tuple_get_item(split, 0)
@@ -1002,7 +1002,7 @@ def test_clip():
                 R.output(gv)
             return gv
 
-    mod1 = gsmDataGen.IRModule({"main": func1})
+    mod1 = gsm_data_generator.IRModule({"main": func1})
     pat_clip = is_op("relax.clip")(wildcard(), wildcard(), wildcard())
 
     check(mod1, [("x.clip", pat_clip)], Expected1)
@@ -1053,7 +1053,7 @@ def test_clip():
                 R.output(gv, gv1)
             return (gv, gv1)
 
-    mod = gsmDataGen.IRModule({"main": func2})
+    mod = gsm_data_generator.IRModule({"main": func2})
     check(mod, [("x.clip", pat_clip)], Expected2)
 
 
@@ -1219,7 +1219,7 @@ def test_matmul_symbolic_var():
     After = relax.transform.FuseOpsByPattern(patterns, bind_constants=False, annotate_codegen=True)(
         Before
     )
-    gsmDataGen.ir.assert_structural_equal(Expected, After)
+    gsm_data_generator.ir.assert_structural_equal(Expected, After)
 
 
 def test_match_maximal_subgraph():
@@ -1237,7 +1237,7 @@ def test_match_maximal_subgraph():
             R.output(lv2)
         return lv2
 
-    mod = gsmDataGen.IRModule({"main": func})
+    mod = gsm_data_generator.IRModule({"main": func})
 
     matmul = is_op("relax.matmul")(wildcard(), wildcard())
     matmul_add = is_op("relax.add")(matmul, wildcard())
@@ -1346,7 +1346,7 @@ def test_dataflow_inside_branch():
         bind_constants=False,
         annotate_codegen=True,
     )(Before)
-    gsmDataGen.ir.assert_structural_equal(Expected, After)
+    gsm_data_generator.ir.assert_structural_equal(Expected, After)
 
 
 def test_concat():
@@ -1387,7 +1387,7 @@ def test_concat():
                 R.output(gv)
             return gv
 
-    mod = gsmDataGen.IRModule({"main": func})
+    mod = gsm_data_generator.IRModule({"main": func})
     inp = is_tuple([is_op("relax.abs")(wildcard()), is_op("relax.abs")(wildcard())])
     pat_clip = is_op("relax.concat")(inp)
 

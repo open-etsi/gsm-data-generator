@@ -17,10 +17,10 @@
 
 import pytest
 
-import gsmDataGen.testing
-from gsmDataGen.script import tir as T
+import gsm_data_generator.testing
+from gsm_data_generator.script import tir as T
 
-from gsmDataGen.tir.analysis import is_pure_function, assert_pure_function
+from gsm_data_generator.tir.analysis import is_pure_function, assert_pure_function
 
 
 class CheckPureFunction:
@@ -101,4 +101,4 @@ class TestCallImpureExtern(CheckImpureFunction):
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

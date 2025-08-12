@@ -20,23 +20,23 @@ import random
 
 import numpy as np
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import nd
-from gsmDataGen.runtime import container as _container
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import nd
+from gsm_data_generator.runtime import container as _container
 
 
 def test_string():
-    s = gsmDataGen.runtime.String("xyz")
+    s = gsm_data_generator.runtime.String("xyz")
 
     assert isinstance(s, str)
     assert s.startswith("xy")
     assert s + "1" == "xyz1"
-    y = gsmDataGen.testing.echo(s)
+    y = gsm_data_generator.testing.echo(s)
     assert isinstance(y, str)
     assert s == y
 
-    x = gsmDataGen.ir.load_json(gsmDataGen.ir.save_json(y))
+    x = gsm_data_generator.ir.load_json(gsm_data_generator.ir.save_json(y))
     assert x == y
 
     # test pickle
@@ -57,13 +57,13 @@ def test_shape_tuple():
 
     # test pickle
     z = pickle.loads(pickle.dumps(stuple))
-    assert isinstance(z, gsmDataGen.runtime.ShapeTuple)
+    assert isinstance(z, gsm_data_generator.runtime.ShapeTuple)
     assert stuple == z
 
 
 def test_bool_argument():
     """Boolean objects are currently stored as int"""
-    func = gsmDataGen.get_global_func("testing.AcceptsBool")
+    func = gsm_data_generator.get_global_func("testing.AcceptsBool")
 
     assert isinstance(func(True), bool)
     assert isinstance(func(1), bool)
@@ -71,7 +71,7 @@ def test_bool_argument():
 
 
 def test_int_argument():
-    func = gsmDataGen.get_global_func("testing.AcceptsInt")
+    func = gsm_data_generator.get_global_func("testing.AcceptsInt")
 
     assert isinstance(func(True), int)
     assert isinstance(func(1), int)
@@ -79,7 +79,7 @@ def test_int_argument():
 
 
 def test_object_ref_array_argument():
-    func = gsmDataGen.get_global_func("testing.AcceptsObjectRefArray")
+    func = gsm_data_generator.get_global_func("testing.AcceptsObjectRefArray")
 
     assert isinstance(func([True, 17, "hello"]), bool)
     assert isinstance(func([True]), bool)
@@ -88,7 +88,7 @@ def test_object_ref_array_argument():
 
 
 def test_map_argument_returns_value():
-    func = gsmDataGen.get_global_func("testing.AcceptsMapReturnsValue")
+    func = gsm_data_generator.get_global_func("testing.AcceptsMapReturnsValue")
 
     res = func({"a": 1, "b": 2}, "a")
     assert isinstance(res, int)
@@ -100,7 +100,7 @@ def test_map_argument_returns_value():
 
 
 def test_map_argument_returns_map():
-    func = gsmDataGen.get_global_func("testing.AcceptsMapReturnsMap")
+    func = gsm_data_generator.get_global_func("testing.AcceptsMapReturnsMap")
 
     res = func({"a": 1, "b": 2})
     for key, value in res.items():
@@ -121,14 +121,14 @@ def test_conversion_of_arg():
     required, that must be performed on the callee-side of the FFI.
     """
 
-    func = gsmDataGen.get_global_func("testing.AcceptsPrimExpr")
+    func = gsm_data_generator.get_global_func("testing.AcceptsPrimExpr")
 
     res = func(1)
-    assert isinstance(res, gsmDataGen.tir.IntImm)
+    assert isinstance(res, gsm_data_generator.tir.IntImm)
     assert res.dtype == "int32"
 
     res = func(True)
-    assert isinstance(res, gsmDataGen.tir.IntImm)
+    assert isinstance(res, gsm_data_generator.tir.IntImm)
     assert res.dtype == "bool"
 
 
@@ -142,12 +142,12 @@ def test_conversion_of_array_elements():
     `Array{IntImm(1), IntImm(2)}`.
     """
 
-    func = gsmDataGen.get_global_func("testing.AcceptsArrayOfPrimExpr")
+    func = gsm_data_generator.get_global_func("testing.AcceptsArrayOfPrimExpr")
 
     res = func([1, False])
-    assert isinstance(res[0], gsmDataGen.tir.IntImm)
+    assert isinstance(res[0], gsm_data_generator.tir.IntImm)
     assert res[0].dtype == "int32"
-    assert isinstance(res[1], gsmDataGen.tir.IntImm)
+    assert isinstance(res[1], gsm_data_generator.tir.IntImm)
     assert res[1].dtype == "bool"
 
 
@@ -161,14 +161,14 @@ def test_conversion_of_map_values():
     `Map{{"a", IntImm(1)}, {"b", IntImm(2)}}`.
     """
 
-    func = gsmDataGen.get_global_func("testing.AcceptsMapOfPrimExpr")
+    func = gsm_data_generator.get_global_func("testing.AcceptsMapOfPrimExpr")
 
     res = func({"a": 1, "b": False})
-    assert isinstance(res["a"], gsmDataGen.tir.IntImm)
+    assert isinstance(res["a"], gsm_data_generator.tir.IntImm)
     assert res["a"].dtype == "int32"
-    assert isinstance(res["b"], gsmDataGen.tir.IntImm)
+    assert isinstance(res["b"], gsm_data_generator.tir.IntImm)
     assert res["b"].dtype == "bool"
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

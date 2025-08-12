@@ -19,14 +19,14 @@ from functools import partial
 from typing import Dict
 
 import numpy as np
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import relax as rx
-from gsmDataGen import tir
-from gsmDataGen.relax.testing import dump_ast
-from gsmDataGen.relax.testing.ast_printer import ASTPrinter
-from gsmDataGen.script import relax as R
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import relax as rx
+from gsm_data_generator import tir
+from gsm_data_generator.relax.testing import dump_ast
+from gsm_data_generator.relax.testing.ast_printer import ASTPrinter
+from gsm_data_generator.script import relax as R
+from gsm_data_generator.script import tir as T
 
 # Overload dump_ast to test both struct info and type annotations
 dump_ast = partial(dump_ast, include_struct_info_annotations=True)
@@ -50,7 +50,7 @@ def normalize(func: rx.Function) -> rx.Function:
     class DefaultMutator(rx.PyExprMutator):
         pass
 
-    mod = gsmDataGen.IRModule()
+    mod = gsm_data_generator.IRModule()
     mod["main"] = func
     mut = DefaultMutator(mod)
     mod["main"] = mut.visit_expr(func)
@@ -419,7 +419,7 @@ def test_call_packed():
 
 def test_call_tir():
     # also from test_parser
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class TestCallTIR:
         @T.prim_func
         def addone(A_handle: T.handle, B_handle: T.handle) -> None:
@@ -672,4 +672,4 @@ def test_datatype_imm():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

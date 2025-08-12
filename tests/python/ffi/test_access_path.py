@@ -16,7 +16,7 @@
 # under the License.
 
 import pytest
-from gsmDataGen.ffi.access_path import AccessPath, AccessKind
+from gsm_data_generator.ffi.access_path import AccessPath, AccessKind
 
 
 def test_root_path():

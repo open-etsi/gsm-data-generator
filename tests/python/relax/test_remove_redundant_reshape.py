@@ -18,17 +18,17 @@
 """
 Test relax transform - Eliminate redundant reshape operations
 """
-import gsmDataGen.testing
-from gsmDataGen import relax
-from gsmDataGen.relax.transform import DeadCodeElimination
-from gsmDataGen.relax.transform import RemoveRedundantReshape
-from gsmDataGen.script import ir as I, relax as R
+import gsm_data_generator.testing
+from gsm_data_generator import relax
+from gsm_data_generator.relax.transform import DeadCodeElimination
+from gsm_data_generator.relax.transform import RemoveRedundantReshape
+from gsm_data_generator.script import ir as I, relax as R
 
 
 def _run_pass_compare_output(Before, Expected):
     fused_mod = RemoveRedundantReshape()(Before)
     fused_mod = DeadCodeElimination()(fused_mod)
-    gsmDataGen.ir.assert_structural_equal(Expected, fused_mod)
+    gsm_data_generator.ir.assert_structural_equal(Expected, fused_mod)
 
 
 def test_remove_redundant_reshape_pass_one_arg():
@@ -112,4 +112,4 @@ def test_remove_redundant_reshape_pass_three_arg():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

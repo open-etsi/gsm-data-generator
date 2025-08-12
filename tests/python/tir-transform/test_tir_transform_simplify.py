@@ -14,15 +14,15 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-import gsmDataGen
-import gsmDataGen.testing
+import gsm_data_generator
+import gsm_data_generator.testing
 
-from gsmDataGen import te
-from gsmDataGen.script import tir as T
+from gsm_data_generator import te
+from gsm_data_generator.script import tir as T
 
 
 def test_stmt_simplify():
-    ib = gsmDataGen.tir.ir_builder.create()
+    ib = gsm_data_generator.tir.ir_builder.create()
     A = ib.pointer("float32", name="A")
     C = ib.pointer("float32", name="C")
     n = te.size_var("n")
@@ -30,14 +30,14 @@ def test_stmt_simplify():
         with ib.if_scope(i < 12):
             A[i] = C[i]
 
-    body = gsmDataGen.tir.LetStmt(n, 10, ib.get())
-    mod = gsmDataGen.IRModule.from_expr(gsmDataGen.tir.PrimFunc([A, C, n], body))
-    body = gsmDataGen.tir.transform.Simplify()(mod)["main"].body
-    assert isinstance(body.body, gsmDataGen.tir.BufferStore)
+    body = gsm_data_generator.tir.LetStmt(n, 10, ib.get())
+    mod = gsm_data_generator.IRModule.from_expr(gsm_data_generator.tir.PrimFunc([A, C, n], body))
+    body = gsm_data_generator.tir.transform.Simplify()(mod)["main"].body
+    assert isinstance(body.body, gsm_data_generator.tir.BufferStore)
 
 
 def test_thread_extent_simplify():
-    ib = gsmDataGen.tir.ir_builder.create()
+    ib = gsm_data_generator.tir.ir_builder.create()
     A = ib.pointer("float32", name="A")
     C = ib.pointer("float32", name="C")
     n = te.size_var("n")
@@ -48,14 +48,14 @@ def test_thread_extent_simplify():
     ib.scope_attr(ty, "thread_extent", 1)
     with ib.if_scope(tx + ty < 12):
         A[tx] = C[tx + ty]
-    body = gsmDataGen.tir.LetStmt(n, 10, ib.get())
-    mod = gsmDataGen.IRModule.from_expr(gsmDataGen.tir.PrimFunc([A, C, n], body))
-    body = gsmDataGen.tir.transform.Simplify()(mod)["main"].body
-    assert isinstance(body.body.body.body, gsmDataGen.tir.BufferStore)
+    body = gsm_data_generator.tir.LetStmt(n, 10, ib.get())
+    mod = gsm_data_generator.IRModule.from_expr(gsm_data_generator.tir.PrimFunc([A, C, n], body))
+    body = gsm_data_generator.tir.transform.Simplify()(mod)["main"].body
+    assert isinstance(body.body.body.body, gsm_data_generator.tir.BufferStore)
 
 
 def test_if_likely():
-    ib = gsmDataGen.tir.ir_builder.create()
+    ib = gsm_data_generator.tir.ir_builder.create()
     A = ib.pointer("float32", name="A")
     C = ib.pointer("float32", name="C")
     n = te.size_var("n")
@@ -67,13 +67,13 @@ def test_if_likely():
         with ib.if_scope(ib.likely(tx * 32 + ty < n)):
             A[tx] = C[tx * 32 + ty]
     body = ib.get()
-    mod = gsmDataGen.IRModule.from_expr(gsmDataGen.tir.PrimFunc([A, C, n], body))
-    body = gsmDataGen.tir.transform.Simplify()(mod)["main"].body
-    assert isinstance(body.body.body, gsmDataGen.tir.IfThenElse)
-    assert not isinstance(body.body.body.then_case, gsmDataGen.tir.IfThenElse)
+    mod = gsm_data_generator.IRModule.from_expr(gsm_data_generator.tir.PrimFunc([A, C, n], body))
+    body = gsm_data_generator.tir.transform.Simplify()(mod)["main"].body
+    assert isinstance(body.body.body, gsm_data_generator.tir.IfThenElse)
+    assert not isinstance(body.body.body.then_case, gsm_data_generator.tir.IfThenElse)
 
 
-class BaseBeforeAfter(gsmDataGen.testing.CompareBeforeAfter):
+class BaseBeforeAfter(gsm_data_generator.testing.CompareBeforeAfter):
     transitively_prove_inequalities = False
     convert_boolean_to_and_of_ors = False
     apply_constraints_to_boolean_branches = False
@@ -93,8 +93,8 @@ class BaseBeforeAfter(gsmDataGen.testing.CompareBeforeAfter):
                     "propagate_knowns_to_simplify_expressions": self.propagate_knowns_to_simplify_expressions,
                 }
             }
-            with gsmDataGen.transform.PassContext(config=config):
-                mod = gsmDataGen.tir.transform.Simplify()(mod)
+            with gsm_data_generator.transform.PassContext(config=config):
+                mod = gsm_data_generator.tir.transform.Simplify()(mod)
             return mod
 
         return inner
@@ -516,60 +516,60 @@ class TestRemoveTransitivelyProvableCondition(BaseBeforeAfter):
 
     transitively_prove_inequalities = True
 
-    i, j, k = [gsmDataGen.tir.Var(name, "int32") for name in "ijk"]
-    zero = gsmDataGen.tir.IntImm("int32", 0)
+    i, j, k = [gsm_data_generator.tir.Var(name, "int32") for name in "ijk"]
+    zero = gsm_data_generator.tir.IntImm("int32", 0)
 
-    test_case = gsmDataGen.testing.parameter(
-        (gsmDataGen.tir.all(zero < i, i <= j), zero < j, True),
+    test_case = gsm_data_generator.testing.parameter(
+        (gsm_data_generator.tir.all(zero < i, i <= j), zero < j, True),
         # Transitive comparisons from LT
-        (gsmDataGen.tir.all(i < j, j < k), i < k, True),
-        (gsmDataGen.tir.all(i < j, j == k), i < k, True),
-        (gsmDataGen.tir.all(i < j, j <= k), i < k, True),
-        (gsmDataGen.tir.all(i < j, j > k), i < k, False),
-        (gsmDataGen.tir.all(i < j, j >= k), i < k, False),
-        (gsmDataGen.tir.all(i < j, j != k), i < k, False),
+        (gsm_data_generator.tir.all(i < j, j < k), i < k, True),
+        (gsm_data_generator.tir.all(i < j, j == k), i < k, True),
+        (gsm_data_generator.tir.all(i < j, j <= k), i < k, True),
+        (gsm_data_generator.tir.all(i < j, j > k), i < k, False),
+        (gsm_data_generator.tir.all(i < j, j >= k), i < k, False),
+        (gsm_data_generator.tir.all(i < j, j != k), i < k, False),
         # Transitive comparisons from LE
-        (gsmDataGen.tir.all(i <= j, j < k), i < k, True),
-        (gsmDataGen.tir.all(i <= j, j == k), i == k, False),
-        (gsmDataGen.tir.all(i <= j, j == k), i <= k, True),
-        (gsmDataGen.tir.all(i <= j, j <= k), i <= k, True),
-        (gsmDataGen.tir.all(i <= j, j <= k), i < k, False),
-        (gsmDataGen.tir.all(i <= j, j > k), i < k, False),
-        (gsmDataGen.tir.all(i <= j, j >= k), i < k, False),
-        (gsmDataGen.tir.all(i <= j, j != k), i < k, False),
+        (gsm_data_generator.tir.all(i <= j, j < k), i < k, True),
+        (gsm_data_generator.tir.all(i <= j, j == k), i == k, False),
+        (gsm_data_generator.tir.all(i <= j, j == k), i <= k, True),
+        (gsm_data_generator.tir.all(i <= j, j <= k), i <= k, True),
+        (gsm_data_generator.tir.all(i <= j, j <= k), i < k, False),
+        (gsm_data_generator.tir.all(i <= j, j > k), i < k, False),
+        (gsm_data_generator.tir.all(i <= j, j >= k), i < k, False),
+        (gsm_data_generator.tir.all(i <= j, j != k), i < k, False),
         # Transitive comparisons from GT
-        (gsmDataGen.tir.all(i > j, j > k), i > k, True),
-        (gsmDataGen.tir.all(i > j, j == k), i > k, True),
-        (gsmDataGen.tir.all(i > j, j >= k), i > k, True),
-        (gsmDataGen.tir.all(i > j, j < k), i > k, False),
-        (gsmDataGen.tir.all(i > j, j <= k), i > k, False),
-        (gsmDataGen.tir.all(i > j, j != k), i > k, False),
+        (gsm_data_generator.tir.all(i > j, j > k), i > k, True),
+        (gsm_data_generator.tir.all(i > j, j == k), i > k, True),
+        (gsm_data_generator.tir.all(i > j, j >= k), i > k, True),
+        (gsm_data_generator.tir.all(i > j, j < k), i > k, False),
+        (gsm_data_generator.tir.all(i > j, j <= k), i > k, False),
+        (gsm_data_generator.tir.all(i > j, j != k), i > k, False),
         # Transitive comparisons from GE
-        (gsmDataGen.tir.all(i >= j, j > k), i > k, True),
-        (gsmDataGen.tir.all(i >= j, j == k), i == k, False),
-        (gsmDataGen.tir.all(i >= j, j == k), i >= k, True),
-        (gsmDataGen.tir.all(i >= j, j >= k), i >= k, True),
-        (gsmDataGen.tir.all(i >= j, j >= k), i > k, False),
-        (gsmDataGen.tir.all(i >= j, j < k), i > k, False),
-        (gsmDataGen.tir.all(i >= j, j <= k), i > k, False),
-        (gsmDataGen.tir.all(i >= j, j != k), i > k, False),
+        (gsm_data_generator.tir.all(i >= j, j > k), i > k, True),
+        (gsm_data_generator.tir.all(i >= j, j == k), i == k, False),
+        (gsm_data_generator.tir.all(i >= j, j == k), i >= k, True),
+        (gsm_data_generator.tir.all(i >= j, j >= k), i >= k, True),
+        (gsm_data_generator.tir.all(i >= j, j >= k), i > k, False),
+        (gsm_data_generator.tir.all(i >= j, j < k), i > k, False),
+        (gsm_data_generator.tir.all(i >= j, j <= k), i > k, False),
+        (gsm_data_generator.tir.all(i >= j, j != k), i > k, False),
         # GT or LT may be used to prove NE
-        (gsmDataGen.tir.all(i == j, j != k), i != k, True),
-        (gsmDataGen.tir.all(i == j, j < k), i != k, True),
-        (gsmDataGen.tir.all(i == j, j > k), i != k, True),
-        (gsmDataGen.tir.all(i == j, j != k), i < k, False),
-        (gsmDataGen.tir.all(i == j, j != k), i > k, False),
+        (gsm_data_generator.tir.all(i == j, j != k), i != k, True),
+        (gsm_data_generator.tir.all(i == j, j < k), i != k, True),
+        (gsm_data_generator.tir.all(i == j, j > k), i != k, True),
+        (gsm_data_generator.tir.all(i == j, j != k), i < k, False),
+        (gsm_data_generator.tir.all(i == j, j != k), i > k, False),
         # Because these are integers, x<y is equivalent to x <= y-1,
         # and may be used in equivalent simplifications.
-        (gsmDataGen.tir.all(i <= j - 1, j < k), i < k, True),
-        (gsmDataGen.tir.all(i <= j - 1, j == k), i < k, True),
-        (gsmDataGen.tir.all(i <= j - 1, j <= k), i < k, True),
-        (gsmDataGen.tir.all(i <= j - 1, j > k), i < k, False),
-        (gsmDataGen.tir.all(i <= j - 1, j >= k), i < k, False),
-        (gsmDataGen.tir.all(i <= j - 1, j != k), i < k, False),
+        (gsm_data_generator.tir.all(i <= j - 1, j < k), i < k, True),
+        (gsm_data_generator.tir.all(i <= j - 1, j == k), i < k, True),
+        (gsm_data_generator.tir.all(i <= j - 1, j <= k), i < k, True),
+        (gsm_data_generator.tir.all(i <= j - 1, j > k), i < k, False),
+        (gsm_data_generator.tir.all(i <= j - 1, j >= k), i < k, False),
+        (gsm_data_generator.tir.all(i <= j - 1, j != k), i < k, False),
         # Either or both inequalities may have an additive offset.
-        (gsmDataGen.tir.all(i <= j + 5, j <= k + 7), i <= k + 12, True),
-        (gsmDataGen.tir.all(i <= j + 5, j <= k + 7), i <= k + 11, False),
+        (gsm_data_generator.tir.all(i <= j + 5, j <= k + 7), i <= k + 12, True),
+        (gsm_data_generator.tir.all(i <= j + 5, j <= k + 7), i <= k + 11, False),
         # For floats, x < y + c1 and y < z + c2 implies that x < z + (c1 + c2).
         # Because this simplification applies to integers, transitive
         # application of LT or GT can give a tighter constraint.
@@ -581,11 +581,11 @@ class TestRemoveTransitivelyProvableCondition(BaseBeforeAfter):
         # i <= k + c1 + c2 - 2
         # i < k + (c1 + c2 - 1)
         #
-        (gsmDataGen.tir.all(i < j + 5, j < k + 7), i < k + 11, True),
-        (gsmDataGen.tir.all(i < j + 5, j < k + 7), i < k + 10, False),
+        (gsm_data_generator.tir.all(i < j + 5, j < k + 7), i < k + 11, True),
+        (gsm_data_generator.tir.all(i < j + 5, j < k + 7), i < k + 10, False),
     )
 
-    @gsmDataGen.testing.fixture
+    @gsm_data_generator.testing.fixture
     def before(self, test_case):
         priors, postulate, _ = test_case
 
@@ -597,11 +597,11 @@ class TestRemoveTransitivelyProvableCondition(BaseBeforeAfter):
 
         return func
 
-    @gsmDataGen.testing.fixture
+    @gsm_data_generator.testing.fixture
     def expected(self, test_case):
         priors, postulate, provable = test_case
 
-        analyzer = gsmDataGen.arith.Analyzer()
+        analyzer = gsm_data_generator.arith.Analyzer()
         priors = analyzer.canonical_simplify(priors)
 
         if provable:
@@ -968,21 +968,21 @@ class TestMostRestrictiveConditional(BaseBeforeAfter):
             return super().__new__(self, args)
 
         def __eq__(self, other):
-            from gsmDataGen.tir.expr import ExprOp
+            from gsm_data_generator.tir.expr import ExprOp
 
             for a, b in zip(self, other):
                 if isinstance(a, ExprOp) and isinstance(a, ExprOp):
-                    if not gsmDataGen.ir.structural_equal(a, b):
+                    if not gsm_data_generator.ir.structural_equal(a, b):
                         return False
                 else:
                     if not a.__eq__(b):
                         return False
             return True
 
-    i, j, k = [gsmDataGen.tir.Var(name, "int32") for name in "ijk"]
-    tir_int = gsmDataGen.tir.IntImm("int32", 0)
+    i, j, k = [gsm_data_generator.tir.Var(name, "int32") for name in "ijk"]
+    tir_int = gsm_data_generator.tir.IntImm("int32", 0)
 
-    test_case = gsmDataGen.testing.parameter(
+    test_case = gsm_data_generator.testing.parameter(
         TupleWrapper(i <= tir_int, tir_int <= i, i == tir_int),
         TupleWrapper(i <= tir_int, i != tir_int, i < tir_int),
         TupleWrapper(i != tir_int, i <= tir_int, i < tir_int),
@@ -993,7 +993,7 @@ class TestMostRestrictiveConditional(BaseBeforeAfter):
         TupleWrapper(i != j, j <= i, j < i),
     )
 
-    @gsmDataGen.testing.fixture
+    @gsm_data_generator.testing.fixture
     def before(self, test_case):
         priors, expr_before, _ = test_case
 
@@ -1005,7 +1005,7 @@ class TestMostRestrictiveConditional(BaseBeforeAfter):
 
         return func
 
-    @gsmDataGen.testing.fixture
+    @gsm_data_generator.testing.fixture
     def expected(self, test_case):
         priors, _, expr_after = test_case
 
@@ -1735,4 +1735,4 @@ class TestNestedIfElimination(BaseBeforeAfter):
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

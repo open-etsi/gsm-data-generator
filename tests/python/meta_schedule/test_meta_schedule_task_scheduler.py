@@ -21,17 +21,17 @@ from typing import Set
 
 import pytest
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import meta_schedule as ms
-from gsmDataGen.meta_schedule.testing.dummy_object import DummyBuilder, DummyRunner
-from gsmDataGen.script import tir as T
-from gsmDataGen.tir import Schedule
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import meta_schedule as ms
+from gsm_data_generator.meta_schedule.testing.dummy_object import DummyBuilder, DummyRunner
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.tir import Schedule
 
 # pylint: disable=invalid-name,no-member,line-too-long,too-many-nested-blocks,missing-docstring
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class MatmulModule:
     @T.prim_func
     def main(  # type: ignore
@@ -51,7 +51,7 @@ class MatmulModule:
                 C[vi, vj] = C[vi, vj] + A[vi, vk] * B[vk, vj]
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class MatmulReluModule:
     @T.prim_func
     def main(  # type: ignore
@@ -76,7 +76,7 @@ class MatmulReluModule:
                 D[vi, vj] = T.max(C[vi, vj], 0.0)  # type: ignore
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class BatchMatmulModule:
     @T.prim_func
     def main(  # type: ignore
@@ -155,7 +155,7 @@ def test_meta_schedule_task_scheduler_single():
         [
             ms.TuneContext(
                 MatmulModule,
-                target=gsmDataGen.target.Target("llvm"),
+                target=gsm_data_generator.target.Target("llvm"),
                 space_generator=_schedule_matmul,
                 search_strategy=ms.search_strategy.ReplayTrace(),
                 task_name="Test",
@@ -181,7 +181,7 @@ def test_meta_schedule_task_scheduler_multiple():
     tasks = [
         ms.TuneContext(
             MatmulModule,
-            target=gsmDataGen.target.Target("llvm"),
+            target=gsm_data_generator.target.Target("llvm"),
             space_generator=_schedule_matmul,
             search_strategy=ms.search_strategy.ReplayTrace(),
             task_name="Matmul",
@@ -189,7 +189,7 @@ def test_meta_schedule_task_scheduler_multiple():
         ),
         ms.TuneContext(
             MatmulReluModule,
-            target=gsmDataGen.target.Target("llvm"),
+            target=gsm_data_generator.target.Target("llvm"),
             space_generator=_schedule_matmul,
             search_strategy=ms.search_strategy.ReplayTrace(),
             task_name="MatmulRelu",
@@ -197,7 +197,7 @@ def test_meta_schedule_task_scheduler_multiple():
         ),
         ms.TuneContext(
             BatchMatmulModule,
-            target=gsmDataGen.target.Target("llvm"),
+            target=gsm_data_generator.target.Target("llvm"),
             space_generator=_schedule_batch_matmul,
             search_strategy=ms.search_strategy.ReplayTrace(),
             task_name="BatchMatmul",
@@ -253,7 +253,7 @@ def test_meta_schedule_task_scheduler_override_next_task_id_only():  # pylint: d
     tasks = [
         ms.TuneContext(
             MatmulModule,
-            target=gsmDataGen.target.Target("llvm"),
+            target=gsm_data_generator.target.Target("llvm"),
             space_generator=_schedule_matmul,
             search_strategy=ms.search_strategy.ReplayTrace(),
             task_name="Matmul",
@@ -261,7 +261,7 @@ def test_meta_schedule_task_scheduler_override_next_task_id_only():  # pylint: d
         ),
         ms.TuneContext(
             MatmulReluModule,
-            target=gsmDataGen.target.Target("llvm"),
+            target=gsm_data_generator.target.Target("llvm"),
             space_generator=_schedule_matmul,
             search_strategy=ms.search_strategy.ReplayTrace(),
             task_name="MatmulRelu",
@@ -269,7 +269,7 @@ def test_meta_schedule_task_scheduler_override_next_task_id_only():  # pylint: d
         ),
         ms.TuneContext(
             BatchMatmulModule,
-            target=gsmDataGen.target.Target("llvm"),
+            target=gsm_data_generator.target.Target("llvm"),
             space_generator=_schedule_batch_matmul,
             search_strategy=ms.search_strategy.ReplayTrace(),
             task_name="BatchMatmul",
@@ -308,7 +308,7 @@ def test_meta_schedule_task_scheduler_multiple_gradient_based():
     tasks = [
         ms.TuneContext(
             MatmulModule,
-            target=gsmDataGen.target.Target("llvm"),
+            target=gsm_data_generator.target.Target("llvm"),
             space_generator=_schedule_matmul,
             search_strategy=ms.search_strategy.ReplayTrace(),
             task_name="Matmul",
@@ -316,7 +316,7 @@ def test_meta_schedule_task_scheduler_multiple_gradient_based():
         ),
         ms.TuneContext(
             MatmulReluModule,
-            target=gsmDataGen.target.Target("llvm"),
+            target=gsm_data_generator.target.Target("llvm"),
             space_generator=_schedule_matmul,
             search_strategy=ms.search_strategy.ReplayTrace(),
             task_name="MatmulRelu",
@@ -324,7 +324,7 @@ def test_meta_schedule_task_scheduler_multiple_gradient_based():
         ),
         ms.TuneContext(
             BatchMatmulModule,
-            target=gsmDataGen.target.Target("llvm"),
+            target=gsm_data_generator.target.Target("llvm"),
             space_generator=_schedule_batch_matmul,
             search_strategy=ms.search_strategy.ReplayTrace(),
             task_name="BatchMatmul",
@@ -392,7 +392,7 @@ def test_meta_schedule_task_scheduler_gradient_based_with_null_search_strategy()
     tasks = [
         ms.TuneContext(
             MatmulModule,
-            target=gsmDataGen.target.Target("llvm"),
+            target=gsm_data_generator.target.Target("llvm"),
             space_generator=_schedule_matmul,
             search_strategy=NullSearchStrategy(rounds_with_empty_candidates=5),
             task_name="Matmul",
@@ -400,7 +400,7 @@ def test_meta_schedule_task_scheduler_gradient_based_with_null_search_strategy()
         ),
         ms.TuneContext(
             BatchMatmulModule,
-            target=gsmDataGen.target.Target("llvm"),
+            target=gsm_data_generator.target.Target("llvm"),
             space_generator=_schedule_batch_matmul,
             search_strategy=NullSearchStrategy(rounds_with_empty_candidates=0),
             task_name="BatchMatmul",
@@ -408,7 +408,7 @@ def test_meta_schedule_task_scheduler_gradient_based_with_null_search_strategy()
         ),
         ms.TuneContext(
             MatmulReluModule,
-            target=gsmDataGen.target.Target("llvm"),
+            target=gsm_data_generator.target.Target("llvm"),
             space_generator=_schedule_matmul,
             search_strategy=ms.search_strategy.ReplayTrace(),
             task_name="MatmulRelu",

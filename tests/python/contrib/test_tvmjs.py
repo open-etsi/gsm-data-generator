@@ -22,10 +22,10 @@ import tempfile
 import numpy as np
 import pytest
 
-import gsmDataGen.testing
-from gsmDataGen.contrib import tvmjs
+import gsm_data_generator.testing
+from gsm_data_generator.contrib import tvmjs
 
-dtype = gsmDataGen.testing.parameter(
+dtype = gsm_data_generator.testing.parameter(
     "int8",
     "int16",
     "int32",
@@ -53,7 +53,7 @@ def test_save_load_float8(dtype):
 
     with tempfile.TemporaryDirectory(prefix="tvm_") as temp_dir:
         tvmjs.dump_ndarray_cache({"arr": arr}, temp_dir)
-        cache, _ = tvmjs.load_ndarray_cache(temp_dir, gsmDataGen.cpu())
+        cache, _ = tvmjs.load_ndarray_cache(temp_dir, gsm_data_generator.cpu())
 
     after_roundtrip = cache["arr"].numpy()
 
@@ -61,4 +61,4 @@ def test_save_load_float8(dtype):
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

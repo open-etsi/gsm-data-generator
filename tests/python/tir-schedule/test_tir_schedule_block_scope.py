@@ -18,12 +18,12 @@
 import sys
 
 import pytest
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import tir
-from gsmDataGen.script import tir as T
-from gsmDataGen.tir.schedule import DepKind
-from gsmDataGen.tir.stmt_functor import post_order_visit
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import tir
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.tir.schedule import DepKind
+from gsm_data_generator.tir.stmt_functor import post_order_visit
 
 # pylint: disable=no-member,invalid-name,unused-variable
 
@@ -83,12 +83,12 @@ def _get_block(s: tir.ScheduleState, name_hint: str) -> tir.StmtSRef:
 
     def f_visit(node):
         nonlocal result
-        if isinstance(node, gsmDataGen.tir.Block) and node.name_hint == name_hint:
+        if isinstance(node, gsm_data_generator.tir.Block) and node.name_hint == name_hint:
             result = node
 
     func = s.mod["main"]
     post_order_visit(func.body, f_visit)
-    assert result is not None and isinstance(result, gsmDataGen.tir.Block)
+    assert result is not None and isinstance(result, gsm_data_generator.tir.Block)
     return s.get_sref(result)
 
 
@@ -152,4 +152,4 @@ def test_war_dependency():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

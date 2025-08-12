@@ -15,15 +15,15 @@
 # specific language governing permissions and limitations
 # under the License.
 """Tests for MetaSchedule search space on CPU"""
-from gsmDataGen import meta_schedule as ms
-from gsmDataGen.meta_schedule.testing.space_generation import (
+from gsm_data_generator import meta_schedule as ms
+from gsm_data_generator.meta_schedule.testing.space_generation import (
     check_sketches,
     print_sketches,
     generate_design_space,
 )
-from gsmDataGen.meta_schedule.testing.te_workload import create_te_workload
-from gsmDataGen.script import tir as T
-from gsmDataGen.target import Target
+from gsm_data_generator.meta_schedule.testing.te_workload import create_te_workload
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.target import Target
 
 
 def _target():

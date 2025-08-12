@@ -17,12 +17,12 @@
 
 import pytest
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen.script import relax as R, ir as I, tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator.script import relax as R, ir as I, tir as T
 
 
-@pytest.mark.parametrize("key_type", [gsmDataGen.ir.GlobalVar, str])
+@pytest.mark.parametrize("key_type", [gsm_data_generator.ir.GlobalVar, str])
 def test_inline_simple(key_type):
     """Simple case of inlining
 
@@ -52,7 +52,7 @@ def test_inline_simple(key_type):
         return D
 
     gvar = Before.get_global_var("subroutine")
-    if key_type == gsmDataGen.ir.GlobalVar:
+    if key_type == gsm_data_generator.ir.GlobalVar:
         key = gvar
     elif key_type == str:
         key = gvar.name_hint
@@ -61,7 +61,7 @@ def test_inline_simple(key_type):
 
     after = Before["main"].inline_functions({key: Before[gvar]})
 
-    gsmDataGen.ir.assert_structural_equal(expected, after)
+    gsm_data_generator.ir.assert_structural_equal(expected, after)
 
 
 def test_ambiguous_function_name():
@@ -76,7 +76,7 @@ def test_ambiguous_function_name():
     def func():
         return R.tuple()
 
-    gvar = gsmDataGen.ir.GlobalVar("name")
+    gvar = gsm_data_generator.ir.GlobalVar("name")
 
     with pytest.raises(ValueError):
         func.inline_functions({gvar: func, "name": func})
@@ -113,7 +113,7 @@ def test_inline_dataflow_block():
         return D
 
     after = Before["main"].inline_functions({"subroutine": Before["subroutine"]})
-    gsmDataGen.ir.assert_structural_equal(expected, after)
+    gsm_data_generator.ir.assert_structural_equal(expected, after)
 
 
 def test_inline_non_dataflow_block_into_dataflow_block():
@@ -161,7 +161,7 @@ def test_inline_non_dataflow_block_into_dataflow_block():
         return D
 
     after = Before["main"].inline_functions({"subroutine": Before["subroutine"]})
-    gsmDataGen.ir.assert_structural_equal(expected, after)
+    gsm_data_generator.ir.assert_structural_equal(expected, after)
 
 
 def test_subroutine_with_symbolic_vars():
@@ -194,7 +194,7 @@ def test_subroutine_with_symbolic_vars():
         return D
 
     after = Before["main"].inline_functions({"subroutine": Before["subroutine"]})
-    gsmDataGen.ir.assert_structural_equal(expected, after)
+    gsm_data_generator.ir.assert_structural_equal(expected, after)
 
 
 def test_subroutine_with_symbolic_vars_and_static_argument():
@@ -227,7 +227,7 @@ def test_subroutine_with_symbolic_vars_and_static_argument():
         return D
 
     after = Before["main"].inline_functions({"subroutine": Before["subroutine"]})
-    gsmDataGen.ir.assert_structural_equal(expected, after)
+    gsm_data_generator.ir.assert_structural_equal(expected, after)
 
 
 def test_inline_multiple_instances():
@@ -261,7 +261,7 @@ def test_inline_multiple_instances():
         return E
 
     after = Before["main"].inline_functions({"subroutine": Before["subroutine"]})
-    gsmDataGen.ir.assert_structural_equal(expected, after)
+    gsm_data_generator.ir.assert_structural_equal(expected, after)
 
 
 def test_inline_multiple_instances_with_distinct_static_shapes():
@@ -291,7 +291,7 @@ def test_inline_multiple_instances_with_distinct_static_shapes():
         return (A_out, B_out)
 
     after = Before["main"].inline_functions({"subroutine": Before["subroutine"]})
-    gsmDataGen.ir.assert_structural_equal(expected, after)
+    gsm_data_generator.ir.assert_structural_equal(expected, after)
 
 
 def test_inline_nested_subroutine_calls():
@@ -331,7 +331,7 @@ def test_inline_nested_subroutine_calls():
             "subsubroutine": Before["subsubroutine"],
         }
     )
-    gsmDataGen.ir.assert_structural_equal(expected, after)
+    gsm_data_generator.ir.assert_structural_equal(expected, after)
 
 
 def test_error_when_inlining_recursive_function():
@@ -401,4 +401,4 @@ def test_error_when_inlining_mutually_recursive_functions():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

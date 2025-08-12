@@ -15,15 +15,15 @@
 # specific language governing permissions and limitations
 # under the License.
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import relax as rx
-from gsmDataGen.relax.analysis import contains_impure_call
-from gsmDataGen.script import relax as R
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import relax as rx
+from gsm_data_generator.relax.analysis import contains_impure_call
+from gsm_data_generator.script import relax as R
 
 
 def test_simple_pure_case():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class PureTest:
         @R.function
         def pure_func(x: R.Tensor((), "int32")) -> R.Tensor((), "int32"):
@@ -35,7 +35,7 @@ def test_simple_pure_case():
 
 
 def test_simple_impure_case():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class ImpureTest:
         @R.function(pure=False)
         def impure_func() -> R.Object:
@@ -46,7 +46,7 @@ def test_simple_impure_case():
 
 
 def test_nested_function():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class NestedTest:
         @R.function
         def pure_with_impure_nested() -> R.Tensor((), "int32"):
@@ -69,7 +69,7 @@ def test_ignoring_recursive_call():
     # Ignoring a recursive call. This can be useful if some transformation
     # removes an impure operation and the compiler needs to check if the impure
     # function has become pure
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class RecursiveTest:
         @R.function(pure=False)
         def recursive_impure() -> R.Object:
@@ -102,4 +102,4 @@ def test_ignoring_recursive_call():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

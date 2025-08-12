@@ -16,16 +16,16 @@
 # under the License.
 
 from typing import List, Set, Tuple
-import gsmDataGen
-from gsmDataGen import relax, testing
-from gsmDataGen.relax.transform import DataflowUseInplaceCalls
-from gsmDataGen.relax.testing.transform import (
+import gsm_data_generator
+from gsm_data_generator import relax, testing
+from gsm_data_generator.relax.transform import DataflowUseInplaceCalls
+from gsm_data_generator.relax.testing.transform import (
     dataflow_liveness_analysis,
     dataflow_alias_analysis,
     dataflow_inplace_analysis,
     dataflow_single_inplace_call,
 )
-from gsmDataGen.script.parser import ir as I, relax as R, tir as T
+from gsm_data_generator.script.parser import ir as I, relax as R, tir as T
 
 import numpy as np
 
@@ -385,7 +385,7 @@ def test_inplace_single_call():
                 T.writes(A[v_ax0, v_ax1])
                 A[v_ax0, v_ax1] = A[v_ax0, v_ax1] + B[v_ax0, v_ax1]
 
-    gsmDataGen.ir.assert_structural_equal(new_mod["add_inplace"], expected_add)
+    gsm_data_generator.ir.assert_structural_equal(new_mod["add_inplace"], expected_add)
     assert new_add.op.name == "relax.call_tir_inplace"
     assert new_add.args[0].name_hint == "add_inplace"
     for i, arg in enumerate(new_add.args[1].fields):
@@ -412,7 +412,7 @@ def test_inplace_single_call():
     silu_call = TestModule["main"].body.blocks[0].bindings[1].value
     new_silu, new_mod = dataflow_single_inplace_call(TestModule, silu_call, [0])
 
-    gsmDataGen.ir.assert_structural_equal(new_mod["silu_inplace"], expected_silu)
+    gsm_data_generator.ir.assert_structural_equal(new_mod["silu_inplace"], expected_silu)
     assert new_silu.op.name == "relax.call_tir_inplace"
     assert new_silu.args[0].name_hint == "silu_inplace"
     for i, arg in enumerate(new_silu.args[1].fields):
@@ -524,15 +524,15 @@ def test_insert_inplace_calls():
 
     transform_pass = DataflowUseInplaceCalls()
     new_mod = transform_pass(EndToEndTest)
-    gsmDataGen.ir.assert_structural_equal(new_mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(new_mod, Expected)
 
-    x = gsmDataGen.nd.array(np.random.rand(2, 3).astype("float32"))
-    y = gsmDataGen.nd.array(np.random.rand(1, 3).astype("float32"))
+    x = gsm_data_generator.nd.array(np.random.rand(2, 3).astype("float32"))
+    y = gsm_data_generator.nd.array(np.random.rand(1, 3).astype("float32"))
     expected = np.zeros((2, 3), dtype="float32")
 
-    target = gsmDataGen.target.Target("llvm")
-    ex = gsmDataGen.compile(new_mod, target)
-    vm = relax.VirtualMachine(ex, gsmDataGen.cpu())
+    target = gsm_data_generator.target.Target("llvm")
+    ex = gsm_data_generator.compile(new_mod, target)
+    vm = relax.VirtualMachine(ex, gsm_data_generator.cpu())
     res = vm["main"](x, y)
     assert (expected == res.numpy()).all()
 
@@ -608,14 +608,14 @@ def test_dynamic():
                 R.output(s)
             return s
 
-    gsmDataGen.ir.assert_structural_equal(new_mod, Expected, map_free_vars=True)
-    x = gsmDataGen.nd.array(np.random.rand(2, 3).astype("float32"))
-    y = gsmDataGen.nd.array(np.random.rand(2, 3).astype("float32"))
+    gsm_data_generator.ir.assert_structural_equal(new_mod, Expected, map_free_vars=True)
+    x = gsm_data_generator.nd.array(np.random.rand(2, 3).astype("float32"))
+    y = gsm_data_generator.nd.array(np.random.rand(2, 3).astype("float32"))
     expected = np.zeros((2, 3), dtype="float32")
 
-    target = gsmDataGen.target.Target("llvm")
-    ex = gsmDataGen.compile(new_mod, target)
-    vm = relax.VirtualMachine(ex, gsmDataGen.cpu())
+    target = gsm_data_generator.target.Target("llvm")
+    ex = gsm_data_generator.compile(new_mod, target)
+    vm = relax.VirtualMachine(ex, gsm_data_generator.cpu())
     res = vm["main"](x, y)
     assert (expected == res.numpy()).all()
 
@@ -637,7 +637,7 @@ def test_dynamic_mismatch():
 
     transform_pass = DataflowUseInplaceCalls()
     new_mod = transform_pass(DynamicMistmatchTestCase)
-    gsmDataGen.ir.assert_structural_equal(new_mod, DynamicMistmatchTestCase)
+    gsm_data_generator.ir.assert_structural_equal(new_mod, DynamicMistmatchTestCase)
 
 
 if __name__ == "__main__":

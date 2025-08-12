@@ -15,10 +15,10 @@
 # specific language governing permissions and limitations
 # under the License.
 
-import gsmDataGen
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+from gsm_data_generator.script import tir as T
 import numpy as np
-import gsmDataGen.testing
+import gsm_data_generator.testing
 
 
 @T.prim_func
@@ -56,14 +56,14 @@ def ptx_ldmatrix(
                     B[8 * j + tx // 4, 8 * k + (tx % 4) * 2 + i] = A_local[4 * k + 2 * j + i]
 
 
-@gsmDataGen.testing.requires_cuda_compute_version(7, 5)
+@gsm_data_generator.testing.requires_cuda_compute_version(7, 5)
 def test_ptx_ldmatrix():
     f = ptx_ldmatrix
     _, _, param_num, param_trans = f.params
 
     for num in [1, 2, 4]:
         for trans in [False, True]:
-            mod = gsmDataGen.compile(f.specialize({param_num: num, param_trans: trans}), target="cuda")
+            mod = gsm_data_generator.compile(f.specialize({param_num: num, param_trans: trans}), target="cuda")
             A_np = np.random.rand(16, 16).astype("float16")
             A_mask_np = np.zeros_like(A_np)
             if num == 1:
@@ -86,11 +86,11 @@ def test_ptx_ldmatrix():
                 else:
                     A_mask_np[:16, :16] = A_np[:16, :16]
             B_np = np.zeros((16, 16)).astype("float16")
-            dev = gsmDataGen.cuda(0)
-            A_nd = gsmDataGen.nd.array(A_np, device=dev)
-            B_nd = gsmDataGen.nd.array(B_np, device=dev)
+            dev = gsm_data_generator.cuda(0)
+            A_nd = gsm_data_generator.nd.array(A_np, device=dev)
+            B_nd = gsm_data_generator.nd.array(B_np, device=dev)
             mod(A_nd, B_nd)
-            gsmDataGen.testing.assert_allclose(B_nd.numpy(), A_mask_np)
+            gsm_data_generator.testing.assert_allclose(B_nd.numpy(), A_mask_np)
 
 
 if __name__ == "__main__":

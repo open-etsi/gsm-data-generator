@@ -17,15 +17,15 @@
 
 import pytest
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import relax, topi
-from gsmDataGen.script import ir as I, relax as R, tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import relax, topi
+from gsm_data_generator.script import ir as I, relax as R, tir as T
 
 
 def _check(mod_before, mod_expected):
     mod_after = relax.transform.FuseTIR()(mod_before)
-    gsmDataGen.ir.assert_structural_equal(mod_expected, mod_after)
+    gsm_data_generator.ir.assert_structural_equal(mod_expected, mod_after)
 
 
 def test_simple():
@@ -504,15 +504,15 @@ def test_fuse_with_immediate_tuple():
 
 def test_fuse_return_partial_result():
     def te_argmax_idx_val(val):
-        from gsmDataGen import te
+        from gsm_data_generator import te
 
         def f_combine(x, y):
-            lhs = gsmDataGen.tir.Select((x[1] >= y[1]), x[0], y[0])
-            rhs = gsmDataGen.tir.Select((x[1] >= y[1]), x[1], y[1])
+            lhs = gsm_data_generator.tir.Select((x[1] >= y[1]), x[0], y[0])
+            rhs = gsm_data_generator.tir.Select((x[1] >= y[1]), x[1], y[1])
             return lhs, rhs
 
-        def f_identity(dtype0: gsmDataGen.DataType, dtype1: gsmDataGen.DataType):
-            return gsmDataGen.tir.const(-1, dtype0), gsmDataGen.te.min_value(dtype1)
+        def f_identity(dtype0: gsm_data_generator.DataType, dtype1: gsm_data_generator.DataType):
+            return gsm_data_generator.tir.const(-1, dtype0), gsm_data_generator.te.min_value(dtype1)
 
         argmax = te.comm_reducer(f_combine, f_identity, name="argmax")
         m, n = val.shape
@@ -2439,10 +2439,10 @@ def test_fuse_with_axis_separators_inconsistent_buffer_mapping():
             return gv
 
     with pytest.raises(
-        gsmDataGen.TVMError, match=r"Inconsistent buffers.*and.*mapped to the same relax var:.*"
+        gsm_data_generator.TVMError, match=r"Inconsistent buffers.*and.*mapped to the same relax var:.*"
     ):
         relax.transform.FuseTIR()(Before)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

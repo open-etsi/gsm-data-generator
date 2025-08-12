@@ -21,14 +21,14 @@ import json
 import pytest
 import torch
 
-import gsmDataGen.testing
-from gsmDataGen.contrib.msc.pipeline import MSCManager
-from gsmDataGen.contrib.msc.core.tools import ToolType
-from gsmDataGen.contrib.msc.core.utils.namespace import MSCFramework
-from gsmDataGen.contrib.msc.core import utils as msc_utils
+import gsm_data_generator.testing
+from gsm_data_generator.contrib.msc.pipeline import MSCManager
+from gsm_data_generator.contrib.msc.core.tools import ToolType
+from gsm_data_generator.contrib.msc.core.utils.namespace import MSCFramework
+from gsm_data_generator.contrib.msc.core import utils as msc_utils
 
 requires_tensorrt = pytest.mark.skipif(
-    gsmDataGen.get_global_func("relax.ext.tensorrt", True) is None,
+    gsm_data_generator.get_global_func("relax.ext.tensorrt", True) is None,
     reason="TENSORRT is not enabled",
 )
 
@@ -89,7 +89,7 @@ def get_tools(tool_type, use_distill=False, run_type=MSCFramework.MSC):
         tools.append({"tool_type": ToolType.PRUNER, "tool_config": config})
     elif tool_type == ToolType.QUANTIZER:
         # pylint: disable=import-outside-toplevel
-        from gsmDataGen.contrib.msc.core.tools.quantize import QuantizeStage
+        from gsm_data_generator.contrib.msc.core.tools.quantize import QuantizeStage
 
         if run_type == MSCFramework.TENSORRT:
             config = {"plan_file": "msc_quantizer.json", "strategys": []}
@@ -125,7 +125,7 @@ def get_tools(tool_type, use_distill=False, run_type=MSCFramework.MSC):
         tools.append({"tool_type": ToolType.QUANTIZER, "tool_config": config})
     elif tool_type == ToolType.TRACKER:
         # pylint: disable=import-outside-toplevel
-        from gsmDataGen.contrib.msc.core.utils import MSCStage
+        from gsm_data_generator.contrib.msc.core.utils import MSCStage
 
         config = {
             "plan_file": "msc_tracker.json",
@@ -307,4 +307,4 @@ def test_tensorrt_distill(tool_type):
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

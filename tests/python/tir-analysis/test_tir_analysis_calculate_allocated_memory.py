@@ -17,14 +17,14 @@
 # pylint: disable=missing-module-docstring,missing-function-docstring,missing-class-docstring
 import pytest
 
-import gsmDataGen
-from gsmDataGen import tir
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+from gsm_data_generator import tir
+from gsm_data_generator.script import tir as T
 
 # fmt: off
 # pylint: disable=no-member,invalid-name,unused-variable,no-self-argument,line-too-long,chained-comparison,not-callable,too-many-nested-blocks
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Module:
     @T.prim_func
     def scale_by_two(a: T.Buffer((128,), "int8"), c: T.Buffer((128,), "int8")):
@@ -52,7 +52,7 @@ class Module:
 )
 def test_scale_by(primFunc, size):
     """Test calculate allocated bytes per scope"""
-    mod = gsmDataGen.IRModule.from_expr(primFunc.with_attr("global_symbol", "main"))
+    mod = gsm_data_generator.IRModule.from_expr(primFunc.with_attr("global_symbol", "main"))
     sch = tir.Schedule(mod, debug_mask="all")
     block_c = sch.get_block("C")
     (flat,) = sch.get_loops(block_c)
@@ -60,9 +60,9 @@ def test_scale_by(primFunc, size):
     sch.compute_at(cache_block, flat)
 
     mod = sch.mod
-    mod = gsmDataGen.tir.transform.ConvertBlocksToOpaque()(mod)
-    mod = gsmDataGen.tir.transform.LowerOpaqueBlock()(mod)
-    sizes = gsmDataGen.tir.analysis.calculate_allocated_bytes(mod["main"])
+    mod = gsm_data_generator.tir.transform.ConvertBlocksToOpaque()(mod)
+    mod = gsm_data_generator.tir.transform.LowerOpaqueBlock()(mod)
+    sizes = gsm_data_generator.tir.analysis.calculate_allocated_bytes(mod["main"])
     assert "main" in sizes, 'Calls with PrimFunc is expected to return with function key as "main"'
     sizes = sizes["main"]
     assert sizes.get("global.vtcm", 0) == size
@@ -101,11 +101,11 @@ def matmul_mix_scope(a: T.handle, b: T.handle, c: T.handle) -> None:
 )
 def test_matmul_mix_scope(scope, size):
     """Test calculate allocated bytes per scope"""
-    mod = gsmDataGen.IRModule({"main": matmul_mix_scope})
-    mod = gsmDataGen.tir.transform.LowerInitBlock()(mod)
-    mod = gsmDataGen.tir.transform.ConvertBlocksToOpaque()(mod)
-    mod = gsmDataGen.tir.transform.LowerOpaqueBlock()(mod)
-    sizes = gsmDataGen.tir.analysis.calculate_allocated_bytes(mod["main"])
+    mod = gsm_data_generator.IRModule({"main": matmul_mix_scope})
+    mod = gsm_data_generator.tir.transform.LowerInitBlock()(mod)
+    mod = gsm_data_generator.tir.transform.ConvertBlocksToOpaque()(mod)
+    mod = gsm_data_generator.tir.transform.LowerOpaqueBlock()(mod)
+    sizes = gsm_data_generator.tir.analysis.calculate_allocated_bytes(mod["main"])
     assert "main" in sizes, 'Calls with PrimFunc is expected to return with function key as "main"'
     sizes = sizes["main"]
     assert sizes.get(scope, 0) == size
@@ -117,12 +117,12 @@ def test_full_mod_calculator():
         block_c = sch.get_block("C")
         sch.cache_read(block_c, 0, storage_scope="global.vtcm")
 
-    sch = gsmDataGen.tir.Schedule(Module, debug_mask="all")
+    sch = gsm_data_generator.tir.Schedule(Module, debug_mask="all")
     apply_schedule(sch, "scale_by_two")
     apply_schedule(sch, "scale_by_two_three")
-    mod = gsmDataGen.tir.transform.ConvertBlocksToOpaque()(sch.mod)
-    mod = gsmDataGen.tir.transform.LowerOpaqueBlock()(mod)
-    sizes = gsmDataGen.tir.analysis.calculate_allocated_bytes(mod)
+    mod = gsm_data_generator.tir.transform.ConvertBlocksToOpaque()(sch.mod)
+    mod = gsm_data_generator.tir.transform.LowerOpaqueBlock()(mod)
+    sizes = gsm_data_generator.tir.analysis.calculate_allocated_bytes(mod)
     assert "scale_by_two" in sizes, "Values for scale_by_two not found"
     scale_by_two_sizes = sizes["scale_by_two"]
     assert (
@@ -137,4 +137,4 @@ def test_full_mod_calculator():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

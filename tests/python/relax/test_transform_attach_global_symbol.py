@@ -16,16 +16,16 @@
 # under the License.
 
 import pytest
-import gsmDataGen
-from gsmDataGen import tir, relax
-from gsmDataGen.ir import assert_structural_equal
+import gsm_data_generator
+from gsm_data_generator import tir, relax
+from gsm_data_generator.ir import assert_structural_equal
 
-import gsmDataGen.script
-from gsmDataGen.script import tir as T, relax as R, ir as I
+import gsm_data_generator.script
+from gsm_data_generator.script import tir as T, relax as R, ir as I
 
 
 def test_basic():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Before:
         @T.prim_func
         def tir_matmul(x: T.handle, y: T.handle, z: T.handle) -> None:
@@ -51,7 +51,7 @@ def test_basic():
             gv0 = R.call_tir(Before.tir_matmul, (x, w), R.Tensor((m, k), dtype="float32"))
             return gv0
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @T.prim_func
         def tir_matmul(x: T.handle, y: T.handle, z: T.handle) -> None:
@@ -85,7 +85,7 @@ def test_basic():
 
 
 def test_system_lib_prefix():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Before:
         I.module_attrs({"system_lib_prefix": "hello_"})
 
@@ -98,7 +98,7 @@ def test_system_lib_prefix():
             gv0 = R.call_tir(Before.tir_zeros, (), R.Tensor((2,), dtype="float32"))
             return gv0
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         I.module_attrs({"system_lib_prefix": "hello_"})
 

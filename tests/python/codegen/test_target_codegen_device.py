@@ -14,22 +14,22 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-import gsmDataGen
-from gsmDataGen import te
-from gsmDataGen.contrib import utils
+import gsm_data_generator
+from gsm_data_generator import te
+from gsm_data_generator.contrib import utils
 import numpy as np
-import gsmDataGen.testing
-from gsmDataGen import tir
+import gsm_data_generator.testing
+from gsm_data_generator import tir
 
 
-@gsmDataGen.testing.requires_gpu
+@gsm_data_generator.testing.requires_gpu
 def test_large_uint_imm():
     value = (1 << 63) + 123
-    other = gsmDataGen.tir.const(3, "uint64")
+    other = gsm_data_generator.tir.const(3, "uint64")
     n = 12
     num_thread = 2
 
-    A = te.compute((n,), lambda *i: gsmDataGen.tir.const(value, "uint64") + other, name="A")
+    A = te.compute((n,), lambda *i: gsm_data_generator.tir.const(value, "uint64") + other, name="A")
 
     # Convert to TIR and create schedule
     mod = te.create_prim_func([A])
@@ -45,12 +45,12 @@ def test_large_uint_imm():
     sch.bind(xo, "blockIdx.x")
 
     def check_target(device):
-        if not gsmDataGen.testing.device_enabled(device):
+        if not gsm_data_generator.testing.device_enabled(device):
             return
-        dev = gsmDataGen.device(device, 0)
-        f = gsmDataGen.compile(sch.mod, target=device)
+        dev = gsm_data_generator.device(device, 0)
+        f = gsm_data_generator.compile(sch.mod, target=device)
         # launch the kernel.
-        a = gsmDataGen.nd.empty((n,), dtype=A.dtype, device=dev)
+        a = gsm_data_generator.nd.empty((n,), dtype=A.dtype, device=dev)
         f(a)
         assert a.numpy()[0] == value + 3
 
@@ -58,7 +58,7 @@ def test_large_uint_imm():
     check_target("vulkan -from_device=0")
 
 
-@gsmDataGen.testing.requires_gpu
+@gsm_data_generator.testing.requires_gpu
 def test_add_pipeline():
     n = te.size_var("n")
     A = te.placeholder((n,), name="A")
@@ -90,19 +90,19 @@ def test_add_pipeline():
     sch.bind(d_xo, "blockIdx.x")
 
     def check_target(device, host):
-        if not gsmDataGen.testing.device_enabled(device) or not gsmDataGen.testing.device_enabled(host):
+        if not gsm_data_generator.testing.device_enabled(device) or not gsm_data_generator.testing.device_enabled(host):
             return
-        dev = gsmDataGen.device(device, 0)
-        target = gsmDataGen.target.Target(device, host)
-        mhost = gsmDataGen.tir.build(sch.mod, target=target)
+        dev = gsm_data_generator.device(device, 0)
+        target = gsm_data_generator.target.Target(device, host)
+        mhost = gsm_data_generator.tir.build(sch.mod, target=target)
         f = mhost.entry_func
         # launch the kernel.
         n = 1027
-        a = gsmDataGen.nd.array(np.random.uniform(size=n).astype(A.dtype), dev)
-        b = gsmDataGen.nd.array(np.random.uniform(size=()).astype(B.dtype), dev)
-        d = gsmDataGen.nd.array(np.zeros(n, dtype=D.dtype), dev)
+        a = gsm_data_generator.nd.array(np.random.uniform(size=n).astype(A.dtype), dev)
+        b = gsm_data_generator.nd.array(np.random.uniform(size=()).astype(B.dtype), dev)
+        d = gsm_data_generator.nd.array(np.zeros(n, dtype=D.dtype), dev)
         f(a, b, d)
-        gsmDataGen.testing.assert_allclose(d.numpy(), a.numpy() + b.numpy() + 1)
+        gsm_data_generator.testing.assert_allclose(d.numpy(), a.numpy() + b.numpy() + 1)
 
     check_target("cuda", host="llvm")
     check_target("nvptx", host="llvm")

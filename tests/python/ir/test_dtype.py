@@ -17,9 +17,9 @@
 """Test data type related API"""
 import pytest
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import DataType
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import DataType
 
 
 @pytest.mark.parametrize(
@@ -45,4 +45,4 @@ def test_dtype_itemmize_error(dtype_str):
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

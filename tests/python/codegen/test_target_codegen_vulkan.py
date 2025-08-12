@@ -24,13 +24,13 @@ import threading
 import numpy as np
 import pytest
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import te, tir
-from gsmDataGen.topi.math import cast
-from gsmDataGen.script import tir as T, ir as I
-from gsmDataGen.tir import TensorIntrin, IntImm, Cast, Schedule
-from gsmDataGen.tir.tensor_intrin.cuda import (
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import te, tir
+from gsm_data_generator.topi.math import cast
+from gsm_data_generator.script import tir as T, ir as I
+from gsm_data_generator.tir import TensorIntrin, IntImm, Cast, Schedule
+from gsm_data_generator.tir.tensor_intrin.cuda import (
     WMMA_LOAD_16x16x16_F16_A_INTRIN,
     WMMA_LOAD_16x16x16_F16_B_INTRIN,
     WMMA_SYNC_16x16x16_f16f16f32_INTRIN,
@@ -42,13 +42,13 @@ from gsmDataGen.tir.tensor_intrin.cuda import (
 )
 
 
-dtype = gsmDataGen.testing.parameter("float32", "int32", "float16", "int8")
-fuzz_seed = gsmDataGen.testing.parameter(range(25))
+dtype = gsm_data_generator.testing.parameter("float32", "int32", "float16", "int8")
+fuzz_seed = gsm_data_generator.testing.parameter(range(25))
 
 
 # Explicitly specify a target, as this test is looking at the
 # generated shader code, and is not running on an actual device.
-@gsmDataGen.testing.parametrize_targets(
+@gsm_data_generator.testing.parametrize_targets(
     " ".join(
         [
             "vulkan",
@@ -61,19 +61,19 @@ fuzz_seed = gsmDataGen.testing.parameter(range(25))
     )
 )
 def test_vector_comparison(target, dev, dtype):
-    target = gsmDataGen.target.Target(target)
+    target = gsm_data_generator.target.Target(target)
     n = 1024
     A = te.placeholder((n,), dtype=dtype, name="A")
     B = te.compute(
         A.shape,
-        lambda i: gsmDataGen.tir.Select(
-            A[i] >= 0, A[i] + gsmDataGen.tir.const(1, dtype), gsmDataGen.tir.const(0, dtype)
+        lambda i: gsm_data_generator.tir.Select(
+            A[i] >= 0, A[i] + gsm_data_generator.tir.const(1, dtype), gsm_data_generator.tir.const(0, dtype)
         ),
         name="B",
     )
 
     # Create IRModule
-    mod = gsmDataGen.IRModule.from_expr(te.create_prim_func([A, B]))
+    mod = gsm_data_generator.IRModule.from_expr(te.create_prim_func([A, B]))
     sch = tir.Schedule(mod)
     (bx, tx) = sch.split(sch.get_loops("B")[0], factors=[None, 128])
     (tx, vx) = sch.split(tx, factors=[None, 4])
@@ -82,7 +82,7 @@ def test_vector_comparison(target, dev, dtype):
     sch.vectorize(vx)
 
     # Build
-    f = gsmDataGen.tir.build(sch.mod, target=target)
+    f = gsm_data_generator.tir.build(sch.mod, target=target)
 
     # Verify we generate the boolx4 type declaration and the OpSelect
     # v4{float,half,int} instruction
@@ -99,15 +99,15 @@ def test_array_copy(dev, dtype, fuzz_seed):
     log_arr_size = np.random.uniform(low=np.log(1), high=np.log(32768))
     arr_size = np.exp(log_arr_size).astype(int)
     a_np = np.random.uniform(size=(arr_size,)).astype(dtype)
-    a = gsmDataGen.nd.empty((arr_size,), dtype, dev).copyfrom(a_np)
+    a = gsm_data_generator.nd.empty((arr_size,), dtype, dev).copyfrom(a_np)
     b_np = a.numpy()
-    gsmDataGen.testing.assert_allclose(a_np, b_np)
-    gsmDataGen.testing.assert_allclose(a_np, a.numpy())
+    gsm_data_generator.testing.assert_allclose(a_np, b_np)
+    gsm_data_generator.testing.assert_allclose(a_np, a.numpy())
 
 
-@gsmDataGen.testing.exclude_targets("llvm")
+@gsm_data_generator.testing.exclude_targets("llvm")
 def test_array_vectorize_add(target, dev, dtype):
-    target = gsmDataGen.target.Target(target)
+    target = gsm_data_generator.target.Target(target)
     arr_size = 64
     lanes = 2
 
@@ -115,23 +115,23 @@ def test_array_vectorize_add(target, dev, dtype):
         pytest.xfail("Opencl target does not support float16")
 
     A = te.placeholder((arr_size,), name="A", dtype="%sx%d" % (dtype, lanes))
-    B = te.compute(A.shape, lambda i: A[i] + gsmDataGen.tir.const(1, A.dtype), name="B")
+    B = te.compute(A.shape, lambda i: A[i] + gsm_data_generator.tir.const(1, A.dtype), name="B")
 
     sch = tir.Schedule(te.create_prim_func([A, B]))
     xo, xi = sch.split(sch.get_loops("B")[0], factors=[None, 4])
     sch.bind(xo, "blockIdx.x")
     sch.bind(xi, "threadIdx.x")
-    f = gsmDataGen.compile(sch.mod, target=target)
+    f = gsm_data_generator.compile(sch.mod, target=target)
 
-    a = gsmDataGen.nd.empty((arr_size,), A.dtype, dev).copyfrom(np.random.uniform(size=(arr_size, lanes)))
-    c = gsmDataGen.nd.empty((arr_size,), B.dtype, dev)
+    a = gsm_data_generator.nd.empty((arr_size,), A.dtype, dev).copyfrom(np.random.uniform(size=(arr_size, lanes)))
+    c = gsm_data_generator.nd.empty((arr_size,), B.dtype, dev)
     f(a, c)
-    gsmDataGen.testing.assert_allclose(c.numpy(), a.numpy() + 1)
+    gsm_data_generator.testing.assert_allclose(c.numpy(), a.numpy() + 1)
 
 
-@gsmDataGen.testing.exclude_targets("llvm")
+@gsm_data_generator.testing.exclude_targets("llvm")
 def test_vulkan_bool_load(target, dev):
-    target = gsmDataGen.target.Target(target)
+    target = gsm_data_generator.target.Target(target)
     arr_size = 1024
     A = te.placeholder((arr_size,), name="A", dtype="bool")
     B = te.compute(A.shape, lambda i: A[i].astype("int32"), name="B")
@@ -142,26 +142,26 @@ def test_vulkan_bool_load(target, dev):
     sch.bind(xi, "threadIdx.x")
 
     # Build
-    f = gsmDataGen.compile(sch.mod, target=target)
+    f = gsm_data_generator.compile(sch.mod, target=target)
 
     a_np = np.random.uniform(size=arr_size) > 0.5
     b_np = np.zeros((arr_size,), dtype="int32")
-    a = gsmDataGen.nd.array(a_np, dev)
-    b = gsmDataGen.nd.array(b_np, dev)
+    a = gsm_data_generator.nd.array(a_np, dev)
+    b = gsm_data_generator.nd.array(b_np, dev)
     f(a, b)
     ref = a_np.astype(np.int32)
-    gsmDataGen.testing.assert_allclose(b.numpy(), ref)
+    gsm_data_generator.testing.assert_allclose(b.numpy(), ref)
 
 
-vulkan_parameter_impl = gsmDataGen.testing.parameter("push_constants", "ubo")
-vulkan_parameter_dtype = gsmDataGen.testing.parameter("int32", "float32", "int64")
+vulkan_parameter_impl = gsm_data_generator.testing.parameter("push_constants", "ubo")
+vulkan_parameter_dtype = gsm_data_generator.testing.parameter("int32", "float32", "int64")
 
 
 # Only run on vulkan because extremely large numbers of input
 # parameters can crash cuda/llvm compiler.
-@gsmDataGen.testing.parametrize_targets("vulkan -from_device=0")
+@gsm_data_generator.testing.parametrize_targets("vulkan -from_device=0")
 def test_vulkan_constant_passing(target, dev, vulkan_parameter_impl, vulkan_parameter_dtype):
-    target = gsmDataGen.target.Target(target)
+    target = gsm_data_generator.target.Target(target)
     dtype = vulkan_parameter_dtype
 
     if not target.attrs.get("supports_int64", False):
@@ -190,29 +190,29 @@ def test_vulkan_constant_passing(target, dev, vulkan_parameter_impl, vulkan_para
     A = te.placeholder((n,), name="A", dtype=dtype)
     B = te.compute(A.shape, lambda i: scalar_sum + A[i], name="B")
 
-    sch = gsmDataGen.tir.Schedule(te.create_prim_func(scalars + [A, B]))
+    sch = gsm_data_generator.tir.Schedule(te.create_prim_func(scalars + [A, B]))
     xo, xi = sch.split(sch.get_loops("B")[0], factors=[None, 64])
     sch.bind(xo, "blockIdx.x")
     sch.bind(xi, "threadIdx.x")
-    f_add = gsmDataGen.compile(sch.mod, target=target)
+    f_add = gsm_data_generator.compile(sch.mod, target=target)
 
     n = 1024
     scalars = np.array([1 for _ in scalars]).astype(dtype)
-    a = gsmDataGen.nd.array(np.random.uniform(size=n).astype(A.dtype), dev)
-    b = gsmDataGen.nd.array(np.zeros(n, dtype=B.dtype), dev)
+    a = gsm_data_generator.nd.array(np.random.uniform(size=n).astype(A.dtype), dev)
+    b = gsm_data_generator.nd.array(np.zeros(n, dtype=B.dtype), dev)
     f_add(*scalars, a, b)
 
-    gsmDataGen.testing.assert_allclose(a.numpy() + sum(scalars), b.numpy())
+    gsm_data_generator.testing.assert_allclose(a.numpy() + sum(scalars), b.numpy())
 
 
 def test_vulkan_while_if(target, dev):
-    target = gsmDataGen.target.Target(target)
+    target = gsm_data_generator.target.Target(target)
     n = 1
     dtype = "int32"
     A = te.placeholder((n,), name="A", dtype=dtype)
 
     def do_compute(A, B, n):
-        ib = gsmDataGen.tir.ir_builder.create()
+        ib = gsm_data_generator.tir.ir_builder.create()
         A = ib.buffer_ptr(A)
         B = ib.buffer_ptr(B)
 
@@ -223,7 +223,7 @@ def test_vulkan_while_if(target, dev):
         iterations[0] = 0
         B[0] = 0
 
-        loop_condition = iterations[0] < gsmDataGen.tir.if_then_else(A[0] > 0, 10, 20)
+        loop_condition = iterations[0] < gsm_data_generator.tir.if_then_else(A[0] > 0, 10, 20)
         with ib.while_loop(loop_condition):
             iterations[0] += 1
             B[0] += iterations[0]
@@ -238,31 +238,31 @@ def test_vulkan_while_if(target, dev):
     )
 
     # Create IRModule
-    mod = gsmDataGen.IRModule.from_expr(te.create_prim_func([A, B]))
+    mod = gsm_data_generator.IRModule.from_expr(te.create_prim_func([A, B]))
     sch = tir.Schedule(mod)
 
     # Build
-    func = gsmDataGen.compile(sch.mod, target=target)
+    func = gsm_data_generator.compile(sch.mod, target=target)
 
-    a = gsmDataGen.nd.array(np.array([5], dtype=A.dtype), dev)
-    b = gsmDataGen.nd.array(np.zeros(n, dtype=A.dtype), dev)
+    a = gsm_data_generator.nd.array(np.array([5], dtype=A.dtype), dev)
+    b = gsm_data_generator.nd.array(np.zeros(n, dtype=A.dtype), dev)
     func(a, b)
-    gsmDataGen.testing.assert_allclose(b.numpy(), [55])
+    gsm_data_generator.testing.assert_allclose(b.numpy(), [55])
 
-    a = gsmDataGen.nd.array(np.array([-5], dtype=A.dtype), dev)
-    b = gsmDataGen.nd.array(np.zeros(n, dtype=A.dtype), dev)
+    a = gsm_data_generator.nd.array(np.array([-5], dtype=A.dtype), dev)
+    b = gsm_data_generator.nd.array(np.zeros(n, dtype=A.dtype), dev)
     func(a, b)
-    gsmDataGen.testing.assert_allclose(b.numpy(), [210])
+    gsm_data_generator.testing.assert_allclose(b.numpy(), [210])
 
 
-@gsmDataGen.testing.exclude_targets("llvm")
+@gsm_data_generator.testing.exclude_targets("llvm")
 def test_vulkan_local_threadidx(target, dev):
-    target = gsmDataGen.target.Target(target)
+    target = gsm_data_generator.target.Target(target)
     n = 32
     A = te.placeholder((n,), name="A", dtype="int32")
 
     def do_compute(A, B, n):
-        ib = gsmDataGen.tir.ir_builder.create()
+        ib = gsm_data_generator.tir.ir_builder.create()
         A = ib.buffer_ptr(A)
         B = ib.buffer_ptr(B)
 
@@ -286,23 +286,23 @@ def test_vulkan_local_threadidx(target, dev):
     )
 
     # Create IRModule
-    mod = gsmDataGen.IRModule.from_expr(te.create_prim_func([A, B]))
+    mod = gsm_data_generator.IRModule.from_expr(te.create_prim_func([A, B]))
     sch = tir.Schedule(mod)
 
     # Build
-    func = gsmDataGen.compile(sch.mod, target=target)
+    func = gsm_data_generator.compile(sch.mod, target=target)
 
     n = 32
     a_np = np.arange(n).astype(dtype=A.dtype)
     b_np = np.zeros((n,), dtype="int32")
-    a = gsmDataGen.nd.array(a_np, dev)
-    b = gsmDataGen.nd.array(b_np, dev)
+    a = gsm_data_generator.nd.array(a_np, dev)
+    b = gsm_data_generator.nd.array(b_np, dev)
     func(a, b)
-    gsmDataGen.testing.assert_allclose(b.numpy(), a_np)
+    gsm_data_generator.testing.assert_allclose(b.numpy(), a_np)
 
 
 class TestVectorizedIndices:
-    load_type, store_type = gsmDataGen.testing.parameters(
+    load_type, store_type = gsm_data_generator.testing.parameters(
         # Load N values, write to N locations.
         # Vectorized copy.
         ("ramp", "ramp"),
@@ -321,9 +321,9 @@ class TestVectorizedIndices:
         # Disabled as it would have unclear semantics.
         # ("ramp","broadcoast"),
     )
-    indirect_indices = gsmDataGen.testing.parameter(True, False, ids=["reorder", "no_reorder"])
+    indirect_indices = gsm_data_generator.testing.parameter(True, False, ids=["reorder", "no_reorder"])
 
-    @gsmDataGen.testing.fixture
+    @gsm_data_generator.testing.fixture
     def ref_data(self, load_type, store_type, indirect_indices):
         n = 4
 
@@ -346,9 +346,9 @@ class TestVectorizedIndices:
 
         return a_np, reorder_np, b_np
 
-    @gsmDataGen.testing.fixture
+    @gsm_data_generator.testing.fixture
     def mod(self, target, load_type, store_type, indirect_indices):
-        target = gsmDataGen.target.Target(target)
+        target = gsm_data_generator.target.Target(target)
 
         n = 4
         dtype = "int32"
@@ -356,7 +356,7 @@ class TestVectorizedIndices:
         R = te.placeholder((n,), dtype=dtype, name="R")
 
         def do_compute(ins, outs):
-            ib = gsmDataGen.tir.ir_builder.create()
+            ib = gsm_data_generator.tir.ir_builder.create()
             A, R = map(ib.buffer_ptr, ins)
             B = ib.buffer_ptr(outs[0])
 
@@ -364,8 +364,8 @@ class TestVectorizedIndices:
                 ib.scope_attr(te.thread_axis("blockIdx.x"), "thread_extent", 0)
 
             index_map = {
-                "ramp": gsmDataGen.tir.Ramp(0, 1, 4),
-                "broadcast": gsmDataGen.tir.Broadcast(0, 4),
+                "ramp": gsm_data_generator.tir.Ramp(0, 1, 4),
+                "broadcast": gsm_data_generator.tir.Broadcast(0, 4),
             }
 
             load_index = index_map[load_type]
@@ -380,17 +380,17 @@ class TestVectorizedIndices:
 
         B = te.extern(A.shape, [A, R], do_compute, dtype="int32")
 
-        return gsmDataGen.IRModule.from_expr(te.create_prim_func([A, R, B]))
+        return gsm_data_generator.IRModule.from_expr(te.create_prim_func([A, R, B]))
 
     def test_ramp_broadcast_index(self, target, dev, mod, ref_data):
-        f = gsmDataGen.compile(mod, target=target)
+        f = gsm_data_generator.compile(mod, target=target)
 
         a_np, reorder_np, b_np = ref_data
-        a = gsmDataGen.nd.array(a_np, dev)
-        r = gsmDataGen.nd.array(reorder_np, dev)
-        b = gsmDataGen.nd.array(np.zeros(shape=b_np.shape, dtype="int32"), dev)
+        a = gsm_data_generator.nd.array(a_np, dev)
+        r = gsm_data_generator.nd.array(reorder_np, dev)
+        b = gsm_data_generator.nd.array(np.zeros(shape=b_np.shape, dtype="int32"), dev)
         f(a, r, b)
-        gsmDataGen.testing.assert_allclose(b.numpy(), b_np)
+        gsm_data_generator.testing.assert_allclose(b.numpy(), b_np)
 
 
 def test_negative_operand_divmod(target, dev):
@@ -419,14 +419,14 @@ def test_negative_operand_divmod(target, dev):
                 A[v_i, 0] = T.floordiv(v_i - offset, divisor)
                 A[v_i, 1] = T.floormod(v_i - offset, divisor)
 
-    if "gpu" in gsmDataGen.target.Target(target).keys:
-        sch = gsmDataGen.tir.Schedule(func)
+    if "gpu" in gsm_data_generator.target.Target(target).keys:
+        sch = gsm_data_generator.tir.Schedule(func)
         sch.bind(sch.get_loops("A")[0], "threadIdx.x")
         func = sch.mod["main"]
 
-    built = gsmDataGen.compile(func, target=target)
+    built = gsm_data_generator.compile(func, target=target)
 
-    a_dev = gsmDataGen.nd.empty([N, 2], "int32", dev)
+    a_dev = gsm_data_generator.nd.empty([N, 2], "int32", dev)
     built(a_dev)
     a = a_dev.numpy()
 
@@ -531,16 +531,16 @@ def test_cooperative_matrix(out_dtype):
     sch.tensorize(sch.get_loops(block)[2], intrin)
 
     target = "vulkan -from_device=0"
-    tgt_attrs = gsmDataGen.target.Target(target).attrs
+    tgt_attrs = gsm_data_generator.target.Target(target).attrs
 
     if tgt_attrs.get("supports_cooperative_matrix"):
-        f = gsmDataGen.compile(sch.mod, target=target)
+        f = gsm_data_generator.compile(sch.mod, target=target)
 
-        dev = gsmDataGen.device(target, 0)
+        dev = gsm_data_generator.device(target, 0)
 
-        A = gsmDataGen.nd.array(np.random.randn(M, K).astype("float16"), dev)
-        B = gsmDataGen.nd.array(np.random.randn(K, N).astype("float16"), dev)
-        C = gsmDataGen.nd.array(np.random.randn(M, N).astype(out_dtype), dev)
+        A = gsm_data_generator.nd.array(np.random.randn(M, K).astype("float16"), dev)
+        B = gsm_data_generator.nd.array(np.random.randn(K, N).astype("float16"), dev)
+        C = gsm_data_generator.nd.array(np.random.randn(M, N).astype(out_dtype), dev)
 
         f(A, B, C)
 
@@ -548,10 +548,10 @@ def test_cooperative_matrix(out_dtype):
         B_np = B.numpy()
         ref = np.dot(A_np.astype("float32"), B_np.astype("float32"))
 
-        gsmDataGen.testing.assert_allclose(C.numpy(), ref, rtol=1e-2, atol=1e-2)
+        gsm_data_generator.testing.assert_allclose(C.numpy(), ref, rtol=1e-2, atol=1e-2)
 
 
-@gsmDataGen.testing.requires_vulkan(support_required="compile-only")
+@gsm_data_generator.testing.requires_vulkan(support_required="compile-only")
 def test_codegen_decl_buffer():
     """The codegen should accept DeclBuffer nodes in its input"""
 
@@ -563,27 +563,27 @@ def test_codegen_decl_buffer():
             A_data = T.allocate([256], dtype="float32", scope="local")
             A_buf = T.decl_buffer([256], dtype="float32", scope="local", data=A_data)
 
-    target = gsmDataGen.target.Target("vulkan")
-    vulkan_codegen = gsmDataGen.get_global_func("target.build.vulkan")
+    target = gsm_data_generator.target.Target("vulkan")
+    vulkan_codegen = gsm_data_generator.get_global_func("target.build.vulkan")
     vulkan_codegen(mod, target)
 
 
-@gsmDataGen.testing.requires_gpu
-@gsmDataGen.testing.requires_vulkan
+@gsm_data_generator.testing.requires_gpu
+@gsm_data_generator.testing.requires_vulkan
 def test_unary():
     test_funcs = [
-        (gsmDataGen.tir.sin, lambda x: np.sin(x)),
-        (gsmDataGen.tir.cos, lambda x: np.cos(x)),
-        (gsmDataGen.tir.tan, lambda x: np.tan(x)),
-        (gsmDataGen.tir.sinh, lambda x: np.sinh(x)),
-        (gsmDataGen.tir.cosh, lambda x: np.cosh(x)),
-        (gsmDataGen.tir.tanh, lambda x: np.tanh(x)),
-        (gsmDataGen.tir.asin, lambda x: np.arcsin(x)),
-        (gsmDataGen.tir.acos, lambda x: np.arccos(x)),
-        (gsmDataGen.tir.atan, lambda x: np.arctan(x)),
-        (gsmDataGen.tir.asinh, lambda x: np.arcsinh(x)),
-        (gsmDataGen.tir.acosh, lambda x: np.arccosh(x)),
-        (gsmDataGen.tir.atanh, lambda x: np.arctanh(x)),
+        (gsm_data_generator.tir.sin, lambda x: np.sin(x)),
+        (gsm_data_generator.tir.cos, lambda x: np.cos(x)),
+        (gsm_data_generator.tir.tan, lambda x: np.tan(x)),
+        (gsm_data_generator.tir.sinh, lambda x: np.sinh(x)),
+        (gsm_data_generator.tir.cosh, lambda x: np.cosh(x)),
+        (gsm_data_generator.tir.tanh, lambda x: np.tanh(x)),
+        (gsm_data_generator.tir.asin, lambda x: np.arcsin(x)),
+        (gsm_data_generator.tir.acos, lambda x: np.arccos(x)),
+        (gsm_data_generator.tir.atan, lambda x: np.arctan(x)),
+        (gsm_data_generator.tir.asinh, lambda x: np.arcsinh(x)),
+        (gsm_data_generator.tir.acosh, lambda x: np.arccosh(x)),
+        (gsm_data_generator.tir.atanh, lambda x: np.arctanh(x)),
     ]
 
     def run_test(tvm_intrin, np_func):
@@ -600,28 +600,28 @@ def test_unary():
         sch.bind(bx, "blockIdx.x")
         sch.bind(tx, "threadIdx.x")
 
-        target = gsmDataGen.target.Target("vulkan")
-        dev = gsmDataGen.device(target.kind.name, 0)
-        func = gsmDataGen.compile(sch.mod, target=target)
+        target = gsm_data_generator.target.Target("vulkan")
+        dev = gsm_data_generator.device(target.kind.name, 0)
+        func = gsm_data_generator.compile(sch.mod, target=target)
 
         n = 16
-        if tvm_intrin in [gsmDataGen.tir.asin, gsmDataGen.tir.acos]:
+        if tvm_intrin in [gsm_data_generator.tir.asin, gsm_data_generator.tir.acos]:
             data = np.random.uniform(-1.0, 1.0, size=n)
-        elif tvm_intrin == gsmDataGen.tir.atanh:
+        elif tvm_intrin == gsm_data_generator.tir.atanh:
             data = np.random.uniform(-0.999, 0.999, size=n)
-        elif tvm_intrin == gsmDataGen.tir.acosh:
+        elif tvm_intrin == gsm_data_generator.tir.acosh:
             data = np.random.uniform(1.0, 5.0, size=n)
         else:
             data = np.random.uniform(0.1, 0.9, size=n)
 
-        a = gsmDataGen.nd.array(data.astype(A.dtype), dev)
-        b = gsmDataGen.nd.array(np.zeros(n, dtype=A.dtype), dev)
+        a = gsm_data_generator.nd.array(data.astype(A.dtype), dev)
+        b = gsm_data_generator.nd.array(np.zeros(n, dtype=A.dtype), dev)
         func(a, b)
-        gsmDataGen.testing.assert_allclose(b.numpy(), np_func(a.numpy()), atol=1e-3, rtol=1e-3)
+        gsm_data_generator.testing.assert_allclose(b.numpy(), np_func(a.numpy()), atol=1e-3, rtol=1e-3)
 
     for func in test_funcs:
         run_test(*func)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

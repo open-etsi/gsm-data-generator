@@ -21,19 +21,19 @@ import sys
 from typing import List
 
 import pytest
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import te
-from gsmDataGen.ir.module import IRModule
-from gsmDataGen.ffi import register_func
-from gsmDataGen.error import TVMError
-from gsmDataGen.meta_schedule import TuneContext
-from gsmDataGen.meta_schedule.schedule_rule import PyScheduleRule
-from gsmDataGen.meta_schedule.space_generator import PostOrderApply
-from gsmDataGen.meta_schedule.utils import derived_object
-from gsmDataGen.script import tir as T
-from gsmDataGen.target import Target
-from gsmDataGen.tir.schedule import BlockRV, Schedule
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import te
+from gsm_data_generator.ir.module import IRModule
+from gsm_data_generator.ffi import register_func
+from gsm_data_generator.error import TVMError
+from gsm_data_generator.meta_schedule import TuneContext
+from gsm_data_generator.meta_schedule.schedule_rule import PyScheduleRule
+from gsm_data_generator.meta_schedule.space_generator import PostOrderApply
+from gsm_data_generator.meta_schedule.utils import derived_object
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.target import Target
+from gsm_data_generator.tir.schedule import BlockRV, Schedule
 
 # pylint: disable=invalid-name,no-member,line-too-long,too-many-nested-blocks,no-self-argument,
 # fmt: off
@@ -55,7 +55,7 @@ def get_matmul_packed(m, n, k, lhs_type="int8", rhs_dtype="int8", acc_dtype="int
     return te.create_prim_func([X, W, matmul])
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Matmul:
     @T.prim_func
     def main(a: T.handle, b: T.handle, c: T.handle) -> None:
@@ -71,7 +71,7 @@ class Matmul:
                 C[vi, vj] = C[vi, vj] + A[vi, vk] * B[vk, vj]
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class DuplicateMatmul:
     @T.prim_func
     def main(a: T.handle, b: T.handle, c: T.handle) -> None:
@@ -91,7 +91,7 @@ class DuplicateMatmul:
                 C[vi, vj] = C[vi, vj] + A[vi, vk] * B[vk, vj]
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class TrinityMatmul:
     @T.prim_func
     def main(a: T.handle, d: T.handle) -> None:
@@ -114,7 +114,7 @@ class TrinityMatmul:
                 D[vi, vj] = C[vi, vj] * 5.0
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class TrinityMatmulProcessedForReference:
     @T.prim_func
     def main(a: T.handle, d: T.handle) -> None:
@@ -254,7 +254,7 @@ def test_meta_schedule_post_order_apply():
     post_order_apply = context.space_generator
     schs = post_order_apply.generate_design_space(mod)
     assert len(schs) == 1
-    assert not gsmDataGen.ir.structural_equal(schs[0].mod, mod)
+    assert not gsm_data_generator.ir.structural_equal(schs[0].mod, mod)
     _check_correct(schs[0])
 
 
@@ -274,7 +274,7 @@ def test_meta_schedule_post_order_apply_double():
     schs = post_order_apply.generate_design_space(mod)
     assert len(schs) == 2
     for sch in schs:
-        assert not gsmDataGen.ir.structural_equal(sch.mod, mod)
+        assert not gsm_data_generator.ir.structural_equal(sch.mod, mod)
         _check_correct(sch)
 
 
@@ -294,7 +294,7 @@ def test_meta_schedule_post_order_apply_multiple():
     schs = post_order_apply.generate_design_space(mod)
     assert len(schs) == 4
     for sch in schs:
-        assert not gsmDataGen.ir.structural_equal(sch.mod, mod)
+        assert not gsm_data_generator.ir.structural_equal(sch.mod, mod)
         _check_correct(sch)
 
 
@@ -376,7 +376,7 @@ def test_meta_schedule_post_order_apply_remove_block():
     assert len(schs) == 4
     for sch in schs:
         with pytest.raises(
-            gsmDataGen.tir.schedule.schedule.ScheduleError,
+            gsm_data_generator.tir.schedule.schedule.ScheduleError,
             match="ScheduleError: An error occurred in the schedule primitive 'get-block'.",
         ):
             sch.get_block("B", "main")
@@ -504,4 +504,4 @@ def test_meta_schedule_derived_object():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

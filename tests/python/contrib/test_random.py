@@ -18,11 +18,11 @@
 # pylint: disable=invalid-name
 import threading
 import numpy as np
-import gsmDataGen
-from gsmDataGen import te
-from gsmDataGen.contrib import random
-from gsmDataGen import rpc
-import gsmDataGen.testing
+import gsm_data_generator
+from gsm_data_generator import te
+from gsm_data_generator.contrib import random
+from gsm_data_generator import rpc
+import gsm_data_generator.testing
 
 
 def test_randint():
@@ -32,15 +32,15 @@ def test_randint():
     A = random.randint(-127, 128, size=(m, n), dtype="int32")
 
     def verify(target="llvm"):
-        if not gsmDataGen.testing.device_enabled(target):
+        if not gsm_data_generator.testing.device_enabled(target):
             print("skip because %s is not enabled..." % target)
             return
-        if not gsmDataGen.get_global_func("tvm.contrib.random.randint", True):
+        if not gsm_data_generator.get_global_func("tvm.contrib.random.randint", True):
             print("skip because extern function is not available")
             return
-        dev = gsmDataGen.cpu(0)
-        f = gsmDataGen.compile(te.create_prim_func([A]), target=target)
-        a = gsmDataGen.nd.array(np.zeros((m, n), dtype=A.dtype), dev)
+        dev = gsm_data_generator.cpu(0)
+        f = gsm_data_generator.compile(te.create_prim_func([A]), target=target)
+        a = gsm_data_generator.nd.array(np.zeros((m, n), dtype=A.dtype), dev)
         f(a)
         na = a.numpy()
         assert abs(np.mean(na)) < 0.3
@@ -57,15 +57,15 @@ def test_uniform():
     A = random.uniform(0, 1, size=(m, n))
 
     def verify(target="llvm"):
-        if not gsmDataGen.testing.device_enabled(target):
+        if not gsm_data_generator.testing.device_enabled(target):
             print("skip because %s is not enabled..." % target)
             return
-        if not gsmDataGen.get_global_func("tvm.contrib.random.uniform", True):
+        if not gsm_data_generator.get_global_func("tvm.contrib.random.uniform", True):
             print("skip because extern function is not available")
             return
-        dev = gsmDataGen.cpu(0)
-        f = gsmDataGen.compile(te.create_prim_func([A]), target=target)
-        a = gsmDataGen.nd.array(np.zeros((m, n), dtype=A.dtype), dev)
+        dev = gsm_data_generator.cpu(0)
+        f = gsm_data_generator.compile(te.create_prim_func([A]), target=target)
+        a = gsm_data_generator.nd.array(np.zeros((m, n), dtype=A.dtype), dev)
         f(a)
         na = a.numpy()
         assert abs(np.mean(na) - 0.5) < 1e-1
@@ -82,15 +82,15 @@ def test_normal():
     A = random.normal(3, 4, size=(m, n))
 
     def verify(target="llvm"):
-        if not gsmDataGen.testing.device_enabled(target):
+        if not gsm_data_generator.testing.device_enabled(target):
             print("skip because %s is not enabled..." % target)
             return
-        if not gsmDataGen.get_global_func("tvm.contrib.random.normal", True):
+        if not gsm_data_generator.get_global_func("tvm.contrib.random.normal", True):
             print("skip because extern function is not available")
             return
-        dev = gsmDataGen.cpu(0)
-        f = gsmDataGen.compile(te.create_prim_func([A]), target=target)
-        a = gsmDataGen.nd.array(np.zeros((m, n), dtype=A.dtype), dev)
+        dev = gsm_data_generator.cpu(0)
+        f = gsm_data_generator.compile(te.create_prim_func([A]), target=target)
+        a = gsm_data_generator.nd.array(np.zeros((m, n), dtype=A.dtype), dev)
         f(a)
         na = a.numpy()
         assert abs(np.mean(na) - 3) < 1e-1
@@ -99,16 +99,16 @@ def test_normal():
     verify()
 
 
-@gsmDataGen.testing.uses_gpu
+@gsm_data_generator.testing.uses_gpu
 def test_random_fill():
     """Tests random_fill function"""
 
     def test_local(dev, dtype):
-        if not gsmDataGen.get_global_func("tvm.contrib.random.random_fill", True):
+        if not gsm_data_generator.get_global_func("tvm.contrib.random.random_fill", True):
             print("skip because extern function is not available")
             return
-        value = gsmDataGen.nd.empty((512, 512), dtype, dev)
-        random_fill = gsmDataGen.get_global_func("tvm.contrib.random.random_fill")
+        value = gsm_data_generator.nd.empty((512, 512), dtype, dev)
+        random_fill = gsm_data_generator.get_global_func("tvm.contrib.random.random_fill")
         random_fill(value)
 
         assert np.count_nonzero(value.numpy()) == 512 * 512
@@ -118,15 +118,15 @@ def test_random_fill():
         assert np.isfinite(np_values * np_values + np_values).any()
 
     def test_rpc(dtype):
-        if not gsmDataGen.get_global_func("tvm.contrib.random.random_fill", True):
+        if not gsm_data_generator.get_global_func("tvm.contrib.random.random_fill", True):
             print("skip because extern function is not available")
             return
-        if not gsmDataGen.testing.device_enabled("rpc") or not gsmDataGen.runtime.enabled("llvm"):
+        if not gsm_data_generator.testing.device_enabled("rpc") or not gsm_data_generator.runtime.enabled("llvm"):
             return
 
         def check_remote(server):
             remote = rpc.connect(server.host, server.port)
-            value = gsmDataGen.nd.empty((512, 512), dtype, remote.cpu())
+            value = gsm_data_generator.nd.empty((512, 512), dtype, remote.cpu())
             random_fill = remote.get_function("tvm.contrib.random.random_fill")
             random_fill(value)
 
@@ -153,7 +153,7 @@ def test_random_fill():
         "float32",
         "float64",
     ]:
-        for _, dev in gsmDataGen.testing.enabled_targets():
+        for _, dev in gsm_data_generator.testing.enabled_targets():
             test_local(dev, dtype)
         test_rpc(dtype)
 
@@ -167,11 +167,11 @@ def test_random_fill_mt():
     def test_body():
         try:
             num_thread_used = 1
-            configure_threads = gsmDataGen.get_global_func("runtime.config_threadpool")
+            configure_threads = gsm_data_generator.get_global_func("runtime.config_threadpool")
             configure_threads(1, num_thread_used)
 
-            test_input = gsmDataGen.runtime.ndarray.empty((10, 10))
-            random_fill = gsmDataGen.get_global_func("tvm.contrib.random.random_fill_for_measure")
+            test_input = gsm_data_generator.runtime.ndarray.empty((10, 10))
+            random_fill = gsm_data_generator.get_global_func("tvm.contrib.random.random_fill_for_measure")
             random_fill(test_input)
         except:  # pylint: disable=bare-except
             nonlocal no_exception_happened

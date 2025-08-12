@@ -15,16 +15,16 @@
 # specific language governing permissions and limitations
 # under the License.
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen.script import tir as T
-from gsmDataGen import TVMError
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator.script import tir as T
+from gsm_data_generator import TVMError
 
 
-class BaseBeforeAfter(gsmDataGen.testing.CompareBeforeAfter):
-    @gsmDataGen.testing.fixture
+class BaseBeforeAfter(gsm_data_generator.testing.CompareBeforeAfter):
+    @gsm_data_generator.testing.fixture
     def transform(self):
-        return gsmDataGen.tir.transform.RemoveStoreUndef()
+        return gsm_data_generator.tir.transform.RemoveStoreUndef()
 
 
 class TestRemoveStoreUndef(BaseBeforeAfter):
@@ -91,4 +91,4 @@ class TestRaiseErrorForUndefAsLoadIndices(BaseBeforeAfter):
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

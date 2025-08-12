@@ -14,13 +14,13 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-import gsmDataGen
-from gsmDataGen import te
-from gsmDataGen.contrib import cc, utils, popen_pool
+import gsm_data_generator
+from gsm_data_generator import te
+from gsm_data_generator.contrib import cc, utils, popen_pool
 import sys
 import numpy as np
 import subprocess
-import gsmDataGen.testing
+import gsm_data_generator.testing
 import pytest
 
 runtime_py = """
@@ -41,7 +41,7 @@ print("Finish runtime checking...")
 """
 
 
-@gsmDataGen.testing.requires_llvm
+@gsm_data_generator.testing.requires_llvm
 @pytest.mark.parametrize("target", ["llvm", "llvm -jit=mcjit"])
 def test_dso_module_load(target):
     dtype = "int64"
@@ -49,20 +49,20 @@ def test_dso_module_load(target):
 
     def save_object(names):
         n = te.size_var("n")
-        Ab = gsmDataGen.tir.decl_buffer((n,), dtype)
+        Ab = gsm_data_generator.tir.decl_buffer((n,), dtype)
         i = te.var("i")
         # for i in 0 to n-1:
-        stmt = gsmDataGen.tir.For(
+        stmt = gsm_data_generator.tir.For(
             i,
             0,
             n - 1,
-            gsmDataGen.tir.ForKind.SERIAL,
-            gsmDataGen.tir.BufferStore(Ab, gsmDataGen.tir.BufferLoad(Ab, [i]) + 1, [i + 1]),
+            gsm_data_generator.tir.ForKind.SERIAL,
+            gsm_data_generator.tir.BufferStore(Ab, gsm_data_generator.tir.BufferLoad(Ab, [i]) + 1, [i + 1]),
         )
-        mod = gsmDataGen.IRModule.from_expr(
-            gsmDataGen.tir.PrimFunc([Ab], stmt).with_attr("global_symbol", "main")
+        mod = gsm_data_generator.IRModule.from_expr(
+            gsm_data_generator.tir.PrimFunc([Ab], stmt).with_attr("global_symbol", "main")
         )
-        m = gsmDataGen.tir.build(mod, target=target)
+        m = gsm_data_generator.tir.build(mod, target=target)
         for name in names:
             m.save(name)
 
@@ -73,12 +73,12 @@ def test_dso_module_load(target):
     save_object([path_obj, path_ll, path_bc])
     cc.create_shared(path_dso, [path_obj])
 
-    f1 = gsmDataGen.runtime.load_module(path_dso)
-    f2 = gsmDataGen.runtime.load_module(path_ll)
-    a = gsmDataGen.nd.array(np.zeros(10, dtype=dtype))
+    f1 = gsm_data_generator.runtime.load_module(path_dso)
+    f2 = gsm_data_generator.runtime.load_module(path_ll)
+    a = gsm_data_generator.nd.array(np.zeros(10, dtype=dtype))
     f1(a)
     np.testing.assert_equal(a.numpy(), np.arange(a.shape[0]))
-    a = gsmDataGen.nd.array(np.zeros(10, dtype=dtype))
+    a = gsm_data_generator.nd.array(np.zeros(10, dtype=dtype))
     f2(a)
     np.testing.assert_equal(a.numpy(), np.arange(a.shape[0]))
 
@@ -94,14 +94,14 @@ def test_dso_module_load(target):
     assert proc.returncode == 0, f"{proc.args} exited with {proc.returncode}: {proc.stdout}"
 
 
-@gsmDataGen.testing.requires_gpu
+@gsm_data_generator.testing.requires_gpu
 def test_device_module_dump():
     # graph
-    n = gsmDataGen.runtime.convert(1024)
+    n = gsm_data_generator.runtime.convert(1024)
     A = te.placeholder((n,), name="A")
     B = te.compute(A.shape, lambda *i: A(*i) + 1.0, name="B")
 
-    sch = gsmDataGen.tir.Schedule(te.create_prim_func([A, B]))
+    sch = gsm_data_generator.tir.Schedule(te.create_prim_func([A, B]))
     # create iter var and assign them tags.
     num_thread = 8
     bx, tx = sch.split(sch.get_loops("B")[0], factors=[None, num_thread])
@@ -109,23 +109,23 @@ def test_device_module_dump():
     sch.bind(tx, "threadIdx.x")
 
     def check_device(device):
-        dev = gsmDataGen.device(device, 0)
-        if not gsmDataGen.testing.device_enabled(device):
+        dev = gsm_data_generator.device(device, 0)
+        if not gsm_data_generator.testing.device_enabled(device):
             print("Skip because %s is not enabled" % device)
             return
         temp = utils.tempdir()
-        f = gsmDataGen.compile(sch.mod, target=device)
+        f = gsm_data_generator.compile(sch.mod, target=device)
 
         path_dso = temp.relpath("dev_lib.so")
         # test cross compiler function
         f.export_library(path_dso, fcompile=cc.cross_compiler("g++"))
 
         def popen_check():
-            import gsmDataGen
+            import gsm_data_generator
 
-            f1 = gsmDataGen.runtime.load_module(path_dso)
-            a = gsmDataGen.nd.array(np.random.uniform(size=1024).astype(A.dtype), dev)
-            b = gsmDataGen.nd.array(np.zeros(1024, dtype=A.dtype), dev)
+            f1 = gsm_data_generator.runtime.load_module(path_dso)
+            a = gsm_data_generator.nd.array(np.random.uniform(size=1024).astype(A.dtype), dev)
+            b = gsm_data_generator.nd.array(np.zeros(1024, dtype=A.dtype), dev)
             f1(a, b)
             np.testing.assert_equal(b.numpy(), a.numpy() + 1)
 
@@ -135,13 +135,13 @@ def test_device_module_dump():
         worker.recv()
 
     def check_c(device):
-        dev = gsmDataGen.device(device, 0)
-        if not gsmDataGen.testing.device_enabled(device):
+        dev = gsm_data_generator.device(device, 0)
+        if not gsm_data_generator.testing.device_enabled(device):
             print("Skip because %s is not enabled" % device)
             return
-        f = gsmDataGen.compile(sch.mod, target=gsmDataGen.target.Target(device, host="c"))
-        a = gsmDataGen.nd.array(np.random.uniform(size=1024).astype(A.dtype), dev)
-        b = gsmDataGen.nd.array(np.zeros(1024, dtype=A.dtype), dev)
+        f = gsm_data_generator.compile(sch.mod, target=gsm_data_generator.target.Target(device, host="c"))
+        a = gsm_data_generator.nd.array(np.random.uniform(size=1024).astype(A.dtype), dev)
+        b = gsm_data_generator.nd.array(np.zeros(1024, dtype=A.dtype), dev)
         f["main"](a, b)
         np.testing.assert_equal(b.numpy(), a.numpy() + 1)
 
@@ -150,22 +150,22 @@ def test_device_module_dump():
         check_c(device)
 
 
-@gsmDataGen.testing.requires_llvm
+@gsm_data_generator.testing.requires_llvm
 def test_combine_module_llvm():
     """Test combine multiple module into one shared lib."""
     # graph
     nn = 12
-    n = gsmDataGen.runtime.convert(nn)
+    n = gsm_data_generator.runtime.convert(nn)
     A = te.placeholder((n,), name="A")
     B = te.compute(A.shape, lambda *i: A(*i) + 1.0, name="B")
-    mod1 = gsmDataGen.IRModule.from_expr(te.create_prim_func([A, B]).with_attr("global_symbol", "myadd1"))
-    mod2 = gsmDataGen.IRModule.from_expr(te.create_prim_func([A, B]).with_attr("global_symbol", "myadd2"))
+    mod1 = gsm_data_generator.IRModule.from_expr(te.create_prim_func([A, B]).with_attr("global_symbol", "myadd1"))
+    mod2 = gsm_data_generator.IRModule.from_expr(te.create_prim_func([A, B]).with_attr("global_symbol", "myadd2"))
 
     def check_llvm():
-        dev = gsmDataGen.cpu(0)
+        dev = gsm_data_generator.cpu(0)
         temp = utils.tempdir()
-        fadd1 = gsmDataGen.tir.build(mod1, "llvm")
-        fadd2 = gsmDataGen.tir.build(mod2, "llvm")
+        fadd1 = gsm_data_generator.tir.build(mod1, "llvm")
+        fadd2 = gsm_data_generator.tir.build(mod2, "llvm")
         path1 = temp.relpath("myadd1.o")
         path2 = temp.relpath("myadd2.o")
         path_dso = temp.relpath("mylib.so")
@@ -173,25 +173,25 @@ def test_combine_module_llvm():
         fadd2.save(path2)
         # create shared library with multiple functions
         cc.create_shared(path_dso, [path1, path2])
-        m = gsmDataGen.runtime.load_module(path_dso)
+        m = gsm_data_generator.runtime.load_module(path_dso)
         fadd1 = m["myadd1"]
         fadd2 = m["myadd2"]
-        a = gsmDataGen.nd.array(np.random.uniform(size=nn).astype(A.dtype), dev)
-        b = gsmDataGen.nd.array(np.zeros(nn, dtype=A.dtype), dev)
+        a = gsm_data_generator.nd.array(np.random.uniform(size=nn).astype(A.dtype), dev)
+        b = gsm_data_generator.nd.array(np.zeros(nn, dtype=A.dtype), dev)
         fadd1(a, b)
         np.testing.assert_equal(b.numpy(), a.numpy() + 1)
         fadd2(a, b)
         np.testing.assert_equal(b.numpy(), a.numpy() + 1)
 
     def check_system_lib():
-        dev = gsmDataGen.cpu(0)
-        if not gsmDataGen.testing.device_enabled("llvm"):
+        dev = gsm_data_generator.cpu(0)
+        if not gsm_data_generator.testing.device_enabled("llvm"):
             print("Skip because llvm is not enabled")
             return
         temp = utils.tempdir()
         print("Running popen check")
-        fadd1 = gsmDataGen.tir.build(mod1.with_attr("system_lib_prefix", ""), "llvm")
-        fadd2 = gsmDataGen.tir.build(mod2.with_attr("system_lib_prefix", ""), "llvm")
+        fadd1 = gsm_data_generator.tir.build(mod1.with_attr("system_lib_prefix", ""), "llvm")
+        fadd2 = gsm_data_generator.tir.build(mod2.with_attr("system_lib_prefix", ""), "llvm")
         path1 = temp.relpath("myadd1.o")
         path2 = temp.relpath("myadd2.o")
         path_dso = temp.relpath("mylib.so")
@@ -200,15 +200,15 @@ def test_combine_module_llvm():
         cc.create_shared(path_dso, [path1, path2])
 
         def popen_check():
-            import gsmDataGen.runtime
+            import gsm_data_generator.runtime
             import ctypes
 
             # Load dll, will trigger system library registration
             ctypes.CDLL(path_dso)
             # Load the system wide library
-            mm = gsmDataGen.runtime.system_lib()
-            a = gsmDataGen.nd.array(np.random.uniform(size=nn).astype(A.dtype), dev)
-            b = gsmDataGen.nd.array(np.zeros(nn, dtype=A.dtype), dev)
+            mm = gsm_data_generator.runtime.system_lib()
+            a = gsm_data_generator.nd.array(np.random.uniform(size=nn).astype(A.dtype), dev)
+            b = gsm_data_generator.nd.array(np.zeros(nn, dtype=A.dtype), dev)
             mm["myadd1"](a, b)
             np.testing.assert_equal(b.numpy(), a.numpy() + 1)
             mm["myadd2"](a, b)

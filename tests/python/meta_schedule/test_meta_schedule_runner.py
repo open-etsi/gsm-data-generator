@@ -23,12 +23,12 @@ from typing import Any, List
 
 import numpy as np
 import pytest
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen.ffi import register_func
-from gsmDataGen.meta_schedule.arg_info import TensorInfo
-from gsmDataGen.meta_schedule.builder import BuilderInput, LocalBuilder
-from gsmDataGen.meta_schedule.runner import (
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator.ffi import register_func
+from gsm_data_generator.meta_schedule.arg_info import TensorInfo
+from gsm_data_generator.meta_schedule.builder import BuilderInput, LocalBuilder
+from gsm_data_generator.meta_schedule.runner import (
     EvaluatorConfig,
     LocalRunner,
     PyRunner,
@@ -37,26 +37,26 @@ from gsmDataGen.meta_schedule.runner import (
     RunnerFuture,
     RunnerInput,
 )
-from gsmDataGen.meta_schedule.runner.local_runner import (
+from gsm_data_generator.meta_schedule.runner.local_runner import (
     default_alloc_argument as local_default_alloc_argument,
 )
-from gsmDataGen.meta_schedule.runner.rpc_runner import (
+from gsm_data_generator.meta_schedule.runner.rpc_runner import (
     T_ARG_INFO_JSON_OBJ_LIST,
     T_ARGUMENT_LIST,
 )
-from gsmDataGen.meta_schedule.runner.rpc_runner import (
+from gsm_data_generator.meta_schedule.runner.rpc_runner import (
     default_alloc_argument as rpc_default_alloc_argument,
 )
-from gsmDataGen.meta_schedule.testing.local_rpc import LocalRPC
-from gsmDataGen.meta_schedule.utils import (
+from gsm_data_generator.meta_schedule.testing.local_rpc import LocalRPC
+from gsm_data_generator.meta_schedule.utils import (
     derived_object,
     get_global_func_with_default_on_worker,
 )
-from gsmDataGen.rpc import RPCSession
-from gsmDataGen.runtime import Device, Module
-from gsmDataGen.script import tir as T
-from gsmDataGen.target import Target
-from gsmDataGen.tir import FloatImm
+from gsm_data_generator.rpc import RPCSession
+from gsm_data_generator.runtime import Device, Module
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.target import Target
+from gsm_data_generator.tir import FloatImm
 
 MATMUL_N = 16
 MATMUL_M = 32
@@ -64,7 +64,7 @@ MATMUL_M = 32
 # pylint: disable=invalid-name,no-member,line-too-long,too-many-nested-blocks,missing-docstring,unbalanced-tuple-unpacking
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class MatmulModule:
     @T.prim_func
     def main(a: T.handle, b: T.handle, c: T.handle) -> None:  # pylint: disable=no-self-argument
@@ -80,7 +80,7 @@ class MatmulModule:
                 C[vi, vj] = C[vi, vj] + A[vi, vk] * B[vk, vj]
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class MatmulReluModule:
     @T.prim_func
     def main(a: T.handle, b: T.handle, d: T.handle) -> None:  # pylint: disable=no-self-argument
@@ -101,7 +101,7 @@ class MatmulReluModule:
                 D[vi, vj] = T.max(C[vi, vj], 0.0)
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class BatchMatmulModule:
     @T.prim_func
     def main(a: T.handle, b: T.handle, c: T.handle) -> None:  # pylint: disable=no-self-argument
@@ -117,7 +117,7 @@ class BatchMatmulModule:
                 C[vn, vi, vj] = C[vn, vi, vj] + A[vn, vi, vk] * B[vn, vj, vk]
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class AddModule:
     @T.prim_func
     def main(a: T.handle, b: T.handle, c: T.handle) -> None:  # pylint: disable=no-self-argument
@@ -132,7 +132,7 @@ class AddModule:
 
 
 # A huge matmul that must cause timeout in the timeout test below.
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class MatmulHugeModule:
     @T.prim_func
     def main(a: T.handle, b: T.handle, c: T.handle) -> None:  # pylint: disable=no-self-argument
@@ -388,7 +388,7 @@ def test_meta_schedule_py_runner():
         runner.run([])
 
 
-@gsmDataGen.testing.skip_if_32bit(reason="skipping test for i386.")
+@gsm_data_generator.testing.skip_if_32bit(reason="skipping test for i386.")
 def test_meta_schedule_rpc_runner_time_out():
     """Test meta schedule RPC Runner time out by using a super large workload"""
 
@@ -600,7 +600,7 @@ def test_meta_schedule_runner_matmul_test():
         c_before = np.matmul(a_before, b_before)
         assert (a_before == a_after).all()
         assert (b_before == b_after).all()
-        gsmDataGen.testing.assert_allclose(c_before, c_after, rtol=1e-5)
+        gsm_data_generator.testing.assert_allclose(c_before, c_after, rtol=1e-5)
 
     def test_alloc_argument(
         session: RPCSession,
@@ -905,4 +905,4 @@ def test_meta_schedule_local_runner_add_test():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

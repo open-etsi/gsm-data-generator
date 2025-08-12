@@ -17,11 +17,11 @@
 import enum
 
 import pytest
-import gsmDataGen
-import gsmDataGen.script
-import gsmDataGen.testing
-from gsmDataGen import relax
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.script
+import gsm_data_generator.testing
+from gsm_data_generator import relax
+from gsm_data_generator.script import tir as T
 
 
 class OpPatternKind(enum.IntEnum):
@@ -35,7 +35,7 @@ class OpPatternKind(enum.IntEnum):
 
 
 def test_annotate_opkind_outewisefusable():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class InputModule:
         @T.prim_func
         def tir_matmul(x: T.handle, y: T.handle, z: T.handle) -> None:
@@ -68,7 +68,7 @@ def test_annotate_opkind_outewisefusable():
     ],
 )
 def test_annotate_opkind_outewisefusable_with_cast(cast_pattern):
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class InputModule:
         @T.prim_func
         def tir_matmul(x: T.handle, y: T.handle, z: T.handle) -> None:
@@ -93,7 +93,7 @@ def test_annotate_opkind_outewisefusable_with_cast(cast_pattern):
 
 
 def test_annotate_opkind_outewisefusable_int_var_signature():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class InputModule:
         @T.prim_func
         def tir_matmul(x: T.handle, y: T.handle, z: T.handle, m: T.int64, n: T.int64, k: T.int64):
@@ -115,7 +115,7 @@ def test_annotate_opkind_outewisefusable_int_var_signature():
 
 
 def test_annotate_opkind_reduce():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class InputModule:
         @T.prim_func
         def sum(x: T.handle, y: T.handle) -> None:
@@ -136,7 +136,7 @@ def test_annotate_opkind_reduce():
 
 
 def test_annotate_opkind_ewise():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class InputModule:
         @T.prim_func
         def elemwise(x: T.handle, y: T.handle) -> None:
@@ -155,7 +155,7 @@ def test_annotate_opkind_ewise():
 
 
 def test_annotate_opkind_broadcast():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class InputModule:
         @T.prim_func
         def broadcast(x: T.handle, y: T.handle) -> None:
@@ -174,7 +174,7 @@ def test_annotate_opkind_broadcast():
 
 
 def test_annotate_opkind_injective():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class InputModule:
         @T.prim_func
         def injective(x: T.handle, y: T.handle) -> None:
@@ -193,7 +193,7 @@ def test_annotate_opkind_injective():
 
 
 def test_annotate_opkind_bias_add():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class InputModule:
         @T.prim_func
         def tir_bias_add(
@@ -218,7 +218,7 @@ def test_annotate_opkind_bias_add():
 
 
 def test_annotate_opkind_add_broadcast_with_unit_shape():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class InputModule:
         @T.prim_func
         def add_with_unit_dim_len_broadcast(
@@ -240,7 +240,7 @@ def test_annotate_opkind_add_broadcast_with_unit_shape():
 
 
 def test_annotate_opkind_add_zero_dim_element_wise():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class InputModule:
         @T.prim_func
         def add_zero_dim(
@@ -262,7 +262,7 @@ def test_annotate_opkind_add_zero_dim_element_wise():
 
 
 def test_annotate_opkind_pooling():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class InputModule:
         @T.prim_func
         def max_pool2d(
@@ -306,7 +306,7 @@ def test_annotate_opkind_pooling():
 
 
 def test_annotate_opkind_softmax():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class InputModule:
         @T.prim_func
         def softmax(
@@ -364,7 +364,7 @@ def test_annotate_opkind_softmax():
 
 
 def test_multiple_bufer_stores_fallback():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class CumsumModule:
         @T.prim_func
         def cumsum(var_rxplaceholder: T.handle, out_buf: T.Buffer(160, "float32")):
@@ -391,7 +391,7 @@ def test_multiple_bufer_stores_fallback():
 
 
 def test_sum_sqsum():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Module:
         @T.prim_func
         def sum_sqsum(
@@ -418,7 +418,7 @@ def test_sum_sqsum():
 
 
 def test_no_buffer_stores():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Module:
         @T.prim_func
         def no_buffer_stores(A: T.Buffer((32, 64), "float32"), vsum: T.Buffer((32,), "float32")):
@@ -437,4 +437,4 @@ def test_no_buffer_stores():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

@@ -17,12 +17,12 @@
 
 """Test MSC basic Pass."""
 
-import gsmDataGen.testing
-from gsmDataGen.relax.frontend.torch import from_fx
-from gsmDataGen.relax import PyExprVisitor
+import gsm_data_generator.testing
+from gsm_data_generator.relax.frontend.torch import from_fx
+from gsm_data_generator.relax import PyExprVisitor
 
-from gsmDataGen.contrib.msc.core import transform as msc_transform
-from gsmDataGen.contrib.msc.core import utils as msc_utils
+from gsm_data_generator.contrib.msc.core import transform as msc_transform
+from gsm_data_generator.contrib.msc.core import utils as msc_utils
 
 
 def test_relax_layout():
@@ -42,9 +42,9 @@ def test_relax_layout():
 
         def check(self, expr):
             self._missing_exprs = []
-            if isinstance(expr, gsmDataGen.relax.Expr):
+            if isinstance(expr, gsm_data_generator.relax.Expr):
                 self.visit_expr(expr)
-            elif isinstance(expr, gsmDataGen.relax.BindingBlock):
+            elif isinstance(expr, gsm_data_generator.relax.BindingBlock):
                 self.visit_binding_block(expr)
             assert len(self._missing_exprs) == 0, "Missing {} layouts".format(
                 len(self._missing_exprs)
@@ -86,9 +86,9 @@ def test_relax():
 
         def check(self, expr):
             self._missing_exprs = []
-            if isinstance(expr, gsmDataGen.relax.Expr):
+            if isinstance(expr, gsm_data_generator.relax.Expr):
                 self.visit_expr(expr)
-            elif isinstance(expr, gsmDataGen.relax.BindingBlock):
+            elif isinstance(expr, gsm_data_generator.relax.BindingBlock):
                 self.visit_binding_block(expr)
             assert len(self._missing_exprs) == 0, "Missing {} names".format(
                 len(self._missing_exprs)
@@ -114,4 +114,4 @@ def test_relax():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

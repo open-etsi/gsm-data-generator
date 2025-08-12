@@ -15,9 +15,9 @@
 # specific language governing permissions and limitations
 # under the License.
 import numpy as np
-import gsmDataGen
-from gsmDataGen import te
-import gsmDataGen.testing
+import gsm_data_generator
+from gsm_data_generator import te
+import gsm_data_generator.testing
 
 
 def test_check_numerical_grads():
@@ -47,7 +47,7 @@ def test_check_numerical_grads():
         func_forw = lambda x: np.sum(func(x)[0])
         grads = [func(x_input)[1]]
 
-        gsmDataGen.testing.check_numerical_grads(func_forw, [x_input], grads)
+        gsm_data_generator.testing.check_numerical_grads(func_forw, [x_input], grads)
 
     # Check functions with multiple arguments
     for f1 in functions:
@@ -58,13 +58,13 @@ def test_check_numerical_grads():
             func_forw = lambda x, y: np.sum(f1(x)[0] + f2(y)[0])
             grads = [f1(x_input)[1], f2(y_input)[1]]
 
-            gsmDataGen.testing.check_numerical_grads(func_forw, [x_input, y_input], grads)
+            gsm_data_generator.testing.check_numerical_grads(func_forw, [x_input, y_input], grads)
 
             # Same thing but with keyword arguments
             func_forw = lambda x, y: np.sum(f1(x)[0] + f2(y)[0])
             grads = {"x": f1(x_input)[1], "y": f2(y_input)[1]}
 
-            gsmDataGen.testing.check_numerical_grads(func_forw, {"x": x_input, "y": y_input}, grads)
+            gsm_data_generator.testing.check_numerical_grads(func_forw, {"x": x_input, "y": y_input}, grads)
 
     def _noise1(x, atol=1e-2, rtol=0.1):
         # We go in random direction using twice the original tolerance to be sure this
@@ -94,7 +94,7 @@ def test_check_numerical_grads():
             grads = [_noise1(f1(x_input)[1]), _noise1(f2(y_input)[1])]
 
             try:
-                gsmDataGen.testing.check_numerical_grads(func_forw, [x_input, y_input], grads)
+                gsm_data_generator.testing.check_numerical_grads(func_forw, [x_input, y_input], grads)
             except AssertionError as e:
                 pass
             else:
@@ -104,7 +104,7 @@ def test_check_numerical_grads():
             grads = {"x": _noise2(f1(x_input)[1]), "y": _noise2(f2(y_input)[1])}
 
             try:
-                gsmDataGen.testing.check_numerical_grads(func_forw, {"x": x_input, "y": y_input}, grads)
+                gsm_data_generator.testing.check_numerical_grads(func_forw, {"x": x_input, "y": y_input}, grads)
             except AssertionError as e:
                 pass
             else:

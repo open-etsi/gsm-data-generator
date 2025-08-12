@@ -14,16 +14,16 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-import gsmDataGen
-from gsmDataGen import te
-from gsmDataGen.script import tir as T
-import gsmDataGen.testing
+import gsm_data_generator
+from gsm_data_generator import te
+from gsm_data_generator.script import tir as T
+import gsm_data_generator.testing
 
 import pytest
 
 
 def nop():
-    return gsmDataGen.tir.Evaluate(1)
+    return gsm_data_generator.tir.Evaluate(1)
 
 
 def test_remove_no_op():
@@ -33,43 +33,43 @@ def test_remove_no_op():
     m = te.var("m")
     n = te.var("n")
     dtype = "int64"
-    Ab = gsmDataGen.tir.decl_buffer((n,), dtype)
-    stmt = gsmDataGen.tir.For(
+    Ab = gsm_data_generator.tir.decl_buffer((n,), dtype)
+    stmt = gsm_data_generator.tir.For(
         i,
         0,
         4,
-        gsmDataGen.tir.ForKind.SERIAL,
-        gsmDataGen.tir.For(
+        gsm_data_generator.tir.ForKind.SERIAL,
+        gsm_data_generator.tir.For(
             j,
             0,
             n,
-            gsmDataGen.tir.ForKind.SERIAL,
-            gsmDataGen.tir.For(
+            gsm_data_generator.tir.ForKind.SERIAL,
+            gsm_data_generator.tir.For(
                 k,
                 0,
                 m,
-                gsmDataGen.tir.ForKind.SERIAL,
-                gsmDataGen.tir.IfThenElse((i * m + j + k < n), gsmDataGen.tir.Evaluate(m), gsmDataGen.tir.Evaluate(n)),
+                gsm_data_generator.tir.ForKind.SERIAL,
+                gsm_data_generator.tir.IfThenElse((i * m + j + k < n), gsm_data_generator.tir.Evaluate(m), gsm_data_generator.tir.Evaluate(n)),
             ),
         ),
     )
 
-    mod = gsmDataGen.IRModule.from_expr(gsmDataGen.tir.PrimFunc([Ab], stmt))
-    ret = gsmDataGen.tir.transform.RemoveNoOp()(mod)["main"].body
+    mod = gsm_data_generator.IRModule.from_expr(gsm_data_generator.tir.PrimFunc([Ab], stmt))
+    ret = gsm_data_generator.tir.transform.RemoveNoOp()(mod)["main"].body
 
-    assert isinstance(ret, gsmDataGen.tir.Evaluate)
-    store = gsmDataGen.tir.BufferStore(Ab, gsmDataGen.tir.BufferLoad(Ab, [i]) + 1, [i + 1])
-    stmt2 = gsmDataGen.tir.SeqStmt([nop(), gsmDataGen.tir.SeqStmt([store, nop()])])
+    assert isinstance(ret, gsm_data_generator.tir.Evaluate)
+    store = gsm_data_generator.tir.BufferStore(Ab, gsm_data_generator.tir.BufferLoad(Ab, [i]) + 1, [i + 1])
+    stmt2 = gsm_data_generator.tir.SeqStmt([nop(), gsm_data_generator.tir.SeqStmt([store, nop()])])
 
-    mod = gsmDataGen.IRModule.from_expr(gsmDataGen.tir.PrimFunc([Ab], stmt2))
-    ret = gsmDataGen.tir.transform.RemoveNoOp()(mod)["main"].body
+    mod = gsm_data_generator.IRModule.from_expr(gsm_data_generator.tir.PrimFunc([Ab], stmt2))
+    ret = gsm_data_generator.tir.transform.RemoveNoOp()(mod)["main"].body
     assert ret == store
 
     # remove zero extent loop
-    stmt3 = gsmDataGen.tir.For(i, 0, 0, gsmDataGen.tir.ForKind.SERIAL, store)
-    mod = gsmDataGen.IRModule.from_expr(gsmDataGen.tir.PrimFunc([Ab], stmt3))
-    ret = gsmDataGen.tir.transform.RemoveNoOp()(mod)["main"].body
-    assert isinstance(ret, gsmDataGen.tir.Evaluate)
+    stmt3 = gsm_data_generator.tir.For(i, 0, 0, gsm_data_generator.tir.ForKind.SERIAL, store)
+    mod = gsm_data_generator.IRModule.from_expr(gsm_data_generator.tir.PrimFunc([Ab], stmt3))
+    ret = gsm_data_generator.tir.transform.RemoveNoOp()(mod)["main"].body
+    assert isinstance(ret, gsm_data_generator.tir.Evaluate)
 
 
 def test_remove_no_op_with_invalid_extent():
@@ -79,12 +79,12 @@ def test_remove_no_op_with_invalid_extent():
             for j in T.serial(i - 20):
                 B[i] = A[i] + j
 
-    mod = gsmDataGen.ir.module.IRModule.from_expr(main)
-    ret = gsmDataGen.tir.transform.RemoveNoOp()(mod)["main"].body
-    assert isinstance(ret, gsmDataGen.tir.Evaluate)
+    mod = gsm_data_generator.ir.module.IRModule.from_expr(main)
+    ret = gsm_data_generator.tir.transform.RemoveNoOp()(mod)["main"].body
+    assert isinstance(ret, gsm_data_generator.tir.Evaluate)
 
 
-class BaseBeforeAfter(gsmDataGen.testing.CompareBeforeAfter):
+class BaseBeforeAfter(gsm_data_generator.testing.CompareBeforeAfter):
     use_dataflow_analysis = False
     max_simplification_steps = 0
 
@@ -96,8 +96,8 @@ class BaseBeforeAfter(gsmDataGen.testing.CompareBeforeAfter):
                     "max_simplification_steps": self.max_simplification_steps,
                 }
             }
-            with gsmDataGen.transform.PassContext(config=config):
-                mod = gsmDataGen.tir.transform.RemoveNoOp()(mod)
+            with gsm_data_generator.transform.PassContext(config=config):
+                mod = gsm_data_generator.tir.transform.RemoveNoOp()(mod)
             return mod
 
         return inner
@@ -650,4 +650,4 @@ class TestCertainConditon(BaseBeforeAfter):
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

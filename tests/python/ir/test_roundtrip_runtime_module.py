@@ -18,19 +18,19 @@
 # pylint: disable=missing-docstring
 
 import pytest
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import TVMError
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import TVMError
 
 
 def test_csource_module():
-    mod = gsmDataGen.runtime._ffi_api.CSourceModuleCreate("", "cc", [], [])
+    mod = gsm_data_generator.runtime._ffi_api.CSourceModuleCreate("", "cc", [], [])
     assert mod.type_key == "c"
     assert mod.is_binary_serializable
-    new_mod = gsmDataGen.ir.load_json(gsmDataGen.ir.save_json(mod))
+    new_mod = gsm_data_generator.ir.load_json(gsm_data_generator.ir.save_json(mod))
     assert new_mod.type_key == "c"
     assert new_mod.is_binary_serializable
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

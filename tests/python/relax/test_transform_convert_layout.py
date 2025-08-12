@@ -15,10 +15,10 @@
 # specific language governing permissions and limitations
 # under the License.
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen.relax.transform import ConvertLayout, Normalize
-from gsmDataGen.script.parser import ir as I, relax as R, tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator.relax.transform import ConvertLayout, Normalize
+from gsm_data_generator.script.parser import ir as I, relax as R, tir as T
 
 
 def verify(input, expected, extra_ops={}):
@@ -26,7 +26,7 @@ def verify(input, expected, extra_ops={}):
     desired_layouts.update(extra_ops)
     mod = ConvertLayout(desired_layouts)(input)
     mod = Normalize()(mod)
-    gsmDataGen.ir.assert_structural_equal(mod, expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, expected)
 
 
 def test_conv2d():
@@ -274,7 +274,7 @@ def test_relu_conv2d_relu():
                 R.output(gv2)
             return gv2
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(
@@ -1519,7 +1519,7 @@ def test_conv2d_unknown_bias_dim():
                 R.output(gv2)
             return gv2
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(
@@ -1567,7 +1567,7 @@ def test_binary_broadcast():
                 R.output(gv2)
             return gv2
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(
@@ -2345,7 +2345,7 @@ def test_relu_conv2d_relu_sub_indexed():
                 R.output(gv2)
             return gv2
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected_NCHW4c:
         @R.function
         def main(
@@ -2384,7 +2384,7 @@ def test_relu_conv2d_relu_sub_indexed():
                 R.output(gv2)
             return gv2
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected_NHWC4c:
         @R.function
         def main(
@@ -4430,7 +4430,7 @@ def test_conv2d_unknown_bias_dim_sub_indexed():
                 R.output(gv2)
             return gv2
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected_NCHW4c:
         @R.function
         def main(
@@ -4487,7 +4487,7 @@ def test_binary_broadcast_sub_indexed():
                 R.output(gv2)
             return gv2
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected_NCHW4c:
         @R.function
         def main(
@@ -4586,4 +4586,4 @@ def test_binary_ewise_scalar_sub_indexed():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

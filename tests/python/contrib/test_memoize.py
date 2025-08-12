@@ -23,7 +23,7 @@ import tempfile
 import subprocess
 import sys
 
-import gsmDataGen.testing
+import gsm_data_generator.testing
 
 TEST_SCRIPT_FILE = pathlib.Path(__file__).with_name("pickle_memoize_script.py").resolve()
 
@@ -123,4 +123,4 @@ def test_cache_dir_only_created_when_used():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

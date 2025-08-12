@@ -14,18 +14,18 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import te
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import te
+from gsm_data_generator.script import tir as T
 
 
 def _check(original, transformed):
     func = original
-    mod = gsmDataGen.IRModule.from_expr(func.with_attr("global_symbol", "main"))
-    mod = gsmDataGen.tir.transform.LowerOpaqueBlock()(mod)
-    mod = gsmDataGen.tir.transform.Simplify()(mod)
-    gsmDataGen.ir.assert_structural_equal(
+    mod = gsm_data_generator.IRModule.from_expr(func.with_attr("global_symbol", "main"))
+    mod = gsm_data_generator.tir.transform.LowerOpaqueBlock()(mod)
+    mod = gsm_data_generator.tir.transform.Simplify()(mod)
+    gsm_data_generator.ir.assert_structural_equal(
         mod["main"], transformed.with_attr("global_symbol", "main"), True
     )
 
@@ -350,16 +350,16 @@ def test_symbolic_strided_buffer():
 
 
 def test_annotated_loops():
-    mod = gsmDataGen.IRModule.from_expr(annotated_loops.with_attr("global_symbol", "main"))
-    mod = gsmDataGen.tir.transform.LowerOpaqueBlock()(mod)
+    mod = gsm_data_generator.IRModule.from_expr(annotated_loops.with_attr("global_symbol", "main"))
+    mod = gsm_data_generator.tir.transform.LowerOpaqueBlock()(mod)
     attr1 = mod["main"].body
     attr2 = attr1.body
     attr3 = attr2.body
     assert attr1.attr_key == "pragma_1" and attr1.value == "str_value"
     assert attr2.attr_key == "pragma_2"
-    gsmDataGen.ir.assert_structural_equal(attr2.value, gsmDataGen.tir.IntImm("int32", 1))
+    gsm_data_generator.ir.assert_structural_equal(attr2.value, gsm_data_generator.tir.IntImm("int32", 1))
     assert attr3.attr_key == "pragma_3"
-    gsmDataGen.ir.assert_structural_equal(attr3.value, gsmDataGen.tir.FloatImm("float32", 0.0))
+    gsm_data_generator.ir.assert_structural_equal(attr3.value, gsm_data_generator.tir.FloatImm("float32", 0.0))
 
 
 def test_annotated_block():
@@ -369,16 +369,16 @@ def test_annotated_block():
             T.block_attr({"pragma_1": "str_value", "pragma_2": 1, "pragma_3": 0.0})
             T.evaluate(0)
 
-    mod = gsmDataGen.IRModule.from_expr(annotated_block.with_attr("global_symbol", "main"))
-    mod = gsmDataGen.tir.transform.LowerOpaqueBlock()(mod)
+    mod = gsm_data_generator.IRModule.from_expr(annotated_block.with_attr("global_symbol", "main"))
+    mod = gsm_data_generator.tir.transform.LowerOpaqueBlock()(mod)
     attr1 = mod["main"].body
     attr2 = attr1.body
     attr3 = attr2.body
     assert attr1.attr_key == "pragma_1" and attr1.value == "str_value"
     assert attr2.attr_key == "pragma_2"
-    gsmDataGen.ir.assert_structural_equal(attr2.value, gsmDataGen.tir.IntImm("int32", 1))
+    gsm_data_generator.ir.assert_structural_equal(attr2.value, gsm_data_generator.tir.IntImm("int32", 1))
     assert attr3.attr_key == "pragma_3"
-    gsmDataGen.ir.assert_structural_equal(attr3.value, gsmDataGen.tir.FloatImm("float32", 0.0))
+    gsm_data_generator.ir.assert_structural_equal(attr3.value, gsm_data_generator.tir.FloatImm("float32", 0.0))
 
 
 def test_preserved_annotations():
@@ -394,9 +394,9 @@ def test_preserved_annotations():
         for i in T.serial(8, annotations={"k_0": 1, "k_1": [2, 3], "k_2": 3.14}):
             B[i] = A[i] + 1.0
 
-    mod = gsmDataGen.IRModule.from_expr(before.with_attr("global_symbol", "main"))
-    mod = gsmDataGen.tir.transform.LowerOpaqueBlock()(mod)
-    gsmDataGen.ir.assert_structural_equal(mod["main"], after.with_attr("global_symbol", "main"))
+    mod = gsm_data_generator.IRModule.from_expr(before.with_attr("global_symbol", "main"))
+    mod = gsm_data_generator.tir.transform.LowerOpaqueBlock()(mod)
+    gsm_data_generator.ir.assert_structural_equal(mod["main"], after.with_attr("global_symbol", "main"))
 
 
 def test_boolean_handling():
@@ -404,4 +404,4 @@ def test_boolean_handling():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

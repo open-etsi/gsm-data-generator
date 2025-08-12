@@ -16,9 +16,9 @@
 # under the License.
 """Unittests for tvm.script.parser.evaluator"""
 import pytest
-import gsmDataGen.testing
-from gsmDataGen.script.parser.core.diagnostics import Source
-from gsmDataGen.script.parser.core.evaluator import ExprEvaluator
+import gsm_data_generator.testing
+from gsm_data_generator.script.parser.core.diagnostics import Source
+from gsm_data_generator.script.parser.core.evaluator import ExprEvaluator
 
 
 def _calc(expr, extra_vars=None):
@@ -60,4 +60,4 @@ def test_evaluator_slice():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

@@ -17,13 +17,13 @@
 
 import pytest
 
-import gsmDataGen
-import gsmDataGen.testing
+import gsm_data_generator
+import gsm_data_generator.testing
 
-from gsmDataGen import relax, tir
-from gsmDataGen.ir import assert_structural_equal
-from gsmDataGen.relax.frontend import nn
-from gsmDataGen.script import ir as I, relax as R, tir as T
+from gsm_data_generator import relax, tir
+from gsm_data_generator.ir import assert_structural_equal
+from gsm_data_generator.relax.frontend import nn
+from gsm_data_generator.script import ir as I, relax as R, tir as T
 
 
 def test_simple():
@@ -633,4 +633,4 @@ def test_duplicate_names(dynamic_type):
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

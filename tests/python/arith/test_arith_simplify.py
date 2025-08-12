@@ -17,28 +17,28 @@
 
 import pytest
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import tir
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import tir
+from gsm_data_generator.script import tir as T
 
 
 def test_simplify_reshape_flattened_index():
-    ana = gsmDataGen.arith.Analyzer()
+    ana = gsm_data_generator.arith.Analyzer()
 
     i0 = tir.Var("i0", "int64")
     i1 = tir.Var("i1", "int64")
-    ana.bind(i0, gsmDataGen.ir.Range(0, 8))
-    ana.bind(i1, gsmDataGen.ir.Range(0, 3))
+    ana.bind(i0, gsm_data_generator.ir.Range(0, 8))
+    ana.bind(i1, gsm_data_generator.ir.Range(0, 3))
 
     i_flattened = i0 * 3 + i1
-    gsmDataGen.ir.assert_structural_equal(
+    gsm_data_generator.ir.assert_structural_equal(
         ana.simplify((i_flattened) // 12 * 12 + (i_flattened) % 12 // 4 * 4 + (i_flattened) % 4),
         i_flattened,
     )
 
 
-dtype = gsmDataGen.testing.parameter(
+dtype = gsm_data_generator.testing.parameter(
     "uint8",
     "uint16",
     "uint32",
@@ -54,29 +54,29 @@ dtype = gsmDataGen.testing.parameter(
 
 
 def test_can_prove_self_identity(dtype):
-    ana = gsmDataGen.arith.Analyzer()
+    ana = gsm_data_generator.arith.Analyzer()
 
     n = tir.Var("n", dtype)
     assert ana.can_prove(n == n)
 
 
 def test_can_prove_self_equal_to_self(dtype):
-    ana = gsmDataGen.arith.Analyzer()
+    ana = gsm_data_generator.arith.Analyzer()
 
     n = tir.Var("n", dtype)
     assert ana.can_prove_equal(n, n)
 
 
 def test_simplify_symbolic_comparison():
-    ana = gsmDataGen.arith.Analyzer()
+    ana = gsm_data_generator.arith.Analyzer()
 
     i0 = tir.Var("i0", "int64")
     i1 = tir.Var("i1", "int64")
-    n, m = gsmDataGen.tir.SizeVar("n", "int64"), gsmDataGen.tir.SizeVar("m", "int64")
+    n, m = gsm_data_generator.tir.SizeVar("n", "int64"), gsm_data_generator.tir.SizeVar("m", "int64")
     outer = (n + 31) // 32
-    ana.bind(i0, gsmDataGen.ir.Range(0, outer))
-    ana.bind(i1, gsmDataGen.ir.Range(0, 32))
-    PS = gsmDataGen.arith.ProofStrength
+    ana.bind(i0, gsm_data_generator.ir.Range(0, outer))
+    ana.bind(i1, gsm_data_generator.ir.Range(0, 32))
+    PS = gsm_data_generator.arith.ProofStrength
 
     assert not ana.can_prove(i0 * 32 + i1 < (n + 31) // 32 * 32, PS.DEFAULT)
     assert ana.can_prove(i0 * 32 + i1 < (n + 31) // 32 * 32, PS.SYMBOLIC_BOUND)
@@ -96,18 +96,18 @@ def test_simplify_symbolic_comparison():
     ],
 )
 def test_simplify_vscale_comparison_with_sve_target(expression):
-    ana = gsmDataGen.arith.Analyzer()
+    ana = gsm_data_generator.arith.Analyzer()
 
-    with gsmDataGen.target.Target("llvm -mtriple=aarch64-linux-gnu -mattr=+sve"):
+    with gsm_data_generator.target.Target("llvm -mtriple=aarch64-linux-gnu -mattr=+sve"):
         assert ana.can_prove(expression)
 
 
 def test_simplify_vscale_comparison_without_sve_target(capfd):
-    ana = gsmDataGen.arith.Analyzer()
-    vs = gsmDataGen.tir.vscale()
+    ana = gsm_data_generator.arith.Analyzer()
+    vs = gsm_data_generator.tir.vscale()
 
     with pytest.raises(AssertionError):
-        with gsmDataGen.target.Target("llvm -mtriple=aarch64-linux-gnu"):
+        with gsm_data_generator.target.Target("llvm -mtriple=aarch64-linux-gnu"):
             assert ana.can_prove(vs * 32 < vs * 64)
 
     warning_msg = (
@@ -120,10 +120,10 @@ def test_simplify_vscale_comparison_without_sve_target(capfd):
 
 
 def test_regression_simplify_inf_recursion():
-    ana = gsmDataGen.arith.Analyzer()
+    ana = gsm_data_generator.arith.Analyzer()
     cond = tir.Var("cond", "int32")
 
-    res = (gsmDataGen.tir.NE(cond, 0).astype("int8") - gsmDataGen.tir.NE(cond, 0).astype("int8")).astype(
+    res = (gsm_data_generator.tir.NE(cond, 0).astype("int8") - gsm_data_generator.tir.NE(cond, 0).astype("int8")).astype(
         "int32"
     ) == 0
     # regression in a previous case
@@ -135,14 +135,14 @@ def test_simplify_floor_mod_with_linear_offset():
     """
     Test that the floor_mod is simplified correctly when the offset is linear.
     """
-    ana = gsmDataGen.arith.Analyzer()
+    ana = gsm_data_generator.arith.Analyzer()
     past_decoder_sequence_length = tir.Var("past_decoder_sequence_length", "int64")
     expr1 = (past_decoder_sequence_length + 1) * 64
     divisor1 = (past_decoder_sequence_length + 1) * 32
-    assert ana.can_prove_equal(gsmDataGen.tir.floormod(expr1, divisor1), 0)
+    assert ana.can_prove_equal(gsm_data_generator.tir.floormod(expr1, divisor1), 0)
     divisor2 = 32 * (past_decoder_sequence_length + 1)
-    assert ana.can_prove_equal(gsmDataGen.tir.floormod(expr1, divisor2), 0)
+    assert ana.can_prove_equal(gsm_data_generator.tir.floormod(expr1, divisor2), 0)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

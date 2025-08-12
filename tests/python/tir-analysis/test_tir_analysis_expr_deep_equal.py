@@ -14,8 +14,8 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-import gsmDataGen
-from gsmDataGen import te
+import gsm_data_generator
+from gsm_data_generator import te
 
 
 def test_equal_expr():
@@ -26,11 +26,11 @@ def test_equal_expr():
         return x + y + 1
 
     def func2():
-        return te.exp(gsmDataGen.tir.truncdiv((x + y + 1) * y, 4))
+        return te.exp(gsm_data_generator.tir.truncdiv((x + y + 1) * y, 4))
 
-    assert gsmDataGen.tir.analysis.expr_deep_equal(func1(), func1())
-    assert gsmDataGen.tir.analysis.expr_deep_equal(func2(), func2())
-    assert not gsmDataGen.tir.analysis.expr_deep_equal(func2(), func1())
+    assert gsm_data_generator.tir.analysis.expr_deep_equal(func1(), func1())
+    assert gsm_data_generator.tir.analysis.expr_deep_equal(func2(), func2())
+    assert not gsm_data_generator.tir.analysis.expr_deep_equal(func2(), func1())
 
 
 if __name__ == "__main__":

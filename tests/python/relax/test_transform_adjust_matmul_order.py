@@ -19,9 +19,9 @@ import inspect
 
 import pytest
 
-import gsmDataGen.testing
-from gsmDataGen import relax
-from gsmDataGen.script import ir as I, relax as R, tir as T
+import gsm_data_generator.testing
+from gsm_data_generator import relax
+from gsm_data_generator.script import ir as I, relax as R, tir as T
 
 
 class Base:
@@ -33,7 +33,7 @@ class Base:
                 transform(self.Before)
         else:
             after = transform(self.Before)
-            gsmDataGen.ir.assert_structural_equal(self.Expected, after)
+            gsm_data_generator.ir.assert_structural_equal(self.Expected, after)
 
 
 class TestLHS(Base):
@@ -512,4 +512,4 @@ class TestRHSPermuteDimsDynamicWithSquareMatrix(Base):
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

@@ -21,12 +21,12 @@ from typing import List, Optional, Tuple, Union
 from typing_extensions import Literal
 
 # isort: on
-from gsmDataGen.meta_schedule.testing.space_generation import get_rules
-from gsmDataGen import meta_schedule as ms
-from gsmDataGen.meta_schedule.testing.te_workload import create_te_workload
-from gsmDataGen.target import Target
-from gsmDataGen.ir import IRModule
-from gsmDataGen.tir import Schedule
+from gsm_data_generator.meta_schedule.testing.space_generation import get_rules
+from gsm_data_generator import meta_schedule as ms
+from gsm_data_generator.meta_schedule.testing.te_workload import create_te_workload
+from gsm_data_generator.target import Target
+from gsm_data_generator.ir import IRModule
+from gsm_data_generator.tir import Schedule
 
 
 def generate_design_space(

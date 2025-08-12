@@ -18,15 +18,15 @@
 
 import numpy as np
 import pytest
-import gsmDataGen.testing
-from gsmDataGen import relax
-from gsmDataGen.ir.base import assert_structural_equal
-from gsmDataGen.relax.transform import DeadCodeElimination, FuseTIR, OptimizeLayoutTransform
-from gsmDataGen.script import ir as I, tir as T, relax as R
+import gsm_data_generator.testing
+from gsm_data_generator import relax
+from gsm_data_generator.ir.base import assert_structural_equal
+from gsm_data_generator.relax.transform import DeadCodeElimination, FuseTIR, OptimizeLayoutTransform
+from gsm_data_generator.script import ir as I, tir as T, relax as R
 
 
 def _run_pass_compare_output(Before, Expected):
-    After = gsmDataGen.ir.transform.Sequential(
+    After = gsm_data_generator.ir.transform.Sequential(
         [
             OptimizeLayoutTransform(),
             DeadCodeElimination(),
@@ -34,7 +34,7 @@ def _run_pass_compare_output(Before, Expected):
         ]
     )(Before)
 
-    gsmDataGen.ir.assert_structural_equal(Expected, After)
+    gsm_data_generator.ir.assert_structural_equal(Expected, After)
 
 
 def test_optimize_transform_layout_pass_one_arg():
@@ -407,4 +407,4 @@ def test_tranform_layout_tir_remove_pad_transform_layout():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

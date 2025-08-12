@@ -17,17 +17,17 @@
 """Configure pytest"""
 import pytest
 import numpy as np
-import gsmDataGen
-from gsmDataGen import rpc
-from gsmDataGen.contrib import utils, tflite_runtime
+import gsm_data_generator
+from gsm_data_generator import rpc
+from gsm_data_generator.contrib import utils, tflite_runtime
 
 
 def _create_tflite_model():
     """Functions of creating a tflite model"""
-    if not gsmDataGen.runtime.enabled("tflite"):
+    if not gsm_data_generator.runtime.enabled("tflite"):
         print("skip because tflite runtime is not enabled...")
         return None
-    if not gsmDataGen.get_global_func("tvm.tflite_runtime.create", True):
+    if not gsm_data_generator.get_global_func("tvm.tflite_runtime.create", True):
         print("skip because tflite runtime is not enabled...")
         return None
 
@@ -57,10 +57,10 @@ def _create_tflite_model():
 @pytest.mark.skip("skip because accessing output tensor is flakey")
 def test_local():
     """Local tests of tflite model"""
-    if not gsmDataGen.runtime.enabled("tflite"):
+    if not gsm_data_generator.runtime.enabled("tflite"):
         print("skip because tflite runtime is not enabled...")
         return
-    if not gsmDataGen.get_global_func("tvm.tflite_runtime.create", True):
+    if not gsm_data_generator.get_global_func("tvm.tflite_runtime.create", True):
         print("skip because tflite runtime is not enabled...")
         return
 
@@ -91,8 +91,8 @@ def test_local():
 
     # inference via tvm tflite runtime
     with open(tflite_model_path, "rb") as model_fin:
-        runtime = tflite_runtime.create(model_fin.read(), gsmDataGen.cpu(0))
-        runtime.set_input(0, gsmDataGen.nd.array(tflite_input))
+        runtime = tflite_runtime.create(model_fin.read(), gsm_data_generator.cpu(0))
+        runtime.set_input(0, gsm_data_generator.nd.array(tflite_input))
         runtime.invoke()
         out = runtime.get_output(0)
         np.testing.assert_equal(out.numpy(), tflite_output)
@@ -100,10 +100,10 @@ def test_local():
 
 def test_remote():
     """Remote tests of tflite model"""
-    if not gsmDataGen.runtime.enabled("tflite"):
+    if not gsm_data_generator.runtime.enabled("tflite"):
         print("skip because tflite runtime is not enabled...")
         return
-    if not gsmDataGen.get_global_func("tvm.tflite_runtime.create", True):
+    if not gsm_data_generator.get_global_func("tvm.tflite_runtime.create", True):
         print("skip because tflite runtime is not enabled...")
         return
 
@@ -138,7 +138,7 @@ def test_remote():
 
         with open(tflite_model_path, "rb") as model_fin:
             runtime = tflite_runtime.create(model_fin.read(), remote.cpu(0))
-            runtime.set_input(0, gsmDataGen.nd.array(tflite_input, remote.cpu(0)))
+            runtime.set_input(0, gsm_data_generator.nd.array(tflite_input, remote.cpu(0)))
             runtime.invoke()
             out = runtime.get_output(0)
             np.testing.assert_equal(out.numpy(), tflite_output)

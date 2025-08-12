@@ -16,15 +16,15 @@
 # under the License.
 
 import pytest
-import gsmDataGen
-from gsmDataGen import relax
+import gsm_data_generator
+from gsm_data_generator import relax
 
-import gsmDataGen.script
-from gsmDataGen.script import ir as I, tir as T, relax as R
+import gsm_data_generator.script
+from gsm_data_generator.script import ir as I, tir as T, relax as R
 
 
 def test_to_non_dataflow():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class TestToNonDataflow:
         @R.function
         def foo(x: R.Tensor(("m", "n"), "float32")):
@@ -83,7 +83,7 @@ def test_to_non_dataflow():
 
 
 def test_call_tir_rewrite():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class TestCallTIRRewrite:
         @T.prim_func
         def exp(A_handle: T.handle, B_handle: T.handle):
@@ -120,14 +120,14 @@ def test_call_tir_rewrite():
     assert isinstance(s1, relax.Call)
     assert s1.op.name == "relax.builtin.alloc_tensor"
     assert isinstance(s1.args[0], relax.ShapeExpr)
-    gsmDataGen.ir.assert_structural_equal(s1.args[0], s0.sinfo_args[0].shape)
+    gsm_data_generator.ir.assert_structural_equal(s1.args[0], s0.sinfo_args[0].shape)
     s2 = block.bindings[1].value
-    gsmDataGen.ir.expr.GlobalVar
+    gsm_data_generator.ir.expr.GlobalVar
     assert s2.op.name_hint == "exp"
 
 
 def test_transform_remove_purity_checking():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Before:
         @R.function
         def base(x: R.Tensor((), "int32")) -> R.Tensor((), "int32"):
@@ -177,7 +177,7 @@ def test_transform_remove_purity_checking():
             z = nested()
             return y
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def base(x: R.Tensor((), "int32")) -> R.Tensor((), "int32"):
@@ -232,11 +232,11 @@ def test_transform_remove_purity_checking():
             return y
 
     new_mod = relax.transform.RemovePurityChecking()(Before)
-    gsmDataGen.ir.assert_structural_equal(new_mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(new_mod, Expected)
 
 
 def test_call_dps_packed_rewrite():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class TestCallDPSPackedRewrite:
         @R.function
         def foo(x: R.Tensor(("m", "n"), "float32")):
@@ -265,14 +265,14 @@ def test_call_dps_packed_rewrite():
     assert isinstance(s1, relax.Call)
     assert s1.op.name == "relax.builtin.alloc_tensor"
     assert isinstance(s1.args[0], relax.ShapeExpr)
-    gsmDataGen.ir.assert_structural_equal(s1.args[0], s0.sinfo_args[0].shape)
+    gsm_data_generator.ir.assert_structural_equal(s1.args[0], s0.sinfo_args[0].shape)
     s2 = block.bindings[1].value
     assert s2.op.global_symbol == "test.op.identity"
 
 
 def test_call_tir_inplace_simple():
     # simple case: one inplace argument
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Input:
         @T.prim_func
         def zeros(A: T.Buffer((2, 3), "int32")):
@@ -291,7 +291,7 @@ def test_call_tir_inplace_simple():
             gv0 = R.call_tir_inplace(Input.zeros, x, 0, R.Tensor((2, 3), dtype="int32"))
             return gv0
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @T.prim_func
         def zeros(A: T.Buffer((2, 3), "int32")):
@@ -310,11 +310,11 @@ def test_call_tir_inplace_simple():
             return gv0
 
     new_mod = relax.transform.CallTIRRewrite()(Input)
-    gsmDataGen.ir.assert_structural_equal(Expected["foo"], new_mod["foo"], map_free_vars=True)
+    gsm_data_generator.ir.assert_structural_equal(Expected["foo"], new_mod["foo"], map_free_vars=True)
 
 
 def test_call_tir_inplace_multiple_args():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Input:
         @T.prim_func
         def copy(
@@ -343,7 +343,7 @@ def test_call_tir_inplace_multiple_args():
             )
             return gv0
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @T.prim_func
         def copy(
@@ -369,11 +369,11 @@ def test_call_tir_inplace_multiple_args():
             return gv0
 
     new_mod = relax.transform.CallTIRRewrite()(Input)
-    gsmDataGen.ir.assert_structural_equal(Expected["foo"], new_mod["foo"], map_free_vars=True)
+    gsm_data_generator.ir.assert_structural_equal(Expected["foo"], new_mod["foo"], map_free_vars=True)
 
 
 def test_call_tir_inplace_some_new():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Input:
         @T.prim_func
         def copy(
@@ -413,7 +413,7 @@ def test_call_tir_inplace_some_new():
             )
             return gv0
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @T.prim_func
         def copy(
@@ -447,13 +447,13 @@ def test_call_tir_inplace_some_new():
             return gv2
 
     new_mod = relax.transform.CallTIRRewrite()(Input)
-    gsmDataGen.ir.assert_structural_equal(Expected["foo"], new_mod["foo"], map_free_vars=True)
+    gsm_data_generator.ir.assert_structural_equal(Expected["foo"], new_mod["foo"], map_free_vars=True)
 
 
 def test_call_tir_inplace_repeated_input():
-    with pytest.raises(gsmDataGen.error.DiagnosticError):
+    with pytest.raises(gsm_data_generator.error.DiagnosticError):
 
-        @gsmDataGen.script.ir_module
+        @gsm_data_generator.script.ir_module
         class Input:
             @T.prim_func
             def func(
@@ -481,9 +481,9 @@ def test_call_tir_inplace_repeated_input():
 
 
 def test_call_tir_inplace_all_new():
-    with pytest.raises(gsmDataGen.error.DiagnosticError):
+    with pytest.raises(gsm_data_generator.error.DiagnosticError):
 
-        @gsmDataGen.script.ir_module
+        @gsm_data_generator.script.ir_module
         class Input:
             @T.prim_func
             def func(A: T.Buffer((2, 3), "int32")):
@@ -510,7 +510,7 @@ def test_inplace_mutation_with_tuple_argument_raises_error():
     triggered a segfault rather than raising an exception.
 
     """
-    with pytest.raises(gsmDataGen.error.DiagnosticError):
+    with pytest.raises(gsm_data_generator.error.DiagnosticError):
 
         @I.ir_module
         class Module:
@@ -542,7 +542,7 @@ def test_inplace_mutation_with_non_tensor_argument_raises_error():
     triggered a segfault rather than raising an exception.
 
     """
-    with pytest.raises(gsmDataGen.error.DiagnosticError):
+    with pytest.raises(gsm_data_generator.error.DiagnosticError):
 
         @I.ir_module
         class Module:
@@ -571,7 +571,7 @@ def test_inplace_mutation_with_incompatible_tensor_shape_raises_error():
     different than the output's shape (`[32]` as opposed to `[16]`).
 
     """
-    with pytest.raises(gsmDataGen.error.DiagnosticError):
+    with pytest.raises(gsm_data_generator.error.DiagnosticError):
 
         @I.ir_module
         class Module:
@@ -600,7 +600,7 @@ def test_inplace_mutation_with_incompatible_tensor_dtype_raises_error():
     different than the output's dtype (`int32` as opposed to `float32`).
 
     """
-    with pytest.raises(gsmDataGen.error.DiagnosticError):
+    with pytest.raises(gsm_data_generator.error.DiagnosticError):
 
         @I.ir_module
         class Module:
@@ -621,4 +621,4 @@ def test_inplace_mutation_with_incompatible_tensor_dtype_raises_error():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

@@ -16,11 +16,11 @@
 # under the License.
 # pylint: disable=missing-module-docstring,missing-function-docstring,missing-class-docstring
 
-import gsmDataGen
-from gsmDataGen import meta_schedule as ms
-from gsmDataGen import tir
-from gsmDataGen.script import tir as T
-from gsmDataGen.target import Target
+import gsm_data_generator
+from gsm_data_generator import meta_schedule as ms
+from gsm_data_generator import tir
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.target import Target
 
 
 def _target() -> Target:
@@ -46,7 +46,7 @@ def _create_context(mod, target) -> ms.TuneContext:
 # pylint: disable=invalid-name,no-member,line-too-long,too-many-nested-blocks,no-self-argument
 # fmt: off
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Matmul:
     @T.prim_func
     def main(a: T.handle, b: T.handle, c: T.handle) -> None:

@@ -16,11 +16,11 @@
 # under the License.
 
 import pytest
-import gsmDataGen.testing
+import gsm_data_generator.testing
 
-from gsmDataGen import relax
-from gsmDataGen.script import tir as T, ir as I, relax as R
-from gsmDataGen.tir import IndexMap
+from gsm_data_generator import relax
+from gsm_data_generator.script import tir as T, ir as I, relax as R
+from gsm_data_generator.tir import IndexMap
 
 kOperatorName = "operator_name"
 
@@ -41,7 +41,7 @@ def _check(
         {operator_name: input_axis_separator},
     )(before)
     after = relax.transform.DeadCodeElimination()(after)
-    gsmDataGen.ir.assert_structural_equal(after, expected)
+    gsm_data_generator.ir.assert_structural_equal(after, expected)
 
 
 def test_single_output():
@@ -656,4 +656,4 @@ def test_input_axis_separator():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

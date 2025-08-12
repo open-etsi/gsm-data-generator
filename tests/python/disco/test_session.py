@@ -24,26 +24,26 @@ import subprocess
 import threading
 import sys
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import relax as rx
-from gsmDataGen.runtime import ShapeTuple, String
-from gsmDataGen.runtime import disco as di
-from gsmDataGen.script import ir as I
-from gsmDataGen.script import relax as R
-from gsmDataGen.script import tir as T
-from gsmDataGen.exec import disco_worker as _  # pylint: disable=unused-import
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import relax as rx
+from gsm_data_generator.runtime import ShapeTuple, String
+from gsm_data_generator.runtime import disco as di
+from gsm_data_generator.script import ir as I
+from gsm_data_generator.script import relax as R
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.exec import disco_worker as _  # pylint: disable=unused-import
 
 
 def _numpy_to_worker_0(sess: di.Session, np_array: np.array, device):
     x_array = sess.empty(np_array.shape, "float32", device=device)
-    host_array = gsmDataGen.nd.array(np_array, device=device)
+    host_array = gsm_data_generator.nd.array(np_array, device=device)
     sess.copy_to_worker_0(host_array, x_array)
     return x_array
 
 
 def _numpy_from_worker_0(sess: di.Session, remote_array, shape, dtype):
-    host_array = gsmDataGen.nd.empty(shape, dtype, device=gsmDataGen.cpu())
+    host_array = gsm_data_generator.nd.empty(shape, dtype, device=gsm_data_generator.cpu())
     sess.copy_from_worker_0(host_array, remote_array)
     sess.sync_worker_0()
     return host_array.numpy()
@@ -145,7 +145,7 @@ def test_float(session_kind):
 def test_ndarray(session_kind):
     num_workers = 4
     sess = session_kind(num_workers=num_workers)
-    device = gsmDataGen.cpu(0)
+    device = gsm_data_generator.cpu(0)
     x_np = np.arange(6).astype("float32").reshape([2, 3])
     y_np = np.arange(6).astype("float32").reshape([2, 3]) + 1
     x_disc = _numpy_to_worker_0(sess, x_np, device=device)
@@ -216,11 +216,11 @@ def test_vm_module(session_kind):
     # pylint: enable=invalid-name
     with tempfile.TemporaryDirectory() as tmpdir:
         path = tmpdir + "/test.so"
-        device = gsmDataGen.cpu()
+        device = gsm_data_generator.cpu()
         x_np = np.arange(8 * 16).astype("float32").reshape([8, 16])
         y_np = x_np.transpose()
 
-        gsmDataGen.compile(TestMod, target="llvm").export_library(path)
+        gsm_data_generator.compile(TestMod, target="llvm").export_library(path)
         mod = sess.load_vm_module(path, device=device)
 
         x_disc = _numpy_to_worker_0(sess, x_np, device=device)
@@ -281,11 +281,11 @@ def test_vm_multi_func(session_kind):
     # pylint: enable=invalid-name
     with tempfile.TemporaryDirectory() as tmpdir:
         path = tmpdir + "/test.so"
-        device = gsmDataGen.cpu()
+        device = gsm_data_generator.cpu()
         x_np = np.arange(8 * 16).astype("float32").reshape([8, 16])
         y_np = x_np.transpose()
 
-        gsmDataGen.compile(TestMod, target="llvm").export_library(path)
+        gsm_data_generator.compile(TestMod, target="llvm").export_library(path)
         mod = sess.load_vm_module(path, device=device)
 
         x_disc = _numpy_to_worker_0(sess, x_np, device=device)
@@ -312,4 +312,4 @@ def test_num_workers(session_kind, num_workers):
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

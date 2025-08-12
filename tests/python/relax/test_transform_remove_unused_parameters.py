@@ -15,13 +15,13 @@
 # specific language governing permissions and limitations
 # under the License.
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen.script import ir as I, relax as R, tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator.script import ir as I, relax as R, tir as T
 
 
-class BaseCompare(gsmDataGen.testing.CompareBeforeAfter):
-    transform = gsmDataGen.relax.transform.RemoveUnusedParameters()
+class BaseCompare(gsm_data_generator.testing.CompareBeforeAfter):
+    transform = gsm_data_generator.relax.transform.RemoveUnusedParameters()
 
 
 class TestRemoveUnusedRelaxParameter(BaseCompare):
@@ -201,4 +201,4 @@ class TestRemoveExtraShapeVariables(BaseCompare):
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

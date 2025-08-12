@@ -17,8 +17,8 @@
 import itertools
 
 import pytest
-import gsmDataGen
-from gsmDataGen.script.printer.doc import (
+import gsm_data_generator
+from gsm_data_generator.script.printer.doc import (
     AssertDoc,
     AssignDoc,
     CallDoc,
@@ -43,7 +43,7 @@ from gsmDataGen.script.printer.doc import (
     TupleDoc,
     WhileDoc,
 )
-from gsmDataGen.script.printer.doc_printer import to_python_script
+from gsm_data_generator.script.printer.doc_printer import to_python_script
 
 
 def format_script(s: str) -> str:
@@ -1461,4 +1461,4 @@ def test_expr_precedence(doc, expected):
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

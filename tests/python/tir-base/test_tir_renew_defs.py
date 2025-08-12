@@ -15,12 +15,12 @@
 # specific language governing permissions and limitations
 # under the License.
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen.script import tir as T
-from gsmDataGen.tir.buffer import Buffer
-from gsmDataGen.tir.function import PrimFunc
-from gsmDataGen.tir.stmt import Block
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.tir.buffer import Buffer
+from gsm_data_generator.tir.function import PrimFunc
+from gsm_data_generator.tir.stmt import Block
 
 
 def _check_func_signature_remap(lhs: PrimFunc, rhs: PrimFunc):
@@ -63,8 +63,8 @@ def test_simple():
                 B[vi, vj] = A[vi, vj] * 2.0
 
     f1 = elementwise
-    f2 = gsmDataGen.tir.stmt_functor.renew_defs(f1)
-    gsmDataGen.ir.assert_structural_equal(f1, f2)
+    f2 = gsm_data_generator.tir.stmt_functor.renew_defs(f1)
+    gsm_data_generator.ir.assert_structural_equal(f1, f2)
 
     _check_func_signature_remap(f1, f2)
     # check root block
@@ -105,8 +105,8 @@ def test_match_buffer():
                     B[vi, vj] = A0[vi, vj] * 2.0
 
     f1 = func_match_buffer
-    f2 = gsmDataGen.tir.stmt_functor.renew_defs(f1)
-    gsmDataGen.ir.assert_structural_equal(f1, f2)
+    f2 = gsm_data_generator.tir.stmt_functor.renew_defs(f1)
+    gsm_data_generator.ir.assert_structural_equal(f1, f2)
 
     _check_func_signature_remap(f1, f2)
     _check_block_signature_remap(f1.body.block, f2.body.block)
@@ -143,8 +143,8 @@ def test_undefined_buffer():
             A[i] = A[i] + T.float16(1.0)
 
     f1 = access_alloc
-    f2 = gsmDataGen.tir.stmt_functor.renew_defs(f1)
-    gsmDataGen.ir.assert_structural_equal(f1, f2)
+    f2 = gsm_data_generator.tir.stmt_functor.renew_defs(f1)
+    gsm_data_generator.ir.assert_structural_equal(f1, f2)
 
     assert f1.body.buffer_var != f2.body.buffer_var
 
@@ -165,8 +165,8 @@ def test_symbolic_func():
             B[i, j * 2 + 1] = A[i, j]
 
     f1 = symbolic_func
-    f2 = gsmDataGen.tir.stmt_functor.renew_defs(f1)
-    gsmDataGen.ir.assert_structural_equal(f1, f2)
+    f2 = gsm_data_generator.tir.stmt_functor.renew_defs(f1)
+    gsm_data_generator.ir.assert_structural_equal(f1, f2)
 
 
 def test_buffer_map():
@@ -181,8 +181,8 @@ def test_buffer_map():
                 B[vi, vj] = A[vi * 2 + vj]
 
     f1 = main
-    f2 = gsmDataGen.tir.stmt_functor.renew_defs(main)
-    gsmDataGen.ir.assert_structural_equal(f1, f2)
+    f2 = gsm_data_generator.tir.stmt_functor.renew_defs(main)
+    gsm_data_generator.ir.assert_structural_equal(f1, f2)
     assert f1.buffer_map[f1.params[1]].shape[0] != f2.buffer_map[f2.params[1]].shape[0]
 
 
@@ -201,9 +201,9 @@ def test_gather():
                 T_take[v_ax0, v_ax1] = A[B[v_ax0], v_ax1]
 
     f1 = take
-    f2 = gsmDataGen.tir.stmt_functor.renew_defs(take)
-    gsmDataGen.ir.assert_structural_equal(f1, f2)
+    f2 = gsm_data_generator.tir.stmt_functor.renew_defs(take)
+    gsm_data_generator.ir.assert_structural_equal(f1, f2)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

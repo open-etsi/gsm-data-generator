@@ -15,9 +15,9 @@
 # specific language governing permissions and limitations
 # under the License.
 
-import gsmDataGen.testing
-from gsmDataGen.ir import Range
-from gsmDataGen.script import tir as T
+import gsm_data_generator.testing
+from gsm_data_generator.ir import Range
+from gsm_data_generator.script import tir as T
 
 
 @T.prim_func
@@ -112,13 +112,13 @@ def test_complete_matmul():
     A, B, C = [func.buffer_map[x] for x in func.params]
 
     block = func.body.block.body.body.body.body.block
-    assert isinstance(block, gsmDataGen.tir.Block)
+    assert isinstance(block, gsm_data_generator.tir.Block)
     vi, vj, vk = [x.var for x in block.iter_vars]
-    access_A = gsmDataGen.tir.BufferRegion(A, [Range.from_min_extent(vi, 1), Range.from_min_extent(vk, 1)])
-    access_B = gsmDataGen.tir.BufferRegion(B, [Range.from_min_extent(vj, 1), Range.from_min_extent(vk, 1)])
-    access_C = gsmDataGen.tir.BufferRegion(C, [Range.from_min_extent(vi, 1), Range.from_min_extent(vj, 1)])
-    gsmDataGen.ir.assert_structural_equal(block.reads, [access_A, access_B])
-    gsmDataGen.ir.assert_structural_equal(block.writes, [access_C])
+    access_A = gsm_data_generator.tir.BufferRegion(A, [Range.from_min_extent(vi, 1), Range.from_min_extent(vk, 1)])
+    access_B = gsm_data_generator.tir.BufferRegion(B, [Range.from_min_extent(vj, 1), Range.from_min_extent(vk, 1)])
+    access_C = gsm_data_generator.tir.BufferRegion(C, [Range.from_min_extent(vi, 1), Range.from_min_extent(vj, 1)])
+    gsm_data_generator.ir.assert_structural_equal(block.reads, [access_A, access_B])
+    gsm_data_generator.ir.assert_structural_equal(block.writes, [access_C])
 
 
 def test_complete_matmul_original():
@@ -126,28 +126,28 @@ def test_complete_matmul_original():
     A, B, C = [func.buffer_map[x] for x in func.params]
 
     block1 = func.body.block.body.body.body[0].block
-    assert isinstance(block1, gsmDataGen.tir.Block)
+    assert isinstance(block1, gsm_data_generator.tir.Block)
     vi, vj = [x.var for x in block1.iter_vars]
-    access_C = gsmDataGen.tir.BufferRegion(
+    access_C = gsm_data_generator.tir.BufferRegion(
         C, [Range.from_min_extent(vi * 4, 4), Range.from_min_extent(vj * 4, 4)]
     )
-    gsmDataGen.ir.assert_structural_equal(block1.reads, [])
-    gsmDataGen.ir.assert_structural_equal(block1.writes, [access_C])
+    gsm_data_generator.ir.assert_structural_equal(block1.reads, [])
+    gsm_data_generator.ir.assert_structural_equal(block1.writes, [access_C])
 
     block2 = func.body.block.body.body.body[1].body.block
-    assert isinstance(block2, gsmDataGen.tir.Block)
+    assert isinstance(block2, gsm_data_generator.tir.Block)
     vi, vj, vk = [x.var for x in block2.iter_vars]
-    access_A = gsmDataGen.tir.BufferRegion(
+    access_A = gsm_data_generator.tir.BufferRegion(
         A, [Range.from_min_extent(vi * 4, 4), Range.from_min_extent(vk * 4, 4)]
     )
-    access_B = gsmDataGen.tir.BufferRegion(
+    access_B = gsm_data_generator.tir.BufferRegion(
         B, [Range.from_min_extent(vj * 4, 4), Range.from_min_extent(vk * 4, 4)]
     )
-    access_C = gsmDataGen.tir.BufferRegion(
+    access_C = gsm_data_generator.tir.BufferRegion(
         C, [Range.from_min_extent(vi * 4, 4), Range.from_min_extent(vj * 4, 4)]
     )
-    gsmDataGen.ir.assert_structural_equal(block2.reads, [access_C, access_A, access_B])
-    gsmDataGen.ir.assert_structural_equal(block2.writes, [access_C])
+    gsm_data_generator.ir.assert_structural_equal(block2.reads, [access_C, access_A, access_B])
+    gsm_data_generator.ir.assert_structural_equal(block2.writes, [access_C])
 
 
 def _check_elementwise(func):
@@ -158,28 +158,28 @@ def _check_elementwise(func):
     assert len(root_block.writes) == 0
 
     block1 = func.body.block.body[0].body.body.block
-    assert isinstance(block1, gsmDataGen.tir.Block)
+    assert isinstance(block1, gsm_data_generator.tir.Block)
     vi, vj = [x.var for x in block1.iter_vars]
 
-    gsmDataGen.ir.assert_structural_equal(
+    gsm_data_generator.ir.assert_structural_equal(
         block1.reads,
-        [gsmDataGen.tir.BufferRegion(A, [Range.from_min_extent(vi, 1), Range.from_min_extent(vj, 1)])],
+        [gsm_data_generator.tir.BufferRegion(A, [Range.from_min_extent(vi, 1), Range.from_min_extent(vj, 1)])],
     )
-    gsmDataGen.ir.assert_structural_equal(
+    gsm_data_generator.ir.assert_structural_equal(
         block1.writes,
-        [gsmDataGen.tir.BufferRegion(B, [Range.from_min_extent(vi, 1), Range.from_min_extent(vj, 1)])],
+        [gsm_data_generator.tir.BufferRegion(B, [Range.from_min_extent(vi, 1), Range.from_min_extent(vj, 1)])],
     )
 
     block2 = func.body.block.body[1].body.body.block
-    assert isinstance(block2, gsmDataGen.tir.Block)
+    assert isinstance(block2, gsm_data_generator.tir.Block)
     vi, vj = [x.var for x in block2.iter_vars]
-    gsmDataGen.ir.assert_structural_equal(
+    gsm_data_generator.ir.assert_structural_equal(
         block2.reads,
-        [gsmDataGen.tir.BufferRegion(B, [Range.from_min_extent(vi, 1), Range.from_min_extent(vj, 1)])],
+        [gsm_data_generator.tir.BufferRegion(B, [Range.from_min_extent(vi, 1), Range.from_min_extent(vj, 1)])],
     )
-    gsmDataGen.ir.assert_structural_equal(
+    gsm_data_generator.ir.assert_structural_equal(
         block2.writes,
-        [gsmDataGen.tir.BufferRegion(C, [Range.from_min_extent(vi, 1), Range.from_min_extent(vj, 1)])],
+        [gsm_data_generator.tir.BufferRegion(C, [Range.from_min_extent(vi, 1), Range.from_min_extent(vj, 1)])],
     )
 
 
@@ -253,16 +253,16 @@ def expected_recursive_bufferslice_indices(data: T.handle, index: T.handle) -> N
 
 
 def test_complete_buffer_indices():
-    new_func = gsmDataGen.script.from_source(func_with_bufferslice_indices.script()).with_attr(
+    new_func = gsm_data_generator.script.from_source(func_with_bufferslice_indices.script()).with_attr(
         "global_symbol", "main"
     )
-    gsmDataGen.ir.assert_structural_equal(
+    gsm_data_generator.ir.assert_structural_equal(
         new_func, expected_bufferslice_indices.with_attr("global_symbol", "main")
     )
-    new_func = gsmDataGen.script.from_source(func_with_recursive_bufferslice_indices.script()).with_attr(
+    new_func = gsm_data_generator.script.from_source(func_with_recursive_bufferslice_indices.script()).with_attr(
         "global_symbol", "main"
     )
-    gsmDataGen.ir.assert_structural_equal(
+    gsm_data_generator.ir.assert_structural_equal(
         new_func, expected_recursive_bufferslice_indices.with_attr("global_symbol", "main")
     )
 
@@ -300,7 +300,7 @@ def expected_match_buffer_func(a: T.handle) -> None:
 
 
 def test_complete_match_buffer():
-    gsmDataGen.ir.assert_structural_equal(
+    gsm_data_generator.ir.assert_structural_equal(
         match_buffer_func.with_attr("global_symbol", "main"),
         expected_match_buffer_func.with_attr("global_symbol", "main"),
     )
@@ -330,8 +330,8 @@ def expect_alloc_buffer_func(a: T.handle, b: T.handle) -> None:
 
 
 def test_complete_alloc_buffer():
-    rt_func = gsmDataGen.script.from_source(alloc_buffer_func.script()).with_attr("global_symbol", "main")
-    gsmDataGen.ir.assert_structural_equal(
+    rt_func = gsm_data_generator.script.from_source(alloc_buffer_func.script()).with_attr("global_symbol", "main")
+    gsm_data_generator.ir.assert_structural_equal(
         rt_func, expect_alloc_buffer_func.with_attr("global_symbol", "main")
     )
 
@@ -359,8 +359,8 @@ def test_access_region_for_decl_buffer():
                 T.writes(C[vi])
                 C[vi] = A[vi] + B[vi]
 
-    gsmDataGen.ir.assert_structural_equal(explicit_access_regions, automatic_access_regions)
+    gsm_data_generator.ir.assert_structural_equal(explicit_access_regions, automatic_access_regions)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

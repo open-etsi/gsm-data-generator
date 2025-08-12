@@ -16,10 +16,10 @@
 # under the License.
 import sys
 
-import gsmDataGen
-from gsmDataGen.ir.module import IRModule
-from gsmDataGen.script import tir as T
-from gsmDataGen.tir.function import PrimFunc
+import gsm_data_generator
+from gsm_data_generator.ir.module import IRModule
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.tir.function import PrimFunc
 
 
 def _check(before, expect):
@@ -28,8 +28,8 @@ def _check(before, expect):
     if isinstance(expect, PrimFunc):
         expect = IRModule({"main": expect.with_attr("global_symbol", "main")})
 
-    mod = gsmDataGen.tir.transform.RemoveWeightLayoutRewriteBlock()(before)
-    gsmDataGen.ir.assert_structural_equal(mod, expect)
+    mod = gsm_data_generator.tir.transform.RemoveWeightLayoutRewriteBlock()(before)
+    gsm_data_generator.ir.assert_structural_equal(mod, expect)
 
 
 def test_matmul():

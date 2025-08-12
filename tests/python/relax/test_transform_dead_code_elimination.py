@@ -17,18 +17,18 @@
 
 import pytest
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen.relax.transform import DeadCodeElimination
-from gsmDataGen.script.parser import ir as I, relax as R, tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator.relax.transform import DeadCodeElimination
+from gsm_data_generator.script.parser import ir as I, relax as R, tir as T
 
 
 def verify(input, expected):
-    gsmDataGen.ir.assert_structural_equal(DeadCodeElimination()(input), expected)
+    gsm_data_generator.ir.assert_structural_equal(DeadCodeElimination()(input), expected)
 
 
 def test_simple():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Input:
         @R.function
         def main(
@@ -89,7 +89,7 @@ def test_simple():
 
 
 def test_2block():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Input:
         @R.function
         def main(
@@ -157,7 +157,7 @@ def check_if_func_exists(mod, func_name):
 
 
 def test_unused_relax_func():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class InputModule:
         @T.prim_func
         def tir_add(
@@ -190,11 +190,11 @@ def test_unused_relax_func():
     assert not check_if_func_exists(new_mod, "unused_func")
 
 
-provide_entry_func_name = gsmDataGen.testing.parameter(True, False)
+provide_entry_func_name = gsm_data_generator.testing.parameter(True, False)
 
 
 def test_unused_relax_func_custom_entry_func(provide_entry_func_name):
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class InputModule:
         @T.prim_func(private=True)
         def tir_add(
@@ -235,7 +235,7 @@ def test_unused_relax_func_custom_entry_func(provide_entry_func_name):
 
 
 def test_tracking_through_externally_exposed_func(provide_entry_func_name):
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class InputModule:
         @T.prim_func(private=True)
         def tir_add(
@@ -277,7 +277,7 @@ def test_tracking_through_externally_exposed_func(provide_entry_func_name):
 
 def test_unused_relax_func_symbolic_shape():
     # Test with relax function w/ symbolic shape.
-    @gsmDataGen.script.ir_module(check_well_formed=False)
+    @gsm_data_generator.script.ir_module(check_well_formed=False)
     class InputModule:
         @T.prim_func
         def tir_matmul(
@@ -319,7 +319,7 @@ def test_unused_relax_func_symbolic_shape():
 
 
 def test_unused_prim_func():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class InputModule:
         @T.prim_func
         def unused_func(
@@ -355,7 +355,7 @@ def test_unused_prim_func():
 
 
 def test_preserve_indirectly_used_prim_func():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class InputModule:
         @R.function
         def main(
@@ -387,11 +387,11 @@ def test_preserve_indirectly_used_prim_func():
     assert mod
     new_mod = DeadCodeElimination()(mod)
 
-    gsmDataGen.ir.assert_structural_equal(mod, new_mod)
+    gsm_data_generator.ir.assert_structural_equal(mod, new_mod)
 
 
 def test_multiple_unused_funcs():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class InputModule:
         @T.prim_func
         def unused_func1(
@@ -429,7 +429,7 @@ def test_multiple_unused_funcs():
 
 def test_unused_dfb():
     # test if an unused dataflow block can be removed.
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Input:
         @R.function
         def main(
@@ -462,7 +462,7 @@ def test_unused_dfb():
                 R.output(lv4)
             return gv3
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(
@@ -491,7 +491,7 @@ def test_unused_dfb():
 
 def test_unused_dfb2():
     # test if an unused dataflow block can be removed.
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Input:
         @R.function
         def main(
@@ -529,7 +529,7 @@ def test_unused_dfb2():
                 R.output(lv3)
             return lv3
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(
@@ -562,8 +562,8 @@ def test_unused_dfb2():
 def test_extern_func():
     """DeadCodeElimination should retain the ExternFunc in the IRModule."""
 
-    builder = gsmDataGen.relax.BlockBuilder()
-    builder.add_func(gsmDataGen.relax.extern("extern_func"), "extern_func")
+    builder = gsm_data_generator.relax.BlockBuilder()
+    builder.add_func(gsm_data_generator.relax.extern("extern_func"), "extern_func")
     before = builder.get()
 
     verify(before, before)
@@ -639,13 +639,13 @@ def test_compatibility_with_apply_pass_to_function():
     # The well-formed check in conftest.py must be disabled, to avoid
     # triggering on the ill-formed intermediate, so this unit test
     # checks it explicitly.
-    assert gsmDataGen.relax.analysis.well_formed(Before)
-    After = gsmDataGen.ir.transform.ApplyPassToFunction(
-        gsmDataGen.relax.transform.DeadCodeElimination(),
+    assert gsm_data_generator.relax.analysis.well_formed(Before)
+    After = gsm_data_generator.ir.transform.ApplyPassToFunction(
+        gsm_data_generator.relax.transform.DeadCodeElimination(),
         "to_be_transformed",
     )(Before)
-    assert gsmDataGen.relax.analysis.well_formed(After)
-    gsmDataGen.ir.assert_structural_equal(Expected, After)
+    assert gsm_data_generator.relax.analysis.well_formed(After)
+    gsm_data_generator.ir.assert_structural_equal(Expected, After)
 
 
 def test_well_formed_output_with_restricted_scope():
@@ -709,13 +709,13 @@ def test_well_formed_output_with_restricted_scope():
             B = R.add(A, A)
             return B
 
-    assert gsmDataGen.relax.analysis.well_formed(Before)
-    After = gsmDataGen.ir.transform.ApplyPassToFunction(
-        gsmDataGen.relax.transform.DeadCodeElimination(),
+    assert gsm_data_generator.relax.analysis.well_formed(Before)
+    After = gsm_data_generator.ir.transform.ApplyPassToFunction(
+        gsm_data_generator.relax.transform.DeadCodeElimination(),
         "main|subsubroutine",
     )(Before)
-    assert gsmDataGen.relax.analysis.well_formed(After)
-    gsmDataGen.ir.assert_structural_equal(Expected, After)
+    assert gsm_data_generator.relax.analysis.well_formed(After)
+    gsm_data_generator.ir.assert_structural_equal(Expected, After)
 
 
 def test_recursively_defined_lambda():
@@ -800,4 +800,4 @@ def test_recursively_defined_closure():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

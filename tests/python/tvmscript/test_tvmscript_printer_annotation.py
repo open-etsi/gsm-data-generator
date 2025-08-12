@@ -18,8 +18,8 @@
 from typing import Optional
 
 import pytest
-from gsmDataGen.ffi.access_path import AccessPath
-from gsmDataGen.script import tir as T
+from gsm_data_generator.ffi.access_path import AccessPath
+from gsm_data_generator.script import tir as T
 
 
 @T.prim_func

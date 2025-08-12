@@ -16,13 +16,13 @@
 # under the License.
 """ This file tests advanced emit_te features with help of TVMScript assertion"""
 # The tests here depend on tvmscript
-import gsmDataGen
-from gsmDataGen import te, tir
-from gsmDataGen import relax as rx
-from gsmDataGen.ir.base import assert_structural_equal
-from gsmDataGen.script.parser import ir as I
-from gsmDataGen.script.parser import relax as R
-from gsmDataGen.script.parser import tir as T
+import gsm_data_generator
+from gsm_data_generator import te, tir
+from gsm_data_generator import relax as rx
+from gsm_data_generator.ir.base import assert_structural_equal
+from gsm_data_generator.script.parser import ir as I
+from gsm_data_generator.script.parser import relax as R
+from gsm_data_generator.script.parser import tir as T
 
 
 def test_emit_te_with_symbolic_arg():
@@ -76,12 +76,12 @@ def test_symbolic_shape_in_prim_value():
     """Symbolic vars may be provided to TE in R.Prim"""
 
     def te_slice(tensor, i):
-        return gsmDataGen.te.compute([tensor.shape[1]], lambda j: tensor[i, j], name="slice")
+        return gsm_data_generator.te.compute([tensor.shape[1]], lambda j: tensor[i, j], name="slice")
 
     def from_builder():
         bb = rx.BlockBuilder()
         A = rx.Var("A", R.Tensor([16, 16], "float32"))
-        tir_i = gsmDataGen.tir.Var("tir_i", "int64")
+        tir_i = gsm_data_generator.tir.Var("tir_i", "int64")
         relax_i = rx.Var("relax_i", R.Prim(value=tir_i))
 
         with bb.function("main", params=[A, relax_i]):
@@ -122,4 +122,4 @@ def test_symbolic_shape_in_prim_value():
             )
             return gv
 
-    gsmDataGen.ir.assert_structural_equal(from_builder(), Expected)
+    gsm_data_generator.ir.assert_structural_equal(from_builder(), Expected)

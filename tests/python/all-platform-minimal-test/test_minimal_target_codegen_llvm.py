@@ -16,22 +16,22 @@
 # under the License.
 """LLVM enablement tests."""
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import te
-from gsmDataGen import topi
-from gsmDataGen.contrib import utils
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import te
+from gsm_data_generator import topi
+from gsm_data_generator.contrib import utils
 import numpy as np
 import ctypes
 import math
 import re
 
 
-@gsmDataGen.testing.requires_llvm
+@gsm_data_generator.testing.requires_llvm
 def test_llvm_add_pipeline():
     """all-platform-minimal-test: Check LLVM enablement."""
     nn = 128
-    n = gsmDataGen.runtime.convert(nn)
+    n = gsm_data_generator.runtime.convert(nn)
     A = te.placeholder((n,), name="A")
     B = te.placeholder((n,), name="B")
     AA = te.compute((n,), lambda *i: A(*i), name="A")
@@ -39,21 +39,21 @@ def test_llvm_add_pipeline():
     T = te.compute(A.shape, lambda *i: AA(*i) + BB(*i), name="T")
     C = te.compute(A.shape, lambda *i: T(*i), name="C")
 
-    sch = gsmDataGen.tir.Schedule(te.create_prim_func([A, B, C]))
+    sch = gsm_data_generator.tir.Schedule(te.create_prim_func([A, B, C]))
     xo, xi = sch.split(sch.get_loops("C")[0], factors=[None, 4])
     sch.parallel(xo)
     sch.vectorize(xi)
 
     def check_llvm():
         # BUILD and invoke the kernel.
-        f = gsmDataGen.compile(sch.mod, target="llvm")
-        dev = gsmDataGen.cpu(0)
+        f = gsm_data_generator.compile(sch.mod, target="llvm")
+        dev = gsm_data_generator.cpu(0)
         # launch the kernel.
         n = nn
-        a = gsmDataGen.nd.array(np.random.uniform(size=n).astype(A.dtype), dev)
-        b = gsmDataGen.nd.array(np.random.uniform(size=n).astype(B.dtype), dev)
-        c = gsmDataGen.nd.array(np.zeros(n, dtype=C.dtype), dev)
+        a = gsm_data_generator.nd.array(np.random.uniform(size=n).astype(A.dtype), dev)
+        b = gsm_data_generator.nd.array(np.random.uniform(size=n).astype(B.dtype), dev)
+        c = gsm_data_generator.nd.array(np.zeros(n, dtype=C.dtype), dev)
         f(a, b, c)
-        gsmDataGen.testing.assert_allclose(c.numpy(), a.numpy() + b.numpy())
+        gsm_data_generator.testing.assert_allclose(c.numpy(), a.numpy() + b.numpy())
 
     check_llvm()

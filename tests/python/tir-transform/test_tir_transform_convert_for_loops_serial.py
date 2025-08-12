@@ -16,10 +16,10 @@
 # under the License.
 import pytest
 
-import gsmDataGen
+import gsm_data_generator
 
-from gsmDataGen.script import tir as T
-from gsmDataGen.tir import stmt_functor
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.tir import stmt_functor
 
 # fmt: off
 @T.prim_func
@@ -47,16 +47,16 @@ def fused_nn_conv2d_add_fixed_point_multiply_clip_cast_cast_2(placeholder_30: T.
 
 def test_nn_conv2d_add_fixed_point_multiply_clip_cast_cast_2():
     primfunc = fused_nn_conv2d_add_fixed_point_multiply_clip_cast_cast_2
-    mod = gsmDataGen.IRModule.from_expr(primfunc)
-    mod = gsmDataGen.tir.transform.ConvertForLoopsToSerial()(mod)
+    mod = gsm_data_generator.IRModule.from_expr(primfunc)
+    mod = gsm_data_generator.tir.transform.ConvertForLoopsToSerial()(mod)
 
     def verify_serial_loops(stmt):
-        if isinstance(stmt, gsmDataGen.tir.For):
-            assert stmt.kind == gsmDataGen.tir.ForKind.SERIAL
+        if isinstance(stmt, gsm_data_generator.tir.For):
+            assert stmt.kind == gsm_data_generator.tir.ForKind.SERIAL
 
     for _, primfunc in mod.functions.items():
         stmt_functor.post_order_visit(primfunc.body, verify_serial_loops)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

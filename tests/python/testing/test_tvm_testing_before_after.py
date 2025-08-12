@@ -16,12 +16,12 @@
 # under the License.
 
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen.script import tir as T, ir_module
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator.script import tir as T, ir_module
 
 
-class BaseBeforeAfter(gsmDataGen.testing.CompareBeforeAfter):
+class BaseBeforeAfter(gsm_data_generator.testing.CompareBeforeAfter):
     def transform(self):
         return lambda x: x
 
@@ -46,7 +46,7 @@ class TestBeforeAfterMethod(BaseBeforeAfter):
 
 
 class TestBeforeAfterFixture(BaseBeforeAfter):
-    @gsmDataGen.testing.fixture
+    @gsm_data_generator.testing.fixture
     def before(self):
         @T.prim_func
         def func():
@@ -65,9 +65,9 @@ class TestBeforeAfterDelayedPrimFunc(BaseBeforeAfter):
 
 
 class TestBeforeAfterParametrizedFixture(BaseBeforeAfter):
-    n = gsmDataGen.testing.parameter(1, 8, 16)
+    n = gsm_data_generator.testing.parameter(1, 8, 16)
 
-    @gsmDataGen.testing.fixture
+    @gsm_data_generator.testing.fixture
     def before(self, n):
         @T.prim_func
         def func(A: T.Buffer(n, "float32")):
@@ -107,7 +107,7 @@ class TestBeforeAfterIRModuleExplicitFixture(BaseBeforeAfter):
     used.
     """
 
-    @gsmDataGen.testing.fixture
+    @gsm_data_generator.testing.fixture
     def before(self):
         @ir_module
         class mod:
@@ -127,4 +127,4 @@ class TestBeforeAfterIRModuleExplicitFixture(BaseBeforeAfter):
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

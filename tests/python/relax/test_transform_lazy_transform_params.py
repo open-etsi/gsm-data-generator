@@ -16,13 +16,13 @@
 # under the License.
 import numpy as np
 
-import gsmDataGen
-import gsmDataGen.testing
+import gsm_data_generator
+import gsm_data_generator.testing
 
-from gsmDataGen import relax
-from gsmDataGen.script import relax as R, tir as T
-from gsmDataGen.script import ir as I
-from gsmDataGen.relax.transform import LazyTransformParams
+from gsm_data_generator import relax
+from gsm_data_generator.script import relax as R, tir as T
+from gsm_data_generator.script import ir as I
+from gsm_data_generator.relax.transform import LazyTransformParams
 
 
 def test_lazy_transform_params():
@@ -103,7 +103,7 @@ def test_lazy_transform_params():
             return gv
 
     after = LazyTransformParams()(Before)
-    gsmDataGen.ir.assert_structural_equal(after, Expected, map_free_vars=True)
+    gsm_data_generator.ir.assert_structural_equal(after, Expected, map_free_vars=True)
 
 
 def test_get_item_only():
@@ -188,7 +188,7 @@ def test_get_item_only():
             return gv_1
 
     after = LazyTransformParams(fget_item="get_item_0", fset_item=None)(Before)
-    gsmDataGen.ir.assert_structural_equal(after, Expected, map_free_vars=True)
+    gsm_data_generator.ir.assert_structural_equal(after, Expected, map_free_vars=True)
 
 
 def test_extra_get_item_params():
@@ -277,7 +277,7 @@ def test_extra_get_item_params():
     after = LazyTransformParams(
         extra_get_item_params=[relax.Var("loader", relax.ObjectStructInfo())]
     )(Before)
-    gsmDataGen.ir.assert_structural_equal(after, Expected, map_free_vars=True)
+    gsm_data_generator.ir.assert_structural_equal(after, Expected, map_free_vars=True)
 
 
 def test_extra_set_item_params():
@@ -366,7 +366,7 @@ def test_extra_set_item_params():
     after = LazyTransformParams(
         extra_set_item_params=[relax.Var("setter", relax.ObjectStructInfo())]
     )(Before)
-    gsmDataGen.ir.assert_structural_equal(after, Expected, map_free_vars=True)
+    gsm_data_generator.ir.assert_structural_equal(after, Expected, map_free_vars=True)
 
 
 def test_extra_set_item_params_with_const_output():
@@ -407,7 +407,7 @@ def test_extra_set_item_params_with_const_output():
     after = LazyTransformParams(
         extra_set_item_params=[relax.Var("setter", relax.ObjectStructInfo())]
     )(Before)
-    gsmDataGen.ir.assert_structural_equal(after, Expected)
+    gsm_data_generator.ir.assert_structural_equal(after, Expected)
 
 
 def test_lazy_transform_params_with_symbolic_vars():
@@ -488,7 +488,7 @@ def test_lazy_transform_params_with_symbolic_vars():
                     Output[vi] = Input[slice_index, vi]
 
     after = LazyTransformParams()(Before)
-    gsmDataGen.ir.assert_structural_equal(after, Expected, map_free_vars=True)
+    gsm_data_generator.ir.assert_structural_equal(after, Expected, map_free_vars=True)
 
 
 def test_param_shape_symbolic():
@@ -573,7 +573,7 @@ def test_param_shape_symbolic():
             return gv4
 
     after = LazyTransformParams()(Before)
-    gsmDataGen.ir.assert_structural_equal(after, Expected, map_free_vars=True)
+    gsm_data_generator.ir.assert_structural_equal(after, Expected, map_free_vars=True)
 
 
 def test_output_with_use_site():
@@ -623,12 +623,12 @@ def test_output_with_use_site():
             return gv
 
     after = LazyTransformParams()(Module)
-    gsmDataGen.ir.assert_structural_equal(after, Expected, map_free_vars=True)
+    gsm_data_generator.ir.assert_structural_equal(after, Expected, map_free_vars=True)
 
 
 def test_output():
     target = "llvm"
-    dev = gsmDataGen.device(target)
+    dev = gsm_data_generator.device(target)
 
     @I.ir_module
     class TransformModule:
@@ -651,7 +651,7 @@ def test_output():
     mod = TransformModule
     mod = relax.transform.LazyTransformParams()(mod)
     mod = relax.transform.LegalizeOps()(mod)
-    built = gsmDataGen.compile(mod, target=target)
+    built = gsm_data_generator.compile(mod, target=target)
 
     params = [
         np.random.random(size=(3, 64, 3, 3)).astype("float32"),
@@ -660,11 +660,11 @@ def test_output():
     transformed = {}
     expected = [params[0].transpose(1, 0, 2, 3), params[1]]
 
-    @gsmDataGen.register_func("get_item", override=True)
+    @gsm_data_generator.register_func("get_item", override=True)
     def get_item(i):
-        return gsmDataGen.nd.array(params[i], dev)
+        return gsm_data_generator.nd.array(params[i], dev)
 
-    @gsmDataGen.register_func("set_item", override=True)
+    @gsm_data_generator.register_func("set_item", override=True)
     def set_item(i, value):
         assert i not in transformed, f"Set item called multiple times for index {i}"
         transformed[i] = value.numpy()
@@ -677,7 +677,7 @@ def test_output():
     assert len(transformed) == len(expected)
 
     for expected_i, transformed_i in zip(expected, transformed):
-        gsmDataGen.testing.assert_allclose(expected_i, transformed_i)
+        gsm_data_generator.testing.assert_allclose(expected_i, transformed_i)
 
 
 def test_duplicate_outputs():
@@ -729,7 +729,7 @@ def test_duplicate_outputs():
             return output
 
     after = LazyTransformParams()(Before)
-    gsmDataGen.ir.assert_structural_equal(after, Expected)
+    gsm_data_generator.ir.assert_structural_equal(after, Expected)
 
 
 def test_params_without_tuple():
@@ -755,7 +755,7 @@ def test_params_without_tuple():
             return (D, B)
 
     After = LazyTransformParams(fset_item=None)(Before)
-    gsmDataGen.ir.assert_structural_equal(After, Expected)
+    gsm_data_generator.ir.assert_structural_equal(After, Expected)
 
 
 def test_retain_before_num_input():
@@ -801,7 +801,7 @@ def test_retain_before_num_input():
             return (A_sharded, B_sharded)
 
     After = LazyTransformParams(fset_item=None)(Before)
-    gsmDataGen.ir.assert_structural_equal(After, Expected)
+    gsm_data_generator.ir.assert_structural_equal(After, Expected)
 
 
 def test_params_without_tuple_with_symbolic_var():
@@ -821,7 +821,7 @@ def test_params_without_tuple_with_symbolic_var():
             return (A,)
 
     After = LazyTransformParams(fset_item=None)(Before)
-    gsmDataGen.ir.assert_structural_equal(After, Expected)
+    gsm_data_generator.ir.assert_structural_equal(After, Expected)
 
 
 def test_get_item_callback():
@@ -848,7 +848,7 @@ def test_get_item_callback():
             return (D, B)
 
     After = relax.transform.LazyGetInput()(Before)
-    gsmDataGen.ir.assert_structural_equal(After, Expected)
+    gsm_data_generator.ir.assert_structural_equal(After, Expected)
 
 
 def test_get_item_callback_num_attrs():
@@ -948,7 +948,7 @@ def test_get_item_callback_num_attrs():
             return (weight_A, weight_B)
 
     After = relax.transform.LazyGetInput()(Before)
-    gsmDataGen.ir.assert_structural_equal(After, Expected)
+    gsm_data_generator.ir.assert_structural_equal(After, Expected)
 
 
 def test_get_item_callback_dynamic_shape():
@@ -982,7 +982,7 @@ def test_get_item_callback_dynamic_shape():
             return (D, B)
 
     After = relax.transform.LazyGetInput()(Before)
-    gsmDataGen.ir.assert_structural_equal(After, Expected)
+    gsm_data_generator.ir.assert_structural_equal(After, Expected)
 
 
 def test_set_output_callback():
@@ -1015,7 +1015,7 @@ def test_set_output_callback():
             return R.tuple()
 
     After = relax.transform.LazySetOutput()(Before)
-    gsmDataGen.ir.assert_structural_equal(After, Expected)
+    gsm_data_generator.ir.assert_structural_equal(After, Expected)
 
 
 def test_set_output_callback_of_param():
@@ -1049,7 +1049,7 @@ def test_set_output_callback_of_param():
             return R.tuple()
 
     After = relax.transform.LazySetOutput()(Before)
-    gsmDataGen.ir.assert_structural_equal(After, Expected)
+    gsm_data_generator.ir.assert_structural_equal(After, Expected)
 
 
 def test_set_output_callback_num_input():
@@ -1084,7 +1084,7 @@ def test_set_output_callback_num_input():
             return R.tuple()
 
     After = relax.transform.LazySetOutput()(Before)
-    gsmDataGen.ir.assert_structural_equal(After, Expected)
+    gsm_data_generator.ir.assert_structural_equal(After, Expected)
 
 
 def test_set_output_callback_with_duplicate_output():
@@ -1118,7 +1118,7 @@ def test_set_output_callback_with_duplicate_output():
             return R.tuple()
 
     After = relax.transform.LazySetOutput()(Before)
-    gsmDataGen.ir.assert_structural_equal(After, Expected)
+    gsm_data_generator.ir.assert_structural_equal(After, Expected)
 
 
 def test_set_output_callback_with_inline_const():
@@ -1155,7 +1155,7 @@ def test_set_output_callback_with_inline_const():
             return R.tuple()
 
     After = relax.transform.LazySetOutput()(Before)
-    gsmDataGen.ir.assert_structural_equal(After, Expected)
+    gsm_data_generator.ir.assert_structural_equal(After, Expected)
 
 
 def test_set_output_callback_with_non_tuple_output():
@@ -1183,8 +1183,8 @@ def test_set_output_callback_with_non_tuple_output():
             return R.tuple()
 
     After = relax.transform.LazySetOutput()(Before)
-    gsmDataGen.ir.assert_structural_equal(After, Expected)
+    gsm_data_generator.ir.assert_structural_equal(After, Expected)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

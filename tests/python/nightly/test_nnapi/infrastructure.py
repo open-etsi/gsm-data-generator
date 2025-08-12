@@ -17,20 +17,20 @@
 
 import numpy as np
 
-import gsmDataGen
-import gsmDataGen.script.relax as R
+import gsm_data_generator
+import gsm_data_generator.script.relax as R
 
-from gsmDataGen.contrib import ndk, utils
-from gsmDataGen.relax.backend.contrib.nnapi import partition_for_nnapi
+from gsm_data_generator.contrib import ndk, utils
+from gsm_data_generator.relax.backend.contrib.nnapi import partition_for_nnapi
 
 
 # pylint: disable=import-outside-toplevel,missing-function-docstring
-def reshape_matmul(mod: gsmDataGen.IRModule):
+def reshape_matmul(mod: gsm_data_generator.IRModule):
     from typing import Dict
 
-    from gsmDataGen.relax import Expr
-    from gsmDataGen.relax.dpl import DFPattern, rewrite_call
-    from gsmDataGen.relax.dpl.pattern import is_op, wildcard
+    from gsm_data_generator.relax import Expr
+    from gsm_data_generator.relax.dpl import DFPattern, rewrite_call
+    from gsm_data_generator.relax.dpl.pattern import is_op, wildcard
 
     input0 = wildcard()
     input1 = wildcard()
@@ -50,12 +50,12 @@ def reshape_matmul(mod: gsmDataGen.IRModule):
     return mod
 
 
-def decompose_clip(mod: gsmDataGen.IRModule) -> gsmDataGen.IRModule:
+def decompose_clip(mod: gsm_data_generator.IRModule) -> gsm_data_generator.IRModule:
     from typing import Dict
 
-    from gsmDataGen.relax import Expr
-    from gsmDataGen.relax.dpl import DFPattern, rewrite_call
-    from gsmDataGen.relax.dpl.pattern import is_op, wildcard
+    from gsm_data_generator.relax import Expr
+    from gsm_data_generator.relax.dpl import DFPattern, rewrite_call
+    from gsm_data_generator.relax.dpl.pattern import is_op, wildcard
 
     input_pattern = wildcard()
     min_pattern = wildcard()
@@ -79,17 +79,17 @@ def decompose_clip(mod: gsmDataGen.IRModule) -> gsmDataGen.IRModule:
 
 
 def _build(mod, enable_nnapi):
-    if isinstance(mod, gsmDataGen.relax.expr.Call):
-        mod = gsmDataGen.IRModule.from_expr(mod)
+    if isinstance(mod, gsm_data_generator.relax.expr.Call):
+        mod = gsm_data_generator.IRModule.from_expr(mod)
 
     if enable_nnapi:
-        mod = gsmDataGen.relax.transform.FoldConstant()(mod)
+        mod = gsm_data_generator.relax.transform.FoldConstant()(mod)
         mod = reshape_matmul(mod)
         mod = decompose_clip(mod)
         mod = partition_for_nnapi(mod)
 
-        mod = gsmDataGen.relax.transform.RunCodegen()(mod)
-    ex = gsmDataGen.compile(mod, target="llvm -mtriple=aarch64-linux-android")
+        mod = gsm_data_generator.relax.transform.RunCodegen()(mod)
+    ex = gsm_data_generator.compile(mod, target="llvm -mtriple=aarch64-linux-android")
 
     return ex
 
@@ -106,7 +106,7 @@ def _run(remote, tracker, ex, inputs):
     try:
         # Execute the model on the remote.
         remote_ex = remote.load_module(so_name)
-        vm = gsmDataGen.relax.VirtualMachine(remote_ex, device=dev)
+        vm = gsm_data_generator.relax.VirtualMachine(remote_ex, device=dev)
 
         inputs = [x.copyto(dev) for x in inputs]
 

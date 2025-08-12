@@ -19,17 +19,17 @@ from typing import Optional, Union
 
 
 import pytest
-import gsmDataGen
-import gsmDataGen.script
-import gsmDataGen.testing
-from gsmDataGen import IRModule, relax, tir, topi
+import gsm_data_generator
+import gsm_data_generator.script
+import gsm_data_generator.testing
+from gsm_data_generator import IRModule, relax, tir, topi
 
-from gsmDataGen.ir import Range
-from gsmDataGen.relax import SeqExpr, VarBinding, Call
-from gsmDataGen.relax.distributed import DeviceMesh
-from gsmDataGen.script.parser import ir as I
-from gsmDataGen.script.parser import relax as R
-from gsmDataGen.script.parser import tir as T
+from gsm_data_generator.ir import Range
+from gsm_data_generator.relax import SeqExpr, VarBinding, Call
+from gsm_data_generator.relax.distributed import DeviceMesh
+from gsm_data_generator.script.parser import ir as I
+from gsm_data_generator.script.parser import relax as R
+from gsm_data_generator.script.parser import tir as T
 
 
 def _check(
@@ -37,10 +37,10 @@ def _check(
     expect: Optional[Union[relax.Function, IRModule]] = None,
 ):
     test = parsed.script(show_meta=True)
-    roundtrip_mod = gsmDataGen.script.from_source(test)
-    gsmDataGen.ir.assert_structural_equal(parsed, roundtrip_mod)
+    roundtrip_mod = gsm_data_generator.script.from_source(test)
+    gsm_data_generator.ir.assert_structural_equal(parsed, roundtrip_mod)
     if expect:
-        gsmDataGen.ir.assert_structural_equal(parsed, expect)
+        gsm_data_generator.ir.assert_structural_equal(parsed, expect)
 
 
 def test_call_tir_dtensor():
@@ -190,4 +190,4 @@ def test_constant():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

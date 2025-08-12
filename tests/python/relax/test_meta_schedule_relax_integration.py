@@ -19,16 +19,16 @@
 import numpy as np
 import pytest
 import tempfile
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import IRModule
-from gsmDataGen import meta_schedule as ms
-from gsmDataGen import relax, tir
-from gsmDataGen.ir import transform
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import IRModule
+from gsm_data_generator import meta_schedule as ms
+from gsm_data_generator import relax, tir
+from gsm_data_generator.ir import transform
 
-from gsmDataGen.script import ir as I
-from gsmDataGen.script import tir as T
-from gsmDataGen.script import relax as R
+from gsm_data_generator.script import ir as I
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.script import relax as R
 
 # fmt: off
 @I.ir_module
@@ -207,4 +207,4 @@ def test_using_anchor_trace(module_equality):
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

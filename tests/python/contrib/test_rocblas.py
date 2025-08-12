@@ -17,14 +17,14 @@
 """Configure pytest"""
 # pylint: disable=invalid-name
 import numpy as np
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import te
-import gsmDataGen.topi.testing
-from gsmDataGen.contrib import rocblas
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import te
+import gsm_data_generator.topi.testing
+from gsm_data_generator.contrib import rocblas
 
 
-@gsmDataGen.testing.requires_rocm
+@gsm_data_generator.testing.requires_rocm
 def test_matmul():
     """Tests matmul operation using roc"""
     n = 1024
@@ -35,16 +35,16 @@ def test_matmul():
     C = rocblas.matmul(A, B)
 
     def verify(target="rocm"):
-        if not gsmDataGen.get_global_func("tvm.contrib.rocblas.matmul", True):
+        if not gsm_data_generator.get_global_func("tvm.contrib.rocblas.matmul", True):
             print("skip because extern function is not available")
             return
-        dev = gsmDataGen.rocm(0)
-        f = gsmDataGen.compile(te.create_prim_func([A, B, C]), target=target)
-        a = gsmDataGen.nd.array(np.random.uniform(size=(n, l)).astype(A.dtype), dev)
-        b = gsmDataGen.nd.array(np.random.uniform(size=(l, m)).astype(B.dtype), dev)
-        c = gsmDataGen.nd.array(np.zeros((n, m), dtype=C.dtype), dev)
+        dev = gsm_data_generator.rocm(0)
+        f = gsm_data_generator.compile(te.create_prim_func([A, B, C]), target=target)
+        a = gsm_data_generator.nd.array(np.random.uniform(size=(n, l)).astype(A.dtype), dev)
+        b = gsm_data_generator.nd.array(np.random.uniform(size=(l, m)).astype(B.dtype), dev)
+        c = gsm_data_generator.nd.array(np.zeros((n, m), dtype=C.dtype), dev)
         f(a, b, c)
-        gsmDataGen.testing.assert_allclose(c.numpy(), np.dot(a.numpy(), b.numpy()), rtol=1e-5)
+        gsm_data_generator.testing.assert_allclose(c.numpy(), np.dot(a.numpy(), b.numpy()), rtol=1e-5)
 
     verify()
 
@@ -62,29 +62,29 @@ def verify_batch_matmul(batch, m, k, n, lib, transa=False, transb=False, dtype="
             a = a.transpose(0, 2, 1)
         if not transb:
             b = b.transpose(0, 2, 1)
-        return gsmDataGen.topi.testing.batch_matmul(a, b)
+        return gsm_data_generator.topi.testing.batch_matmul(a, b)
 
     def verify(target="rocm"):
-        if not gsmDataGen.testing.device_enabled(target):
+        if not gsm_data_generator.testing.device_enabled(target):
             print("skip because %s is not enabled..." % target)
             return
-        if not gsmDataGen.get_global_func(lib.__name__ + ".batch_matmul", True):
+        if not gsm_data_generator.get_global_func(lib.__name__ + ".batch_matmul", True):
             print("skip because extern function is not available")
             return
-        dev = gsmDataGen.rocm(0)
-        f = gsmDataGen.compile(te.create_prim_func([A, B, C]), target=target)
-        a = gsmDataGen.nd.array(np.random.uniform(size=ashape).astype(A.dtype), dev)
-        b = gsmDataGen.nd.array(np.random.uniform(size=bshape).astype(B.dtype), dev)
-        c = gsmDataGen.nd.array(np.zeros((batch, m, n), dtype=C.dtype), dev)
+        dev = gsm_data_generator.rocm(0)
+        f = gsm_data_generator.compile(te.create_prim_func([A, B, C]), target=target)
+        a = gsm_data_generator.nd.array(np.random.uniform(size=ashape).astype(A.dtype), dev)
+        b = gsm_data_generator.nd.array(np.random.uniform(size=bshape).astype(B.dtype), dev)
+        c = gsm_data_generator.nd.array(np.zeros((batch, m, n), dtype=C.dtype), dev)
         f(a, b, c)
-        gsmDataGen.testing.assert_allclose(
+        gsm_data_generator.testing.assert_allclose(
             c.numpy(), get_numpy(a.numpy(), b.numpy(), transa, transb), rtol=1e-5
         )
 
     verify()
 
 
-@gsmDataGen.testing.requires_rocm
+@gsm_data_generator.testing.requires_rocm
 def test_batch_matmul():
     """Tests of matmul operation in batch using roc"""
     verify_batch_matmul(128, 64, 512, 512, rocblas, transa=False, transb=False)

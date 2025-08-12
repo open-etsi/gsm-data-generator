@@ -17,12 +17,12 @@
 
 import numpy as np
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import relax
-from gsmDataGen.script import ir as I
-from gsmDataGen.script import relax as R
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import relax
+from gsm_data_generator.script import ir as I
+from gsm_data_generator.script import relax as R
+from gsm_data_generator.script import tir as T
 
 add_cuda_source = """
 extern "C" __global__ void add_kernel(float* x, float* y, float* output, int n_elements) {
@@ -34,7 +34,7 @@ extern "C" __global__ void add_kernel(float* x, float* y, float* output, int n_e
 """
 
 
-@gsmDataGen.testing.requires_cuda
+@gsm_data_generator.testing.requires_cuda
 def test_tir_call_source_kernel():
     @I.ir_module
     class Module:
@@ -88,15 +88,15 @@ def test_tir_call_source_kernel():
                     64,
                 )
 
-    gsmDataGen.ir.assert_structural_equal(Module["add"], Parsed["add"])
+    gsm_data_generator.ir.assert_structural_equal(Module["add"], Parsed["add"])
     assert len(Module.get_attr("external_mods")) == 1
 
-    device = gsmDataGen.cuda(0)
-    x_nd = gsmDataGen.nd.array(np.random.rand(256).astype(np.float32), device)
-    y_nd = gsmDataGen.nd.array(np.random.rand(256).astype(np.float32), device)
+    device = gsm_data_generator.cuda(0)
+    x_nd = gsm_data_generator.nd.array(np.random.rand(256).astype(np.float32), device)
+    y_nd = gsm_data_generator.nd.array(np.random.rand(256).astype(np.float32), device)
     output_np = x_nd.numpy() + y_nd.numpy()
 
-    with gsmDataGen.target.Target("cuda"):
-        lib = gsmDataGen.compile(Module)
-        output_nd = gsmDataGen.runtime.vm.VirtualMachine(lib, device)["main"](x_nd, y_nd)
-        gsmDataGen.testing.assert_allclose(output_nd.numpy(), output_np, rtol=1e-5)
+    with gsm_data_generator.target.Target("cuda"):
+        lib = gsm_data_generator.compile(Module)
+        output_nd = gsm_data_generator.runtime.vm.VirtualMachine(lib, device)["main"](x_nd, y_nd)
+        gsm_data_generator.testing.assert_allclose(output_nd.numpy(), output_np, rtol=1e-5)

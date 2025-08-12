@@ -15,12 +15,12 @@
 # specific language governing permissions and limitations
 # under the License.
 # pylint: disable=missing-docstring
-import gsmDataGen.testing
-from gsmDataGen import dlight as dl
-from gsmDataGen.ir import assert_structural_equal
-from gsmDataGen.script import ir as I
-from gsmDataGen.script import tir as T
-from gsmDataGen.target import Target
+import gsm_data_generator.testing
+from gsm_data_generator import dlight as dl
+from gsm_data_generator.ir import assert_structural_equal
+from gsm_data_generator.script import ir as I
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.target import Target
 
 
 def test_fallback():
@@ -172,7 +172,7 @@ def test_fallback_irregular_spatial():
 
     target = Target("nvidia/geforce-rtx-3090-ti")
     with target:
-        mod = gsmDataGen.IRModule({"main": func})
+        mod = gsm_data_generator.IRModule({"main": func})
         mod = dl.ApplyDefaultSchedule(  # pylint: disable=not-callable
             dl.gpu.Fallback(),
         )(mod)
@@ -258,4 +258,4 @@ def test_gpu_fallback_ignores_non_gpu_functions():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

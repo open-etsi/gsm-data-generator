@@ -19,15 +19,15 @@ from typing import List, Tuple
 import numpy as np
 import pytest
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import relax
-from gsmDataGen.ir import assert_structural_equal
-from gsmDataGen.relax.frontend import nn
-from gsmDataGen.relax.frontend.nn import core, modules, spec
-from gsmDataGen.script import ir as I
-from gsmDataGen.script import tir as T
-from gsmDataGen.script import relax as R
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import relax
+from gsm_data_generator.ir import assert_structural_equal
+from gsm_data_generator.relax.frontend import nn
+from gsm_data_generator.relax.frontend.nn import core, modules, spec
+from gsm_data_generator.script import ir as I
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.script import relax as R
 
 
 def test_relu():
@@ -304,7 +304,7 @@ def test_conv2d_dynamic():
             R.output(gv1)
         return gv1
 
-    mod = modules.Conv2D(gsmDataGen.tir.Var("in_channels", "int64"), 32, 3, bias=True)
+    mod = modules.Conv2D(gsm_data_generator.tir.Var("in_channels", "int64"), 32, 3, bias=True)
     tvm_mod, _ = mod.export_tvm(
         spec={
             "forward": {
@@ -716,4 +716,4 @@ def test_module_list():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

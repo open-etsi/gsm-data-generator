@@ -22,14 +22,14 @@ import tempfile
 import numpy as np
 import pytest
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import dlight as dl
-from gsmDataGen import get_global_func
-from gsmDataGen import relax as rx
-from gsmDataGen.runtime import disco as di
-from gsmDataGen.runtime.vm import VirtualMachine
-from gsmDataGen.script import relax as R
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import dlight as dl
+from gsm_data_generator import get_global_func
+from gsm_data_generator import relax as rx
+from gsm_data_generator.runtime import disco as di
+from gsm_data_generator.runtime.vm import VirtualMachine
+from gsm_data_generator.script import relax as R
 
 _all_session_kinds = [di.ThreadedSession, di.ProcessSession]
 _ccl = [get_global_func("runtime.disco.compiled_ccl")()]
@@ -37,10 +37,10 @@ _ccl = [get_global_func("runtime.disco.compiled_ccl")()]
 
 def create_device_target(ccl):
     if ccl == "nccl":
-        dev = gsmDataGen.cuda(0)
+        dev = gsm_data_generator.cuda(0)
     else:
-        dev = gsmDataGen.rocm(0)
-    target = gsmDataGen.target.Target.from_device(dev)
+        dev = gsm_data_generator.rocm(0)
+    target = gsm_data_generator.target.Target.from_device(dev)
     return (dev, target)
 
 
@@ -437,7 +437,7 @@ def test_mlp(session_kind, ccl):  # pylint: disable=too-many-locals
     sess.init_ccl(ccl, *devices)
 
     # pylint: disable=invalid-name
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class MLP:  # pylint: disable=too-few-public-methods
         @R.function
         def main(
@@ -453,7 +453,7 @@ def test_mlp(session_kind, ccl):  # pylint: disable=too-many-locals
                 R.output(lv2)
             return lv2
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class ShardedMLP:  # pylint: disable=too-few-public-methods
         @R.function
         def main(
@@ -484,16 +484,16 @@ def test_mlp(session_kind, ccl):  # pylint: disable=too-many-locals
                 dl.gpu.GeneralReduction(),
                 dl.gpu.Fallback(),
             )(mod)
-            return gsmDataGen.compile(mod, target=target)
+            return gsm_data_generator.compile(mod, target=target)
 
     # pylint: disable=invalid-name
     X = np.random.randn(128, 128).astype("float32")
     W1 = np.random.randn(128, 128).astype("float32")
     W2 = np.random.randn(128, 128).astype("float32")
     Y_expected = VirtualMachine(relax_build(MLP, target), device=dev)["main"](
-        gsmDataGen.nd.array(X, device=dev),
-        gsmDataGen.nd.array(W1, device=dev),
-        gsmDataGen.nd.array(W2, device=dev),
+        gsm_data_generator.nd.array(X, device=dev),
+        gsm_data_generator.nd.array(W1, device=dev),
+        gsm_data_generator.nd.array(W2, device=dev),
     ).numpy()
 
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -512,7 +512,7 @@ def test_mlp(session_kind, ccl):  # pylint: disable=too-many-locals
         d_W2.debug_copy_from(0, W2[:64, :])
         d_W2.debug_copy_from(1, W2[64:, :])
         d_Y = mod["main"](d_X, d_W1, d_W2)
-        Y_result = gsmDataGen.nd.empty((128, 128), "float32", device=dev)
+        Y_result = gsm_data_generator.nd.empty((128, 128), "float32", device=dev)
         sess.copy_from_worker_0(Y_result, d_Y)
         sess.sync_worker_0()
         Y_result = Y_result.numpy()
@@ -528,7 +528,7 @@ def test_attention(session_kind, ccl):  # pylint: disable=too-many-locals,too-ma
     sess.init_ccl(ccl, *devices)
 
     # pylint: disable=invalid-name
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Attention:  # pylint: disable=too-few-public-methods
         @R.function
         def main(  # pylint: disable=too-many-locals
@@ -568,7 +568,7 @@ def test_attention(session_kind, ccl):  # pylint: disable=too-many-locals,too-ma
                 R.output(lv16)
             return lv16
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class ShardedAttention:  # pylint: disable=too-few-public-methods
         @R.function
         def main(  # pylint: disable=too-many-locals
@@ -623,7 +623,7 @@ def test_attention(session_kind, ccl):  # pylint: disable=too-many-locals,too-ma
                 dl.gpu.GeneralReduction(),
                 dl.gpu.Fallback(),
             )(mod)
-            return gsmDataGen.compile(mod, target=target)
+            return gsm_data_generator.compile(mod, target=target)
 
     # pylint: disable=invalid-name
     X = np.random.randn(1, 10, 128).astype("float32")
@@ -632,11 +632,11 @@ def test_attention(session_kind, ccl):  # pylint: disable=too-many-locals,too-ma
     Wv = np.random.randn(128, 512).astype("float32")
     Wo = np.random.randn(512, 128).astype("float32")
     Y_expected = VirtualMachine(relax_build(Attention, target), device=dev)["main"](
-        gsmDataGen.nd.array(X, device=dev),
-        gsmDataGen.nd.array(Wq, device=dev),
-        gsmDataGen.nd.array(Wk, device=dev),
-        gsmDataGen.nd.array(Wv, device=dev),
-        gsmDataGen.nd.array(Wo, device=dev),
+        gsm_data_generator.nd.array(X, device=dev),
+        gsm_data_generator.nd.array(Wq, device=dev),
+        gsm_data_generator.nd.array(Wk, device=dev),
+        gsm_data_generator.nd.array(Wv, device=dev),
+        gsm_data_generator.nd.array(Wo, device=dev),
     ).numpy()
 
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -661,7 +661,7 @@ def test_attention(session_kind, ccl):  # pylint: disable=too-many-locals,too-ma
         d_Wo.debug_copy_from(0, Wo[:256, :])
         d_Wo.debug_copy_from(1, Wo[256:, :])
         d_Y = mod["main"](d_X, d_Wq, d_Wk, d_Wv, d_Wo)
-        Y_result = gsmDataGen.nd.empty((1, 10, 128), "float32", device=dev)
+        Y_result = gsm_data_generator.nd.empty((1, 10, 128), "float32", device=dev)
         sess.copy_from_worker_0(Y_result, d_Y)
         sess.sync_worker_0()
         Y_result = Y_result.numpy()
@@ -670,4 +670,4 @@ def test_attention(session_kind, ccl):  # pylint: disable=too-many-locals,too-ma
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

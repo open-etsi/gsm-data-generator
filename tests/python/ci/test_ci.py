@@ -24,7 +24,7 @@ import logging
 from pathlib import Path
 
 import pytest
-import gsmDataGen.testing
+import gsm_data_generator.testing
 
 from .test_utils import REPO_ROOT, GITHUB_SCRIPT_ROOT, JENKINS_SCRIPT_ROOT, TempGit, run_script
 
@@ -245,7 +245,7 @@ TEST_DATA_SKIPPED_BOT = {
 # pylint: enable=line-too-long
 
 
-@gsmDataGen.testing.skip_if_wheel_test
+@gsm_data_generator.testing.skip_if_wheel_test
 @parameterize_named(**TEST_DATA_SKIPPED_BOT)
 # pylint: enable=line-too-long
 def test_skipped_tests_comment(
@@ -319,7 +319,7 @@ def test_skipped_tests_comment(
     assert_in(f"with target {target_url}", caplog.text)
 
 
-@gsmDataGen.testing.skip_if_wheel_test
+@gsm_data_generator.testing.skip_if_wheel_test
 @parameterize_named(
     doc_link=dict(
         target_url="https://ci.tlcpack.ai/job/tvm/job/PR-11594/3/display/redirect",
@@ -361,7 +361,7 @@ def test_docs_comment(target_url, base_url, commit_sha, expected_body):
     assert_in(expected_body, comment)
 
 
-@gsmDataGen.testing.skip_if_wheel_test
+@gsm_data_generator.testing.skip_if_wheel_test
 @parameterize_named(
     cc_no_one=dict(
         pr_body="abc", requested_reviewers=[], existing_review_users=[], expected_reviewers=[]
@@ -902,7 +902,7 @@ def assert_in(needle: str, haystack: str):
         raise AssertionError(f"item not found:\n{needle}\nin:\n{haystack}")
 
 
-@gsmDataGen.testing.skip_if_wheel_test
+@gsm_data_generator.testing.skip_if_wheel_test
 @parameterize_named(
     no_cc=dict(
         source_type="ISSUE",
@@ -1151,7 +1151,7 @@ def test_github_tag_teams(tmpdir_factory, source_type, data, check):
     assert_in(check, proc.stdout)
 
 
-@gsmDataGen.testing.skip_if_wheel_test
+@gsm_data_generator.testing.skip_if_wheel_test
 @parameterize_named(
     same_tags=dict(
         tlcpackstaging_body={
@@ -1447,4 +1447,4 @@ def test_pr_linter(title, body, expected, expected_code):
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

@@ -18,21 +18,21 @@ import pytest
 from typing import Callable, Union, Tuple, List
 
 import numpy as np
-import gsmDataGen
-from gsmDataGen.relax.expr import Call
-from gsmDataGen.relax.struct_info import TensorStructInfo, TupleStructInfo
-import gsmDataGen.testing
-from gsmDataGen import relax
-from gsmDataGen.relax.transform import LegalizeOps
-from gsmDataGen.testing.utils import check_numerical_grads
-from gsmDataGen.ir.op import Op
+import gsm_data_generator
+from gsm_data_generator.relax.expr import Call
+from gsm_data_generator.relax.struct_info import TensorStructInfo, TupleStructInfo
+import gsm_data_generator.testing
+from gsm_data_generator import relax
+from gsm_data_generator.relax.transform import LegalizeOps
+from gsm_data_generator.testing.utils import check_numerical_grads
+from gsm_data_generator.ir.op import Op
 
 
 def relax_check_gradients(
     op_func: Callable,
     inputs_numpy: List[np.array],
-    target: Union[str, gsmDataGen.target.Target],
-    dev: gsmDataGen.runtime.Device,
+    target: Union[str, gsm_data_generator.target.Target],
+    dev: gsm_data_generator.runtime.Device,
     tuple_input: bool = False,
     ignore_grads: List[int] = [],
     **kwargs,  # attr for operators
@@ -84,12 +84,12 @@ def relax_check_gradients(
     def _numpy_to_tvm(data):
         if isinstance(data, list):
             return [_numpy_to_tvm(d) for d in data]
-        return gsmDataGen.nd.array(data)
+        return gsm_data_generator.nd.array(data)
 
     def _tvm_to_numpy(data, ignore_idx=[]):
-        if isinstance(data, gsmDataGen.ir.Array):
+        if isinstance(data, gsm_data_generator.ir.Array):
             return [_tvm_to_numpy(d) for i, d in enumerate(data) if i not in ignore_idx]
-        if isinstance(data, gsmDataGen.runtime.ndarray.NDArray):
+        if isinstance(data, gsm_data_generator.runtime.ndarray.NDArray):
             return data.numpy()
         return data
 
@@ -122,7 +122,7 @@ def relax_check_gradients(
             out = forward_bb.emit_output(call)
         forward_bb.emit_func_output(out)
     forward_mod = forward_bb.get()
-    forward_ex = gsmDataGen.compile(forward_mod, target)
+    forward_ex = gsm_data_generator.compile(forward_mod, target)
     forward_vm = relax.VirtualMachine(forward_ex, dev)
 
     # Generate weights
@@ -186,7 +186,7 @@ def relax_check_gradients(
         grad_bb.emit_func_output(out)
 
     grad_mod = grad_bb.get()
-    grad_ex = gsmDataGen.compile(grad_mod, target)
+    grad_ex = gsm_data_generator.compile(grad_mod, target)
     grad_vm = relax.VirtualMachine(grad_ex, dev)
 
     # tvm.runtime.NDArray inputs
@@ -203,7 +203,7 @@ def relax_check_gradients(
 ##################### Unary #####################
 
 
-unary_op_func, can_be_neg = gsmDataGen.testing.parameters(
+unary_op_func, can_be_neg = gsm_data_generator.testing.parameters(
     (relax.op.abs, True),
     (relax.op.cos, True),
     (relax.op.exp, True),
@@ -216,7 +216,7 @@ unary_op_func, can_be_neg = gsmDataGen.testing.parameters(
 )
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_unary(target, dev, unary_op_func, can_be_neg):
     (low, high) = (-1, 1) if can_be_neg else (0.1, 1)
     data_numpy = np.random.uniform(low, high, (3, 3)).astype(np.float32)
@@ -226,7 +226,7 @@ def test_unary(target, dev, unary_op_func, can_be_neg):
 ##################### Binary #####################
 
 
-(binary_arith_op_func,) = gsmDataGen.testing.parameters(
+(binary_arith_op_func,) = gsm_data_generator.testing.parameters(
     (relax.op.add,),
     (relax.op.subtract,),
     (relax.op.multiply,),
@@ -235,20 +235,20 @@ def test_unary(target, dev, unary_op_func, can_be_neg):
 )
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_binary_arith(target, dev, binary_arith_op_func):
     data1_numpy = np.random.uniform(1, 2, (3, 3)).astype(np.float32)
     data2_numpy = np.random.uniform(1, 2, (3, 3)).astype(np.float32)
     relax_check_gradients(binary_arith_op_func, [data1_numpy, data2_numpy], target, dev)
 
 
-(binary_minmax_op_func,) = gsmDataGen.testing.parameters(
+(binary_minmax_op_func,) = gsm_data_generator.testing.parameters(
     (relax.op.maximum,),
     (relax.op.minimum,),
 )
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_binary_minmax(target, dev, binary_minmax_op_func):
     # Checking numerical gradient of min and max requires data1_numpy[i] != data2_numpy[i]
     # for all possible i.
@@ -260,7 +260,7 @@ def test_binary_minmax(target, dev, binary_minmax_op_func):
     relax_check_gradients(binary_minmax_op_func, [data1_numpy, data2_numpy], target, dev)
 
 
-(binary_cmp_op_func,) = gsmDataGen.testing.parameters(
+(binary_cmp_op_func,) = gsm_data_generator.testing.parameters(
     (relax.op.equal,),
     (relax.op.greater,),
     (relax.op.greater_equal,),
@@ -270,7 +270,7 @@ def test_binary_minmax(target, dev, binary_minmax_op_func):
 )
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_binary_cmp(target, dev, binary_cmp_op_func):
     data1_numpy = np.random.uniform(1, 2, (3, 3)).astype(np.float32)
     data2_numpy = np.random.uniform(1, 2, (3, 3)).astype(np.float32)
@@ -282,19 +282,19 @@ def test_binary_cmp(target, dev, binary_cmp_op_func):
 ##################### Create #####################
 
 
-(like_op_func,) = gsmDataGen.testing.parameters(
+(like_op_func,) = gsm_data_generator.testing.parameters(
     (relax.op.zeros_like,),
     (relax.op.ones_like,),
 )
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_ones_zeros_like(target, dev, like_op_func):
     data_numpy = np.random.uniform(-1, 1, (3, 3)).astype(np.float32)
     relax_check_gradients(like_op_func, [data_numpy], target, dev, ignore_grads=[0])
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_full_like(target, dev):
     data_numpy = np.random.uniform(-1, 1, (3, 3)).astype(np.float32)
     fill_value = np.random.uniform(-1, 1, ()).astype(np.float32)
@@ -303,20 +303,20 @@ def test_full_like(target, dev):
     )
 
 
-(create_op_func,) = gsmDataGen.testing.parameters(
+(create_op_func,) = gsm_data_generator.testing.parameters(
     (relax.op.zeros,),
     (relax.op.ones,),
 )
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_ones_zeros(target, dev, create_op_func):
     relax_check_gradients(
         create_op_func, [], target, dev, ignore_grads=[0], shape=(3, 3), dtype="float32"
     )
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_triu(target, dev):
     data_numpy = np.random.uniform(-1, 1, (3, 3)).astype(np.float32)
     relax_check_gradients(relax.op.triu, [data_numpy], target, dev, k=0)
@@ -325,55 +325,55 @@ def test_triu(target, dev):
 ##################### Statistical #####################
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_sum(target, dev):
     data1_numpy = np.random.uniform(0, 16, (3, 3)).astype(np.float32)
     relax_check_gradients(relax.op.sum, [data1_numpy], target, dev)
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_sum_with_axis(target, dev):
     data1_numpy = np.random.uniform(0, 16, (2, 3, 4, 5)).astype(np.float32)
     relax_check_gradients(relax.op.sum, [data1_numpy], target, dev, axis=[1, 3])
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_sum_keepdims(target, dev):
     data1_numpy = np.random.uniform(0, 16, (3, 3)).astype(np.float32)
     relax_check_gradients(relax.op.sum, [data1_numpy], target, dev, keepdims=True, axis=1)
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_mean(target, dev):
     data1_numpy = np.random.uniform(0, 16, (3, 3)).astype(np.float32)
     relax_check_gradients(relax.op.mean, [data1_numpy], target, dev)
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_mean_with_axis(target, dev):
     data1_numpy = np.random.uniform(0, 16, (2, 3, 4, 5)).astype(np.float32)
     relax_check_gradients(relax.op.mean, [data1_numpy], target, dev, axis=[1, 3])
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_mean_keepdims(target, dev):
     data1_numpy = np.random.uniform(0, 16, (3, 3)).astype(np.float32)
     relax_check_gradients(relax.op.mean, [data1_numpy], target, dev, keepdims=True, axis=1)
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_variance(target, dev):
     data1_numpy = np.random.uniform(0, 16, (3, 3)).astype(np.float32)
     relax_check_gradients(relax.op.variance, [data1_numpy], target, dev)
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_variance_with_axis(target, dev):
     data1_numpy = np.random.uniform(0, 16, (2, 3, 4, 5)).astype(np.float32)
     relax_check_gradients(relax.op.variance, [data1_numpy], target, dev, axis=[1, 3])
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_variance_keepdims(target, dev):
     data1_numpy = np.random.uniform(0, 16, (3, 3)).astype(np.float32)
     relax_check_gradients(relax.op.variance, [data1_numpy], target, dev, keepdims=True, axis=1)
@@ -382,7 +382,7 @@ def test_variance_keepdims(target, dev):
 ##################### Manipulate #####################
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_reshape(target, dev):
     data_numpy = np.random.uniform(0, 16, (2, 3, 5)).astype(np.float32)
     relax_check_gradients(
@@ -390,7 +390,7 @@ def test_reshape(target, dev):
     )
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_reshape_infer_dim(target, dev):
     data_numpy = np.random.uniform(0, 16, (2, 3, 5)).astype(np.float32)
     relax_check_gradients(
@@ -398,13 +398,13 @@ def test_reshape_infer_dim(target, dev):
     )
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_permute_dims(target, dev):
     data_numpy = np.random.uniform(0, 16, (2, 3, 4, 5)).astype(np.float32)
     relax_check_gradients(relax.op.permute_dims, [data_numpy], target, dev)
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_permute_dims_with_axes(target, dev):
     data_numpy = np.random.uniform(0, 16, (2, 3, 4, 5)).astype(np.float32)
     relax_check_gradients(
@@ -416,7 +416,7 @@ def test_permute_dims_with_axes(target, dev):
     )
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_concat(target, dev):
     data_numpy1 = np.random.uniform(1, 16, (3, 3)).astype(np.float32)
     data_numpy2 = np.random.uniform(1, 16, (3, 4)).astype(np.float32)
@@ -431,7 +431,7 @@ def test_concat(target, dev):
     )
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_split_indices(target, dev):
     data_numpy = np.random.uniform(1, 16, (3, 12)).astype(np.float32)
     relax_check_gradients(
@@ -444,7 +444,7 @@ def test_split_indices(target, dev):
     )
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_split_section(target, dev):
     data_numpy = np.random.uniform(1, 16, (3, 12)).astype(np.float32)
     relax_check_gradients(
@@ -457,7 +457,7 @@ def test_split_section(target, dev):
     )
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_reshape(target, dev):
     data_numpy = np.random.uniform(1, 16, (3, 4)).astype(np.float32)
 
@@ -471,7 +471,7 @@ def test_reshape(target, dev):
     )
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_cumsum(target, dev):
     data_numpy1 = np.random.uniform(1, 16, (3, 3)).astype(np.float32)
     relax_check_gradients(
@@ -483,7 +483,7 @@ def test_cumsum(target, dev):
     )
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_cumsum_no_axis(target, dev):
     data_numpy1 = np.random.uniform(1, 16, (3, 3)).astype(np.float32)
     relax_check_gradients(
@@ -494,19 +494,19 @@ def test_cumsum_no_axis(target, dev):
     )
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_expand_dims(target, dev):
     data_numpy = np.random.uniform(1, 16, (3, 12)).astype(np.float32)
     relax_check_gradients(relax.op.expand_dims, [data_numpy], target, dev, axis=1)
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_expand_dims_list(target, dev):
     data_numpy = np.random.uniform(1, 16, (3, 12)).astype(np.float32)
     relax_check_gradients(relax.op.expand_dims, [data_numpy], target, dev, axis=(0, 2, 3))
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_broadcast_to(target, dev):
     data_numpy = np.random.uniform(1, 16, (3, 4)).astype(np.float32)
     relax_check_gradients(
@@ -522,7 +522,7 @@ def test_broadcast_to(target, dev):
 ##################### Index #####################
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_take(target, dev):
     data_numpy = np.random.uniform(0, 16, size=(2, 3, 4)).astype(np.float32)
     indices = np.array([0, 1])
@@ -536,7 +536,7 @@ def test_take(target, dev):
     )
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_take_no_axis(target, dev):
     data_numpy = np.random.uniform(0, 16, size=(5,)).astype(np.float32)
     indices = np.array([1, 3])
@@ -552,7 +552,7 @@ def test_take_no_axis(target, dev):
 ##################### Search #####################
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_where(target, dev):
     data1_numpy = np.random.uniform(0, 1, size=(3, 3)) > 0.5
     data2_numpy = np.random.uniform(0, 16, size=(3, 3)).astype(np.float32)
@@ -570,35 +570,35 @@ def test_where(target, dev):
 ##################### Linear Algebra #####################
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_matmul_2_2(target, dev):
     data1_numpy = np.random.uniform(0, 16, (2, 3)).astype(np.float32)
     data2_numpy = np.random.uniform(0, 16, (3, 4)).astype(np.float32)
     relax_check_gradients(relax.op.matmul, [data1_numpy, data2_numpy], target, dev)
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_matmul_1_1(target, dev):
     data1_numpy = np.random.uniform(0, 16, (4,)).astype(np.float32)
     data2_numpy = np.random.uniform(0, 16, (4,)).astype(np.float32)
     relax_check_gradients(relax.op.matmul, [data1_numpy, data2_numpy], target, dev)
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_matmul_1_4(target, dev):
     data1_numpy = np.random.uniform(0, 16, (4,)).astype(np.float32)
     data2_numpy = np.random.uniform(0, 16, (2, 3, 4, 5)).astype(np.float32)
     relax_check_gradients(relax.op.matmul, [data1_numpy, data2_numpy], target, dev)
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_matmul_4_1(target, dev):
     data1_numpy = np.random.uniform(0, 16, (2, 3, 4, 5)).astype(np.float32)
     data2_numpy = np.random.uniform(0, 16, (5,)).astype(np.float32)
     relax_check_gradients(relax.op.matmul, [data1_numpy, data2_numpy], target, dev)
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_matmul_5_4(target, dev):
     data1_numpy = np.random.uniform(0, 16, (2, 3, 1, 4, 5)).astype(np.float32)
     data2_numpy = np.random.uniform(0, 16, (3, 2, 5, 4)).astype(np.float32)
@@ -613,7 +613,7 @@ def test_matmul_5_4(target, dev):
 ##################### Datatype #####################
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_astype(target, dev):
     data_numpy = np.random.uniform(0, 16, size=(3, 3)).astype(np.float64)
     relax_check_gradients(relax.op.astype, [data_numpy], target, dev, dtype="float32")
@@ -622,7 +622,7 @@ def test_astype(target, dev):
 ##################### Neural network #####################
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_relu(target, dev):
     data1_numpy = np.random.uniform(0.2, 1, (3, 3)).astype(np.float32)
     sign = np.random.randint(0, 2, (3, 3)).astype(np.float32) * 2 - 1
@@ -630,37 +630,37 @@ def test_relu(target, dev):
     relax_check_gradients(relax.op.nn.relu, [data1_numpy], target, dev)
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_silu(target, dev):
     data1_numpy = np.random.uniform(0, 16, (3, 3)).astype(np.float32)
     relax_check_gradients(relax.op.nn.silu, [data1_numpy], target, dev)
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_softmax(target, dev):
     data1_numpy = np.random.uniform(0, 16, (3, 3)).astype(np.float32)
     relax_check_gradients(relax.op.nn.softmax, [data1_numpy], target, dev)
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_softmax_with_axis(target, dev):
     data1_numpy = np.random.uniform(0, 16, (3, 3)).astype(np.float32)
     relax_check_gradients(relax.op.nn.softmax, [data1_numpy], target, dev, axis=1)
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_log_softmax(target, dev):
     data1_numpy = np.random.uniform(0, 16, (3, 3)).astype(np.float32)
     relax_check_gradients(relax.op.nn.log_softmax, [data1_numpy], target, dev)
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_log_softmax_with_axis(target, dev):
     data1_numpy = np.random.uniform(0, 16, (3, 3)).astype(np.float32)
     relax_check_gradients(relax.op.nn.log_softmax, [data1_numpy], target, dev, axis=1)
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_cross_entropy_with_logits(target, dev):
     data_numpy1 = np.random.uniform(1, 16, (3,)).astype(np.float32)
     data_numpy2 = np.random.uniform(1, 16, (3,)).astype(np.float32)
@@ -672,7 +672,7 @@ def test_cross_entropy_with_logits(target, dev):
     )
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_cross_entropy_with_logits_batch(target, dev):
     data_numpy1 = np.random.uniform(1, 16, (2, 3)).astype(np.float32)
     data_numpy2 = np.random.uniform(1, 16, (2, 3)).astype(np.float32)
@@ -684,7 +684,7 @@ def test_cross_entropy_with_logits_batch(target, dev):
     )
 
 
-(nll_reduction, nll_weighted, nll_ignore_index) = gsmDataGen.testing.parameters(
+(nll_reduction, nll_weighted, nll_ignore_index) = gsm_data_generator.testing.parameters(
     ("mean", True, -1),
     ("sum", True, -1),
     ("none", True, -1),
@@ -694,7 +694,7 @@ def test_cross_entropy_with_logits_batch(target, dev):
 )
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_nll_loss(target, dev, nll_reduction, nll_weighted, nll_ignore_index):
     data1_numpy = np.random.uniform(0, 16, (2, 3, 4)).astype(np.float32)
     data2_numpy = np.random.randint(0, 3, (2, 4)).astype(np.int64)
@@ -717,14 +717,14 @@ def test_nll_loss(target, dev, nll_reduction, nll_weighted, nll_ignore_index):
     )
 
 
-(nll_reduction1, nll_weighted1, nll_ignore_index1) = gsmDataGen.testing.parameters(
+(nll_reduction1, nll_weighted1, nll_ignore_index1) = gsm_data_generator.testing.parameters(
     ("mean", True, -1),
     ("sum", True, -1),
     ("none", True, -1),
 )
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_nll_loss_no_batch(target, dev, nll_reduction1, nll_weighted1, nll_ignore_index1):
     data1_numpy = np.random.uniform(0, 16, (3,)).astype(np.float32)
     data2_numpy = np.random.randint(0, 3, ()).astype(np.int64)
@@ -745,7 +745,7 @@ def test_nll_loss_no_batch(target, dev, nll_reduction1, nll_weighted1, nll_ignor
     )
 
 
-(c2d_shape1, c2d_shape2, c2d_kwargs) = gsmDataGen.testing.parameters(
+(c2d_shape1, c2d_shape2, c2d_kwargs) = gsm_data_generator.testing.parameters(
     (
         (3, 2, 10, 10),
         (3, 2, 3, 3),
@@ -779,7 +779,7 @@ def test_nll_loss_no_batch(target, dev, nll_reduction1, nll_weighted1, nll_ignor
 )
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_conv2d(target, dev, c2d_shape1, c2d_shape2, c2d_kwargs):
     # TODO(mlc-team) Update to uniform
     # We should use float32 to check the correctness of conv2d
@@ -795,7 +795,7 @@ def test_conv2d(target, dev, c2d_shape1, c2d_shape2, c2d_kwargs):
     )
 
 
-(pool_size, pool_kwargs) = gsmDataGen.testing.parameters(
+(pool_size, pool_kwargs) = gsm_data_generator.testing.parameters(
     (
         (3, 3),
         {},
@@ -817,7 +817,7 @@ def test_conv2d(target, dev, c2d_shape1, c2d_shape2, c2d_kwargs):
 )
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_max_pool2d(target, dev, pool_size, pool_kwargs):
     data_numpy = np.random.uniform(0, 16, size=(3, 2, 10, 10)).astype(np.float64)
     relax_check_gradients(
@@ -830,7 +830,7 @@ def test_max_pool2d(target, dev, pool_size, pool_kwargs):
     )
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_avg_pool2d(target, dev, pool_size, pool_kwargs):
     data_numpy = np.random.uniform(0, 16, size=(3, 2, 10, 10)).astype(np.float64)
     relax_check_gradients(
@@ -844,4 +844,4 @@ def test_avg_pool2d(target, dev, pool_size, pool_kwargs):
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

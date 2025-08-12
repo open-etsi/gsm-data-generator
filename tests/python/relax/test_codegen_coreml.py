@@ -17,19 +17,19 @@
 import numpy as np
 import pytest
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import relax
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import relax
 
-requires_coremltools = gsmDataGen.testing.requires_package("coremltools")
-target, dev = "llvm", gsmDataGen.cpu()
+requires_coremltools = gsm_data_generator.testing.requires_package("coremltools")
+target, dev = "llvm", gsm_data_generator.cpu()
 
 
 def _has_xcode():
     try:
-        import gsmDataGen.contrib.xcode
+        import gsm_data_generator.contrib.xcode
 
-        gsmDataGen.contrib.xcode.xcrun([])
+        gsm_data_generator.contrib.xcode.xcrun([])
         return True
     except FileNotFoundError:
         pass
@@ -43,7 +43,7 @@ pytestmark = pytest.mark.skipif(
 
 
 def verify(mod, inputs):
-    from gsmDataGen.relax.backend.metal.coreml import partition_for_coreml
+    from gsm_data_generator.relax.backend.metal.coreml import partition_for_coreml
 
     mod1 = partition_for_coreml(mod)
     mod1 = relax.transform.RunCodegen()(mod1)
@@ -53,16 +53,16 @@ def verify(mod, inputs):
     mod1 = relax.transform.LegalizeOps()(mod1)
     assert relax.analysis.well_formed(mod1)
 
-    ex1 = gsmDataGen.compile(mod1, target=target)
+    ex1 = gsm_data_generator.compile(mod1, target=target)
     vm1 = relax.VirtualMachine(ex1, dev, profile=True)
     out1 = vm1["main"](*inputs)
 
     mod2 = relax.transform.LegalizeOps()(mod)
-    ex2 = gsmDataGen.compile(mod2, target=target)
+    ex2 = gsm_data_generator.compile(mod2, target=target)
     vm2 = relax.VirtualMachine(ex2, dev, profile=True)
     out2 = vm2["main"](*inputs)
 
-    gsmDataGen.testing.assert_allclose(out1.numpy(), out2.numpy(), rtol=1e-3, atol=1e-3)
+    gsm_data_generator.testing.assert_allclose(out1.numpy(), out2.numpy(), rtol=1e-3, atol=1e-3)
 
 
 def test_add():
@@ -75,8 +75,8 @@ def test_add():
             gv = bb.emit_output(lv0)
         bb.emit_func_output(gv)
     mod = bb.get()
-    x_data = gsmDataGen.nd.array(np.random.rand(10, 10).astype("float32"), dev)
-    y_data = gsmDataGen.nd.array(np.random.rand(10, 10).astype("float32"), dev)
+    x_data = gsm_data_generator.nd.array(np.random.rand(10, 10).astype("float32"), dev)
+    y_data = gsm_data_generator.nd.array(np.random.rand(10, 10).astype("float32"), dev)
     verify(mod, [x_data, y_data])
 
 
@@ -90,7 +90,7 @@ def test_add_const():
             gv = bb.emit_output(lv0)
         bb.emit_func_output(gv)
     mod = bb.get()
-    x_data = gsmDataGen.nd.array(np.random.rand(10, 10).astype("float32"), dev)
+    x_data = gsm_data_generator.nd.array(np.random.rand(10, 10).astype("float32"), dev)
     verify(mod, [x_data])
 
 
@@ -105,14 +105,14 @@ def test_multiply():
         bb.emit_func_output(gv)
     mod = bb.get()
 
-    x_data = gsmDataGen.nd.array(np.random.rand(10, 10).astype("float32"), dev)
-    y_data = gsmDataGen.nd.array(np.random.rand(10, 10).astype("float32"), dev)
+    x_data = gsm_data_generator.nd.array(np.random.rand(10, 10).astype("float32"), dev)
+    y_data = gsm_data_generator.nd.array(np.random.rand(10, 10).astype("float32"), dev)
     verify(mod, [x_data, y_data])
 
 
 def test_matmul():
     x = relax.Var("x", relax.TensorStructInfo([8, 10], "float32"))
-    y = relax.Constant(gsmDataGen.nd.array(np.random.rand(10, 8).astype("float32"), dev))
+    y = relax.Constant(gsm_data_generator.nd.array(np.random.rand(10, 8).astype("float32"), dev))
     bb = relax.BlockBuilder()
     with bb.function("main", [x]):
         with bb.dataflow():
@@ -121,7 +121,7 @@ def test_matmul():
         bb.emit_func_output(gv)
     mod = bb.get()
 
-    x_data = gsmDataGen.nd.array(np.random.rand(8, 10).astype("float32"), dev)
+    x_data = gsm_data_generator.nd.array(np.random.rand(8, 10).astype("float32"), dev)
     verify(mod, [x_data])
 
     x = relax.Var("x", relax.TensorStructInfo([8, 10], "float32"))
@@ -134,8 +134,8 @@ def test_matmul():
         bb.emit_func_output(gv)
     mod = bb.get()
 
-    x_data = gsmDataGen.nd.array(np.random.rand(8, 10).astype("float32"), dev)
-    y_data = gsmDataGen.nd.array(np.random.rand(10, 8).astype("float32"), dev)
+    x_data = gsm_data_generator.nd.array(np.random.rand(8, 10).astype("float32"), dev)
+    y_data = gsm_data_generator.nd.array(np.random.rand(10, 8).astype("float32"), dev)
     verify(mod, [x_data, y_data])
 
 
@@ -150,7 +150,7 @@ def test_clip():
         bb.emit_func_output(gv0)
     mod = bb.get()
 
-    x_data = gsmDataGen.nd.array(np.random.rand(10, 10).astype("float32"), dev)
+    x_data = gsm_data_generator.nd.array(np.random.rand(10, 10).astype("float32"), dev)
     verify(mod, [x_data])
 
     x = relax.Var("x", relax.TensorStructInfo([10, 10], "float32"))
@@ -164,7 +164,7 @@ def test_clip():
             gv1 = bb.emit_output(lv1)
         bb.emit_func_output([gv0, gv1])
 
-    x_data = gsmDataGen.nd.array(np.random.rand(10, 10).astype("float32"), dev)
+    x_data = gsm_data_generator.nd.array(np.random.rand(10, 10).astype("float32"), dev)
     verify(mod, [x_data])
 
 
@@ -179,7 +179,7 @@ def test_expand_dims():
             bb.emit_func_output(gv)
         return bb.get()
 
-    x_data = gsmDataGen.nd.array(np.random.rand(10, 10).astype("float32"), dev)
+    x_data = gsm_data_generator.nd.array(np.random.rand(10, 10).astype("float32"), dev)
     verify(get_mod(axis=0), [x_data])
     verify(get_mod(axis=1), [x_data])
 
@@ -194,7 +194,7 @@ def test_relu():
         bb.emit_func_output(gv)
     mod = bb.get()
 
-    x_data = gsmDataGen.nd.array(np.random.rand(10, 10).astype("float32"), dev)
+    x_data = gsm_data_generator.nd.array(np.random.rand(10, 10).astype("float32"), dev)
     verify(mod, [x_data])
 
 
@@ -209,7 +209,7 @@ def test_batch_flatten():
         bb.emit_func_output(gv)
     mod = bb.get()
 
-    x_data = gsmDataGen.nd.array(np.random.rand(10, 10, 10).astype("float32"), dev)
+    x_data = gsm_data_generator.nd.array(np.random.rand(10, 10, 10).astype("float32"), dev)
     verify(mod, [x_data])
 
 
@@ -224,7 +224,7 @@ def test_softmax():
         bb.emit_func_output(gv)
     mod = bb.get()
 
-    x_data = gsmDataGen.nd.array(np.random.rand(10, 10).astype("float32"), dev)
+    x_data = gsm_data_generator.nd.array(np.random.rand(10, 10).astype("float32"), dev)
     verify(mod, [x_data])
 
 
@@ -238,7 +238,7 @@ def test_conv2d():
             gv = bb.emit_output(lv0)
         bb.emit_func_output(gv)
     mod = bb.get()
-    x_data = gsmDataGen.nd.array(np.random.rand(1, 3, 224, 224).astype("float32"), dev)
+    x_data = gsm_data_generator.nd.array(np.random.rand(1, 3, 224, 224).astype("float32"), dev)
     verify(mod, [x_data])
 
 
@@ -251,7 +251,7 @@ def test_global_avg_pool2d():
             gv = bb.emit_output(lv0)
         bb.emit_func_output(gv)
     mod = bb.get()
-    x_data = gsmDataGen.nd.array(np.random.rand(1, 1, 10, 10).astype("float32"), dev)
+    x_data = gsm_data_generator.nd.array(np.random.rand(1, 1, 10, 10).astype("float32"), dev)
     verify(mod, [x_data])
 
 
@@ -266,8 +266,8 @@ def test_subgraph1():
             gv = bb.emit_output(lv1)
         bb.emit_func_output(gv)
     mod = bb.get()
-    x_data = gsmDataGen.nd.array(np.random.rand(10, 10).astype("float32"), dev)
-    y_data = gsmDataGen.nd.array(np.random.rand(10, 10).astype("float32"), dev)
+    x_data = gsm_data_generator.nd.array(np.random.rand(10, 10).astype("float32"), dev)
+    y_data = gsm_data_generator.nd.array(np.random.rand(10, 10).astype("float32"), dev)
     verify(mod, [x_data, y_data])
 
 
@@ -287,8 +287,8 @@ def test_subgraph2():
             gv = bb.emit_output(lv3)
         bb.emit_func_output(gv)
     mod = bb.get()
-    x_data = gsmDataGen.nd.array(np.random.rand(10, 10).astype("float32"), dev)
-    y_data = gsmDataGen.nd.array(np.random.rand(10, 10).astype("float32"), dev)
+    x_data = gsm_data_generator.nd.array(np.random.rand(10, 10).astype("float32"), dev)
+    y_data = gsm_data_generator.nd.array(np.random.rand(10, 10).astype("float32"), dev)
     verify(mod, [x_data, y_data])
 
 

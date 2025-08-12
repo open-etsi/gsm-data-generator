@@ -24,21 +24,21 @@ from functools import partial
 from typing import List
 
 import numpy as np
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen.meta_schedule.cost_model import PyCostModel, RandomModel, XGBModel
-from gsmDataGen.meta_schedule.cost_model.xgb_model import PackSum, _get_custom_call_back
-from gsmDataGen.meta_schedule.feature_extractor import RandomFeatureExtractor
-from gsmDataGen.meta_schedule.runner import RunnerResult
-from gsmDataGen.meta_schedule.search_strategy import MeasureCandidate
-from gsmDataGen.meta_schedule.tune_context import TuneContext
-from gsmDataGen.meta_schedule.utils import derived_object
-from gsmDataGen.script import tir as T
-from gsmDataGen.tir.schedule.schedule import Schedule
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator.meta_schedule.cost_model import PyCostModel, RandomModel, XGBModel
+from gsm_data_generator.meta_schedule.cost_model.xgb_model import PackSum, _get_custom_call_back
+from gsm_data_generator.meta_schedule.feature_extractor import RandomFeatureExtractor
+from gsm_data_generator.meta_schedule.runner import RunnerResult
+from gsm_data_generator.meta_schedule.search_strategy import MeasureCandidate
+from gsm_data_generator.meta_schedule.tune_context import TuneContext
+from gsm_data_generator.meta_schedule.utils import derived_object
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.tir.schedule.schedule import Schedule
 
 
 # pylint: disable=invalid-name,no-member,line-too-long,too-many-nested-blocks,missing-docstring
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Matmul:
     @T.prim_func
     def main(a: T.handle, b: T.handle, c: T.handle) -> None:  # pylint: disable=no-self-argument
@@ -54,7 +54,7 @@ class Matmul:
                 C[vi, vj] = C[vi, vj] + A[vi, vk] * B[vk, vj]
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class FullModule:
     @T.prim_func
     def main(T_full: T.Buffer((T.int64(2), T.int64(3)), "float32")):
@@ -343,4 +343,4 @@ def test_meta_schedule_xgb_model_callback_as_function():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

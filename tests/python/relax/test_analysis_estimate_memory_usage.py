@@ -15,14 +15,14 @@
 # specific language governing permissions and limitations
 # under the License.
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen.script import relax as R, tir as T
-from gsmDataGen.relax.analysis import estimate_memory_usage
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator.script import relax as R, tir as T
+from gsm_data_generator.relax.analysis import estimate_memory_usage
 
 
 def test_basic():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Module:
         @T.prim_func
         def add(
@@ -124,4 +124,4 @@ def test_basic():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

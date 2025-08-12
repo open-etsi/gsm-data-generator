@@ -20,11 +20,11 @@
 import torch
 from torch.nn import Module
 
-import gsmDataGen.testing
-from gsmDataGen.contrib.msc.framework.torch.frontend import translate
-from gsmDataGen.contrib.msc.framework.torch import codegen
-from gsmDataGen.contrib.msc.core.utils.namespace import MSCFramework
-from gsmDataGen.contrib.msc.core import utils as msc_utils
+import gsm_data_generator.testing
+from gsm_data_generator.contrib.msc.framework.torch.frontend import translate
+from gsm_data_generator.contrib.msc.framework.torch import codegen
+from gsm_data_generator.contrib.msc.core.utils.namespace import MSCFramework
+from gsm_data_generator.contrib.msc.core import utils as msc_utils
 
 
 def verify_model(torch_model, input_info):
@@ -49,7 +49,7 @@ def verify_model(torch_model, input_info):
     )
     for gol_r, new_r in zip(golden, result):
         if isinstance(gol_r, torch.Tensor):
-            gsmDataGen.testing.assert_allclose(
+            gsm_data_generator.testing.assert_allclose(
                 gol_r.detach().numpy(), new_r.detach().numpy(), atol=1e-5, rtol=1e-5
             )
         else:
@@ -1153,4 +1153,4 @@ def test_attention():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

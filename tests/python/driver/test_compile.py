@@ -17,13 +17,13 @@
 # under the License.
 import numpy as np
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import relax, te
-from gsmDataGen.runtime import Executable
-from gsmDataGen.script import ir as I
-from gsmDataGen.script import relax as R
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import relax, te
+from gsm_data_generator.runtime import Executable
+from gsm_data_generator.script import ir as I
+from gsm_data_generator.script import relax as R
+from gsm_data_generator.script import tir as T
 
 
 def test_compile_tir():
@@ -35,21 +35,21 @@ def test_compile_tir():
     func = te.create_prim_func([A, B, C])
 
     # Test compile with PrimFunc
-    exec_prim = gsmDataGen.compile(func)
+    exec_prim = gsm_data_generator.compile(func)
     assert isinstance(exec_prim, Executable)
 
     # Test compile with IRModule containing PrimFunc
-    mod = gsmDataGen.IRModule.from_expr(func)
-    exec_mod = gsmDataGen.compile(mod)
+    mod = gsm_data_generator.IRModule.from_expr(func)
+    exec_mod = gsm_data_generator.compile(mod)
     assert isinstance(exec_mod, Executable)
 
     # Verify the compiled module works
-    dev = gsmDataGen.cpu(0)
+    dev = gsm_data_generator.cpu(0)
     a_np = np.random.uniform(size=10).astype(np.float32)
     b_np = np.random.uniform(size=10).astype(np.float32)
-    a = gsmDataGen.nd.array(a_np, dev)
-    b = gsmDataGen.nd.array(b_np, dev)
-    c = gsmDataGen.nd.array(np.zeros(10, dtype=np.float32), dev)
+    a = gsm_data_generator.nd.array(a_np, dev)
+    b = gsm_data_generator.nd.array(b_np, dev)
+    c = gsm_data_generator.nd.array(np.zeros(10, dtype=np.float32), dev)
 
     exec_prim(a, b, c)
     np.testing.assert_allclose(c.numpy(), a_np + b_np)
@@ -69,25 +69,25 @@ def test_compile_relax():
             return z
 
     # Test compile with Relax module
-    target = gsmDataGen.target.Target("llvm")
-    exec_relax = gsmDataGen.compile(MyModule, target)
+    target = gsm_data_generator.target.Target("llvm")
+    exec_relax = gsm_data_generator.compile(MyModule, target)
     assert isinstance(exec_relax, Executable)
 
     # Verify the compiled module works
-    dev = gsmDataGen.cpu(0)
+    dev = gsm_data_generator.cpu(0)
     x_np = np.random.uniform(size=(3, 4)).astype(np.float32)
     y_np = np.random.uniform(size=(3, 4)).astype(np.float32)
-    x = gsmDataGen.nd.array(x_np, dev)
-    y = gsmDataGen.nd.array(y_np, dev)
+    x = gsm_data_generator.nd.array(x_np, dev)
+    y = gsm_data_generator.nd.array(y_np, dev)
 
     vm = relax.VirtualMachine(exec_relax, dev)
     z = vm["main"](x, y)
     np.testing.assert_allclose(z.numpy(), x_np + y_np)
 
 
-@gsmDataGen.testing.skip_if_32bit(reason="skipping test for i386.")
+@gsm_data_generator.testing.skip_if_32bit(reason="skipping test for i386.")
 def test_compile_mixed_module():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class MyModule:
         @T.prim_func
         def add_one(X: T.Buffer((4,), "float32"), Y: T.Buffer((4,), "float32")):
@@ -102,13 +102,13 @@ def test_compile_mixed_module():
                 return y
 
     # Test with custom pipeline
-    target = gsmDataGen.target.Target("c")
-    ex = gsmDataGen.compile(MyModule, target)
+    target = gsm_data_generator.target.Target("c")
+    ex = gsm_data_generator.compile(MyModule, target)
     assert isinstance(ex, Executable)
 
-    dev = gsmDataGen.cpu(0)
-    x = gsmDataGen.nd.array(np.array([1, 2, 3, 4], dtype=np.float32), dev)
-    y = gsmDataGen.nd.array(np.zeros(4, dtype=np.float32), dev)
+    dev = gsm_data_generator.cpu(0)
+    x = gsm_data_generator.nd.array(np.array([1, 2, 3, 4], dtype=np.float32), dev)
+    y = gsm_data_generator.nd.array(np.zeros(4, dtype=np.float32), dev)
     # For tir function, we can directly call the function
     ex["add_one"](x, y)
     np.testing.assert_allclose(y.numpy(), x.numpy() + 1)
@@ -119,4 +119,4 @@ def test_compile_mixed_module():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

@@ -19,14 +19,14 @@ import gc
 import sys
 
 import pytest
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import tir
-from gsmDataGen.ir import IRModule
-from gsmDataGen.script import tir as T
-from gsmDataGen.tir import PrimFunc, BlockDependenceInfo
-from gsmDataGen.tir.stmt_functor import post_order_visit
-from gsmDataGen.tir.block_scope import DepKind
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import tir
+from gsm_data_generator.ir import IRModule
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.tir import PrimFunc, BlockDependenceInfo
+from gsm_data_generator.tir.stmt_functor import post_order_visit
+from gsm_data_generator.tir.block_scope import DepKind
 
 # pylint: disable=no-member,invalid-name,unused-variable
 
@@ -87,7 +87,7 @@ def get_blocks(func: PrimFunc):
     blocks = {}
 
     def update_blocks(node):
-        if isinstance(node, gsmDataGen.tir.Block):
+        if isinstance(node, gsm_data_generator.tir.Block):
             blocks[node.name_hint] = node
 
     # post_order_visit(func.body, lambda node: blocks[node.name_hint] = node if isinstance(node, tvm.tir.Block) else None)
@@ -149,4 +149,4 @@ def test_RAW_and_WAW_dependences():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

@@ -19,8 +19,8 @@
 
 import numpy as np
 
-import gsmDataGen
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+from gsm_data_generator.script import tir as T
 
 from .infrastructure import get_hexagon_target
 
@@ -87,7 +87,7 @@ def evaluate(hexagon_session, operations, expected, sch):
     shape = operations
     dtype = "float64"
 
-    func_tir = gsmDataGen.compile(sch.mod["main"], target=get_hexagon_target("v68"))
+    func_tir = gsm_data_generator.compile(sch.mod["main"], target=get_hexagon_target("v68"))
     module = hexagon_session.load_module(func_tir)
 
     # np.random.random returns float64 by default, but make the cast explicit
@@ -96,9 +96,9 @@ def evaluate(hexagon_session, operations, expected, sch):
     b = np.random.random(shape).astype(dtype)
     c = np.zeros(shape, dtype=dtype)
 
-    a_hexagon = gsmDataGen.runtime.ndarray.array(a, device=hexagon_session.device)
-    b_hexagon = gsmDataGen.runtime.ndarray.array(b, device=hexagon_session.device)
-    c_hexagon = gsmDataGen.runtime.ndarray.array(c, device=hexagon_session.device)
+    a_hexagon = gsm_data_generator.runtime.ndarray.array(a, device=hexagon_session.device)
+    b_hexagon = gsm_data_generator.runtime.ndarray.array(b, device=hexagon_session.device)
+    c_hexagon = gsm_data_generator.runtime.ndarray.array(c, device=hexagon_session.device)
 
     # These are reduced for CI but number=100 and repeat=10 does a good job of removing noise.
     number = 1
@@ -109,7 +109,7 @@ def evaluate(hexagon_session, operations, expected, sch):
     )
     runtime = timer(a_hexagon, b_hexagon, c_hexagon)
 
-    gsmDataGen.testing.assert_allclose(c_hexagon.numpy(), expected(a, b))
+    gsm_data_generator.testing.assert_allclose(c_hexagon.numpy(), expected(a, b))
 
     return round(runtime.mean * 1000, 6)
 
@@ -117,14 +117,14 @@ def evaluate(hexagon_session, operations, expected, sch):
 class TestMatMulVec:
     """MatMul test class."""
 
-    (operation_name, operator_producer, expected_output_producer,) = gsmDataGen.testing.parameters(
+    (operation_name, operator_producer, expected_output_producer,) = gsm_data_generator.testing.parameters(
         ("add", get_add_operator, (lambda a, b: a + b)),
         ("mul", get_multiply_operator, (lambda a, b: a * b)),
         ("sub", get_sub_operator, (lambda a, b: a - b)),
     )
 
     # Removed most of these to speedup CI.
-    operations = gsmDataGen.testing.parameter(
+    operations = gsm_data_generator.testing.parameter(
         128,
         # 256,
         # 512,
@@ -137,9 +137,9 @@ class TestMatMulVec:
         # 16384,
     )
 
-    split_factor = gsmDataGen.testing.parameter(4)
+    split_factor = gsm_data_generator.testing.parameter(4)
 
-    @gsmDataGen.testing.requires_hexagon
+    @gsm_data_generator.testing.requires_hexagon
     def test_add(
         self,
         hexagon_session,
@@ -151,10 +151,10 @@ class TestMatMulVec:
     ):
         """Test Add operator."""
 
-        sch = gsmDataGen.tir.Schedule(operator_producer(operations))
+        sch = gsm_data_generator.tir.Schedule(operator_producer(operations))
         single_thread_runtime = evaluate(hexagon_session, operations, expected_output_producer, sch)
 
-        sch = gsmDataGen.tir.Schedule(operator_producer(operations))
+        sch = gsm_data_generator.tir.Schedule(operator_producer(operations))
         block = sch.get_block("c_buffer")
         b = sch.get_loops(block)
         b_output, _ = sch.split(b[0], factors=[split_factor, None])
@@ -170,4 +170,4 @@ class TestMatMulVec:
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

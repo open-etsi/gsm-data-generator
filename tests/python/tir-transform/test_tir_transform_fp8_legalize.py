@@ -14,18 +14,18 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-import gsmDataGen
-import gsmDataGen.script
-import gsmDataGen.testing
-from gsmDataGen.script import tir as T
-from gsmDataGen.target import Target
-from gsmDataGen.tir.transform.transform import BindTarget
+import gsm_data_generator
+import gsm_data_generator.script
+import gsm_data_generator.testing
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.target import Target
+from gsm_data_generator.tir.transform.transform import BindTarget
 
 # pylint: disable=no-member,invalid-name,unused-variable
 
 
 def get_before(dtype: str):
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Before:
         @T.prim_func
         def main(Aptr: T.handle(dtype), Bptr: T.handle(dtype), Dptr: T.handle(dtype)):
@@ -50,7 +50,7 @@ def cast_to_f8(f8_dtype: str, promote_dtype: str, v):
 
 
 def get_after_compute_legalize(dtype: str, promote_dtype: str):
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class After:
         @T.prim_func
         def main(Aptr: T.handle(dtype), Bptr: T.handle(dtype), Dptr: T.handle(dtype)):
@@ -183,7 +183,7 @@ def cast_to_uint8(f8_dtype: str, promote_dtype: str, v):
 
 
 def get_after_storage_legalize(dtype: str, promote_dtype: str):
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class After:
         @T.prim_func
         def main(Aptr: T.handle("uint8"), Bptr: T.handle("uint8"), Dptr: T.handle("uint8")):
@@ -201,8 +201,8 @@ def get_after_storage_legalize(dtype: str, promote_dtype: str):
     return After
 
 
-dtype = gsmDataGen.testing.parameter("float8_e4m3fn", "float8_e5m2")
-promote_dtype = gsmDataGen.testing.parameter("float16", "float32")
+dtype = gsm_data_generator.testing.parameter("float8_e4m3fn", "float8_e5m2")
+promote_dtype = gsm_data_generator.testing.parameter("float16", "float32")
 
 
 def test_fp8_compute_legalize(dtype, promote_dtype):
@@ -211,18 +211,18 @@ def test_fp8_compute_legalize(dtype, promote_dtype):
     expected = BindTarget(target)(get_after_compute_legalize(dtype, promote_dtype))
     # run the transform twice to ensure we can afford to deal
     # with this repeative optimizations
-    after = gsmDataGen.tir.transform.FP8ComputeLegalize(promote_dtype)(before)
-    after = gsmDataGen.tir.transform.FP8ComputeLegalize(promote_dtype)(after)
-    gsmDataGen.ir.assert_structural_equal(after, expected)
+    after = gsm_data_generator.tir.transform.FP8ComputeLegalize(promote_dtype)(before)
+    after = gsm_data_generator.tir.transform.FP8ComputeLegalize(promote_dtype)(after)
+    gsm_data_generator.ir.assert_structural_equal(after, expected)
 
 
 def test_fp8_storage_legalize(dtype, promote_dtype):
     target = Target("nvidia/nvidia-a100")
     before = BindTarget(target)(get_after_compute_legalize(dtype, promote_dtype))
-    after = gsmDataGen.tir.transform.FP8StorageLegalize()(before)
+    after = gsm_data_generator.tir.transform.FP8StorageLegalize()(before)
     expected = BindTarget(target)(get_after_storage_legalize(dtype, promote_dtype))
-    gsmDataGen.ir.assert_structural_equal(after, expected)
+    gsm_data_generator.ir.assert_structural_equal(after, expected)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

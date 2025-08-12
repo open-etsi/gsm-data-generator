@@ -18,11 +18,11 @@
 from typing import Any, Callable, List, Optional, Union
 
 import pytest
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import relax
-from gsmDataGen.relax import Expr
-from gsmDataGen.relax.utils import args_converter
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import relax
+from gsm_data_generator.relax import Expr
+from gsm_data_generator.relax.utils import args_converter
 
 
 def _test_base(f_checker: Callable, arg: Any, *args: Any, **kwargs: Any) -> None:
@@ -143,4 +143,4 @@ def test_empty_tuple():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

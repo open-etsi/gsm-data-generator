@@ -15,10 +15,10 @@
 # specific language governing permissions and limitations
 # under the License.
 import pytest
-import gsmDataGen
-from gsmDataGen import TVMError
-from gsmDataGen.script import tir as T
-import gsmDataGen.testing
+import gsm_data_generator
+from gsm_data_generator import TVMError
+from gsm_data_generator.script import tir as T
+import gsm_data_generator.testing
 
 
 def test_thread_axis1():
@@ -40,9 +40,9 @@ def test_thread_axis1():
         T.launch_thread(threadIdx_x, 32)
         B[blockIdx_x * 32 + threadIdx_x] = A[blockIdx_x * 32 + threadIdx_x] + T.float32(1)
 
-    mod = gsmDataGen.IRModule.from_expr(before)
-    func = gsmDataGen.tir.transform.ForceNarrowIndexToInt32()(mod)["main"]
-    gsmDataGen.ir.assert_structural_equal(func, expected)
+    mod = gsm_data_generator.IRModule.from_expr(before)
+    func = gsm_data_generator.tir.transform.ForceNarrowIndexToInt32()(mod)["main"]
+    gsm_data_generator.ir.assert_structural_equal(func, expected)
 
 
 def test_thread_axis2():
@@ -155,9 +155,9 @@ def test_thread_axis2():
                             T_reshape[ax0, ax1, ax2, ax3],
                         )
 
-    mod = gsmDataGen.IRModule.from_expr(before)
-    func = gsmDataGen.tir.transform.ForceNarrowIndexToInt32()(mod)["main"]
-    gsmDataGen.ir.assert_structural_equal(func, expected)
+    mod = gsm_data_generator.IRModule.from_expr(before)
+    func = gsm_data_generator.tir.transform.ForceNarrowIndexToInt32()(mod)["main"]
+    gsm_data_generator.ir.assert_structural_equal(func, expected)
 
 
 def test_block():
@@ -177,9 +177,9 @@ def test_block():
                     vi = T.axis.spatial(T.int32(128), i * T.int32(8) + j)
                     B[vi] = A[vi] + T.float32(1)
 
-    mod = gsmDataGen.IRModule.from_expr(before)
-    func = gsmDataGen.tir.transform.ForceNarrowIndexToInt32()(mod)["main"]
-    gsmDataGen.ir.assert_structural_equal(func, expected)
+    mod = gsm_data_generator.IRModule.from_expr(before)
+    func = gsm_data_generator.tir.transform.ForceNarrowIndexToInt32()(mod)["main"]
+    gsm_data_generator.ir.assert_structural_equal(func, expected)
 
 
 def test_i16_buffer():
@@ -199,9 +199,9 @@ def test_i16_buffer():
                     vi = T.axis.spatial(128, i * 8 + j)
                     B[vi] = A[vi] + T.int16(1)
 
-    mod = gsmDataGen.IRModule.from_expr(before)
-    after = gsmDataGen.tir.transform.ForceNarrowIndexToInt32()(mod)["main"]
-    gsmDataGen.ir.assert_structural_equal(after, expected)
+    mod = gsm_data_generator.IRModule.from_expr(before)
+    after = gsm_data_generator.tir.transform.ForceNarrowIndexToInt32()(mod)["main"]
+    gsm_data_generator.ir.assert_structural_equal(after, expected)
 
 
 def test_fail_on_buffer_map():
@@ -213,9 +213,9 @@ def test_fail_on_buffer_map():
                     vi = T.axis.spatial(128, i * 8 + j)
                     B[vi] = A[vi] + T.int64(1)
 
-    mod = gsmDataGen.IRModule.from_expr(func)
+    mod = gsm_data_generator.IRModule.from_expr(func)
     with pytest.raises(TVMError):
-        gsmDataGen.tir.transform.ForceNarrowIndexToInt32()(mod)["main"]
+        gsm_data_generator.tir.transform.ForceNarrowIndexToInt32()(mod)["main"]
 
 
 def test_fail_on_buffer_map():
@@ -233,13 +233,13 @@ def test_fail_on_buffer_map():
                     vi = T.axis.spatial(128, i * 8 + j)
                     B[vi] = T.cast(C[vi] + T.int64(1), "int32")
 
-    mod = gsmDataGen.IRModule.from_expr(func)
+    mod = gsm_data_generator.IRModule.from_expr(func)
     with pytest.raises(TVMError):
-        gsmDataGen.tir.transform.ForceNarrowIndexToInt32()(mod)["main"]
+        gsm_data_generator.tir.transform.ForceNarrowIndexToInt32()(mod)["main"]
 
 
 def test_pod_params_and_select():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Before:
         @T.prim_func
         def main(
@@ -248,38 +248,38 @@ def test_pod_params_and_select():
             for i in T.serial(T.int64(4)):
                 B[i] = T.Select(T.int64(1) <= i, A[i + n], T.Cast("float32", i))
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @T.prim_func
         def main(A: T.Buffer((4,), "float32"), B: T.Buffer((4,), "float32"), n: T.int32):
             for i in range(4):
                 B[i] = T.Select(1 <= i, A[i + n], T.Cast("float32", i))
 
-    after = gsmDataGen.tir.transform.ForceNarrowIndexToInt32()(Before)
-    gsmDataGen.ir.assert_structural_equal(Expected, after)
+    after = gsm_data_generator.tir.transform.ForceNarrowIndexToInt32()(Before)
+    gsm_data_generator.ir.assert_structural_equal(Expected, after)
 
 
 def test_clz():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Before:
         @T.prim_func
         def main(B: T.Buffer((T.int64(4),), "int32")):
             for i in T.serial(T.int64(4)):
                 B[i] = T.clz(i)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @T.prim_func
         def main(B: T.Buffer((4,), "int32")):
             for i in range(4):
                 B[i] = T.clz(i) - 32 + 64
 
-    after = gsmDataGen.tir.transform.ForceNarrowIndexToInt32()(Before)
-    gsmDataGen.ir.assert_structural_equal(Expected, after)
+    after = gsm_data_generator.tir.transform.ForceNarrowIndexToInt32()(Before)
+    gsm_data_generator.ir.assert_structural_equal(Expected, after)
 
 
 def test_let_binding():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Before:
         @T.prim_func
         def main(buf: T.handle):
@@ -289,7 +289,7 @@ def test_let_binding():
             for i in T.serial(ceil_log2):
                 T.evaluate(0)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @T.prim_func
         def main(buf: T.handle):
@@ -299,9 +299,9 @@ def test_let_binding():
             for i in range(ceil_log2):
                 T.evaluate(0)
 
-    after = gsmDataGen.tir.transform.ForceNarrowIndexToInt32()(Before)
-    gsmDataGen.ir.assert_structural_equal(Expected, after)
+    after = gsm_data_generator.tir.transform.ForceNarrowIndexToInt32()(Before)
+    gsm_data_generator.ir.assert_structural_equal(Expected, after)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

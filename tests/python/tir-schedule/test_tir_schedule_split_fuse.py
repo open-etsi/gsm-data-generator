@@ -16,12 +16,12 @@
 # under the License.
 # pylint: disable=missing-function-docstring,missing-module-docstring
 import pytest
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import te, tir
-from gsmDataGen.script import tir as T
-from gsmDataGen.tir.expr import IntImm
-from gsmDataGen.tir.schedule.testing import (
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import te, tir
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.tir.expr import IntImm
+from gsm_data_generator.tir.schedule.testing import (
     assert_structural_equal_ignore_global_symbol,
     verify_trace_roundtrip,
 )
@@ -439,7 +439,7 @@ def test_fuse_fail_not_only_child():
     sch = tir.Schedule(elementwise_with_seq, debug_mask="all")
     block_b = sch.get_block("B")
     _, j, k = sch.get_loops(block_b)
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         sch.fuse(j, k)
 
 
@@ -447,9 +447,9 @@ def test_fuse_split_fail_with_annotation():
     sch = tir.Schedule(elementwise_with_anno, debug_mask="all")
     block_b = sch.get_block("B")
     _, j, k = sch.get_loops(block_b)
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         sch.fuse(j, k)
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         sch.split(k, factors=[None, 10])
 
 
@@ -457,9 +457,9 @@ def test_fuse_split_fail_not_start_with_zero():
     sch = tir.Schedule(elementwise_with_anno, debug_mask="all")
     block_b = sch.get_block("B")
     _, j, k = sch.get_loops(block_b)
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         sch.fuse(j, k)
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         sch.split(k, factors=[None, 10])
 
 
@@ -513,11 +513,11 @@ def test_split_with_non_positive_factors():
     sch = tir.Schedule(elementwise, debug_mask="all")
     block_b = sch.get_block("B")
     i, j, k = sch.get_loops(block_b)
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         sch.split(i, factors=[-2, -64])
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         sch.split(j, factors=[0, None])
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         sch.split(k, factors=[None, -16])
 
 
@@ -525,9 +525,9 @@ def test_fuse_split_fail_with_thread_binding():
     sch = tir.Schedule(elementwise_with_thread_binding, debug_mask="all")
     block_b = sch.get_block("B")
     _, j, k = sch.get_loops(block_b)
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         sch.fuse(j, k)
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         sch.split(k, factors=[None, 10])
 
 
@@ -553,7 +553,7 @@ def test_fuse_fail_with_dependent_loops():
     sch = tir.Schedule(elementwise_dependent_loops, debug_mask="all")
     block_b = sch.get_block("B")
     i, j, _ = sch.get_loops(block_b)
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         sch.fuse(i, j)
 
 
@@ -697,8 +697,8 @@ def test_sve_scalable_split_predicated(num_elements):
     compile-time, we don't know if vscale is a multiple of the extent of the
     loop to be split.
     """
-    with gsmDataGen.target.Target("llvm -mtriple=aarch64-linux-gnu -mattr=+sve"):
-        outer_extent = gsmDataGen.arith.Analyzer().simplify(T.ceildiv(num_elements, 4 * T.vscale()))
+    with gsm_data_generator.target.Target("llvm -mtriple=aarch64-linux-gnu -mattr=+sve"):
+        outer_extent = gsm_data_generator.arith.Analyzer().simplify(T.ceildiv(num_elements, 4 * T.vscale()))
 
         @T.prim_func
         def before(a: T.handle):
@@ -719,11 +719,11 @@ def test_sve_scalable_split_predicated(num_elements):
                     T.where(i_0 * (T.vscale() * 4) + i_1 < num_elements)
                     A[v_i] = 1.0
 
-        sch = gsmDataGen.tir.Schedule(before)
+        sch = gsm_data_generator.tir.Schedule(before)
         (a,) = sch.get_loops("A")
         sch.split(a, factors=[outer_extent, 4 * T.vscale()])
 
-    gsmDataGen.ir.assert_structural_equal(sch.mod["main"], after)
+    gsm_data_generator.ir.assert_structural_equal(sch.mod["main"], after)
 
 
 def test_sve_scalable_split_assume_exact_multiple():
@@ -733,8 +733,8 @@ def test_sve_scalable_split_assume_exact_multiple():
     a predicate is not created. This can be used to ensure predication is not
     inserted.
     """
-    with gsmDataGen.target.Target("llvm -mtriple=aarch64-linux-gnu -mattr=+sve"):
-        outer_extent = gsmDataGen.arith.Analyzer().simplify(T.ceildiv(128, 4 * T.vscale()))
+    with gsm_data_generator.target.Target("llvm -mtriple=aarch64-linux-gnu -mattr=+sve"):
+        outer_extent = gsm_data_generator.arith.Analyzer().simplify(T.ceildiv(128, 4 * T.vscale()))
 
         @T.prim_func
         def before(a: T.handle):
@@ -754,7 +754,7 @@ def test_sve_scalable_split_assume_exact_multiple():
                     v_i = T.axis.spatial(128, i_0 * (T.vscale() * 4) + i_1)
                     A[v_i] = 1.0
 
-        sch = gsmDataGen.tir.Schedule(before)
+        sch = gsm_data_generator.tir.Schedule(before)
         (a,) = sch.get_loops("A")
         sch.split(
             a,
@@ -762,7 +762,7 @@ def test_sve_scalable_split_assume_exact_multiple():
             disable_predication=True,
         )
 
-    gsmDataGen.ir.assert_structural_equal(sch.mod["main"], after)
+    gsm_data_generator.ir.assert_structural_equal(sch.mod["main"], after)
 
 
 def test_sve_split_over_scalable_loop():
@@ -785,15 +785,15 @@ def test_sve_split_over_scalable_loop():
                 T.where(i_0 * (T.vscale() * 2) + i_1 < T.vscale() * 4)
                 A[v_i] = 1.0
 
-    with gsmDataGen.target.Target("llvm -mtriple=aarch64-linux-gnu -mattr=+sve"):
-        sch = gsmDataGen.tir.Schedule(before)
+    with gsm_data_generator.target.Target("llvm -mtriple=aarch64-linux-gnu -mattr=+sve"):
+        sch = gsm_data_generator.tir.Schedule(before)
         (a,) = sch.get_loops("A")
         sch.split(
             a,
             factors=[2 * T.vscale(), 2 * T.vscale()],
         )
 
-    gsmDataGen.ir.assert_structural_equal(sch.mod["main"], after)
+    gsm_data_generator.ir.assert_structural_equal(sch.mod["main"], after)
 
 
 def test_unsupported_target_scalable_split(capfd):
@@ -806,11 +806,11 @@ def test_unsupported_target_scalable_split(capfd):
                 v_i = T.axis.remap("S", [i])
                 A[v_i] = 1.0
 
-    sch = gsmDataGen.tir.Schedule(before)
+    sch = gsm_data_generator.tir.Schedule(before)
     (a,) = sch.get_loops("A")
 
     err_msg = "The product of factors is not larger than or equal to the extent of loop tir.For#0"
-    with pytest.raises(gsmDataGen.tir.schedule.ScheduleError, match=err_msg):
+    with pytest.raises(gsm_data_generator.tir.schedule.ScheduleError, match=err_msg):
         sch.split(a, factors=[T.ceildiv(128, 4 * T.vscale()), 4 * T.vscale()])
 
     warning_msg = (
@@ -823,4 +823,4 @@ def test_unsupported_target_scalable_split(capfd):
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

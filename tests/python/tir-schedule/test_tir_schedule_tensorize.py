@@ -17,15 +17,15 @@
 # pylint: disable=missing-function-docstring,missing-module-docstring
 
 import pytest
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import te, tir
-from gsmDataGen.script import tir as T
-from gsmDataGen.tir.schedule.testing import (
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import te, tir
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.tir.schedule.testing import (
     assert_structural_equal_ignore_global_symbol,
     verify_trace_roundtrip,
 )
-from gsmDataGen.tir.tensor_intrin.arm_cpu import (
+from gsm_data_generator.tir.tensor_intrin.arm_cpu import (
     DP4A_S8S8S32_INTRIN,
     DP4A_U8U8U32_INTRIN,
     DP4A_U8S8S32_INTRIN,
@@ -33,9 +33,9 @@ from gsmDataGen.tir.tensor_intrin.arm_cpu import (
     ARM_DOT_4x4_i8_NEON_INTRIN,
     ARM_DOT_4x4_i8_SDOT_INTRIN,
 )
-from gsmDataGen.tir.tensor_intrin.rocm import AMDGPU_SDOT4_INTRIN
-from gsmDataGen.tir.tensor_intrin.x86 import VNNI_DOT_16x4_INTRIN, AVX512_DOT_16x4_INTRIN
-from gsmDataGen.tir.tensor_intrin.hexagon import VRMPY_u8u8i32_INTRIN, VDMPY_i16i16i32_INTRIN
+from gsm_data_generator.tir.tensor_intrin.rocm import AMDGPU_SDOT4_INTRIN
+from gsm_data_generator.tir.tensor_intrin.x86 import VNNI_DOT_16x4_INTRIN, AVX512_DOT_16x4_INTRIN
+from gsm_data_generator.tir.tensor_intrin.hexagon import VRMPY_u8u8i32_INTRIN, VDMPY_i16i16i32_INTRIN
 
 # fmt: off
 # pylint: disable=no-member,invalid-name,unused-variable,line-too-long,redefined-outer-name,unexpected-keyword-arg,too-many-nested-blocks
@@ -956,4 +956,4 @@ def test_tensorize_arith_simplification():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

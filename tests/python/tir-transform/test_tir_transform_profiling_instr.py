@@ -15,11 +15,11 @@
 # specific language governing permissions and limitations
 # under the License.
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import te
-from gsmDataGen.ir.module import IRModule
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import te
+from gsm_data_generator.ir.module import IRModule
+from gsm_data_generator.script import tir as T
 import numpy
 
 default_lwp_test_config = {
@@ -276,10 +276,10 @@ def test6_expected_output(a: T.handle, b: T.handle, c: T.handle, d: T.handle) ->
 
 # By default, only loops with siblings are instrumented.
 def test1():
-    with gsmDataGen.transform.PassContext(config=default_lwp_test_config):
-        mod = gsmDataGen.IRModule.from_expr(input1.with_attr("global_symbol", "main"))
-        mod = gsmDataGen.tir.transform.InstrumentProfileIntrinsics()(mod)
-    gsmDataGen.ir.assert_structural_equal(
+    with gsm_data_generator.transform.PassContext(config=default_lwp_test_config):
+        mod = gsm_data_generator.IRModule.from_expr(input1.with_attr("global_symbol", "main"))
+        mod = gsm_data_generator.tir.transform.InstrumentProfileIntrinsics()(mod)
+    gsm_data_generator.ir.assert_structural_equal(
         mod["main"], test1_expected_output.with_attr("global_symbol", "main")
     )
 
@@ -289,10 +289,10 @@ def test1():
 def test2():
     test2_config = default_lwp_test_config.copy()
     test2_config.update({"tir.lwp_max_depth": 3})
-    with gsmDataGen.transform.PassContext(config=test2_config):
-        mod = gsmDataGen.IRModule.from_expr(input1.with_attr("global_symbol", "main"))
-        mod = gsmDataGen.tir.transform.InstrumentProfileIntrinsics()(mod)
-    gsmDataGen.ir.assert_structural_equal(
+    with gsm_data_generator.transform.PassContext(config=test2_config):
+        mod = gsm_data_generator.IRModule.from_expr(input1.with_attr("global_symbol", "main"))
+        mod = gsm_data_generator.tir.transform.InstrumentProfileIntrinsics()(mod)
+    gsm_data_generator.ir.assert_structural_equal(
         mod["main"], test1_expected_output.with_attr("global_symbol", "main")
     )
 
@@ -304,10 +304,10 @@ def test2():
 def test3():
     test3_config = default_lwp_test_config.copy()
     test3_config.update({"tir.lwp_max_depth": 3, "tir.instr_siblings": False})
-    with gsmDataGen.transform.PassContext(config=test3_config):
-        mod = gsmDataGen.IRModule.from_expr(input1.with_attr("global_symbol", "main"))
-        mod = gsmDataGen.tir.transform.InstrumentProfileIntrinsics()(mod)
-    gsmDataGen.ir.assert_structural_equal(
+    with gsm_data_generator.transform.PassContext(config=test3_config):
+        mod = gsm_data_generator.IRModule.from_expr(input1.with_attr("global_symbol", "main"))
+        mod = gsm_data_generator.tir.transform.InstrumentProfileIntrinsics()(mod)
+    gsm_data_generator.ir.assert_structural_equal(
         mod["main"], test3_expected_output.with_attr("global_symbol", "main")
     )
 
@@ -315,10 +315,10 @@ def test3():
 # test4: Use 'lwp_min_height' to exclude inner loops upto a certain height from
 # instrumentation.
 def test4():
-    with gsmDataGen.transform.PassContext(config=default_lwp_test_config):
-        mod = gsmDataGen.IRModule.from_expr(input2.with_attr("global_symbol", "main"))
-        mod = gsmDataGen.tir.transform.InstrumentProfileIntrinsics()(mod)
-    gsmDataGen.ir.assert_structural_equal(
+    with gsm_data_generator.transform.PassContext(config=default_lwp_test_config):
+        mod = gsm_data_generator.IRModule.from_expr(input2.with_attr("global_symbol", "main"))
+        mod = gsm_data_generator.tir.transform.InstrumentProfileIntrinsics()(mod)
+    gsm_data_generator.ir.assert_structural_equal(
         mod["main"], test4_expected_output.with_attr("global_symbol", "main")
     )
 
@@ -330,23 +330,23 @@ def test5():
     test5_config.update(
         {"tir.lwp_max_depth": 3, "tir.instr_siblings": False, "tir.lwp_min_height": 2}
     )
-    with gsmDataGen.transform.PassContext(config=test5_config):
-        mod = gsmDataGen.IRModule.from_expr(input1.with_attr("global_symbol", "main"))
-        mod = gsmDataGen.tir.transform.InstrumentProfileIntrinsics()(mod)
-    gsmDataGen.ir.assert_structural_equal(
+    with gsm_data_generator.transform.PassContext(config=test5_config):
+        mod = gsm_data_generator.IRModule.from_expr(input1.with_attr("global_symbol", "main"))
+        mod = gsm_data_generator.tir.transform.InstrumentProfileIntrinsics()(mod)
+    gsm_data_generator.ir.assert_structural_equal(
         mod["main"], test5_expected_output.with_attr("global_symbol", "main")
     )
 
 
 # test6: Tests instrumentation for the parallel loops
 def test6():
-    with gsmDataGen.transform.PassContext(config=default_lwp_test_config):
-        mod = gsmDataGen.IRModule.from_expr(input3.with_attr("global_symbol", "main"))
-        mod = gsmDataGen.tir.transform.InstrumentProfileIntrinsics()(mod)
-    gsmDataGen.ir.assert_structural_equal(
+    with gsm_data_generator.transform.PassContext(config=default_lwp_test_config):
+        mod = gsm_data_generator.IRModule.from_expr(input3.with_attr("global_symbol", "main"))
+        mod = gsm_data_generator.tir.transform.InstrumentProfileIntrinsics()(mod)
+    gsm_data_generator.ir.assert_structural_equal(
         mod["main"], test6_expected_output.with_attr("global_symbol", "main")
     )
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

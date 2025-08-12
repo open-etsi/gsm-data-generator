@@ -14,11 +14,11 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import relax
-from gsmDataGen.relax.testing import nn
-from gsmDataGen.script import ir as I, relax as R, tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import relax
+from gsm_data_generator.relax.testing import nn
+from gsm_data_generator.script import ir as I, relax as R, tir as T
 
 
 def test_emit():
@@ -41,7 +41,7 @@ def test_emit():
         params = [x] + model.parameters()
         bb.emit_func_output(output, params)
 
-    gsmDataGen.ir.assert_structural_equal(bb.get(), Expected)
+    gsm_data_generator.ir.assert_structural_equal(bb.get(), Expected)
 
 
 def test_get_param():
@@ -105,7 +105,7 @@ def test_define_subroutine():
             return state
 
     model = Layer(64, 32)
-    batch_size = gsmDataGen.tir.Var("batch_size", "int64")
+    batch_size = gsm_data_generator.tir.Var("batch_size", "int64")
     input = nn.Placeholder((batch_size, 64), dtype="float32", name="input")
 
     bb = relax.BlockBuilder()
@@ -113,8 +113,8 @@ def test_define_subroutine():
         output = model(input)
         bb.emit_func_output(output)
 
-    gsmDataGen.ir.assert_structural_equal(Expected, bb.get())
+    gsm_data_generator.ir.assert_structural_equal(Expected, bb.get())
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

@@ -17,14 +17,14 @@
 """Unit tests for registering tir gradient functions in the gradient pass."""
 import pytest
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import relax, tir
-from gsmDataGen.ir.base import assert_structural_equal
-from gsmDataGen.script.parser import relax as R, tir as T, ir as I
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import relax, tir
+from gsm_data_generator.ir.base import assert_structural_equal
+from gsm_data_generator.script.parser import relax as R, tir as T, ir as I
 
-from gsmDataGen.relax.training.utils import register_te_gradient
-from gsmDataGen.relax.transform import Gradient
+from gsm_data_generator.relax.training.utils import register_te_gradient
+from gsm_data_generator.relax.transform import Gradient
 
 
 # Only run once in the whole test session
@@ -40,8 +40,8 @@ def register_te_grads():
             return src1[idx] * output_grad[idx]
 
         return [
-            gsmDataGen.te.compute(src1.shape, mul_grad_1, name="f_mul_grad_1"),
-            gsmDataGen.te.compute(src2.shape, mul_grad_2, name="f_mul_grad_2"),
+            gsm_data_generator.te.compute(src1.shape, mul_grad_1, name="f_mul_grad_1"),
+            gsm_data_generator.te.compute(src2.shape, mul_grad_2, name="f_mul_grad_2"),
         ]
 
     # register the gradient function
@@ -51,7 +51,7 @@ def register_te_grads():
             return output_grad[idx] * k
 
         return [
-            gsmDataGen.te.compute(src1.shape, mulk_grad, name="f_mulk_grad"),
+            gsm_data_generator.te.compute(src1.shape, mulk_grad, name="f_mulk_grad"),
         ]
 
 
@@ -121,7 +121,7 @@ def test_emit_te(register_te_grads):
         def mul(*idx):
             return src1[idx] * src2[idx]
 
-        return gsmDataGen.te.compute(src1.shape, mul, name="f_mul")
+        return gsm_data_generator.te.compute(src1.shape, mul, name="f_mul")
 
     a = relax.Var("a", relax.TensorStructInfo([5, 5], "float32"))
     b = relax.Var("b", relax.TensorStructInfo([5, 5], "float32"))
@@ -226,7 +226,7 @@ def get_expected_2():
 def test_emit_te_kwargs(register_te_grads):
     # Build the target module using emit_te
     def f_mul2(src):
-        return gsmDataGen.te.compute(src.shape, lambda *idx: src[idx] * T.float32(2), name="f_mul2")
+        return gsm_data_generator.te.compute(src.shape, lambda *idx: src[idx] * T.float32(2), name="f_mul2")
 
     a = relax.Var("a", relax.TensorStructInfo([5, 5], "float32"))
 
@@ -357,7 +357,7 @@ def test_tir_var(register_te_grads):
         def mul(*idx):
             return src1[idx] * src2[idx]
 
-        return gsmDataGen.te.compute(src1.shape, mul, name="f_mul")
+        return gsm_data_generator.te.compute(src1.shape, mul, name="f_mul")
 
     n = tir.Var("n", "int64")
     a = relax.Var("a", relax.TensorStructInfo([n, n], "float32"))
@@ -381,4 +381,4 @@ def test_tir_var(register_te_grads):
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

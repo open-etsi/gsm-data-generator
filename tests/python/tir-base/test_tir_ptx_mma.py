@@ -17,9 +17,9 @@
 
 import numpy as np
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator.script import tir as T
 
 
 @T.prim_func
@@ -64,19 +64,19 @@ def gemm_mma_m8n8k4_row_col_fp64pf64fp64(a: T.handle, b: T.handle, c: T.handle):
         C[(tx % 32) // 4, (tx % 32) % 4 * 2 + mma_accum_c_id] = Accum[mma_accum_c_id]
 
 
-@gsmDataGen.testing.requires_cuda_compute_version(8)
+@gsm_data_generator.testing.requires_cuda_compute_version(8)
 def test_gemm_mma_m8n8k4_row_col_fp64pf64fp64():
-    sch = gsmDataGen.tir.Schedule(gemm_mma_m8n8k4_row_col_fp64pf64fp64)
-    cuda_mod = gsmDataGen.compile(sch.mod, target="cuda")
+    sch = gsm_data_generator.tir.Schedule(gemm_mma_m8n8k4_row_col_fp64pf64fp64)
+    cuda_mod = gsm_data_generator.compile(sch.mod, target="cuda")
 
     A_np = np.random.uniform(-1, 1, [8, 4]).astype("float64")
     B_np = np.random.uniform(-1, 1, [8, 4]).astype("float64")
     C_np = np.zeros([8, 8]).astype("float64")
 
-    ctx = gsmDataGen.cuda()
-    A_tvm = gsmDataGen.nd.array(A_np, ctx)
-    B_tvm = gsmDataGen.nd.array(B_np, ctx)
-    C_tvm = gsmDataGen.nd.array(C_np, ctx)
+    ctx = gsm_data_generator.cuda()
+    A_tvm = gsm_data_generator.nd.array(A_np, ctx)
+    B_tvm = gsm_data_generator.nd.array(B_np, ctx)
+    C_tvm = gsm_data_generator.nd.array(C_np, ctx)
 
     cuda_mod(A_tvm, B_tvm, C_tvm)
 
@@ -84,7 +84,7 @@ def test_gemm_mma_m8n8k4_row_col_fp64pf64fp64():
 
     C_numpy = C_tvm.numpy()
 
-    gsmDataGen.testing.assert_allclose(golden, C_numpy, atol=1e-3, rtol=1e-3)
+    gsm_data_generator.testing.assert_allclose(golden, C_numpy, atol=1e-3, rtol=1e-3)
 
 
 @T.prim_func
@@ -140,19 +140,19 @@ def gemm_mma_m8n8k4_row_row_fp16fp16fp16(a: T.handle, b: T.handle, c: T.handle):
         ] = Accum[mma_accum_c_id]
 
 
-@gsmDataGen.testing.requires_cuda_compute_version(7)
+@gsm_data_generator.testing.requires_cuda_compute_version(7)
 def test_gemm_mma_m8n8k4_row_row_fp16fp16fp16():
-    sch = gsmDataGen.tir.Schedule(gemm_mma_m8n8k4_row_row_fp16fp16fp16)
-    cuda_mod = gsmDataGen.compile(sch.mod, target="cuda")
+    sch = gsm_data_generator.tir.Schedule(gemm_mma_m8n8k4_row_row_fp16fp16fp16)
+    cuda_mod = gsm_data_generator.compile(sch.mod, target="cuda")
 
     A_np = np.random.uniform(-1, 1, [16, 4]).astype("float16")
     B_np = np.random.uniform(-1, 1, [4, 16]).astype("float16")
     C_np = np.zeros([16, 16]).astype("float16")
 
-    ctx = gsmDataGen.cuda()
-    A_tvm = gsmDataGen.nd.array(A_np, ctx)
-    B_tvm = gsmDataGen.nd.array(B_np, ctx)
-    C_tvm = gsmDataGen.nd.array(C_np, ctx)
+    ctx = gsm_data_generator.cuda()
+    A_tvm = gsm_data_generator.nd.array(A_np, ctx)
+    B_tvm = gsm_data_generator.nd.array(B_np, ctx)
+    C_tvm = gsm_data_generator.nd.array(C_np, ctx)
 
     cuda_mod(A_tvm, B_tvm, C_tvm)
 
@@ -160,7 +160,7 @@ def test_gemm_mma_m8n8k4_row_row_fp16fp16fp16():
 
     C_numpy = C_tvm.numpy()
 
-    gsmDataGen.testing.assert_allclose(golden, C_numpy, atol=1e-3, rtol=1e-3)
+    gsm_data_generator.testing.assert_allclose(golden, C_numpy, atol=1e-3, rtol=1e-3)
 
 
 @T.prim_func
@@ -223,19 +223,19 @@ def gemm_mma_m8n8k4_row_row_fp16fp16fp32(a: T.handle, b: T.handle, c: T.handle):
         ] = Accum[mma_accum_c_id]
 
 
-@gsmDataGen.testing.requires_cuda_compute_version(7)
+@gsm_data_generator.testing.requires_cuda_compute_version(7)
 def test_gemm_mma_m8n8k4_row_row_fp16fp16fp32():
-    sch = gsmDataGen.tir.Schedule(gemm_mma_m8n8k4_row_row_fp16fp16fp32)
-    cuda_mod = gsmDataGen.compile(sch.mod, target="cuda")
+    sch = gsm_data_generator.tir.Schedule(gemm_mma_m8n8k4_row_row_fp16fp16fp32)
+    cuda_mod = gsm_data_generator.compile(sch.mod, target="cuda")
 
     A_np = np.random.uniform(-1, 1, [16, 4]).astype("float16")
     B_np = np.random.uniform(-1, 1, [4, 16]).astype("float16")
     C_np = np.zeros([16, 16]).astype("float32")
 
-    ctx = gsmDataGen.cuda()
-    A_tvm = gsmDataGen.nd.array(A_np, ctx)
-    B_tvm = gsmDataGen.nd.array(B_np, ctx)
-    C_tvm = gsmDataGen.nd.array(C_np, ctx)
+    ctx = gsm_data_generator.cuda()
+    A_tvm = gsm_data_generator.nd.array(A_np, ctx)
+    B_tvm = gsm_data_generator.nd.array(B_np, ctx)
+    C_tvm = gsm_data_generator.nd.array(C_np, ctx)
 
     cuda_mod(A_tvm, B_tvm, C_tvm)
 
@@ -243,7 +243,7 @@ def test_gemm_mma_m8n8k4_row_row_fp16fp16fp32():
 
     C_numpy = C_tvm.numpy()
 
-    gsmDataGen.testing.assert_allclose(golden, C_numpy, atol=1e-3, rtol=1e-3)
+    gsm_data_generator.testing.assert_allclose(golden, C_numpy, atol=1e-3, rtol=1e-3)
 
 
 @T.prim_func
@@ -293,20 +293,20 @@ def gemm_mma_m8n8k16_row_col_s8s8s32(a: T.handle, b: T.handle, c: T.handle):
 # This test uses mma instructions that are not available on NVCC 10.1.
 # Failure occurs during the external call to nvcc, when attempting to
 # generate the .fatbin file.
-@gsmDataGen.testing.requires_nvcc_version(11)
-@gsmDataGen.testing.requires_cuda_compute_version(7, 5)
+@gsm_data_generator.testing.requires_nvcc_version(11)
+@gsm_data_generator.testing.requires_cuda_compute_version(7, 5)
 def test_gemm_mma_m8n8k16_row_col_s8s8s32():
-    sch = gsmDataGen.tir.Schedule(gemm_mma_m8n8k16_row_col_s8s8s32)
-    cuda_mod = gsmDataGen.compile(sch.mod, target="cuda")
+    sch = gsm_data_generator.tir.Schedule(gemm_mma_m8n8k16_row_col_s8s8s32)
+    cuda_mod = gsm_data_generator.compile(sch.mod, target="cuda")
 
     A_np = np.random.uniform(-10, 10, [8, 16]).astype("int8")
     B_np = np.random.uniform(-10, 10, [8, 16]).astype("int8")
     C_np = np.zeros([8, 8]).astype("int32")
 
-    ctx = gsmDataGen.cuda()
-    A_tvm = gsmDataGen.nd.array(A_np, ctx)
-    B_tvm = gsmDataGen.nd.array(B_np, ctx)
-    C_tvm = gsmDataGen.nd.array(C_np, ctx)
+    ctx = gsm_data_generator.cuda()
+    A_tvm = gsm_data_generator.nd.array(A_np, ctx)
+    B_tvm = gsm_data_generator.nd.array(B_np, ctx)
+    C_tvm = gsm_data_generator.nd.array(C_np, ctx)
 
     cuda_mod(A_tvm, B_tvm, C_tvm)
 
@@ -314,7 +314,7 @@ def test_gemm_mma_m8n8k16_row_col_s8s8s32():
 
     C_numpy = C_tvm.numpy()
 
-    gsmDataGen.testing.assert_allclose(golden, C_numpy, atol=1e-3, rtol=1e-3)
+    gsm_data_generator.testing.assert_allclose(golden, C_numpy, atol=1e-3, rtol=1e-3)
 
 
 @T.prim_func
@@ -364,20 +364,20 @@ def gemm_mma_m8n8k16_row_col_s8u8s32(a: T.handle, b: T.handle, c: T.handle):
 # This test uses mma instructions that are not available on NVCC 10.1.
 # Failure occurs during the external call to nvcc, when attempting to
 # generate the .fatbin file.
-@gsmDataGen.testing.requires_nvcc_version(11)
-@gsmDataGen.testing.requires_cuda_compute_version(7, 5)
+@gsm_data_generator.testing.requires_nvcc_version(11)
+@gsm_data_generator.testing.requires_cuda_compute_version(7, 5)
 def test_gemm_mma_m8n8k16_row_col_s8u8s32():
-    sch = gsmDataGen.tir.Schedule(gemm_mma_m8n8k16_row_col_s8u8s32)
-    cuda_mod = gsmDataGen.compile(sch.mod, target="cuda")
+    sch = gsm_data_generator.tir.Schedule(gemm_mma_m8n8k16_row_col_s8u8s32)
+    cuda_mod = gsm_data_generator.compile(sch.mod, target="cuda")
 
     A_np = np.random.uniform(-10, 10, [8, 16]).astype("int8")
     B_np = np.random.uniform(-10, 10, [8, 16]).astype("uint8")
     C_np = np.zeros([8, 8]).astype("int32")
 
-    ctx = gsmDataGen.cuda()
-    A_tvm = gsmDataGen.nd.array(A_np, ctx)
-    B_tvm = gsmDataGen.nd.array(B_np, ctx)
-    C_tvm = gsmDataGen.nd.array(C_np, ctx)
+    ctx = gsm_data_generator.cuda()
+    A_tvm = gsm_data_generator.nd.array(A_np, ctx)
+    B_tvm = gsm_data_generator.nd.array(B_np, ctx)
+    C_tvm = gsm_data_generator.nd.array(C_np, ctx)
 
     cuda_mod(A_tvm, B_tvm, C_tvm)
 
@@ -385,7 +385,7 @@ def test_gemm_mma_m8n8k16_row_col_s8u8s32():
 
     C_numpy = C_tvm.numpy()
 
-    gsmDataGen.testing.assert_allclose(golden, C_numpy, atol=1e-3, rtol=1e-3)
+    gsm_data_generator.testing.assert_allclose(golden, C_numpy, atol=1e-3, rtol=1e-3)
 
 
 @T.prim_func
@@ -435,16 +435,16 @@ def gemm_mma_m8n8k32_row_col_s4s4s32(a: T.handle, b: T.handle, c: T.handle):
 # This test uses mma instructions that are not available on NVCC 10.1.
 # Failure occurs during the external call to nvcc, when attempting to
 # generate the .fatbin file.
-@gsmDataGen.testing.requires_nvcc_version(11)
-@gsmDataGen.testing.requires_cuda_compute_version(7, 5)
+@gsm_data_generator.testing.requires_nvcc_version(11)
+@gsm_data_generator.testing.requires_cuda_compute_version(7, 5)
 def test_gemm_mma_m8n8k32_row_col_s4s4s32():
-    sch = gsmDataGen.tir.Schedule(gemm_mma_m8n8k32_row_col_s4s4s32)
-    cuda_mod = gsmDataGen.compile(sch.mod, target="cuda")
+    sch = gsm_data_generator.tir.Schedule(gemm_mma_m8n8k32_row_col_s4s4s32)
+    cuda_mod = gsm_data_generator.compile(sch.mod, target="cuda")
 
-    ctx = gsmDataGen.cuda()
-    A_tvm = gsmDataGen.nd.empty([8, 32], "int4", ctx)
-    B_tvm = gsmDataGen.nd.empty([8, 32], "int4", ctx)
-    C_tvm = gsmDataGen.nd.empty([8, 8], "int32", ctx)
+    ctx = gsm_data_generator.cuda()
+    A_tvm = gsm_data_generator.nd.empty([8, 32], "int4", ctx)
+    B_tvm = gsm_data_generator.nd.empty([8, 32], "int4", ctx)
+    C_tvm = gsm_data_generator.nd.empty([8, 8], "int32", ctx)
 
     cuda_mod(A_tvm, B_tvm, C_tvm)
     # Currently the correctness is not checked.
@@ -498,16 +498,16 @@ def gemm_mma_m8n8k32_row_col_s4u4s32(a: T.handle, b: T.handle, c: T.handle):
 # This test uses mma instructions that are not available on NVCC 10.1.
 # Failure occurs during the external call to nvcc, when attempting to
 # generate the .fatbin file.
-@gsmDataGen.testing.requires_nvcc_version(11)
-@gsmDataGen.testing.requires_cuda_compute_version(7, 5)
+@gsm_data_generator.testing.requires_nvcc_version(11)
+@gsm_data_generator.testing.requires_cuda_compute_version(7, 5)
 def test_gemm_mma_m8n8k32_row_col_s4u4s32():
-    sch = gsmDataGen.tir.Schedule(gemm_mma_m8n8k32_row_col_s4u4s32)
-    cuda_mod = gsmDataGen.compile(sch.mod, target="cuda")
+    sch = gsm_data_generator.tir.Schedule(gemm_mma_m8n8k32_row_col_s4u4s32)
+    cuda_mod = gsm_data_generator.compile(sch.mod, target="cuda")
 
-    ctx = gsmDataGen.cuda()
-    A_tvm = gsmDataGen.nd.empty([8, 32], "int4", ctx)
-    B_tvm = gsmDataGen.nd.empty([8, 32], "uint4", ctx)
-    C_tvm = gsmDataGen.nd.empty([8, 8], "int32", ctx)
+    ctx = gsm_data_generator.cuda()
+    A_tvm = gsm_data_generator.nd.empty([8, 32], "int4", ctx)
+    B_tvm = gsm_data_generator.nd.empty([8, 32], "uint4", ctx)
+    C_tvm = gsm_data_generator.nd.empty([8, 8], "int32", ctx)
 
     cuda_mod(A_tvm, B_tvm, C_tvm)
     # Currently the correctness is not checked.
@@ -564,19 +564,19 @@ def gemm_mma_m16n8k8_row_col_fp16fp16fp32(a: T.handle, b: T.handle, c: T.handle)
         ]
 
 
-@gsmDataGen.testing.requires_cuda_compute_version(8)
+@gsm_data_generator.testing.requires_cuda_compute_version(8)
 def test_gemm_mma_m16n8k8_row_col_fp16fp16fp32():
-    sch = gsmDataGen.tir.Schedule(gemm_mma_m16n8k8_row_col_fp16fp16fp32)
-    cuda_mod = gsmDataGen.compile(sch.mod, target="cuda")
+    sch = gsm_data_generator.tir.Schedule(gemm_mma_m16n8k8_row_col_fp16fp16fp32)
+    cuda_mod = gsm_data_generator.compile(sch.mod, target="cuda")
 
     A_np = np.random.uniform(-1, 1, [16, 8]).astype("float16")
     B_np = np.random.uniform(-1, 1, [8, 8]).astype("float16")
     C_np = np.zeros([16, 8]).astype("float32")
 
-    ctx = gsmDataGen.cuda()
-    A_tvm = gsmDataGen.nd.array(A_np, ctx)
-    B_tvm = gsmDataGen.nd.array(B_np, ctx)
-    C_tvm = gsmDataGen.nd.array(C_np, ctx)
+    ctx = gsm_data_generator.cuda()
+    A_tvm = gsm_data_generator.nd.array(A_np, ctx)
+    B_tvm = gsm_data_generator.nd.array(B_np, ctx)
+    C_tvm = gsm_data_generator.nd.array(C_np, ctx)
 
     cuda_mod(A_tvm, B_tvm, C_tvm)
 
@@ -584,7 +584,7 @@ def test_gemm_mma_m16n8k8_row_col_fp16fp16fp32():
 
     C_numpy = C_tvm.numpy()
 
-    gsmDataGen.testing.assert_allclose(golden, C_numpy, atol=1e-3, rtol=1e-3)
+    gsm_data_generator.testing.assert_allclose(golden, C_numpy, atol=1e-3, rtol=1e-3)
 
 
 @T.prim_func
@@ -640,19 +640,19 @@ def gemm_mma_m16n8k16_row_col_fp16fp16fp16(a: T.handle, b: T.handle, c: T.handle
         ] = Accum[mma_accum_c_id]
 
 
-@gsmDataGen.testing.requires_cuda_compute_version(8)
+@gsm_data_generator.testing.requires_cuda_compute_version(8)
 def test_gemm_mma_m16n8k16_row_col_fp16fp16fp16():
-    sch = gsmDataGen.tir.Schedule(gemm_mma_m16n8k16_row_col_fp16fp16fp16)
-    cuda_mod = gsmDataGen.compile(sch.mod, target="cuda")
+    sch = gsm_data_generator.tir.Schedule(gemm_mma_m16n8k16_row_col_fp16fp16fp16)
+    cuda_mod = gsm_data_generator.compile(sch.mod, target="cuda")
 
     A_np = np.random.uniform(-1, 1, [16, 16]).astype("float16")
     B_np = np.random.uniform(-1, 1, [8, 16]).astype("float16")
     C_np = np.zeros([16, 8]).astype("float16")
 
-    ctx = gsmDataGen.cuda()
-    A_tvm = gsmDataGen.nd.array(A_np, ctx)
-    B_tvm = gsmDataGen.nd.array(B_np, ctx)
-    C_tvm = gsmDataGen.nd.array(C_np, ctx)
+    ctx = gsm_data_generator.cuda()
+    A_tvm = gsm_data_generator.nd.array(A_np, ctx)
+    B_tvm = gsm_data_generator.nd.array(B_np, ctx)
+    C_tvm = gsm_data_generator.nd.array(C_np, ctx)
 
     cuda_mod(A_tvm, B_tvm, C_tvm)
 
@@ -660,7 +660,7 @@ def test_gemm_mma_m16n8k16_row_col_fp16fp16fp16():
 
     C_numpy = C_tvm.numpy()
 
-    gsmDataGen.testing.assert_allclose(golden, C_numpy, atol=1e-3, rtol=1e-3)
+    gsm_data_generator.testing.assert_allclose(golden, C_numpy, atol=1e-3, rtol=1e-3)
 
 
 @T.prim_func
@@ -716,19 +716,19 @@ def gemm_mma_m16n8k16_row_col_fp16fp16fp32(a: T.handle, b: T.handle, c: T.handle
         ] = Accum[mma_accum_c_id]
 
 
-@gsmDataGen.testing.requires_cuda_compute_version(8)
+@gsm_data_generator.testing.requires_cuda_compute_version(8)
 def test_gemm_mma_m16n8k16_row_col_fp16fp16fp32():
-    sch = gsmDataGen.tir.Schedule(gemm_mma_m16n8k16_row_col_fp16fp16fp32)
-    cuda_mod = gsmDataGen.compile(sch.mod, target="cuda")
+    sch = gsm_data_generator.tir.Schedule(gemm_mma_m16n8k16_row_col_fp16fp16fp32)
+    cuda_mod = gsm_data_generator.compile(sch.mod, target="cuda")
 
     A_np = np.random.uniform(-1, 1, [16, 16]).astype("float16")
     B_np = np.random.uniform(-1, 1, [8, 16]).astype("float16")
     C_np = np.zeros([16, 8]).astype("float32")
 
-    ctx = gsmDataGen.cuda()
-    A_tvm = gsmDataGen.nd.array(A_np, ctx)
-    B_tvm = gsmDataGen.nd.array(B_np, ctx)
-    C_tvm = gsmDataGen.nd.array(C_np, ctx)
+    ctx = gsm_data_generator.cuda()
+    A_tvm = gsm_data_generator.nd.array(A_np, ctx)
+    B_tvm = gsm_data_generator.nd.array(B_np, ctx)
+    C_tvm = gsm_data_generator.nd.array(C_np, ctx)
 
     cuda_mod(A_tvm, B_tvm, C_tvm)
 
@@ -736,7 +736,7 @@ def test_gemm_mma_m16n8k16_row_col_fp16fp16fp32():
 
     C_numpy = C_tvm.numpy()
 
-    gsmDataGen.testing.assert_allclose(golden, C_numpy, atol=1e-3, rtol=1e-3)
+    gsm_data_generator.testing.assert_allclose(golden, C_numpy, atol=1e-3, rtol=1e-3)
 
 
 @T.prim_func
@@ -792,19 +792,19 @@ def gemm_mma_m16n8k16_row_col_s8s8s32(a: T.handle, b: T.handle, c: T.handle):
         ] = Accum[mma_accum_c_id]
 
 
-@gsmDataGen.testing.requires_cuda_compute_version(8)
+@gsm_data_generator.testing.requires_cuda_compute_version(8)
 def test_gemm_mma_m16n8k16_row_col_s8s8s32():
-    sch = gsmDataGen.tir.Schedule(gemm_mma_m16n8k16_row_col_s8s8s32)
-    cuda_mod = gsmDataGen.compile(sch.mod, target="cuda")
+    sch = gsm_data_generator.tir.Schedule(gemm_mma_m16n8k16_row_col_s8s8s32)
+    cuda_mod = gsm_data_generator.compile(sch.mod, target="cuda")
 
     A_np = np.random.uniform(-10, 10, [16, 16]).astype("int8")
     B_np = np.random.uniform(-10, 10, [8, 16]).astype("int8")
     C_np = np.zeros([16, 8]).astype("int32")
 
-    ctx = gsmDataGen.cuda()
-    A_tvm = gsmDataGen.nd.array(A_np, ctx)
-    B_tvm = gsmDataGen.nd.array(B_np, ctx)
-    C_tvm = gsmDataGen.nd.array(C_np, ctx)
+    ctx = gsm_data_generator.cuda()
+    A_tvm = gsm_data_generator.nd.array(A_np, ctx)
+    B_tvm = gsm_data_generator.nd.array(B_np, ctx)
+    C_tvm = gsm_data_generator.nd.array(C_np, ctx)
 
     cuda_mod(A_tvm, B_tvm, C_tvm)
 
@@ -812,7 +812,7 @@ def test_gemm_mma_m16n8k16_row_col_s8s8s32():
 
     C_numpy = C_tvm.numpy()
 
-    gsmDataGen.testing.assert_allclose(golden, C_numpy, atol=1e-3, rtol=1e-3)
+    gsm_data_generator.testing.assert_allclose(golden, C_numpy, atol=1e-3, rtol=1e-3)
 
 
 @T.prim_func
@@ -868,19 +868,19 @@ def gemm_mma_m16n8k16_row_col_s8u8s32(a: T.handle, b: T.handle, c: T.handle):
         ] = Accum[mma_accum_c_id]
 
 
-@gsmDataGen.testing.requires_cuda_compute_version(8)
+@gsm_data_generator.testing.requires_cuda_compute_version(8)
 def test_gemm_mma_m16n8k16_row_col_s8u8s32():
-    sch = gsmDataGen.tir.Schedule(gemm_mma_m16n8k16_row_col_s8u8s32)
-    cuda_mod = gsmDataGen.compile(sch.mod, target="cuda")
+    sch = gsm_data_generator.tir.Schedule(gemm_mma_m16n8k16_row_col_s8u8s32)
+    cuda_mod = gsm_data_generator.compile(sch.mod, target="cuda")
 
     A_np = np.random.uniform(-10, 10, [16, 16]).astype("int8")
     B_np = np.random.uniform(-10, 10, [8, 16]).astype("uint8")
     C_np = np.zeros([16, 8]).astype("int32")
 
-    ctx = gsmDataGen.cuda()
-    A_tvm = gsmDataGen.nd.array(A_np, ctx)
-    B_tvm = gsmDataGen.nd.array(B_np, ctx)
-    C_tvm = gsmDataGen.nd.array(C_np, ctx)
+    ctx = gsm_data_generator.cuda()
+    A_tvm = gsm_data_generator.nd.array(A_np, ctx)
+    B_tvm = gsm_data_generator.nd.array(B_np, ctx)
+    C_tvm = gsm_data_generator.nd.array(C_np, ctx)
 
     cuda_mod(A_tvm, B_tvm, C_tvm)
 
@@ -888,7 +888,7 @@ def test_gemm_mma_m16n8k16_row_col_s8u8s32():
 
     C_numpy = C_tvm.numpy()
 
-    gsmDataGen.testing.assert_allclose(golden, C_numpy, atol=1e-3, rtol=1e-3)
+    gsm_data_generator.testing.assert_allclose(golden, C_numpy, atol=1e-3, rtol=1e-3)
 
 
 @T.prim_func
@@ -944,19 +944,19 @@ def gemm_mma_m16n8k32_row_col_s8s8s32(a: T.handle, b: T.handle, c: T.handle):
         ] = Accum[mma_accum_c_id]
 
 
-@gsmDataGen.testing.requires_cuda_compute_version(8)
+@gsm_data_generator.testing.requires_cuda_compute_version(8)
 def test_gemm_mma_m16n8k32_row_col_s8s8s32():
-    sch = gsmDataGen.tir.Schedule(gemm_mma_m16n8k32_row_col_s8s8s32)
-    cuda_mod = gsmDataGen.compile(sch.mod, target="cuda")
+    sch = gsm_data_generator.tir.Schedule(gemm_mma_m16n8k32_row_col_s8s8s32)
+    cuda_mod = gsm_data_generator.compile(sch.mod, target="cuda")
 
     A_np = np.random.uniform(-10, 10, [16, 32]).astype("int8")
     B_np = np.random.uniform(-10, 10, [8, 32]).astype("int8")
     C_np = np.zeros([16, 8]).astype("int32")
 
-    ctx = gsmDataGen.cuda()
-    A_tvm = gsmDataGen.nd.array(A_np, ctx)
-    B_tvm = gsmDataGen.nd.array(B_np, ctx)
-    C_tvm = gsmDataGen.nd.array(C_np, ctx)
+    ctx = gsm_data_generator.cuda()
+    A_tvm = gsm_data_generator.nd.array(A_np, ctx)
+    B_tvm = gsm_data_generator.nd.array(B_np, ctx)
+    C_tvm = gsm_data_generator.nd.array(C_np, ctx)
 
     cuda_mod(A_tvm, B_tvm, C_tvm)
 
@@ -964,7 +964,7 @@ def test_gemm_mma_m16n8k32_row_col_s8s8s32():
 
     C_numpy = C_tvm.numpy()
 
-    gsmDataGen.testing.assert_allclose(golden, C_numpy, atol=1e-3, rtol=1e-3)
+    gsm_data_generator.testing.assert_allclose(golden, C_numpy, atol=1e-3, rtol=1e-3)
 
 
 @T.prim_func
@@ -1020,19 +1020,19 @@ def gemm_mma_m16n8k32_row_col_s8u8s32(a: T.handle, b: T.handle, c: T.handle):
         ] = Accum[mma_accum_c_id]
 
 
-@gsmDataGen.testing.requires_cuda_compute_version(8)
+@gsm_data_generator.testing.requires_cuda_compute_version(8)
 def test_gemm_mma_m16n8k32_row_col_s8u8s32():
-    sch = gsmDataGen.tir.Schedule(gemm_mma_m16n8k32_row_col_s8u8s32)
-    cuda_mod = gsmDataGen.compile(sch.mod, target="cuda")
+    sch = gsm_data_generator.tir.Schedule(gemm_mma_m16n8k32_row_col_s8u8s32)
+    cuda_mod = gsm_data_generator.compile(sch.mod, target="cuda")
 
     A_np = np.random.uniform(-10, 10, [16, 32]).astype("int8")
     B_np = np.random.uniform(-10, 10, [8, 32]).astype("uint8")
     C_np = np.zeros([16, 8]).astype("int32")
 
-    ctx = gsmDataGen.cuda()
-    A_tvm = gsmDataGen.nd.array(A_np, ctx)
-    B_tvm = gsmDataGen.nd.array(B_np, ctx)
-    C_tvm = gsmDataGen.nd.array(C_np, ctx)
+    ctx = gsm_data_generator.cuda()
+    A_tvm = gsm_data_generator.nd.array(A_np, ctx)
+    B_tvm = gsm_data_generator.nd.array(B_np, ctx)
+    C_tvm = gsm_data_generator.nd.array(C_np, ctx)
 
     cuda_mod(A_tvm, B_tvm, C_tvm)
 
@@ -1040,7 +1040,7 @@ def test_gemm_mma_m16n8k32_row_col_s8u8s32():
 
     C_numpy = C_tvm.numpy()
 
-    gsmDataGen.testing.assert_allclose(golden, C_numpy, atol=1e-3, rtol=1e-3)
+    gsm_data_generator.testing.assert_allclose(golden, C_numpy, atol=1e-3, rtol=1e-3)
 
 
 @T.prim_func
@@ -1096,15 +1096,15 @@ def gemm_mma_m16n8k64_row_col_s4s4s32(a: T.handle, b: T.handle, c: T.handle):
         ] = Accum[mma_accum_c_id]
 
 
-@gsmDataGen.testing.requires_cuda_compute_version(8)
+@gsm_data_generator.testing.requires_cuda_compute_version(8)
 def test_gemm_mma_m16n8k64_row_col_s4s4s32():
-    sch = gsmDataGen.tir.Schedule(gemm_mma_m16n8k64_row_col_s4s4s32)
-    cuda_mod = gsmDataGen.compile(sch.mod, target="cuda")
+    sch = gsm_data_generator.tir.Schedule(gemm_mma_m16n8k64_row_col_s4s4s32)
+    cuda_mod = gsm_data_generator.compile(sch.mod, target="cuda")
 
-    ctx = gsmDataGen.cuda()
-    A_tvm = gsmDataGen.nd.empty([16, 64], "int4", ctx)
-    B_tvm = gsmDataGen.nd.empty([8, 64], "int4", ctx)
-    C_tvm = gsmDataGen.nd.empty([16, 8], "int32", ctx)
+    ctx = gsm_data_generator.cuda()
+    A_tvm = gsm_data_generator.nd.empty([16, 64], "int4", ctx)
+    B_tvm = gsm_data_generator.nd.empty([8, 64], "int4", ctx)
+    C_tvm = gsm_data_generator.nd.empty([16, 8], "int32", ctx)
 
     cuda_mod(A_tvm, B_tvm, C_tvm)
     # Currently the correctness is not checked.
@@ -1164,15 +1164,15 @@ def gemm_mma_m16n8k64_row_col_s4u4s32(a: T.handle, b: T.handle, c: T.handle):
         ] = Accum[mma_accum_c_id]
 
 
-@gsmDataGen.testing.requires_cuda_compute_version(8)
+@gsm_data_generator.testing.requires_cuda_compute_version(8)
 def test_gemm_mma_m16n8k64_row_col_s4u4s32():
-    sch = gsmDataGen.tir.Schedule(gemm_mma_m16n8k64_row_col_s4u4s32)
-    cuda_mod = gsmDataGen.compile(sch.mod, target="cuda")
+    sch = gsm_data_generator.tir.Schedule(gemm_mma_m16n8k64_row_col_s4u4s32)
+    cuda_mod = gsm_data_generator.compile(sch.mod, target="cuda")
 
-    ctx = gsmDataGen.cuda()
-    A_tvm = gsmDataGen.nd.empty([16, 64], "int4", ctx)
-    B_tvm = gsmDataGen.nd.empty([8, 64], "uint4", ctx)
-    C_tvm = gsmDataGen.nd.empty([16, 8], "int32", ctx)
+    ctx = gsm_data_generator.cuda()
+    A_tvm = gsm_data_generator.nd.empty([16, 64], "int4", ctx)
+    B_tvm = gsm_data_generator.nd.empty([8, 64], "uint4", ctx)
+    C_tvm = gsm_data_generator.nd.empty([16, 8], "int32", ctx)
 
     cuda_mod(A_tvm, B_tvm, C_tvm)
     # Currently the correctness is not checked.
@@ -1233,15 +1233,15 @@ def gemm_mma_m16n8k256_row_col_b1b1s32(a: T.handle, b: T.handle, c: T.handle):
         ] = Accum[mma_accum_c_id]
 
 
-@gsmDataGen.testing.requires_cuda_compute_version(8)
+@gsm_data_generator.testing.requires_cuda_compute_version(8)
 def test_gemm_mma_m16n8k256_row_col_b1b1s32():
-    sch = gsmDataGen.tir.Schedule(gemm_mma_m16n8k256_row_col_b1b1s32)
-    cuda_mod = gsmDataGen.compile(sch.mod, target="cuda")
+    sch = gsm_data_generator.tir.Schedule(gemm_mma_m16n8k256_row_col_b1b1s32)
+    cuda_mod = gsm_data_generator.compile(sch.mod, target="cuda")
 
-    ctx = gsmDataGen.cuda()
-    A_tvm = gsmDataGen.nd.empty([16, 256], "int1", ctx)
-    B_tvm = gsmDataGen.nd.empty([8, 256], "int1", ctx)
-    C_tvm = gsmDataGen.nd.empty([16, 8], "int32", ctx)
+    ctx = gsm_data_generator.cuda()
+    A_tvm = gsm_data_generator.nd.empty([16, 256], "int1", ctx)
+    B_tvm = gsm_data_generator.nd.empty([8, 256], "int1", ctx)
+    C_tvm = gsm_data_generator.nd.empty([16, 8], "int32", ctx)
 
     cuda_mod(A_tvm, B_tvm, C_tvm)
     # Currently the correctness is not checked.
@@ -1249,4 +1249,4 @@ def test_gemm_mma_m16n8k256_row_col_b1b1s32():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

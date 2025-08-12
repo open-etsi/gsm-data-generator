@@ -18,15 +18,15 @@
 import numpy as np
 import pytest
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import relax
-from gsmDataGen.script import relax as R
-from gsmDataGen.script import ir as I
-from gsmDataGen.script.ir_builder import IRBuilder
-from gsmDataGen.ir.module import IRModule
-from gsmDataGen.script.ir_builder import relax as relax_builder
-from gsmDataGen.relax.expr_functor import PyExprVisitor, visitor
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import relax
+from gsm_data_generator.script import relax as R
+from gsm_data_generator.script import ir as I
+from gsm_data_generator.script.ir_builder import IRBuilder
+from gsm_data_generator.ir.module import IRModule
+from gsm_data_generator.script.ir_builder import relax as relax_builder
+from gsm_data_generator.relax.expr_functor import PyExprVisitor, visitor
 
 
 def get_conv2d_batchnorm_sample():
@@ -62,21 +62,21 @@ def get_conv2d_batchnorm_sample():
 
     func = builder.get()
 
-    return gsmDataGen.IRModule({"main": func})
+    return gsm_data_generator.IRModule({"main": func})
 
 
 def test_fold_batchnorm_info_conv2d():
     mod = get_conv2d_batchnorm_sample()
     mod_fold = get_conv2d_batchnorm_sample()
 
-    target = gsmDataGen.target.Target("llvm", host="llvm")
-    data_in = gsmDataGen.nd.array(np.random.rand(1, 3, 224, 224).astype(np.float32))
+    target = gsm_data_generator.target.Target("llvm", host="llvm")
+    data_in = gsm_data_generator.nd.array(np.random.rand(1, 3, 224, 224).astype(np.float32))
 
-    weight_data = gsmDataGen.nd.array(np.random.rand(32, 3, 3, 3).astype(np.float32))
-    gamma_data = gsmDataGen.nd.array(np.random.rand(32).astype(np.float32))
-    beta_data = gsmDataGen.nd.array(np.random.rand(32).astype(np.float32))
-    mean_data = gsmDataGen.nd.array(np.random.rand(32).astype(np.float32))
-    variance_data = gsmDataGen.nd.array(np.random.rand(32).astype(np.float32))
+    weight_data = gsm_data_generator.nd.array(np.random.rand(32, 3, 3, 3).astype(np.float32))
+    gamma_data = gsm_data_generator.nd.array(np.random.rand(32).astype(np.float32))
+    beta_data = gsm_data_generator.nd.array(np.random.rand(32).astype(np.float32))
+    mean_data = gsm_data_generator.nd.array(np.random.rand(32).astype(np.float32))
+    variance_data = gsm_data_generator.nd.array(np.random.rand(32).astype(np.float32))
     params_np = {
         "weight": weight_data,
         "gamma": gamma_data,
@@ -85,23 +85,23 @@ def test_fold_batchnorm_info_conv2d():
         "variance": variance_data,
     }
 
-    mod = gsmDataGen.relax.transform.BindParams("main", params_np)(mod)
-    mod_fold = gsmDataGen.relax.transform.BindParams("main", params_np)(mod_fold)
+    mod = gsm_data_generator.relax.transform.BindParams("main", params_np)(mod)
+    mod_fold = gsm_data_generator.relax.transform.BindParams("main", params_np)(mod_fold)
 
     # Normal build
-    mod = gsmDataGen.relax.transform.DecomposeOpsForInference()(mod)
-    ex = gsmDataGen.compile(mod, target)
-    vm = relax.VirtualMachine(ex, gsmDataGen.cpu())
+    mod = gsm_data_generator.relax.transform.DecomposeOpsForInference()(mod)
+    ex = gsm_data_generator.compile(mod, target)
+    vm = relax.VirtualMachine(ex, gsm_data_generator.cpu())
     out = vm["main"](data_in)
 
     # Fold BN to Conv2D
     mod_fold = relax.transform.FoldBatchnormToConv2D()(mod_fold)
     mod_fold = relax.transform.FoldConstant()(mod_fold)
-    ex_fold = gsmDataGen.compile(mod_fold, target)
-    vm_fold = relax.VirtualMachine(ex_fold, gsmDataGen.cpu())
+    ex_fold = gsm_data_generator.compile(mod_fold, target)
+    vm_fold = relax.VirtualMachine(ex_fold, gsm_data_generator.cpu())
     out_fold = vm_fold["main"](data_in)
 
-    gsmDataGen.testing.assert_allclose(out.numpy(), out_fold.numpy(), rtol=1e-5, atol=1e-5)
+    gsm_data_generator.testing.assert_allclose(out.numpy(), out_fold.numpy(), rtol=1e-5, atol=1e-5)
 
 
 @visitor
@@ -121,11 +121,11 @@ class VerifyFolding(PyExprVisitor):  # pylint: disable=abstract-method
 def test_fold_batchnorm_info_conv2d_transform():
     mod = get_conv2d_batchnorm_sample()
     mod = relax.transform.FoldBatchnormToConv2D()(mod)
-    weight_data = gsmDataGen.nd.array(np.random.rand(32, 3, 3, 3).astype(np.float32))
-    gamma_data = gsmDataGen.nd.array(np.random.rand(32).astype(np.float32))
-    beta_data = gsmDataGen.nd.array(np.random.rand(32).astype(np.float32))
-    mean_data = gsmDataGen.nd.array(np.random.rand(32).astype(np.float32))
-    variance_data = gsmDataGen.nd.array(np.random.rand(32).astype(np.float32))
+    weight_data = gsm_data_generator.nd.array(np.random.rand(32, 3, 3, 3).astype(np.float32))
+    gamma_data = gsm_data_generator.nd.array(np.random.rand(32).astype(np.float32))
+    beta_data = gsm_data_generator.nd.array(np.random.rand(32).astype(np.float32))
+    mean_data = gsm_data_generator.nd.array(np.random.rand(32).astype(np.float32))
+    variance_data = gsm_data_generator.nd.array(np.random.rand(32).astype(np.float32))
     params_np = {
         "weight": weight_data,
         "gamma": gamma_data,
@@ -133,7 +133,7 @@ def test_fold_batchnorm_info_conv2d_transform():
         "mean": mean_data,
         "variance": variance_data,
     }
-    mod = gsmDataGen.relax.transform.BindParams("main", params_np)(mod)
+    mod = gsm_data_generator.relax.transform.BindParams("main", params_np)(mod)
     mod = relax.transform.FoldBatchnormToConv2D()(mod)
     mod = relax.transform.FoldConstant()(mod)
 
@@ -141,4 +141,4 @@ def test_fold_batchnorm_info_conv2d_transform():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

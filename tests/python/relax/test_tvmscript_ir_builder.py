@@ -14,11 +14,11 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import relax, tir, topi
-from gsmDataGen.script.ir_builder import relax as R
-from gsmDataGen.script.ir_builder.base import IRBuilder
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import relax, tir, topi
+from gsm_data_generator.script.ir_builder import relax as R
+from gsm_data_generator.script.ir_builder.base import IRBuilder
 
 
 def test_function_simple():
@@ -65,7 +65,7 @@ def test_function_simple():
         bb.emit_func_output(out)
     mod = bb.get()
 
-    gsmDataGen.ir.assert_structural_equal(func, mod["foo"])
+    gsm_data_generator.ir.assert_structural_equal(func, mod["foo"])
     # check names
     assert func.params[0].name_hint == "x"
     assert func.body.body.name_hint == "out"
@@ -117,7 +117,7 @@ def test_emits():
         bb.emit_func_output(relax.ShapeExpr([m, n * 2]))
     mod = bb.get()
 
-    gsmDataGen.ir.assert_structural_equal(func, mod["foo"])
+    gsm_data_generator.ir.assert_structural_equal(func, mod["foo"])
 
 
 def test_dataflow_block():
@@ -163,12 +163,12 @@ def test_dataflow_block():
             gv = bb.emit_output(lv0)
         bb.emit_func_output(gv)
 
-    gsmDataGen.ir.assert_structural_equal(func, bb.get()["foo"])
+    gsm_data_generator.ir.assert_structural_equal(func, bb.get()["foo"])
 
 
 def test_regression_py_print():
     # Test that the py_print directs to python builtin print
-    from gsmDataGen.script.ir_builder.relax.ir import py_print  # pylint: disable=import-outside-toplevel
+    from gsm_data_generator.script.ir_builder.relax.ir import py_print  # pylint: disable=import-outside-toplevel
 
     assert py_print == print
 
@@ -176,7 +176,7 @@ def test_regression_py_print():
 def test_function_subroutine_before_main():
     """The block builder can generate subroutines, and calls into subroutines"""
 
-    from gsmDataGen.script import ir as I, relax as R
+    from gsm_data_generator.script import ir as I, relax as R
 
     # create with TVMScript
     @I.ir_module
@@ -211,13 +211,13 @@ def test_function_subroutine_before_main():
         bb.emit_func_output(out)
     actual = bb.get()
 
-    gsmDataGen.ir.assert_structural_equal(expected, actual)
+    gsm_data_generator.ir.assert_structural_equal(expected, actual)
 
 
 def test_function_subroutine_during_main():
     """Subroutines may be generated as needed, pausing the main function collection"""
 
-    from gsmDataGen.script import ir as I, relax as R
+    from gsm_data_generator.script import ir as I, relax as R
 
     # create with TVMScript
     @I.ir_module
@@ -252,8 +252,8 @@ def test_function_subroutine_during_main():
         bb.emit_func_output(out)
     actual = bb.get()
 
-    gsmDataGen.ir.assert_structural_equal(expected, actual)
+    gsm_data_generator.ir.assert_structural_equal(expected, actual)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

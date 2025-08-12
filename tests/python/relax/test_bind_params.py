@@ -16,18 +16,18 @@
 # under the License.
 
 
-import gsmDataGen
-import gsmDataGen.script
-import gsmDataGen.testing
-from gsmDataGen import relax, tir
-from gsmDataGen.script import relax as R
+import gsm_data_generator
+import gsm_data_generator.script
+import gsm_data_generator.testing
+from gsm_data_generator import relax, tir
+from gsm_data_generator.script import relax as R
 
 import numpy as np
 import pytest
 
-param_specification = gsmDataGen.testing.parameter("by_string", "by_var")
-param_shape = gsmDataGen.testing.parameter("static_shape", "dynamic_shape", "ndim", "arbitrary")
-tensor_param_dtype = gsmDataGen.testing.parameter("float32", None)
+param_specification = gsm_data_generator.testing.parameter("by_string", "by_var")
+param_shape = gsm_data_generator.testing.parameter("static_shape", "dynamic_shape", "ndim", "arbitrary")
+tensor_param_dtype = gsm_data_generator.testing.parameter("float32", None)
 
 
 def test_bind_tensor_param(param_specification, param_shape, tensor_param_dtype):
@@ -72,7 +72,7 @@ def test_bind_tensor_param(param_specification, param_shape, tensor_param_dtype)
 
     after = before.bind_params({var: np.arange(16).astype("float32")})
 
-    gsmDataGen.ir.assert_structural_equal(expected, after)
+    gsm_data_generator.ir.assert_structural_equal(expected, after)
 
 
 def test_bind_shape_param(param_shape):
@@ -105,10 +105,10 @@ def test_bind_shape_param(param_shape):
 
     after = before.bind_params({"A": relax.ShapeExpr([16])})
 
-    gsmDataGen.ir.assert_structural_equal(expected, after)
+    gsm_data_generator.ir.assert_structural_equal(expected, after)
 
 
-prim_value_dtype = gsmDataGen.testing.parameter("int64", "int32", "float32")
+prim_value_dtype = gsm_data_generator.testing.parameter("int64", "int32", "float32")
 
 
 def test_bind_prim_value(prim_value_dtype):
@@ -132,7 +132,7 @@ def test_bind_prim_value(prim_value_dtype):
 
     after = before.bind_params({"A": relax.PrimValue(value)})
 
-    gsmDataGen.ir.assert_structural_equal(expected, after)
+    gsm_data_generator.ir.assert_structural_equal(expected, after)
 
 
 def test_error_on_unknown_var():
@@ -143,7 +143,7 @@ def test_error_on_unknown_var():
 
     unknown_var = relax.Var("unknown_var")
 
-    with pytest.raises(gsmDataGen.TVMError):
+    with pytest.raises(gsm_data_generator.TVMError):
         before.bind_params({unknown_var: np.arange(16).astype("float32")})
 
 
@@ -153,9 +153,9 @@ def test_error_on_unknown_var_name():
         R.func_attr({"global_symbol": "main"})
         return A
 
-    with pytest.raises(gsmDataGen.TVMError):
+    with pytest.raises(gsm_data_generator.TVMError):
         before.bind_params({"unknown_var_name": np.arange(16).astype("float32")})
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

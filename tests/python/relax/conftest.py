@@ -16,8 +16,8 @@
 
 import pytest
 
-import gsmDataGen
-from gsmDataGen.relax.ir.instrument import WellFormedInstrument
+import gsm_data_generator
+from gsm_data_generator.relax.ir.instrument import WellFormedInstrument
 
 
 @pytest.fixture
@@ -64,7 +64,7 @@ def apply_instrument_well_formed(unit_test_marks):
     validate_before_transform = "skip_well_formed_check_before_transform" not in unit_test_marks
     validate_after_transform = "skip_well_formed_check_after_transform" not in unit_test_marks
 
-    current = gsmDataGen.transform.PassContext.current()
+    current = gsm_data_generator.transform.PassContext.current()
     instruments = list(current.instruments)
 
     if validate_before_transform or validate_after_transform:
@@ -72,7 +72,7 @@ def apply_instrument_well_formed(unit_test_marks):
             WellFormedInstrument(validate_before_transform=validate_before_transform)
         )
 
-    override = gsmDataGen.transform.PassContext(
+    override = gsm_data_generator.transform.PassContext(
         # With the new WellFormedInstrument appended
         instruments=instruments,
         # Forward all other parameters

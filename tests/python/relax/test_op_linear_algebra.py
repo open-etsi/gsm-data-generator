@@ -15,12 +15,12 @@
 # specific language governing permissions and limitations
 # under the License.
 import pytest
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import relax, tir
-from gsmDataGen import TVMError
-from gsmDataGen.ir import Op, VDevice
-from gsmDataGen.script import relax as R
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import relax, tir
+from gsm_data_generator import TVMError
+from gsm_data_generator.ir import Op, VDevice
+from gsm_data_generator.script import relax as R
 
 
 def test_op_correctness():
@@ -31,7 +31,7 @@ def test_op_correctness():
 
 def _check_inference(bb: relax.BlockBuilder, call: relax.Call, expected_sinfo: relax.StructInfo):
     ret = bb.normalize(call)
-    gsmDataGen.ir.assert_structural_equal(ret.struct_info, expected_sinfo)
+    gsm_data_generator.ir.assert_structural_equal(ret.struct_info, expected_sinfo)
 
 
 def test_matmul_infer_struct_info():
@@ -338,4 +338,4 @@ def test_einsum_infer_struct_info_wrong_inputs():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

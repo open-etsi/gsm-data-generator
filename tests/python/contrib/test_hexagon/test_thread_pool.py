@@ -19,17 +19,17 @@
 
 import numpy as np
 
-import gsmDataGen
-import gsmDataGen.contrib.hexagon
-import gsmDataGen.script
-import gsmDataGen.testing
-from gsmDataGen.contrib.hexagon.session import Session
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.contrib.hexagon
+import gsm_data_generator.script
+import gsm_data_generator.testing
+from gsm_data_generator.contrib.hexagon.session import Session
+from gsm_data_generator.script import tir as T
 
 from .infrastructure import get_hexagon_target
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class ElemwiseSumIRModule:
     """IRModule definition for elementwise sum"""
 
@@ -60,9 +60,9 @@ class ElemwiseSumIRModule:
 
 
 def generate_add_test_data(hexagon_session: Session, n=128 * 1024):
-    a = gsmDataGen.nd.array(np.random.uniform(size=n).astype("float32"), hexagon_session.device)
-    b = gsmDataGen.nd.array(np.random.uniform(size=n).astype("float32"), hexagon_session.device)
-    c = gsmDataGen.nd.array(np.zeros(n, dtype="float32"), hexagon_session.device)
+    a = gsm_data_generator.nd.array(np.random.uniform(size=n).astype("float32"), hexagon_session.device)
+    b = gsm_data_generator.nd.array(np.random.uniform(size=n).astype("float32"), hexagon_session.device)
+    c = gsm_data_generator.nd.array(np.zeros(n, dtype="float32"), hexagon_session.device)
     return (a, b, c, n)
 
 
@@ -72,10 +72,10 @@ def benchmark_func(mod, name, args, hexagon_session):
     return evaluator(a, b, c, n).mean
 
 
-@gsmDataGen.testing.requires_hexagon
+@gsm_data_generator.testing.requires_hexagon
 def test_speedup(hexagon_session: Session, capsys):
     """Test speedup"""
-    func = gsmDataGen.compile(
+    func = gsm_data_generator.compile(
         ElemwiseSumIRModule,
         target=get_hexagon_target("v68"),
     )
@@ -88,10 +88,10 @@ def test_speedup(hexagon_session: Session, capsys):
         print("... speedup of {:.2f}".format(serial_mean / parallel_mean), end=" ")
 
 
-@gsmDataGen.testing.requires_hexagon
+@gsm_data_generator.testing.requires_hexagon
 def test_elemwise_sum_parallel(hexagon_session: Session):
     """Test parallel elementwise sum"""
-    func = gsmDataGen.compile(
+    func = gsm_data_generator.compile(
         ElemwiseSumIRModule,
         target=get_hexagon_target("v68"),
     )
@@ -99,8 +99,8 @@ def test_elemwise_sum_parallel(hexagon_session: Session):
 
     (a, b, c, n) = generate_add_test_data(hexagon_session)
     mod["elemwise_sum_parallel"](a, b, c, n)
-    gsmDataGen.testing.assert_allclose(c.numpy(), a.numpy() + b.numpy())
+    gsm_data_generator.testing.assert_allclose(c.numpy(), a.numpy() + b.numpy())
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

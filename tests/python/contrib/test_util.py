@@ -19,7 +19,7 @@
 import datetime
 import os
 import shutil
-from gsmDataGen.contrib import utils
+from gsm_data_generator.contrib import utils
 
 
 def validate_debug_dir_path(temp_dir, expected_basename):

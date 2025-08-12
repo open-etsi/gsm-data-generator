@@ -19,13 +19,13 @@ import re
 
 import pytest
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen.tir import BufferRegion, StringImm
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator.tir import BufferRegion, StringImm
 
-from gsmDataGen.script import tir as T
+from gsm_data_generator.script import tir as T
 
-identify_memcpy = gsmDataGen.tir.analysis._ffi_api._identify_memcpy
+identify_memcpy = gsm_data_generator.tir.analysis._ffi_api._identify_memcpy
 
 
 class BaseTest:
@@ -33,7 +33,7 @@ class BaseTest:
 
     def __init_subclass__(cls):
         cls.check_well_formed = True  # CompareBeforeAfter has a member var
-        cls.func = gsmDataGen.testing.CompareBeforeAfter._normalize_before(cls.func)
+        cls.func = gsm_data_generator.testing.CompareBeforeAfter._normalize_before(cls.func)
         cls.expected = pytest.fixture(cls.expected)
 
     def test_identify_memcpy(self, func, expected):
@@ -50,7 +50,7 @@ class BaseTest:
                 assert isinstance(result, StringImm)
                 assert re.search(expected, result.value)
             else:
-                gsmDataGen.ir.assert_structural_equal(result, expected)
+                gsm_data_generator.ir.assert_structural_equal(result, expected)
 
 
 class Test1D(BaseTest):
@@ -322,4 +322,4 @@ class TestCacheWrite(BaseTest):
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

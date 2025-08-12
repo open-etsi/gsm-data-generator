@@ -16,12 +16,12 @@
 # under the License.
 # pylint: disable=missing-docstring
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import IRModule, relax, tir
-from gsmDataGen.script import ir as I
-from gsmDataGen.script import relax as R
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import IRModule, relax, tir
+from gsm_data_generator.script import ir as I
+from gsm_data_generator.script import relax as R
+from gsm_data_generator.script import tir as T
 
 
 def _assert_print(obj, expected):
@@ -880,4 +880,4 @@ def func(A: R.Tensor((10, 20), dtype="float32"), B: R.Tensor(dtype="float32", nd
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

@@ -15,26 +15,26 @@
 # specific language governing permissions and limitations
 # under the License.
 
-import gsmDataGen
-import gsmDataGen.testing
+import gsm_data_generator
+import gsm_data_generator.testing
 
-from gsmDataGen import te
-from gsmDataGen.contrib import utils
-from gsmDataGen.script import tir as T, ir as I
+from gsm_data_generator import te
+from gsm_data_generator.contrib import utils
+from gsm_data_generator.script import tir as T, ir as I
 
 import numpy as np
 
 
 def test_add():
     nn = 1024
-    n = gsmDataGen.runtime.convert(nn)
+    n = gsm_data_generator.runtime.convert(nn)
     A = te.placeholder((n,), name="A")
     B = te.placeholder((n,), name="B")
     C = te.compute(A.shape, lambda *i: A(*i) + B(*i), name="C")
 
     def check_c():
-        mhost = gsmDataGen.compile(
-            gsmDataGen.IRModule.from_expr(
+        mhost = gsm_data_generator.compile(
+            gsm_data_generator.IRModule.from_expr(
                 te.create_prim_func([A, B, C]).with_attr("global_symbol", "test_fadd")
             ),
             target="c",
@@ -42,31 +42,31 @@ def test_add():
         temp = utils.tempdir()
         path_dso = temp.relpath("temp.so")
         mhost.export_library(path_dso)
-        m = gsmDataGen.runtime.load_module(path_dso)
+        m = gsm_data_generator.runtime.load_module(path_dso)
         fadd = m["test_fadd"]
-        dev = gsmDataGen.cpu(0)
+        dev = gsm_data_generator.cpu(0)
         # launch the kernel.
         n = nn
-        a = gsmDataGen.nd.array(np.random.uniform(size=n).astype(A.dtype), dev)
-        b = gsmDataGen.nd.array(np.random.uniform(size=n).astype(B.dtype), dev)
-        c = gsmDataGen.nd.array(np.zeros(n, dtype=C.dtype), dev)
+        a = gsm_data_generator.nd.array(np.random.uniform(size=n).astype(A.dtype), dev)
+        b = gsm_data_generator.nd.array(np.random.uniform(size=n).astype(B.dtype), dev)
+        c = gsm_data_generator.nd.array(np.zeros(n, dtype=C.dtype), dev)
         fadd(a, b, c)
-        gsmDataGen.testing.assert_allclose(c.numpy(), a.numpy() + b.numpy())
+        gsm_data_generator.testing.assert_allclose(c.numpy(), a.numpy() + b.numpy())
 
     check_c()
 
 
 def test_reinterpret():
     nn = 1024
-    n = gsmDataGen.runtime.convert(nn)
+    n = gsm_data_generator.runtime.convert(nn)
     A = te.placeholder((n,), name="A", dtype="int32")
     B = te.compute(
-        A.shape, lambda *i: gsmDataGen.tir.call_intrin("float32", "tir.reinterpret", 2 + A(*i)), name="B"
+        A.shape, lambda *i: gsm_data_generator.tir.call_intrin("float32", "tir.reinterpret", 2 + A(*i)), name="B"
     )
 
     def check_c():
-        mhost = gsmDataGen.compile(
-            gsmDataGen.IRModule.from_expr(
+        mhost = gsm_data_generator.compile(
+            gsm_data_generator.IRModule.from_expr(
                 te.create_prim_func([A, B]).with_attr("global_symbol", "test_reinterpret")
             ),
             target="c",
@@ -74,27 +74,27 @@ def test_reinterpret():
         temp = utils.tempdir()
         path_dso = temp.relpath("temp.so")
         mhost.export_library(path_dso)
-        m = gsmDataGen.runtime.load_module(path_dso)
+        m = gsm_data_generator.runtime.load_module(path_dso)
         fadd = m["test_reinterpret"]
-        dev = gsmDataGen.cpu(0)
+        dev = gsm_data_generator.cpu(0)
         n = nn
-        a = gsmDataGen.nd.array(np.random.randint(-(2**30), 2**30, size=n).astype(A.dtype), dev)
-        b = gsmDataGen.nd.array(np.zeros(n, dtype=B.dtype), dev)
+        a = gsm_data_generator.nd.array(np.random.randint(-(2**30), 2**30, size=n).astype(A.dtype), dev)
+        b = gsm_data_generator.nd.array(np.zeros(n, dtype=B.dtype), dev)
         fadd(a, b)
-        gsmDataGen.testing.assert_allclose(b.numpy(), (2 + a.numpy()).view("float32"))
+        gsm_data_generator.testing.assert_allclose(b.numpy(), (2 + a.numpy()).view("float32"))
 
     check_c()
 
 
 def test_ceil():
     nn = 1024
-    n = gsmDataGen.runtime.convert(nn)
+    n = gsm_data_generator.runtime.convert(nn)
     A = te.placeholder((n,), name="A", dtype="float32")
-    B = te.compute(A.shape, lambda *i: gsmDataGen.tir.call_intrin("float32", "tir.ceil", A(*i)), name="B")
+    B = te.compute(A.shape, lambda *i: gsm_data_generator.tir.call_intrin("float32", "tir.ceil", A(*i)), name="B")
 
     def check_c():
-        mhost = gsmDataGen.compile(
-            gsmDataGen.IRModule.from_expr(
+        mhost = gsm_data_generator.compile(
+            gsm_data_generator.IRModule.from_expr(
                 te.create_prim_func([A, B]).with_attr("global_symbol", "test_ceil")
             ),
             target="c",
@@ -102,27 +102,27 @@ def test_ceil():
         temp = utils.tempdir()
         path_dso = temp.relpath("temp.so")
         mhost.export_library(path_dso)
-        m = gsmDataGen.runtime.load_module(path_dso)
+        m = gsm_data_generator.runtime.load_module(path_dso)
         fceil = m["test_ceil"]
-        dev = gsmDataGen.cpu(0)
+        dev = gsm_data_generator.cpu(0)
         n = nn
-        a = gsmDataGen.nd.array(np.random.rand(n).astype(A.dtype), dev)
-        b = gsmDataGen.nd.array(np.zeros(n, dtype=B.dtype), dev)
+        a = gsm_data_generator.nd.array(np.random.rand(n).astype(A.dtype), dev)
+        b = gsm_data_generator.nd.array(np.zeros(n, dtype=B.dtype), dev)
         fceil(a, b)
-        gsmDataGen.testing.assert_allclose(b.numpy(), (np.ceil(a.numpy()).view("float32")))
+        gsm_data_generator.testing.assert_allclose(b.numpy(), (np.ceil(a.numpy()).view("float32")))
 
     check_c()
 
 
 def test_floor():
     nn = 1024
-    n = gsmDataGen.runtime.convert(nn)
+    n = gsm_data_generator.runtime.convert(nn)
     A = te.placeholder((n,), name="A", dtype="float32")
-    B = te.compute(A.shape, lambda *i: gsmDataGen.tir.call_intrin("float32", "tir.floor", A(*i)), name="B")
+    B = te.compute(A.shape, lambda *i: gsm_data_generator.tir.call_intrin("float32", "tir.floor", A(*i)), name="B")
 
     def check_c():
-        mhost = gsmDataGen.compile(
-            gsmDataGen.IRModule.from_expr(
+        mhost = gsm_data_generator.compile(
+            gsm_data_generator.IRModule.from_expr(
                 te.create_prim_func([A, B]).with_attr("global_symbol", "test_floor")
             ),
             target="c",
@@ -130,27 +130,27 @@ def test_floor():
         temp = utils.tempdir()
         path_dso = temp.relpath("temp.so")
         mhost.export_library(path_dso)
-        m = gsmDataGen.runtime.load_module(path_dso)
+        m = gsm_data_generator.runtime.load_module(path_dso)
         ffloor = m["test_floor"]
-        dev = gsmDataGen.cpu(0)
+        dev = gsm_data_generator.cpu(0)
         n = nn
-        a = gsmDataGen.nd.array(np.random.rand(n).astype(A.dtype), dev)
-        b = gsmDataGen.nd.array(np.zeros(n, dtype=B.dtype), dev)
+        a = gsm_data_generator.nd.array(np.random.rand(n).astype(A.dtype), dev)
+        b = gsm_data_generator.nd.array(np.zeros(n, dtype=B.dtype), dev)
         ffloor(a, b)
-        gsmDataGen.testing.assert_allclose(b.numpy(), (np.floor(a.numpy()).view("float32")))
+        gsm_data_generator.testing.assert_allclose(b.numpy(), (np.floor(a.numpy()).view("float32")))
 
     check_c()
 
 
 def test_round():
     nn = 1024
-    n = gsmDataGen.runtime.convert(nn)
+    n = gsm_data_generator.runtime.convert(nn)
     A = te.placeholder((n,), name="A", dtype="float32")
-    B = te.compute(A.shape, lambda *i: gsmDataGen.tir.call_intrin("float32", "tir.round", A(*i)), name="B")
+    B = te.compute(A.shape, lambda *i: gsm_data_generator.tir.call_intrin("float32", "tir.round", A(*i)), name="B")
 
     def check_c():
-        mhost = gsmDataGen.compile(
-            gsmDataGen.IRModule.from_expr(
+        mhost = gsm_data_generator.compile(
+            gsm_data_generator.IRModule.from_expr(
                 te.create_prim_func([A, B]).with_attr("global_symbol", "test_round")
             ),
             target="c",
@@ -158,14 +158,14 @@ def test_round():
         temp = utils.tempdir()
         path_dso = temp.relpath("temp.so")
         mhost.export_library(path_dso)
-        m = gsmDataGen.runtime.load_module(path_dso)
+        m = gsm_data_generator.runtime.load_module(path_dso)
         fround = m["test_round"]
-        dev = gsmDataGen.cpu(0)
+        dev = gsm_data_generator.cpu(0)
         n = nn
-        a = gsmDataGen.nd.array(np.random.rand(n).astype(A.dtype), dev)
-        b = gsmDataGen.nd.array(np.zeros(n, dtype=B.dtype), dev)
+        a = gsm_data_generator.nd.array(np.random.rand(n).astype(A.dtype), dev)
+        b = gsm_data_generator.nd.array(np.zeros(n, dtype=B.dtype), dev)
         fround(a, b)
-        gsmDataGen.testing.assert_allclose(b.numpy(), (np.round(a.numpy()).view("float32")))
+        gsm_data_generator.testing.assert_allclose(b.numpy(), (np.round(a.numpy()).view("float32")))
 
     check_c()
 
@@ -182,7 +182,7 @@ def test_subroutine_call():
             A = T.decl_buffer(1, dtype="float32", data=A_data)
             A[0] = 42.0
 
-    built = gsmDataGen.tir.build(mod, target="c")
+    built = gsm_data_generator.tir.build(mod, target="c")
 
     func_names = list(built["get_func_names"]())
     assert (
@@ -205,4 +205,4 @@ def test_subroutine_call():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

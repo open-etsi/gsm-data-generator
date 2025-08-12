@@ -17,13 +17,13 @@
 # pylint: disable=missing-docstring
 import pytest
 
-import gsmDataGen.testing
-from gsmDataGen import dlight as dl
-from gsmDataGen.script import tir as T
-from gsmDataGen.target import Target
+import gsm_data_generator.testing
+from gsm_data_generator import dlight as dl
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.target import Target
 
 
-class BaseBeforeAfter(gsmDataGen.testing.CompareBeforeAfter):
+class BaseBeforeAfter(gsm_data_generator.testing.CompareBeforeAfter):
     @pytest.fixture
     def transform(self):
         def transform(mod):
@@ -156,10 +156,10 @@ def test_decode_gemv_256_threads():
                                 var_NT_matmul_intermediate[0, 0, v0] = var_NT_matmul_intermediate[0, 0, v0] + lv1654[0, 0, v1] * ((T.Cast("float16", T.bitwise_and(T.shift_right(lv571[v0, v1 // 8], T.Cast("uint32", v1 % 8) * T.uint32(4)), T.uint32(15))) - T.float16(7.0)) * lv572[v0, v1 // 32])
         # fmt: on
 
-    mod = gsmDataGen.IRModule({"main": before})
+    mod = gsm_data_generator.IRModule({"main": before})
     with Target("llvm"):
         mod = dl.ApplyDefaultSchedule(dl.cpu.GEMV())(mod)
-    gsmDataGen.ir.assert_structural_equal(mod["main"], expected)
+    gsm_data_generator.ir.assert_structural_equal(mod["main"], expected)
 
 
 def test_decode_gemv1():
@@ -204,10 +204,10 @@ def test_decode_gemv1():
                                 var_NT_matmul_intermediate[0, 0, v0] = var_NT_matmul_intermediate[0, 0, v0] + lv1654[0, 0, v1] * ((T.Cast("float16", T.bitwise_and(T.shift_right(lv571[v0, v1 // 8], T.Cast("uint32", v1 % 8) * T.uint32(4)), T.uint32(15))) - T.float16(7.0)) * lv572[v0, v1 // 32])
     # fmt: on
 
-    mod = gsmDataGen.IRModule({"main": before})
+    mod = gsm_data_generator.IRModule({"main": before})
     with Target("llvm"):
         mod = dl.ApplyDefaultSchedule(dl.cpu.GEMV())(mod)
-    gsmDataGen.ir.assert_structural_equal(mod["main"], expected)
+    gsm_data_generator.ir.assert_structural_equal(mod["main"], expected)
 
 
 def test_decode_gemv2():
@@ -266,10 +266,10 @@ def test_decode_gemv2():
                 p_output0_intermediate[0, 0, v0] = T.Cast("float32", var_NT_matmul_intermediate[0, 0, v0])
     # fmt: on
 
-    mod = gsmDataGen.IRModule({"main": before})
+    mod = gsm_data_generator.IRModule({"main": before})
     with Target("llvm"):
         mod = dl.ApplyDefaultSchedule(dl.cpu.GEMV())(mod)
-    gsmDataGen.ir.assert_structural_equal(mod["main"], expected)
+    gsm_data_generator.ir.assert_structural_equal(mod["main"], expected)
 
 
 def test_decode_gemv3():
@@ -329,10 +329,10 @@ def test_decode_gemv3():
                 p_output0_intermediate[T.int64(0), T.int64(0), v0] = lv570[T.int64(0), T.int64(0), v0] + var_NT_matmul_intermediate[T.int64(0), T.int64(0), v0]
     # fmt: on
 
-    mod = gsmDataGen.IRModule({"main": before})
+    mod = gsm_data_generator.IRModule({"main": before})
     with Target("llvm"):
         mod = dl.ApplyDefaultSchedule(dl.cpu.GEMV())(mod)
-    gsmDataGen.ir.assert_structural_equal(mod["main"], expected)
+    gsm_data_generator.ir.assert_structural_equal(mod["main"], expected)
 
 
 def test_autogptq_decode_gemv():
@@ -367,10 +367,10 @@ def test_autogptq_decode_gemv():
 
     # The GeMV rule does not yet support the inner dim being grouped.
     # So the rule is expected to skip transforming this function.
-    mod = gsmDataGen.IRModule({"main": func})
+    mod = gsm_data_generator.IRModule({"main": func})
     with Target("llvm"):
         mod = dl.ApplyDefaultSchedule(dl.cpu.GEMV())(mod)
-    gsmDataGen.ir.assert_structural_equal(mod["main"], func)
+    gsm_data_generator.ir.assert_structural_equal(mod["main"], func)
 
 
 def test_outer_reduction_adreno():
@@ -429,10 +429,10 @@ def test_outer_reduction_adreno():
                 T.writes(p_output0_intermediate[v_ax0, v_ax1, v_ax2])
                 p_output0_intermediate[v_ax0, v_ax1, v_ax2] = lv570[v_ax0, v_ax1, v_ax2] + var_matmul_intermediate[v_ax0, v_ax1, v_ax2]
     # fmt: on
-    mod = gsmDataGen.IRModule({"main": before})
+    mod = gsm_data_generator.IRModule({"main": before})
     with Target("llvm"):
         mod = dl.ApplyDefaultSchedule(dl.cpu.GEMV())(mod)
-    gsmDataGen.ir.assert_structural_equal(mod["main"], expected)
+    gsm_data_generator.ir.assert_structural_equal(mod["main"], expected)
 
 
 def test_outer_reduction_adreno_dynamic():
@@ -500,10 +500,10 @@ def test_outer_reduction_adreno_dynamic():
                 p_output0_intermediate[v_i0, v_i1, v_i2] = T.Cast("float32", var_matmul_intermediate[v_i0, v_i1, v_i2])
     # fmt: on
 
-    mod = gsmDataGen.IRModule({"main": before})
+    mod = gsm_data_generator.IRModule({"main": before})
     with Target("llvm"):
         mod = dl.ApplyDefaultSchedule(dl.cpu.GEMV())(mod)
-        gsmDataGen.ir.assert_structural_equal(mod["main"], expected)
+        gsm_data_generator.ir.assert_structural_equal(mod["main"], expected)
 
 
 def test_blockized_gemv():
@@ -552,10 +552,10 @@ def test_blockized_gemv():
                                             o[v_expert_id_o, v0] = T.float16(0.0)
                                         o[v_expert_id_o, v0] = o[v_expert_id_o, v0] + x[0, v1] * w[indptr[v_expert_id_o], v0, v1]
     # fmt: on
-    mod = gsmDataGen.IRModule({"main": before})
+    mod = gsm_data_generator.IRModule({"main": before})
     with Target("llvm"):
         mod = dl.ApplyDefaultSchedule(dl.cpu.GEMV())(mod)
-        gsmDataGen.ir.assert_structural_equal(mod["main"], expected)
+        gsm_data_generator.ir.assert_structural_equal(mod["main"], expected)
 
 
 def test_func_to_skip():
@@ -585,11 +585,11 @@ def test_func_to_skip():
             )
 
     # This function should be skipped.
-    mod = gsmDataGen.IRModule({"main": before})
+    mod = gsm_data_generator.IRModule({"main": before})
     with Target("llvm"):
         mod = dl.ApplyDefaultSchedule(dl.cpu.GEMV())(mod)
-        gsmDataGen.ir.assert_structural_equal(mod["main"], before)
+        gsm_data_generator.ir.assert_structural_equal(mod["main"], before)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

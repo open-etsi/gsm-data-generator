@@ -18,18 +18,18 @@
 from typing import Callable
 
 import pytest
-import gsmDataGen
-from gsmDataGen import topi
-import gsmDataGen.testing
-from gsmDataGen.relax.transform import LegalizeOps
-import gsmDataGen.script
-from gsmDataGen.script import ir as I
-from gsmDataGen.script import relax as R
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+from gsm_data_generator import topi
+import gsm_data_generator.testing
+from gsm_data_generator.relax.transform import LegalizeOps
+import gsm_data_generator.script
+from gsm_data_generator.script import ir as I
+from gsm_data_generator.script import relax as R
+from gsm_data_generator.script import tir as T
 
 
 def _test_static_shape(name: str, relax_op: Callable, te_func: Callable, dtype: str):
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Before:
         @R.function
         def main(x: R.Tensor((2, 3), dtype)):
@@ -37,7 +37,7 @@ def _test_static_shape(name: str, relax_op: Callable, te_func: Callable, dtype: 
             gv = relax_op(x)
             return gv
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(x: R.Tensor((2, 3), dtype)):
@@ -46,11 +46,11 @@ def _test_static_shape(name: str, relax_op: Callable, te_func: Callable, dtype: 
             return gv
 
     mod = LegalizeOps()(Before)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def _test_symbolic_shape(name: str, relax_op: Callable, te_func: Callable, dtype: str):
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Before:
         @R.function
         def main(x: R.Tensor(("m", "n"), dtype)):
@@ -58,7 +58,7 @@ def _test_symbolic_shape(name: str, relax_op: Callable, te_func: Callable, dtype
             gv = relax_op(x)
             return gv
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(x: R.Tensor(("m", "n"), dtype)):
@@ -67,7 +67,7 @@ def _test_symbolic_shape(name: str, relax_op: Callable, te_func: Callable, dtype
             return gv
 
     mod = LegalizeOps()(Before)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 @pytest.mark.parametrize(
@@ -110,4 +110,4 @@ def test_unary_ops(name: str, relax_op: Callable, te_func: Callable, dtype: str)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

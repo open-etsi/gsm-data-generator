@@ -17,12 +17,12 @@
 import numpy as np
 import pytest
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import relax
-from gsmDataGen.base import TVMError
-from gsmDataGen.ir.base import assert_structural_equal
-from gsmDataGen.script.parser import relax as R, tir as T, ir as I
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import relax
+from gsm_data_generator.base import TVMError
+from gsm_data_generator.ir.base import assert_structural_equal
+from gsm_data_generator.script.parser import relax as R, tir as T, ir as I
 
 
 def test_simple():
@@ -1323,4 +1323,4 @@ def test_mlp_script():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

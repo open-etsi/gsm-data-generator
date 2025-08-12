@@ -19,15 +19,15 @@
 
 import sys
 
-import gsmDataGen
+import gsm_data_generator
 
 
-@gsmDataGen.contrib.pickle_memoize.memoize("test_memoize_save_data", save_at_exit=True)
+@gsm_data_generator.contrib.pickle_memoize.memoize("test_memoize_save_data", save_at_exit=True)
 def get_data_saved():
     return 42
 
 
-@gsmDataGen.contrib.pickle_memoize.memoize("test_memoize_transient_data", save_at_exit=False)
+@gsm_data_generator.contrib.pickle_memoize.memoize("test_memoize_transient_data", save_at_exit=False)
 def get_data_transient():
     return 42
 

@@ -19,11 +19,11 @@ import gc
 import sys
 
 import pytest
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import tir
-from gsmDataGen.ir import IRModule
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import tir
+from gsm_data_generator.ir import IRModule
+from gsm_data_generator.script import tir as T
 
 # pylint: disable=no-member,invalid-name,unused-variable
 
@@ -90,9 +90,9 @@ def block_in_opaque_block(a: T.handle, b: T.handle) -> None:
 
 
 def replace_ir_builder(deep_copy=False, realize=False):
-    new_func = gsmDataGen.script.from_source(elementwise.script())
+    new_func = gsm_data_generator.script.from_source(elementwise.script())
     s = tir.ScheduleState(new_func, debug_mask="all")
-    target = gsmDataGen.tir.Block(
+    target = gsm_data_generator.tir.Block(
         iter_vars=[],
         reads=[],
         writes=[],
@@ -104,7 +104,7 @@ def replace_ir_builder(deep_copy=False, realize=False):
         annotations=None,
     )
     if realize:
-        target = gsmDataGen.tir.BlockRealize(
+        target = gsm_data_generator.tir.BlockRealize(
             iter_values=[],
             predicate=True,
             block=target,
@@ -116,11 +116,11 @@ def replace_ir_builder(deep_copy=False, realize=False):
 
 
 def replace_ir_builder_module(deep_copy=False, realize=False):
-    new_func = gsmDataGen.script.from_source(elementwise.script())
-    other_func = gsmDataGen.script.from_source(elementwise.script())
+    new_func = gsm_data_generator.script.from_source(elementwise.script())
+    other_func = gsm_data_generator.script.from_source(elementwise.script())
     mod = IRModule(functions={"main": new_func, "other": other_func})
     s = tir.ScheduleState(mod, debug_mask="all")
-    target = gsmDataGen.tir.Block(
+    target = gsm_data_generator.tir.Block(
         iter_vars=[],
         reads=[],
         writes=[],
@@ -132,7 +132,7 @@ def replace_ir_builder_module(deep_copy=False, realize=False):
         annotations=None,
     )
     if realize:
-        target = gsmDataGen.tir.BlockRealize(
+        target = gsm_data_generator.tir.BlockRealize(
             iter_values=[],
             predicate=True,
             block=target,
@@ -144,7 +144,7 @@ def replace_ir_builder_module(deep_copy=False, realize=False):
 
 
 def replace_ir_builder_with_opaque():
-    func = gsmDataGen.script.from_source(block_in_opaque_block.script())
+    func = gsm_data_generator.script.from_source(block_in_opaque_block.script())
     s = tir.ScheduleState(func, debug_mask="all")
     gc.collect()
     return s
@@ -156,7 +156,7 @@ def test_replace_direct_write0():
     sref = s.get_sref(s.mod["main"].body.block.body[1])
     s.replace(sref, target)
     # Check the replaced part is equal to the target
-    gsmDataGen.ir.assert_structural_equal(s.mod["main"].body.block.body[1], target)
+    gsm_data_generator.ir.assert_structural_equal(s.mod["main"].body.block.body[1], target)
     # There is no other reference so the AST node can be written directly
     assert old_hash == s.mod["main"].__hash__()
     # The target reuse the stmt of the sref, so the sref won't be None
@@ -171,9 +171,9 @@ def test_replace_direct_write1():
     s.replace(sref, target)
     # There is no other reference so the AST node can be written directly
     assert old_hash == s.mod["main"].body.block.body.__hash__()
-    assert not gsmDataGen.ir.structural_equal(hold_ref.body, target)
+    assert not gsm_data_generator.ir.structural_equal(hold_ref.body, target)
     # Check the replaced part is equal to the target
-    gsmDataGen.ir.assert_structural_equal(s.mod["main"].body.block.body[1], target)
+    gsm_data_generator.ir.assert_structural_equal(s.mod["main"].body.block.body[1], target)
     # The target reuse `sref.stmt`, so the sref won't be None
     assert sref.stmt is not None
 
@@ -187,10 +187,10 @@ def test_replace_copy():
     s.replace(sref, target)
     # We need to copy the whole func to remain the old_func unchanged
     assert old_hash != s.mod["main"].__hash__()
-    assert not gsmDataGen.ir.structural_equal(old_func.body, s.mod["main"].body)
+    assert not gsm_data_generator.ir.structural_equal(old_func.body, s.mod["main"].body)
     assert old_hash == old_func.__hash__()
     # Check the replaced part is equal to the target
-    gsmDataGen.ir.assert_structural_equal(s.mod["main"].body.block.body[0], target)
+    gsm_data_generator.ir.assert_structural_equal(s.mod["main"].body.block.body[0], target)
     # The replaced AST node will be deleted, so the ref will be None
     assert sref.stmt is None
 
@@ -206,12 +206,12 @@ def test_replace_partial_copy0():
     # The stmt is held by `hold_sref`, so it will be coped in copy-on-write
     # because the ref count is not unique
     assert ref_old_hash != s.mod["main"].body.block.body[0].__hash__()
-    assert not gsmDataGen.ir.structural_equal(hold_ref.body, target)
+    assert not gsm_data_generator.ir.structural_equal(hold_ref.body, target)
     # The function and the other part stmt can be directly written
     assert func_old_hash == s.mod["main"].__hash__()
     assert other_part_hash == s.mod["main"].body.block.body[1].__hash__()
     # Check the replaced part is equal to the target
-    gsmDataGen.ir.assert_structural_equal(s.mod["main"].body.block.body[0].body, target)
+    gsm_data_generator.ir.assert_structural_equal(s.mod["main"].body.block.body[0].body, target)
     # The replaced AST node will be deleted, so the ref will be None
     assert sref.stmt is None
 
@@ -226,12 +226,12 @@ def test_replace_partial_copy1():
     s.replace(sref, target)
     # The parent stmt will change since there is only one reference
     assert stmt_old_hash == s.mod["main"].body.block.body[0].__hash__()
-    assert not gsmDataGen.ir.structural_equal(hold_ref.body, target)
+    assert not gsm_data_generator.ir.structural_equal(hold_ref.body, target)
     # The function and the other part stmt can be directly written
     assert func_old_hash == s.mod["main"].__hash__()
     assert other_part_hash == s.mod["main"].body.block.body[1].__hash__()
     # Check the replaced part is equal to the target
-    gsmDataGen.ir.assert_structural_equal(s.mod["main"].body.block.body[0].body.body.block, target)
+    gsm_data_generator.ir.assert_structural_equal(s.mod["main"].body.block.body[0].body.body.block, target)
     # The replaced AST node will be deleted, so the ref will be None
     assert sref.stmt is None
 
@@ -243,7 +243,7 @@ def test_replace_root_write():
     s.replace(sref, target)
     # Check no copy and the new body equals to target
     assert old_hash == s.mod["main"].__hash__()
-    gsmDataGen.ir.assert_structural_equal(s.mod["main"].body.block, target)
+    gsm_data_generator.ir.assert_structural_equal(s.mod["main"].body.block, target)
 
 
 def test_replace_root_copy0():
@@ -254,10 +254,10 @@ def test_replace_root_copy0():
     s.replace(sref, target)
     # Check the new body equals to target
     assert old_hash != s.mod["main"].__hash__()
-    gsmDataGen.ir.assert_structural_equal(s.mod["main"].body.block, target)
+    gsm_data_generator.ir.assert_structural_equal(s.mod["main"].body.block, target)
     # Check the original func remains unchanged
     assert old_hash == func_ref.__hash__()
-    assert not gsmDataGen.ir.structural_equal(func_ref.body, target)
+    assert not gsm_data_generator.ir.structural_equal(func_ref.body, target)
 
 
 def test_replace_root_copy1():
@@ -268,10 +268,10 @@ def test_replace_root_copy1():
     s.replace(sref, target)
     # Check the new body equals to target
     assert old_hash != s.mod["main"].body.block.__hash__()
-    gsmDataGen.ir.assert_structural_equal(s.mod["main"].body.block.body[0], target)
+    gsm_data_generator.ir.assert_structural_equal(s.mod["main"].body.block.body[0], target)
     # Check the original func remains unchanged
     assert old_hash == func_ref.__hash__()
-    assert not gsmDataGen.ir.structural_equal(func_ref.body, target)
+    assert not gsm_data_generator.ir.structural_equal(func_ref.body, target)
 
 
 def test_replace_root_copy2():
@@ -282,11 +282,11 @@ def test_replace_root_copy2():
     s.replace(sref, target)
     # Check the new body equals to target
     assert old_hash != s.mod.functions.__hash__()
-    gsmDataGen.ir.assert_structural_equal(s.mod["main"].body.block, target)
+    gsm_data_generator.ir.assert_structural_equal(s.mod["main"].body.block, target)
     # Check the original func remains unchanged
     assert old_hash == func_ref.__hash__()
     for _, v in func_ref.items():
-        assert not gsmDataGen.ir.structural_equal(v.body.block, target)
+        assert not gsm_data_generator.ir.structural_equal(v.body.block, target)
 
 
 def test_replace_root_copy3():
@@ -297,10 +297,10 @@ def test_replace_root_copy3():
     s.replace(sref, target)
     # Check the new body equals to target
     assert old_hash != s.mod.__hash__()
-    gsmDataGen.ir.assert_structural_equal(s.mod["main"].body.block, target)
+    gsm_data_generator.ir.assert_structural_equal(s.mod["main"].body.block, target)
     # Check the original func remains unchanged
     assert old_hash == func_ref.__hash__()
-    assert not gsmDataGen.ir.structural_equal(func_ref["main"].body.block, target)
+    assert not gsm_data_generator.ir.structural_equal(func_ref["main"].body.block, target)
 
 
 def test_replace_block_remap():
@@ -313,7 +313,7 @@ def test_replace_block_remap():
     sref_new = s.get_sref(s.mod["main"].body.block.body[0].body.body.block)
     # Check the original sref has been remapped
     assert sref.__hash__() == sref_new.__hash__()
-    gsmDataGen.ir.assert_structural_equal(sref.stmt, target)
+    gsm_data_generator.ir.assert_structural_equal(sref.stmt, target)
 
 
 def test_replace_block_in_opaque_block():
@@ -332,7 +332,7 @@ def test_replace_block_in_opaque_block():
     )
     s.replace(sref, new_for_loop)
     assert root_hash == s.mod["main"].__hash__()
-    gsmDataGen.ir.assert_structural_equal(sref.stmt, new_for_loop)
+    gsm_data_generator.ir.assert_structural_equal(sref.stmt, new_for_loop)
 
 
 def test_replace_ir_module():
@@ -344,12 +344,12 @@ def test_replace_ir_module():
     s.replace(sref, target)
     # Check the new body equals to target
     assert old_hash != s.mod["main"].__hash__()
-    gsmDataGen.ir.assert_structural_equal(s.mod["main"].body.block, target)
+    gsm_data_generator.ir.assert_structural_equal(s.mod["main"].body.block, target)
     # Check the original func remains unchanged
     assert old_hash == func_ref.__hash__()
-    assert not gsmDataGen.ir.structural_equal(func_ref.body, target)
+    assert not gsm_data_generator.ir.structural_equal(func_ref.body, target)
     assert other_func_hash == s.mod["other"].__hash__()
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

@@ -18,11 +18,11 @@
 import sys
 
 import pytest
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import tir
-from gsmDataGen.script import tir as T
-from gsmDataGen.tir.schedule.testing import (
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import tir
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.tir.schedule.testing import (
     verify_trace_roundtrip,
     assert_structural_equal_ignore_global_symbol,
 )
@@ -218,7 +218,7 @@ def colsum_decompose_with_vectorization(a: T.handle, b: T.handle) -> None:
 
 # pylint: enable=no-member,invalid-name,unused-variable,unexpected-keyword-arg
 
-use_block_name = gsmDataGen.testing.parameter(by_dict={"block_obj": False, "block_name": True})
+use_block_name = gsm_data_generator.testing.parameter(by_dict={"block_obj": False, "block_name": True})
 
 
 def test_reduction_decompose0(use_block_name):
@@ -252,7 +252,7 @@ def test_reduction_decompose3():
     s = tir.Schedule(matmul_decompose_fail3, debug_mask="all")
     C = s.get_block("update")
     i, j, k = s.get_loops(C)
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         s.decompose_reduction(C, k)
 
 
@@ -288,14 +288,14 @@ def test_reduction_decompose_with_different_for_kind():
 
 
 def test_decompose_reduction_ref_hash_check():
-    mod = gsmDataGen.IRModule.from_expr(matmul.with_attr("global_symbol", "main"))
+    mod = gsm_data_generator.IRModule.from_expr(matmul.with_attr("global_symbol", "main"))
     mod_bak = mod
-    hash_before = gsmDataGen.ir.structural_hash(mod_bak)
+    hash_before = gsm_data_generator.ir.structural_hash(mod_bak)
     s = tir.Schedule(mod["main"], debug_mask="all")
     C = s.get_block("update")
     i, j, k = s.get_loops(C)
     s.decompose_reduction(C, k)
-    hash_after = gsmDataGen.ir.structural_hash(mod_bak)
+    hash_after = gsm_data_generator.ir.structural_hash(mod_bak)
     assert hash_before == hash_after
 
 
@@ -353,7 +353,7 @@ def test_decompose_reduction_nested_block():
     verify_trace_roundtrip(sch, mod=nested_block)
 
 
-class TestDecomposeReductionWithThreadBinding(gsmDataGen.testing.CompareBeforeAfter):
+class TestDecomposeReductionWithThreadBinding(gsm_data_generator.testing.CompareBeforeAfter):
     def transform(self):
         def func(mod):
             sch = tir.Schedule(mod)
@@ -387,4 +387,4 @@ class TestDecomposeReductionWithThreadBinding(gsmDataGen.testing.CompareBeforeAf
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

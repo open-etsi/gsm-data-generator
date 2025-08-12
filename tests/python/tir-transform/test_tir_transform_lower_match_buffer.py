@@ -17,22 +17,22 @@
 
 import pytest
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator.script import tir as T
 
 
 def _check(original, transformed):
-    mod = gsmDataGen.IRModule.from_expr(original.with_attr("global_symbol", "main"))
-    mod = gsmDataGen.tir.transform.LowerMatchBuffer()(mod)
-    mod = gsmDataGen.tir.transform.Simplify()(mod)
-    gsmDataGen.ir.assert_structural_equal(mod["main"], transformed.with_attr("global_symbol", "main"))
+    mod = gsm_data_generator.IRModule.from_expr(original.with_attr("global_symbol", "main"))
+    mod = gsm_data_generator.tir.transform.LowerMatchBuffer()(mod)
+    mod = gsm_data_generator.tir.transform.Simplify()(mod)
+    gsm_data_generator.ir.assert_structural_equal(mod["main"], transformed.with_attr("global_symbol", "main"))
 
 
 def _check_fail(original):
-    mod = gsmDataGen.IRModule.from_expr(original)
-    with pytest.raises(gsmDataGen.TVMError):
-        mod = gsmDataGen.tir.transform.LowerMatchBuffer()(mod)
+    mod = gsm_data_generator.IRModule.from_expr(original)
+    with pytest.raises(gsm_data_generator.TVMError):
+        mod = gsm_data_generator.tir.transform.LowerMatchBuffer()(mod)
 
 
 @T.prim_func
@@ -63,7 +63,7 @@ def transformed_buffer_load_store(a: T.handle, c: T.handle) -> None:
                 A[i * 4 + ii, j, k * 2 + kk] += C[i * 4 + ii, k * 2 + kk]
 
 
-@gsmDataGen.ir.register_op_attr("tir.intrin_test", "")
+@gsm_data_generator.ir.register_op_attr("tir.intrin_test", "")
 def intrin_test(data, elem_offset, stride_0, stride_1, shape_0, shape_1):
     return 0
 
@@ -533,4 +533,4 @@ def test_fail_match_func_param():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

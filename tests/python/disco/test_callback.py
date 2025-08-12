@@ -22,13 +22,13 @@ import tempfile
 
 import numpy as np
 
-import gsmDataGen
-import gsmDataGen.testing
+import gsm_data_generator
+import gsm_data_generator.testing
 
-from gsmDataGen.script import relax as R, tir as T
+from gsm_data_generator.script import relax as R, tir as T
 
 
-@gsmDataGen.testing.requires_nccl
+@gsm_data_generator.testing.requires_nccl
 def test_callback():
     """Simulate lazy loading of parameters in a callback
 
@@ -53,22 +53,22 @@ def test_callback():
 
         return (A, B)
 
-    pipeline = gsmDataGen.ir.transform.Sequential(
+    pipeline = gsm_data_generator.ir.transform.Sequential(
         [
-            gsmDataGen.relax.transform.LegalizeOps(),
-            gsmDataGen.dlight.ApplyDefaultSchedule(gsmDataGen.dlight.gpu.Fallback()),
+            gsm_data_generator.relax.transform.LegalizeOps(),
+            gsm_data_generator.dlight.ApplyDefaultSchedule(gsm_data_generator.dlight.gpu.Fallback()),
         ],
         name="pipeline",
     )
 
-    with gsmDataGen.target.Target("cuda"):
-        mod = gsmDataGen.IRModule.from_expr(transform_params)
+    with gsm_data_generator.target.Target("cuda"):
+        mod = gsm_data_generator.IRModule.from_expr(transform_params)
         mod = pipeline(mod)
-        built = gsmDataGen.compile(mod, "cuda")
+        built = gsm_data_generator.compile(mod, "cuda")
 
     num_shards = 2
 
-    session = gsmDataGen.runtime.disco.ProcessSession(num_workers=num_shards)
+    session = gsm_data_generator.runtime.disco.ProcessSession(num_workers=num_shards)
     session.import_python_module("tvm.exec.disco_worker")
     session.init_ccl("nccl", *range(num_shards))
 
@@ -94,8 +94,8 @@ def test_callback():
         # `debug_get_from_remote(0)` returns the NDArray containing
         # the output.
         params_gpu0 = params.debug_get_from_remote(0)
-        assert params_gpu0[0].device == gsmDataGen.cuda(0)
-        assert params_gpu0[1].device == gsmDataGen.cuda(0)
+        assert params_gpu0[0].device == gsm_data_generator.cuda(0)
+        assert params_gpu0[1].device == gsm_data_generator.cuda(0)
         np.testing.assert_array_equal(
             params_gpu0[0].numpy(),
             [
@@ -112,8 +112,8 @@ def test_callback():
         # `debug_get_from_remote(1)` returns a new NDArray within the
         # calling scope's PID.
         params_gpu1 = params.debug_get_from_remote(1)
-        assert params_gpu1[0].device == gsmDataGen.cpu()
-        assert params_gpu1[1].device == gsmDataGen.cpu()
+        assert params_gpu1[0].device == gsm_data_generator.cpu()
+        assert params_gpu1[1].device == gsm_data_generator.cpu()
         np.testing.assert_array_equal(
             params_gpu1[0].numpy(),
             [
@@ -128,4 +128,4 @@ def test_callback():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

@@ -15,9 +15,9 @@
 # specific language governing permissions and limitations
 # under the License.
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen.script import ir as I, relax as R, tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator.script import ir as I, relax as R, tir as T
 
 import numpy as np
 import pytest
@@ -34,7 +34,7 @@ def test_infer_shape_of_1d_static_view():
         B = R.memory.view(A, R.shape([4096]))
         return B
 
-    gsmDataGen.ir.assert_structural_equal(explicit_sinfo, inferred_sinfo)
+    gsm_data_generator.ir.assert_structural_equal(explicit_sinfo, inferred_sinfo)
 
 
 def test_infer_shape_of_2d_static_view():
@@ -48,11 +48,11 @@ def test_infer_shape_of_2d_static_view():
         B = R.memory.view(A, R.shape([64, 64]))
         return B
 
-    gsmDataGen.ir.assert_structural_equal(explicit_sinfo, inferred_sinfo)
+    gsm_data_generator.ir.assert_structural_equal(explicit_sinfo, inferred_sinfo)
 
 
 def test_error_if_shape_argument_is_not_shape():
-    with pytest.raises(gsmDataGen.TVMError):
+    with pytest.raises(gsm_data_generator.TVMError):
 
         @R.function
         def func(A: R.Tensor([16])):
@@ -71,7 +71,7 @@ def test_infer_shape_of_1d_static_view_smaller_than_1d_source():
         B = R.memory.view(A, R.shape([16]))
         return B
 
-    gsmDataGen.ir.assert_structural_equal(explicit_sinfo, inferred_sinfo)
+    gsm_data_generator.ir.assert_structural_equal(explicit_sinfo, inferred_sinfo)
 
 
 def test_infer_shape_of_2d_static_view_smaller_than_1d_source():
@@ -85,7 +85,7 @@ def test_infer_shape_of_2d_static_view_smaller_than_1d_source():
         B = R.memory.view(A, R.shape([4, 4]))
         return B
 
-    gsmDataGen.ir.assert_structural_equal(explicit_sinfo, inferred_sinfo)
+    gsm_data_generator.ir.assert_structural_equal(explicit_sinfo, inferred_sinfo)
 
 
 def test_infer_shape_of_2d_static_view_same_size_as_2d_source():
@@ -99,11 +99,11 @@ def test_infer_shape_of_2d_static_view_same_size_as_2d_source():
         B = R.memory.view(A, R.shape([16, 256]))
         return B
 
-    gsmDataGen.ir.assert_structural_equal(explicit_sinfo, inferred_sinfo)
+    gsm_data_generator.ir.assert_structural_equal(explicit_sinfo, inferred_sinfo)
 
 
 def test_error_if_1d_static_view_larger_than_1d_source():
-    with pytest.raises(gsmDataGen.TVMError):
+    with pytest.raises(gsm_data_generator.TVMError):
 
         @R.function
         def func(A: R.Tensor([16])):
@@ -112,7 +112,7 @@ def test_error_if_1d_static_view_larger_than_1d_source():
 
 
 def test_error_if_static_2d_view_larger_than_source():
-    with pytest.raises(gsmDataGen.TVMError):
+    with pytest.raises(gsm_data_generator.TVMError):
 
         @R.function
         def func(A: R.Tensor([16])):
@@ -133,7 +133,7 @@ def test_infer_shape_of_1d_dynamic_view():
         B = R.memory.view(A, R.shape([N // 2]))
         return B
 
-    gsmDataGen.ir.assert_structural_equal(explicit_sinfo, inferred_sinfo)
+    gsm_data_generator.ir.assert_structural_equal(explicit_sinfo, inferred_sinfo)
 
 
 def test_infer_shape_of_2d_dynamic_view_of_1d_source():
@@ -149,7 +149,7 @@ def test_infer_shape_of_2d_dynamic_view_of_1d_source():
         B = R.memory.view(A, R.shape([N // 8, 8]))
         return B
 
-    gsmDataGen.ir.assert_structural_equal(explicit_sinfo, inferred_sinfo)
+    gsm_data_generator.ir.assert_structural_equal(explicit_sinfo, inferred_sinfo)
 
 
 def test_infer_shape_of_2d_dynamic_view():
@@ -165,11 +165,11 @@ def test_infer_shape_of_2d_dynamic_view():
         B = R.memory.view(A, R.shape([N // 2]))
         return B
 
-    gsmDataGen.ir.assert_structural_equal(explicit_sinfo, inferred_sinfo)
+    gsm_data_generator.ir.assert_structural_equal(explicit_sinfo, inferred_sinfo)
 
 
 def test_error_if_1d_dynamic_view_larger_than_1d_source():
-    with pytest.raises(gsmDataGen.TVMError):
+    with pytest.raises(gsm_data_generator.TVMError):
 
         @R.function
         def func(A: R.Tensor(["N"])):
@@ -180,7 +180,7 @@ def test_error_if_1d_dynamic_view_larger_than_1d_source():
 
 @pytest.mark.xfail(reason="See https://github.com/apache/tvm/pull/16877")
 def test_error_if_1d_dynamic_view_provably_larger_than_1d_source():
-    with pytest.raises(gsmDataGen.TVMError):
+    with pytest.raises(gsm_data_generator.TVMError):
 
         @R.function
         def func(A: R.Tensor(["N"])):
@@ -190,7 +190,7 @@ def test_error_if_1d_dynamic_view_provably_larger_than_1d_source():
 
 
 def test_error_if_2d_dynamic_view_provably_larger_than_1d_source():
-    with pytest.raises(gsmDataGen.TVMError):
+    with pytest.raises(gsm_data_generator.TVMError):
 
         @R.function
         def func(A: R.Tensor(["N"])):
@@ -239,7 +239,7 @@ def test_infer_dtype_of_float32_view():
         B = R.memory.view(A, dtype=R.dtype("float32"))
         return B
 
-    gsmDataGen.ir.assert_structural_equal(explicit_sinfo, inferred_sinfo)
+    gsm_data_generator.ir.assert_structural_equal(explicit_sinfo, inferred_sinfo)
 
 
 def test_view_without_explicit_dtype_keeps_input_dtype():
@@ -255,7 +255,7 @@ def test_view_without_explicit_dtype_keeps_input_dtype():
         B = R.memory.view(A, R.shape([4, 4]))
         return B
 
-    gsmDataGen.ir.assert_structural_equal(explicit_sinfo, inferred_sinfo)
+    gsm_data_generator.ir.assert_structural_equal(explicit_sinfo, inferred_sinfo)
 
 
 def test_infer_dtype_of_float32_view_from_relax_var():
@@ -279,7 +279,7 @@ def test_infer_dtype_of_float32_view_from_relax_var():
         B = R.memory.view(A, dtype=dtype)
         return B
 
-    gsmDataGen.ir.assert_structural_equal(explicit_sinfo, inferred_sinfo)
+    gsm_data_generator.ir.assert_structural_equal(explicit_sinfo, inferred_sinfo)
 
 
 def test_infer_dtype_of_view_with_unknown_dtype():
@@ -300,7 +300,7 @@ def test_infer_dtype_of_view_with_unknown_dtype():
         B = R.memory.view(A, dtype=dtype)
         return B
 
-    gsmDataGen.ir.assert_structural_equal(explicit_sinfo, inferred_sinfo)
+    gsm_data_generator.ir.assert_structural_equal(explicit_sinfo, inferred_sinfo)
 
 
 def test_view_dtype_may_be_smaller_than_input_dtype():
@@ -322,12 +322,12 @@ def test_view_dtype_may_be_smaller_than_input_dtype():
         B = R.memory.view(A, dtype=R.dtype("float8"))
         return B
 
-    gsmDataGen.ir.assert_structural_equal(explicit_sinfo, inferred_sinfo)
+    gsm_data_generator.ir.assert_structural_equal(explicit_sinfo, inferred_sinfo)
 
 
 def test_error_if_view_dtype_is_larger_than_input_dtype():
     """A view may not exceed the bounds of the viewed array"""
-    with pytest.raises(gsmDataGen.TVMError):
+    with pytest.raises(gsm_data_generator.TVMError):
 
         @R.function
         def func(A: R.Tensor([16], "uint8")):
@@ -355,7 +355,7 @@ def test_increase_dtype_size_while_decreasing_number_of_elements():
         B = R.memory.view(A, shape=R.shape([8]), dtype=R.dtype("float16"))
         return B
 
-    gsmDataGen.ir.assert_structural_equal(explicit_sinfo, inferred_sinfo)
+    gsm_data_generator.ir.assert_structural_equal(explicit_sinfo, inferred_sinfo)
 
 
 def test_decrease_dtype_size_while_increasing_number_of_elements():
@@ -371,7 +371,7 @@ def test_decrease_dtype_size_while_increasing_number_of_elements():
         B = R.memory.view(A, shape=R.shape([16]), dtype=R.dtype("uint8"))
         return B
 
-    gsmDataGen.ir.assert_structural_equal(explicit_sinfo, inferred_sinfo)
+    gsm_data_generator.ir.assert_structural_equal(explicit_sinfo, inferred_sinfo)
 
 
 def test_error_if_number_of_bytes_of_view_is_larger_than_original():
@@ -382,7 +382,7 @@ def test_error_if_number_of_bytes_of_view_is_larger_than_original():
     byte/element).
 
     """
-    with pytest.raises(gsmDataGen.TVMError):
+    with pytest.raises(gsm_data_generator.TVMError):
 
         @R.function
         def func(A: R.Tensor([8], "float16")):
@@ -399,7 +399,7 @@ def test_error_for_non_zero_relative_byte_offset():
 
     """
 
-    with pytest.raises(gsmDataGen.TVMError):
+    with pytest.raises(gsm_data_generator.TVMError):
 
         @R.function
         def func(A: R.Tensor):
@@ -426,7 +426,7 @@ def test_applying_relative_byte_offset_of_zero_is_legal():
         B = R.memory.view(A, relative_byte_offset=R.prim_value(0))
         return B
 
-    gsmDataGen.ir.assert_structural_equal(explicit_sinfo, inferred_sinfo)
+    gsm_data_generator.ir.assert_structural_equal(explicit_sinfo, inferred_sinfo)
 
 
 def test_applying_unknown_relative_byte_offset_is_legal():
@@ -449,7 +449,7 @@ def test_applying_unknown_relative_byte_offset_is_legal():
         B = R.memory.view(A, relative_byte_offset=relative_byte_offset)
         return B
 
-    gsmDataGen.ir.assert_structural_equal(explicit_sinfo, inferred_sinfo)
+    gsm_data_generator.ir.assert_structural_equal(explicit_sinfo, inferred_sinfo)
 
 
 def test_legalize_is_no_op():
@@ -464,8 +464,8 @@ def test_legalize_is_no_op():
 
     Expected = Before
 
-    After = gsmDataGen.relax.transform.LegalizeOps()(Before)
-    gsmDataGen.ir.assert_structural_equal(Expected, After)
+    After = gsm_data_generator.relax.transform.LegalizeOps()(Before)
+    gsm_data_generator.ir.assert_structural_equal(Expected, After)
 
 
 def test_lower_runtime_builtin_shape_change():
@@ -494,8 +494,8 @@ def test_lower_runtime_builtin_shape_change():
             )
             return B
 
-    After = gsmDataGen.relax.transform.LowerRuntimeBuiltin()(Before)
-    gsmDataGen.ir.assert_structural_equal(Expected, After)
+    After = gsm_data_generator.relax.transform.LowerRuntimeBuiltin()(Before)
+    gsm_data_generator.ir.assert_structural_equal(Expected, After)
 
 
 def test_lower_runtime_builtin_view_shape_from_unknown():
@@ -526,8 +526,8 @@ def test_lower_runtime_builtin_view_shape_from_unknown():
             )
             return B
 
-    After = gsmDataGen.relax.transform.LowerRuntimeBuiltin()(Before)
-    gsmDataGen.ir.assert_structural_equal(Expected, After)
+    After = gsm_data_generator.relax.transform.LowerRuntimeBuiltin()(Before)
+    gsm_data_generator.ir.assert_structural_equal(Expected, After)
 
 
 def test_lower_runtime_builtin_dtype_change():
@@ -556,8 +556,8 @@ def test_lower_runtime_builtin_dtype_change():
             )
             return B
 
-    After = gsmDataGen.relax.transform.LowerRuntimeBuiltin()(Before)
-    gsmDataGen.ir.assert_structural_equal(Expected, After)
+    After = gsm_data_generator.relax.transform.LowerRuntimeBuiltin()(Before)
+    gsm_data_generator.ir.assert_structural_equal(Expected, After)
 
 
 def test_lower_runtime_builtin_byte_offset():
@@ -586,8 +586,8 @@ def test_lower_runtime_builtin_byte_offset():
             )
             return B
 
-    After = gsmDataGen.relax.transform.LowerRuntimeBuiltin()(Before)
-    gsmDataGen.ir.assert_structural_equal(Expected, After)
+    After = gsm_data_generator.relax.transform.LowerRuntimeBuiltin()(Before)
+    gsm_data_generator.ir.assert_structural_equal(Expected, After)
 
 
 def test_lower_runtime_builtin_view_with_multiple_updated_fields():
@@ -647,11 +647,11 @@ def test_lower_runtime_builtin_view_with_multiple_updated_fields():
             )
             return (B, C)
 
-    After = gsmDataGen.relax.transform.LowerRuntimeBuiltin()(Before)
-    gsmDataGen.ir.assert_structural_equal(Expected, After)
+    After = gsm_data_generator.relax.transform.LowerRuntimeBuiltin()(Before)
+    gsm_data_generator.ir.assert_structural_equal(Expected, After)
 
 
-@gsmDataGen.testing.parametrize_targets("llvm", "cuda")
+@gsm_data_generator.testing.parametrize_targets("llvm", "cuda")
 def test_execute_no_op_view(target, dev):
     @I.ir_module
     class Module:
@@ -660,18 +660,18 @@ def test_execute_no_op_view(target, dev):
             B = R.memory.view(A)
             return B
 
-    built = gsmDataGen.compile(Module, target=target)
-    vm = gsmDataGen.relax.VirtualMachine(built, device=dev)
+    built = gsm_data_generator.compile(Module, target=target)
+    vm = gsm_data_generator.relax.VirtualMachine(built, device=dev)
 
     np_input = np.random.random([4096]).astype("float32")
-    tvm_input = gsmDataGen.nd.array(np_input, dev)
+    tvm_input = gsm_data_generator.nd.array(np_input, dev)
     tvm_output = vm["main"](tvm_input)
     np_expected = np_input
 
-    gsmDataGen.testing.assert_allclose(tvm_output.numpy(), np_expected)
+    gsm_data_generator.testing.assert_allclose(tvm_output.numpy(), np_expected)
 
 
-@gsmDataGen.testing.parametrize_targets("llvm", "cuda")
+@gsm_data_generator.testing.parametrize_targets("llvm", "cuda")
 def test_execute_view_with_new_shape(target, dev):
     @I.ir_module
     class Module:
@@ -680,18 +680,18 @@ def test_execute_view_with_new_shape(target, dev):
             B = R.memory.view(A, shape=R.shape([64, 64]))
             return B
 
-    built = gsmDataGen.compile(Module, target=target)
-    vm = gsmDataGen.relax.VirtualMachine(built, device=dev)
+    built = gsm_data_generator.compile(Module, target=target)
+    vm = gsm_data_generator.relax.VirtualMachine(built, device=dev)
 
     np_input = np.random.random([4096]).astype("float32")
-    tvm_input = gsmDataGen.nd.array(np_input, dev)
+    tvm_input = gsm_data_generator.nd.array(np_input, dev)
     tvm_output = vm["main"](tvm_input)
     np_expected = np_input.reshape(64, 64)
 
-    gsmDataGen.testing.assert_allclose(tvm_output.numpy(), np_expected)
+    gsm_data_generator.testing.assert_allclose(tvm_output.numpy(), np_expected)
 
 
-@gsmDataGen.testing.parametrize_targets("llvm", "cuda")
+@gsm_data_generator.testing.parametrize_targets("llvm", "cuda")
 def test_execute_view_with_new_byte_offset(target, dev):
     @I.ir_module
     class Module:
@@ -704,18 +704,18 @@ def test_execute_view_with_new_byte_offset(target, dev):
             )
             return B
 
-    built = gsmDataGen.compile(Module, target=target)
-    vm = gsmDataGen.relax.VirtualMachine(built, device=dev)
+    built = gsm_data_generator.compile(Module, target=target)
+    vm = gsm_data_generator.relax.VirtualMachine(built, device=dev)
 
     np_input = np.random.random([4096]).astype("float32")
-    tvm_input = gsmDataGen.nd.array(np_input, dev)
+    tvm_input = gsm_data_generator.nd.array(np_input, dev)
     tvm_output = vm["main"](tvm_input)
     np_expected = np_input.reshape(64, 64)[32:48, :]
 
-    gsmDataGen.testing.assert_allclose(tvm_output.numpy(), np_expected)
+    gsm_data_generator.testing.assert_allclose(tvm_output.numpy(), np_expected)
 
 
-@gsmDataGen.testing.parametrize_targets("llvm", "cuda")
+@gsm_data_generator.testing.parametrize_targets("llvm", "cuda")
 def test_execute_view_with_new_dtype(target, dev):
     @I.ir_module
     class Module:
@@ -724,18 +724,18 @@ def test_execute_view_with_new_dtype(target, dev):
             B = R.memory.view(A, dtype="uint32")
             return B
 
-    built = gsmDataGen.compile(Module, target=target)
-    vm = gsmDataGen.relax.VirtualMachine(built, device=dev)
+    built = gsm_data_generator.compile(Module, target=target)
+    vm = gsm_data_generator.relax.VirtualMachine(built, device=dev)
 
     np_input = np.random.random([4096]).astype("float32")
-    tvm_input = gsmDataGen.nd.array(np_input, dev)
+    tvm_input = gsm_data_generator.nd.array(np_input, dev)
     tvm_output = vm["main"](tvm_input)
     np_expected = np_input.view("uint32")
 
-    gsmDataGen.testing.assert_allclose(tvm_output.numpy(), np_expected)
+    gsm_data_generator.testing.assert_allclose(tvm_output.numpy(), np_expected)
 
 
-@gsmDataGen.testing.parametrize_targets("llvm", "cuda")
+@gsm_data_generator.testing.parametrize_targets("llvm", "cuda")
 def test_execute_view_with_multiple_updated_fields(target, dev):
     @I.ir_module
     class Module:
@@ -754,20 +754,20 @@ def test_execute_view_with_multiple_updated_fields(target, dev):
             )
             return (B, C)
 
-    built = gsmDataGen.compile(Module, target=target)
-    vm = gsmDataGen.relax.VirtualMachine(built, device=dev)
+    built = gsm_data_generator.compile(Module, target=target)
+    vm = gsm_data_generator.relax.VirtualMachine(built, device=dev)
 
     np_input = np.random.randint(0, 255, size=[4096]).astype("uint8")
-    tvm_input = gsmDataGen.nd.array(np_input, dev)
+    tvm_input = gsm_data_generator.nd.array(np_input, dev)
     tvm_output = vm["main"](tvm_input)
     np_expected = [
         np_input[:2048].view("int32"),
         np_input[2048:].view("float16").reshape(16, 64),
     ]
 
-    gsmDataGen.testing.assert_allclose(tvm_output[0].numpy(), np_expected[0])
-    gsmDataGen.testing.assert_allclose(tvm_output[1].numpy(), np_expected[1])
+    gsm_data_generator.testing.assert_allclose(tvm_output[0].numpy(), np_expected[0])
+    gsm_data_generator.testing.assert_allclose(tvm_output[1].numpy(), np_expected[1])
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

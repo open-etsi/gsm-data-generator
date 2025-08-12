@@ -16,11 +16,11 @@
 # under the License.
 # pylint: disable=missing-module-docstring,missing-function-docstring,missing-class-docstring
 
-import gsmDataGen
-from gsmDataGen import meta_schedule as ms
-from gsmDataGen import tir
-from gsmDataGen.script import tir as T
-from gsmDataGen.target import Target
+import gsm_data_generator
+from gsm_data_generator import meta_schedule as ms
+from gsm_data_generator import tir
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.target import Target
 
 
 def _target() -> Target:
@@ -46,7 +46,7 @@ def _create_context(mod, target) -> ms.TuneContext:
 # fmt: off
 # pylint: disable=no-member,invalid-name,unused-variable,no-self-argument,line-too-long,chained-comparison,not-callable,too-many-nested-blocks
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Matmul_before_rewrite:
     @T.prim_func
     def main(var_A: T.handle, var_B: T.handle, var_C: T.handle) -> None:
@@ -98,7 +98,7 @@ class Matmul_before_rewrite:
                             C[v0, v1] = C_local[v0, v1]
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Matmul_after_rewrite:
     @T.prim_func
     def main(var_A: T.handle, var_B: T.handle, var_C: T.handle) -> None:
@@ -155,7 +155,7 @@ class Matmul_after_rewrite:
                             C[v0, v1] = C_local[v0, v1]
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Softmax_cross_thread_reduction:
     @T.prim_func
     def main(A: T.Buffer((256, 256), "float32"), T_softmax_norm: T.Buffer((256, 256), "float32")) -> None:
@@ -204,7 +204,7 @@ def test_rewrite_tiled_matmul():
     sch = tir.Schedule(mod, debug_mask="all")
     sch.enter_postproc()
     assert ctx.space_generator.postprocs[0].apply(sch)
-    gsmDataGen.ir.assert_structural_equal(sch.mod, Matmul_after_rewrite)
+    gsm_data_generator.ir.assert_structural_equal(sch.mod, Matmul_after_rewrite)
 
 
 def test_rewrite_softmax():
@@ -215,7 +215,7 @@ def test_rewrite_softmax():
     sch.enter_postproc()
     assert ctx.space_generator.postprocs[0].apply(sch)
     # The module should not be rewritten
-    gsmDataGen.ir.assert_structural_equal(sch.mod, Softmax_cross_thread_reduction)
+    gsm_data_generator.ir.assert_structural_equal(sch.mod, Softmax_cross_thread_reduction)
 
 
 if __name__ == "__main__":

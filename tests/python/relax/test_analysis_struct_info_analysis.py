@@ -19,22 +19,22 @@
 
 import pytest
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import TVMError
-from gsmDataGen import relax as rx
-from gsmDataGen import tir, ir
-from gsmDataGen.script import relax as R, tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import TVMError
+from gsm_data_generator import relax as rx
+from gsm_data_generator import tir, ir
+from gsm_data_generator.script import relax as R, tir as T
 
 
 def test_get_static_type_basic():
     # object
     s0 = rx.ObjectStructInfo()
-    gsmDataGen.ir.assert_structural_equal(rx.analysis.get_static_type(s0), rx.ObjectType())
+    gsm_data_generator.ir.assert_structural_equal(rx.analysis.get_static_type(s0), rx.ObjectType())
 
     # prim
     s1 = rx.PrimStructInfo("float32")
-    gsmDataGen.ir.assert_structural_equal(rx.analysis.get_static_type(s1), gsmDataGen.ir.PrimType("float32"))
+    gsm_data_generator.ir.assert_structural_equal(rx.analysis.get_static_type(s1), gsm_data_generator.ir.PrimType("float32"))
 
 
 def test_get_static_type_shape():
@@ -44,16 +44,16 @@ def test_get_static_type_shape():
     s2 = rx.ShapeStructInfo([1, n + 1, m])
     s3 = rx.ShapeStructInfo(ndim=2)
 
-    gsmDataGen.ir.assert_structural_equal(rx.analysis.get_static_type(s2), rx.ShapeType(ndim=3))
+    gsm_data_generator.ir.assert_structural_equal(rx.analysis.get_static_type(s2), rx.ShapeType(ndim=3))
 
-    gsmDataGen.ir.assert_structural_equal(rx.analysis.get_static_type(s3), rx.ShapeType(ndim=2))
+    gsm_data_generator.ir.assert_structural_equal(rx.analysis.get_static_type(s3), rx.ShapeType(ndim=2))
 
 
 def test_get_static_type_tensor():
     n, m = tir.Var("n", "int64"), tir.Var("m", "int64")
     s4 = rx.TensorStructInfo([1, n + 1, m], "int64")
 
-    gsmDataGen.ir.assert_structural_equal(
+    gsm_data_generator.ir.assert_structural_equal(
         rx.analysis.get_static_type(s4), rx.TensorType(ndim=3, dtype="int64")
     )
 
@@ -67,7 +67,7 @@ def test_get_static_type_tuple():
     t0 = rx.TupleStructInfo([s4, s0])
     t1 = rx.TupleStructInfo([t0, s2])
 
-    gsmDataGen.ir.assert_structural_equal(
+    gsm_data_generator.ir.assert_structural_equal(
         rx.analysis.get_static_type(t1),
         rx.TupleType(
             [
@@ -95,16 +95,16 @@ def test_get_static_type_func():
 
     f0 = fn_info(1)
 
-    gsmDataGen.ir.assert_structural_equal(rx.analysis.get_static_type(fn_info(1)), fn_type())
+    gsm_data_generator.ir.assert_structural_equal(rx.analysis.get_static_type(fn_info(1)), fn_type())
 
 
 def test_erase_to_well_defined_basic():
     s0 = rx.ObjectStructInfo()
-    gsmDataGen.ir.assert_structural_equal(rx.analysis.erase_to_well_defined(s0), s0)
+    gsm_data_generator.ir.assert_structural_equal(rx.analysis.erase_to_well_defined(s0), s0)
 
     # prim
     s1 = rx.PrimStructInfo("float32")
-    gsmDataGen.ir.assert_structural_equal(rx.analysis.erase_to_well_defined(s1), s1)
+    gsm_data_generator.ir.assert_structural_equal(rx.analysis.erase_to_well_defined(s1), s1)
 
 
 def test_erase_to_well_defined_shape():
@@ -113,19 +113,19 @@ def test_erase_to_well_defined_shape():
     s2 = rx.ShapeStructInfo([1, n + 1, m])
     s3 = rx.ShapeStructInfo(ndim=2)
     # have undefined
-    gsmDataGen.ir.assert_structural_equal(
+    gsm_data_generator.ir.assert_structural_equal(
         rx.analysis.erase_to_well_defined(s2), rx.ShapeStructInfo(ndim=3)
     )
     # all defined
-    gsmDataGen.ir.assert_structural_equal(rx.analysis.erase_to_well_defined(s2, {n: n, m: m}), s2)
+    gsm_data_generator.ir.assert_structural_equal(rx.analysis.erase_to_well_defined(s2, {n: n, m: m}), s2)
 
     # replacement
-    gsmDataGen.ir.assert_structural_equal(
+    gsm_data_generator.ir.assert_structural_equal(
         rx.analysis.erase_to_well_defined(s2, {n: 2, m: m + 1}), rx.ShapeStructInfo([1, 3, m + 1])
     )
 
     # partial defined
-    gsmDataGen.ir.assert_structural_equal(
+    gsm_data_generator.ir.assert_structural_equal(
         rx.analysis.erase_to_well_defined(s2, {n: n}), rx.ShapeStructInfo(ndim=3)
     )
 
@@ -136,38 +136,38 @@ def test_erase_to_well_defined_tensor():
     s0 = rx.TensorStructInfo(rshape, dtype="int32")
 
     # undefined
-    gsmDataGen.ir.assert_structural_equal(
+    gsm_data_generator.ir.assert_structural_equal(
         rx.analysis.erase_to_well_defined(s0, None, None),
         rx.TensorStructInfo(ndim=2, dtype="int32"),
     )
 
     # defined
-    gsmDataGen.ir.assert_structural_equal(
+    gsm_data_generator.ir.assert_structural_equal(
         rx.analysis.erase_to_well_defined(s0, None, {rshape: rshape}), s0
     )
 
-    gsmDataGen.ir.assert_structural_equal(
+    gsm_data_generator.ir.assert_structural_equal(
         rx.analysis.erase_to_well_defined(s0, None, {rshape: rx.ShapeExpr([1, 2])}),
         rx.TensorStructInfo([1, 2], dtype="int32"),
     )
 
     s1 = rx.TensorStructInfo([m + 1, n], dtype="float32")
 
-    gsmDataGen.ir.assert_structural_equal(rx.analysis.erase_to_well_defined(s1, {n: n, m: m}), s1)
+    gsm_data_generator.ir.assert_structural_equal(rx.analysis.erase_to_well_defined(s1, {n: n, m: m}), s1)
 
-    gsmDataGen.ir.assert_structural_equal(
+    gsm_data_generator.ir.assert_structural_equal(
         rx.analysis.erase_to_well_defined(s1, {n: 2, m: 3}),
         rx.TensorStructInfo([4, 2], dtype="float32"),
     )
 
-    gsmDataGen.ir.assert_structural_equal(
+    gsm_data_generator.ir.assert_structural_equal(
         rx.analysis.erase_to_well_defined(s1, {m: m}, {rshape: rshape}),
         rx.TensorStructInfo(ndim=2, dtype="float32"),
     )
 
     s2 = rx.TensorStructInfo([1, 2], dtype="float32")
 
-    gsmDataGen.ir.assert_structural_equal(rx.analysis.erase_to_well_defined(s2), s2)
+    gsm_data_generator.ir.assert_structural_equal(rx.analysis.erase_to_well_defined(s2), s2)
 
 
 def test_erase_to_well_defined_tuple():
@@ -178,7 +178,7 @@ def test_erase_to_well_defined_tuple():
     t0 = rx.TupleStructInfo([s4, s0])
     t1 = rx.TupleStructInfo([t0, s2])
 
-    gsmDataGen.ir.assert_structural_equal(
+    gsm_data_generator.ir.assert_structural_equal(
         rx.analysis.erase_to_well_defined(t1, {m: m + 1}),
         rx.TupleStructInfo(
             [
@@ -201,7 +201,7 @@ def test_erase_to_well_defined_func():
 
     f0 = fn_info(1)
 
-    gsmDataGen.ir.assert_structural_equal(rx.analysis.erase_to_well_defined(f0), f0)
+    gsm_data_generator.ir.assert_structural_equal(rx.analysis.erase_to_well_defined(f0), f0)
 
 
 def test_base_check():
@@ -359,7 +359,7 @@ def _check_derive(ctx, finfo, args_sinfo, ret):
         args.append(arg)
     call = rx.Call(gv, args)
     derived_ret = rx.analysis.derive_call_ret_struct_info(finfo, call, ctx)
-    gsmDataGen.ir.assert_structural_equal(ret, derived_ret)
+    gsm_data_generator.ir.assert_structural_equal(ret, derived_ret)
 
 
 def test_derive_call_ret_struct_info():
@@ -512,8 +512,8 @@ def test_derive_call_ret_struct_info():
 
 
 def _check_lca(lhs, rhs, target):
-    gsmDataGen.ir.assert_structural_equal(rx.analysis.struct_info_lca(lhs, rhs), target)
-    gsmDataGen.ir.assert_structural_equal(rx.analysis.struct_info_lca(rhs, lhs), target)
+    gsm_data_generator.ir.assert_structural_equal(rx.analysis.struct_info_lca(lhs, rhs), target)
+    gsm_data_generator.ir.assert_structural_equal(rx.analysis.struct_info_lca(rhs, lhs), target)
 
 
 def test_struct_info_lca():
@@ -695,9 +695,9 @@ def _generate_prim_test_cases():
 @pytest.mark.parametrize("test_case", list(_generate_prim_test_cases()))
 def test_prim_struct_info_lca(test_case):
     def _normalize_sinfo(sinfo):
-        if isinstance(sinfo, gsmDataGen.relax.StructInfo):
+        if isinstance(sinfo, gsm_data_generator.relax.StructInfo):
             return sinfo
-        elif isinstance(sinfo, gsmDataGen.script.parser.relax.entry.StructInfoProxy):
+        elif isinstance(sinfo, gsm_data_generator.script.parser.relax.entry.StructInfoProxy):
             return sinfo.as_struct_info()
         elif callable(sinfo):
             return sinfo()
@@ -707,7 +707,7 @@ def test_prim_struct_info_lca(test_case):
     lhs, rhs, expected = map(_normalize_sinfo, test_case)
 
     lca = rx.analysis.struct_info_lca(lhs, rhs)
-    assert gsmDataGen.ir.structural_equal(
+    assert gsm_data_generator.ir.structural_equal(
         lca, expected
     ), f"Expected {lhs} and {rhs} to have LCA of {expected}, but instead found {lca}"
 
@@ -733,17 +733,17 @@ def _generate_tir_var_test_cases():
     yield func, [n, m], [n, m]
 
 
-tir_var_test_case = gsmDataGen.testing.parameter(*_generate_tir_var_test_cases())
+tir_var_test_case = gsm_data_generator.testing.parameter(*_generate_tir_var_test_cases())
 
 
 def test_tir_vars_in_struct_info(tir_var_test_case):
     sinfo, _vars_definable, vars_used = tir_var_test_case
-    gsmDataGen.ir.assert_structural_equal(rx.analysis.tir_vars_in_struct_info(sinfo), vars_used)
+    gsm_data_generator.ir.assert_structural_equal(rx.analysis.tir_vars_in_struct_info(sinfo), vars_used)
 
 
 def test_definable_tir_vars_in_struct_info(tir_var_test_case):
     sinfo, vars_definable, _vars_used = tir_var_test_case
-    gsmDataGen.ir.assert_structural_equal(
+    gsm_data_generator.ir.assert_structural_equal(
         rx.analysis.definable_tir_vars_in_struct_info(sinfo), vars_definable
     )
 
@@ -770,8 +770,8 @@ def test_collect_symbolic_var_from_tensor_shape():
     assert free_vars == {n, p, q}
 
 
-param_type = gsmDataGen.testing.parameter("shape_expr", "prim_value")
-param_order = gsmDataGen.testing.parameter("definition_first", "usage_first")
+param_type = gsm_data_generator.testing.parameter("shape_expr", "prim_value")
+param_order = gsm_data_generator.testing.parameter("definition_first", "usage_first")
 
 
 def test_collect_symbolic_var_from_non_tensor_params(param_type, param_order):
@@ -824,34 +824,34 @@ def test_collect_nonnegative_expressions():
     M, N = list(func.params[2].struct_info.values)
 
     # Expressions are de-duplicated, in order of their first appearance
-    gsmDataGen.ir.assert_structural_equal(
+    gsm_data_generator.ir.assert_structural_equal(
         rx.analysis.collect_non_negative_expressions(func.struct_info),
         [M, N - 2, N, M + 2],
     )
 
     # Tensor shapes can imply that their shapes are non-negative
-    gsmDataGen.ir.assert_structural_equal(
+    gsm_data_generator.ir.assert_structural_equal(
         rx.analysis.collect_non_negative_expressions(func.params[0].struct_info),
         [M, N - 2],
     )
-    gsmDataGen.ir.assert_structural_equal(
+    gsm_data_generator.ir.assert_structural_equal(
         rx.analysis.collect_non_negative_expressions(func.params[1].struct_info),
         [N, M + 2],
     )
 
     # ShapeExpr values can imply that their contents are non-negative
-    gsmDataGen.ir.assert_structural_equal(
+    gsm_data_generator.ir.assert_structural_equal(
         rx.analysis.collect_non_negative_expressions(func.params[2].struct_info),
         [M, N],
     )
 
     # PrimValue instances may contain negative values, and do not
     # imply that their contents are non-negative.
-    gsmDataGen.ir.assert_structural_equal(
+    gsm_data_generator.ir.assert_structural_equal(
         rx.analysis.collect_non_negative_expressions(func.params[3].struct_info),
         [],
     )
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

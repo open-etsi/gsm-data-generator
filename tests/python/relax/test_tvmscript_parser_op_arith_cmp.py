@@ -17,11 +17,11 @@
 
 from typing import Optional, Union, Callable
 
-import gsmDataGen
-import gsmDataGen.script
-import gsmDataGen.testing
-from gsmDataGen import IRModule, relax
-from gsmDataGen.script import relax as R
+import gsm_data_generator
+import gsm_data_generator.script
+import gsm_data_generator.testing
+from gsm_data_generator import IRModule, relax
+from gsm_data_generator.script import relax as R
 
 
 def _check(
@@ -29,13 +29,13 @@ def _check(
     expect: Optional[Union[relax.Function, IRModule]],
 ):
     test = parsed.script(show_meta=True)
-    roundtrip_mod = gsmDataGen.script.from_source(test)
-    gsmDataGen.ir.assert_structural_equal(parsed, roundtrip_mod)
+    roundtrip_mod = gsm_data_generator.script.from_source(test)
+    gsm_data_generator.ir.assert_structural_equal(parsed, roundtrip_mod)
     if expect:
-        gsmDataGen.ir.assert_structural_equal(parsed, expect)
+        gsm_data_generator.ir.assert_structural_equal(parsed, expect)
 
 
-(unary_arith_op,) = gsmDataGen.testing.parameters(
+(unary_arith_op,) = gsm_data_generator.testing.parameters(
     (relax.op.abs,),
     (relax.op.acos,),
     (relax.op.acosh,),
@@ -78,7 +78,7 @@ def test_unary_arith(unary_arith_op: Callable):
     _check(foo, bb.get()["foo"])
 
 
-(unary_check_op,) = gsmDataGen.testing.parameters(
+(unary_check_op,) = gsm_data_generator.testing.parameters(
     (relax.op.isfinite,),
     (relax.op.isinf,),
     (relax.op.isnan,),
@@ -100,7 +100,7 @@ def test_unary_check(unary_check_op: Callable):
     _check(foo, bb.get()["foo"])
 
 
-(binary_arith_op,) = gsmDataGen.testing.parameters(
+(binary_arith_op,) = gsm_data_generator.testing.parameters(
     (relax.op.add,),
     (relax.op.divide,),
     (relax.op.floor_divide,),
@@ -130,7 +130,7 @@ def test_binary_arith(binary_arith_op: Callable):
     _check(foo, bb.get()["foo"])
 
 
-(binary_cmp_op,) = gsmDataGen.testing.parameters(
+(binary_cmp_op,) = gsm_data_generator.testing.parameters(
     (relax.op.equal,),
     (relax.op.greater,),
     (relax.op.greater_equal,),
@@ -180,4 +180,4 @@ def test_relax_ewise_fma():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

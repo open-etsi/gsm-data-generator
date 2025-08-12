@@ -17,23 +17,23 @@
 import numpy as np
 import pytest
 
-import gsmDataGen
-import gsmDataGen.testing
-import gsmDataGen.topi.testing
-from gsmDataGen import relax
-from gsmDataGen.contrib.cutlass.build import is_shape_valid_for_cutlass_matmul
-from gsmDataGen.contrib.pickle_memoize import memoize
-from gsmDataGen.relax.backend.cuda.cutlass import partition_for_cutlass
-from gsmDataGen.relax.testing import (
+import gsm_data_generator
+import gsm_data_generator.testing
+import gsm_data_generator.topi.testing
+from gsm_data_generator import relax
+from gsm_data_generator.contrib.cutlass.build import is_shape_valid_for_cutlass_matmul
+from gsm_data_generator.contrib.pickle_memoize import memoize
+from gsm_data_generator.relax.backend.cuda.cutlass import partition_for_cutlass
+from gsm_data_generator.relax.testing import (
     get_relax_attention_module,
     get_relax_matmul_module,
     get_relax_stacked_attention_module,
 )
-from gsmDataGen.script import ir as I
-from gsmDataGen.script import relax as R
-from gsmDataGen.script import tir as T
-from gsmDataGen.script.ir_builder import IRBuilder
-from gsmDataGen.script.ir_builder import relax as relax_builder
+from gsm_data_generator.script import ir as I
+from gsm_data_generator.script import relax as R
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.script.ir_builder import IRBuilder
+from gsm_data_generator.script.ir_builder import relax as relax_builder
 
 
 @pytest.fixture(autouse=True)
@@ -41,7 +41,7 @@ def reset_seed():
     np.random.seed(0)
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Conv2dBiasReLU:
     @R.function
     def main(
@@ -59,7 +59,7 @@ class Conv2dBiasReLU:
         return conv1
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Conv2dx2:
     @R.function
     def main(
@@ -79,22 +79,22 @@ class Conv2dx2:
         return conv2
 
 
-pytestmark = gsmDataGen.testing.requires_cutlass.marks()
+pytestmark = gsm_data_generator.testing.requires_cutlass.marks()
 
 
 def build_and_run(mod, inputs_np, target, legalize=True, cuda_graph=False):
-    with gsmDataGen.transform.PassContext(
+    with gsm_data_generator.transform.PassContext(
         config={
             "relax.backend.use_cuda_graph": cuda_graph,
             "relax.transform.apply_legalize_ops": legalize,
         }
     ):
-        ex = gsmDataGen.compile(mod, target)
+        ex = gsm_data_generator.compile(mod, target)
 
-    dev = gsmDataGen.device(target, 0)
+    dev = gsm_data_generator.device(target, 0)
     vm = relax.VirtualMachine(ex, dev)
     f = vm["main"]
-    inputs = [gsmDataGen.nd.array(inp, dev) for inp in inputs_np]
+    inputs = [gsm_data_generator.nd.array(inp, dev) for inp in inputs_np]
 
     # For cuda graph, run the compiled function twice to make sure that we can launch the cached
     # graph on the second run.
@@ -179,7 +179,7 @@ def get_relax_conv2d_module(
             R.func_ret_value(frame.output_vars[0])
 
     func = builder.get()
-    return gsmDataGen.IRModule({"main": func})
+    return gsm_data_generator.IRModule({"main": func})
 
 
 def _to_concrete_shape(symbolic_shape, var_table=None):
@@ -192,7 +192,7 @@ def _to_concrete_shape(symbolic_shape, var_table=None):
             result.append(_to_concrete_shape(dim, var_table))
             continue
 
-        if not isinstance(dim, gsmDataGen.tir.expr.Var):
+        if not isinstance(dim, gsm_data_generator.tir.expr.Var):
             result.append(dim)
             continue
 
@@ -204,8 +204,8 @@ def _to_concrete_shape(symbolic_shape, var_table=None):
 
 
 _vars = {
-    "a": gsmDataGen.tir.expr.Var("a", "int64"),
-    "b": gsmDataGen.tir.expr.Var("b", "int64"),
+    "a": gsm_data_generator.tir.expr.Var("a", "int64"),
+    "b": gsm_data_generator.tir.expr.Var("b", "int64"),
 }
 
 
@@ -269,7 +269,7 @@ def test_conv2d_offload(data_shape, weight_shape, dtype, epilogue, residual_bloc
 
     ref = build_and_run(mod, args, "llvm")
 
-    gsmDataGen.testing.assert_allclose(out, ref, rtol=1e-5, atol=1e-5)
+    gsm_data_generator.testing.assert_allclose(out, ref, rtol=1e-5, atol=1e-5)
 
 
 @pytest.mark.parametrize(
@@ -296,7 +296,7 @@ def test_conv2d_dynamic(data_shape, weight_shape, dtype):
 
 
 def test_cutlass_partition_conv2d_residual_blocked():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Conv2dReLU:
         """
         This conv2d should not be fused as conv2d residual block, because both lhs and rhs of
@@ -418,7 +418,7 @@ def test_matmul_offload(
     out = get_result_with_relax_cutlass_offload(mod, *args)
     ref = build_and_run(mod, args, "llvm")
 
-    gsmDataGen.testing.assert_allclose(out, ref, rtol=1e-2, atol=1e-2)
+    gsm_data_generator.testing.assert_allclose(out, ref, rtol=1e-2, atol=1e-2)
 
 
 def test_matmul_with_3d_bias_offload():
@@ -431,7 +431,7 @@ def test_matmul_with_3d_bias_offload():
     bias = np.random.randn(1, x_shape[-2], y_shape[-1]).astype(dtype)
     args = (x, y, bias)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Mod:
         @R.function
         def main(
@@ -449,7 +449,7 @@ def test_matmul_with_3d_bias_offload():
     out = get_result_with_relax_cutlass_offload(Mod, *args)
     ref = build_and_run(Mod, args, "llvm", legalize=True)
 
-    gsmDataGen.testing.assert_allclose(out, ref, rtol=1e-2, atol=1e-2)
+    gsm_data_generator.testing.assert_allclose(out, ref, rtol=1e-2, atol=1e-2)
 
 
 @pytest.mark.parametrize(
@@ -524,7 +524,7 @@ def test_cutlass_partition_matmul_blocked(x_shape, y_shape, transpose_y, dtype):
 
 
 def test_cutlass_partition_matmul_tuple_return_blocked():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class TransposedMatmul:
         @R.function
         def main(
@@ -559,7 +559,7 @@ def test_cutlass_partition_matmul_tuple_return_blocked():
 
 
 def test_cutlass_partition_matmul_cyclic_dependency_blocked():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Module:
         @R.function
         def main(x: R.Tensor((128, 128), "float16"), w: R.Tensor((128, 128), "float16")):
@@ -621,7 +621,7 @@ def get_numpy_attention_ref(
     else:
         bias = np.random.randn(*bias_shape).astype(dtype)
 
-    ref = gsmDataGen.topi.testing.attention_python(
+    ref = gsm_data_generator.topi.testing.attention_python(
         q, k, v, bias, qk_scale, causal=causal, window_size=window_size, layout="BSNH"
     )
 
@@ -642,7 +642,7 @@ def test_attention_offload(attention_size, attention_dtype):
     mod = get_relax_attention_module(q_shape, k_shape, v_shape, dtype=attention_dtype)
     out = get_result_with_relax_cutlass_offload(mod, q, k, v, num_final_bindings=2)
 
-    gsmDataGen.testing.assert_allclose(out, ref, rtol=1e-2, atol=1e-2)
+    gsm_data_generator.testing.assert_allclose(out, ref, rtol=1e-2, atol=1e-2)
 
 
 @pytest.fixture(
@@ -679,7 +679,7 @@ def test_attention_bias_offload(attention_bias_size):
     )
     out = get_result_with_relax_cutlass_offload(mod, q, k, v, bias, num_final_bindings=2)
 
-    gsmDataGen.testing.assert_allclose(out, ref, rtol=1e-2, atol=1e-2)
+    gsm_data_generator.testing.assert_allclose(out, ref, rtol=1e-2, atol=1e-2)
 
 
 @pytest.fixture(
@@ -715,7 +715,7 @@ def test_attention_scale_offload(attention_scale_size, attention_scale):
         out = get_result_with_relax_cutlass_offload(mod, q, k, v, num_final_bindings=2)
     else:
         out = get_result_with_relax_cutlass_offload(mod, q, k, v, bias, num_final_bindings=2)
-    gsmDataGen.testing.assert_allclose(out, ref, rtol=1e-2, atol=1e-2)
+    gsm_data_generator.testing.assert_allclose(out, ref, rtol=1e-2, atol=1e-2)
 
 
 @pytest.fixture(
@@ -758,7 +758,7 @@ def test_attention_causal_offload(attention_causal_size, attention_causal):
         out = get_result_with_relax_cutlass_offload(mod, q, k, v, num_final_bindings=2)
     else:
         out = get_result_with_relax_cutlass_offload(mod, q, k, v, bias, num_final_bindings=2)
-    gsmDataGen.testing.assert_allclose(out, ref, rtol=1e-2, atol=1e-2)
+    gsm_data_generator.testing.assert_allclose(out, ref, rtol=1e-2, atol=1e-2)
 
 
 @memoize("topi.tests.test_codegen_cutlass.test_stacked_attention_offload")
@@ -772,7 +772,7 @@ def get_numpy_stacked_attention_ref(b, s, n, h, h_v, bias_shape, qk_scale, dtype
         bias = np.random.randn(*bias_shape).astype(dtype)
     else:
         bias = None
-    ref = gsmDataGen.topi.testing.attention_python(
+    ref = gsm_data_generator.topi.testing.attention_python(
         q, k, v, bias, qk_scale, causal="none", window_size=None, layout="BSNH"
     )
     return qkv, bias, ref
@@ -825,7 +825,7 @@ def test_stacked_attention_split_offload(stacked_attention_size):
         out = get_result_with_relax_cutlass_offload(mod, qkv, num_final_bindings=2)
     else:
         out = get_result_with_relax_cutlass_offload(mod, qkv, bias, num_final_bindings=2)
-    gsmDataGen.testing.assert_allclose(out, ref, rtol=1e-2, atol=1e-2)
+    gsm_data_generator.testing.assert_allclose(out, ref, rtol=1e-2, atol=1e-2)
 
 
 def test_stacked_attention_strided_slice_offload(stacked_attention_size):
@@ -862,7 +862,7 @@ def test_stacked_attention_strided_slice_offload(stacked_attention_size):
         out = get_result_with_relax_cutlass_offload(mod, qkv, num_final_bindings=2)
     else:
         out = get_result_with_relax_cutlass_offload(mod, qkv, bias, num_final_bindings=2)
-    gsmDataGen.testing.assert_allclose(out, ref, rtol=1e-2, atol=1e-2)
+    gsm_data_generator.testing.assert_allclose(out, ref, rtol=1e-2, atol=1e-2)
 
 
 @pytest.fixture(
@@ -881,9 +881,9 @@ def attention_rewrite_size(request):
 def get_relax_attention_rewrite_module(
     q_shape, k_shape, v_shape, out_shape, dtype, bias_shape=None, scale=None
 ):
-    from gsmDataGen.script.ir_builder import IRBuilder
-    from gsmDataGen.script.ir_builder import relax as relax_builder
-    from gsmDataGen.script.ir_builder import tir as T
+    from gsm_data_generator.script.ir_builder import IRBuilder
+    from gsm_data_generator.script.ir_builder import relax as relax_builder
+    from gsm_data_generator.script.ir_builder import tir as T
 
     with IRBuilder() as builder:
         with relax_builder.function():
@@ -993,7 +993,7 @@ def get_relax_attention_rewrite_module(
             R.func_ret_value(frame.output_vars[0])
 
     expected_func = builder.get()
-    return gsmDataGen.IRModule({"main": original_func}), gsmDataGen.IRModule({"main": expected_func})
+    return gsm_data_generator.IRModule({"main": original_func}), gsm_data_generator.IRModule({"main": expected_func})
 
 
 def get_numpy_attention_input(q_shape, k_shape, v_shape, bias_shape, dtype):
@@ -1020,7 +1020,7 @@ def test_attention_rewrite_offload(attention_rewrite_size):
     )
     original_mod = partition_for_cutlass(original_mod, True)
     expected_mod = partition_for_cutlass(expected_mod, True)
-    gsmDataGen.ir.assert_structural_equal(original_mod, expected_mod, True)
+    gsm_data_generator.ir.assert_structural_equal(original_mod, expected_mod, True)
 
     codegen_pass = relax.transform.RunCodegen({"cutlass": {"sm": 80, "find_first_valid": True}})
     original_mod = codegen_pass(original_mod)
@@ -1028,11 +1028,11 @@ def test_attention_rewrite_offload(attention_rewrite_size):
     if bias is None:
         original_out = build_and_run(original_mod, [q, k, v], "cuda")
         expected_out = build_and_run(expected_mod, [q, k, v], "cuda")
-        gsmDataGen.testing.assert_allclose(original_out, expected_out, rtol=1e-5, atol=1e-5)
+        gsm_data_generator.testing.assert_allclose(original_out, expected_out, rtol=1e-5, atol=1e-5)
     else:
         original_out = build_and_run(original_mod, [q, k, v, bias], "cuda", legalize=False)
         expected_out = build_and_run(expected_mod, [q, k, v, bias], "cuda", legalize=False)
-        gsmDataGen.testing.assert_allclose(original_out, expected_out, rtol=1e-5, atol=1e-5)
+        gsm_data_generator.testing.assert_allclose(original_out, expected_out, rtol=1e-5, atol=1e-5)
 
 
 def test_conv2d_residual_broadcast():
@@ -1070,7 +1070,7 @@ def test_conv2d_residual_broadcast():
                 R.func_ret_value(frame.output_vars[0])
 
         func = builder.get()
-        return gsmDataGen.IRModule({"main": func})
+        return gsm_data_generator.IRModule({"main": func})
 
     low = -1
     high = 1
@@ -1085,7 +1085,7 @@ def test_conv2d_residual_broadcast():
     args = [data, weight, bias, bias2]
     out = get_result_with_relax_cutlass_offload(mod, *args)
     ref = build_and_run(mod, args, "llvm")
-    gsmDataGen.testing.assert_allclose(out, ref, rtol=1e-5, atol=1e-5)
+    gsm_data_generator.testing.assert_allclose(out, ref, rtol=1e-5, atol=1e-5)
 
 
 @pytest.mark.parametrize(
@@ -1114,13 +1114,13 @@ def test_layer_norm(data_shape, dtype, axes):
                 R.func_ret_value(frame.output_vars[0])
 
         func = builder.get()
-        return gsmDataGen.IRModule({"main": func})
+        return gsm_data_generator.IRModule({"main": func})
 
     Module = get_mod(data_shape, dtype, axes)
     mod = partition_for_cutlass(Module)
 
     if len(axes) != 1 or (axes[0] != -1 and axes[0] != len(data_shape) - 1):
-        gsmDataGen.ir.assert_structural_equal(mod, Module)
+        gsm_data_generator.ir.assert_structural_equal(mod, Module)
         return
 
     mod = relax.transform.RunCodegen()(mod)
@@ -1131,7 +1131,7 @@ def test_layer_norm(data_shape, dtype, axes):
     out = build_and_run(mod, [inp, gamma, beta], "cuda")
     ref = build_and_run(Module, [inp, gamma, beta], "llvm")
 
-    gsmDataGen.testing.assert_allclose(out, ref, rtol=1e-2, atol=1e-2)
+    gsm_data_generator.testing.assert_allclose(out, ref, rtol=1e-2, atol=1e-2)
 
 
 def test_attention_rewrite_fp16():
@@ -1231,12 +1231,12 @@ def test_attention_rewrite_fp16():
             return lv14
 
     mod = partition_for_cutlass(Module)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def split_transform_deploy_mod(mod):
-    mod_transform = gsmDataGen.IRModule()
-    mod_deploy = gsmDataGen.IRModule().with_attrs(mod.attrs)
+    mod_transform = gsm_data_generator.IRModule()
+    mod_deploy = gsm_data_generator.IRModule().with_attrs(mod.attrs)
 
     transform_func_name = None
 
@@ -1244,7 +1244,7 @@ def split_transform_deploy_mod(mod):
         if "transform_params" in gv.name_hint:
             transform_func_name = gv.name_hint
             mod_transform[gv] = func
-        elif isinstance(func, gsmDataGen.tir.PrimFunc):
+        elif isinstance(func, gsm_data_generator.tir.PrimFunc):
             mod_transform[gv] = func
         else:
             mod_deploy[gv] = func
@@ -1477,19 +1477,19 @@ def test_fp16A_int4B_gemm():
 
     mod_transform, mod_deploy, transform_func_name = split_transform_deploy_mod(mod)
 
-    ex = gsmDataGen.compile(mod_transform, target="llvm")
-    vm = relax.vm.VirtualMachine(ex, gsmDataGen.cpu(0))
+    ex = gsm_data_generator.compile(mod_transform, target="llvm")
+    vm = relax.vm.VirtualMachine(ex, gsm_data_generator.cpu(0))
 
     packed_weight, scales, bias_trans = vm[transform_func_name](
-        (gsmDataGen.nd.array(y), gsmDataGen.nd.array(bias))
+        (gsm_data_generator.nd.array(y), gsm_data_generator.nd.array(bias))
     )
 
-    dev = gsmDataGen.device("cuda", 0)
-    ex = gsmDataGen.compile(mod_deploy, target="cuda")
+    dev = gsm_data_generator.device("cuda", 0)
+    ex = gsm_data_generator.compile(mod_deploy, target="cuda")
     vm = relax.vm.VirtualMachine(ex, dev)
 
-    x_nd = gsmDataGen.nd.array(x, dev)
-    residual_nd = gsmDataGen.nd.array(residual, dev)
+    x_nd = gsm_data_generator.nd.array(x, dev)
+    residual_nd = gsm_data_generator.nd.array(residual, dev)
     params = [packed_weight.copyto(dev), scales.copyto(dev), bias_trans.copyto(dev)]
 
     for f_name in ["main_bias", "main_cast_bias", "main_residual"]:
@@ -1507,7 +1507,7 @@ def test_fp16A_int4B_gemm():
         if with_residual:
             ref += residual
 
-        gsmDataGen.testing.assert_allclose(out, ref, rtol=1e-2, atol=1e-2)
+        gsm_data_generator.testing.assert_allclose(out, ref, rtol=1e-2, atol=1e-2)
 
 
 def test_fp16A_int8B_gemm():
@@ -1630,18 +1630,18 @@ def test_fp16A_int8B_gemm():
 
     mod_transform, mod_deploy, transform_func_name = split_transform_deploy_mod(mod)
 
-    ex = gsmDataGen.compile(mod_transform, target="llvm")
-    vm = relax.vm.VirtualMachine(ex, gsmDataGen.cpu(0))
+    ex = gsm_data_generator.compile(mod_transform, target="llvm")
+    vm = relax.vm.VirtualMachine(ex, gsm_data_generator.cpu(0))
 
     packed_weight, scales, bias_trans = vm[transform_func_name](
-        (gsmDataGen.nd.array(y), gsmDataGen.nd.array(bias))
+        (gsm_data_generator.nd.array(y), gsm_data_generator.nd.array(bias))
     )
 
-    dev = gsmDataGen.device("cuda", 0)
-    ex = gsmDataGen.compile(mod_deploy, target="cuda")
+    dev = gsm_data_generator.device("cuda", 0)
+    ex = gsm_data_generator.compile(mod_deploy, target="cuda")
     vm = relax.vm.VirtualMachine(ex, dev)
 
-    x_nd = gsmDataGen.nd.array(x, dev)
+    x_nd = gsm_data_generator.nd.array(x, dev)
     inp = [x_nd, packed_weight.copyto(dev), scales.copyto(dev), bias_trans.copyto(dev)]
     out = vm["main"](*inp).numpy()
 
@@ -1653,7 +1653,7 @@ def test_fp16A_int8B_gemm():
         return x * 0.5 * (1.0 + erf_out)
 
     ref = gelu_fp16(np.dot(x, y.transpose()) + bias)
-    gsmDataGen.testing.assert_allclose(out, ref, rtol=1e-2, atol=1e-2)
+    gsm_data_generator.testing.assert_allclose(out, ref, rtol=1e-2, atol=1e-2)
 
 
 def test_rms_norm():
@@ -1716,8 +1716,8 @@ def test_rms_norm():
     # This is because RunCodegen does not support PrimFunc well yet.
     # i.e., it does remove the global symbol of PrimFunc, which would be no longer used,
     # and thus, the following DCE cannot remove this. Revisit when resolved.
-    with gsmDataGen.target.Target("cuda"):
-        mod = gsmDataGen.tir.transform.DefaultGPUSchedule()(mod)
+    with gsm_data_generator.target.Target("cuda"):
+        mod = gsm_data_generator.tir.transform.DefaultGPUSchedule()(mod)
 
     mod = relax.transform.RunCodegen(
         {"cutlass": {"rms_eps": 1e-6}},
@@ -1728,11 +1728,11 @@ def test_rms_norm():
     out = build_and_run(mod, [inp, weight], "cuda")
     ref = build_and_run(Module, [inp, weight], "llvm", legalize=True)
 
-    gsmDataGen.testing.assert_allclose(out, ref, rtol=1e-2, atol=1e-2)
+    gsm_data_generator.testing.assert_allclose(out, ref, rtol=1e-2, atol=1e-2)
 
 
 def test_conv2d_cuda_graph():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Conv2d:
         @R.function
         def main(
@@ -1781,12 +1781,12 @@ def test_conv2d_cuda_graph():
     mod = relax.transform.RunCodegen({"cutlass": {"sm": 80, "find_first_valid": True}})(mod)
     mod = relax.pipeline.get_pipeline()(mod)  # pylint: disable=no-value-for-parameter
 
-    with gsmDataGen.target.Target("cuda"):
-        mod = gsmDataGen.tir.transform.DefaultGPUSchedule()(mod)
+    with gsm_data_generator.target.Target("cuda"):
+        mod = gsm_data_generator.tir.transform.DefaultGPUSchedule()(mod)
 
     out = build_and_run(mod, inputs, "cuda", cuda_graph=True)
     ref = build_and_run(Conv2d, inputs, "llvm", legalize=True)
-    gsmDataGen.testing.assert_allclose(out, ref, rtol=1e-2, atol=1e-2)
+    gsm_data_generator.testing.assert_allclose(out, ref, rtol=1e-2, atol=1e-2)
 
 
 def test_fp16A_int8B_gemm_batched():
@@ -1906,20 +1906,20 @@ def test_fp16A_int8B_gemm_batched():
 
     mod_transform, mod_deploy, transform_func_name = split_transform_deploy_mod(mod)
 
-    ex = gsmDataGen.compile(mod_transform, target="llvm")
-    vm = relax.vm.VirtualMachine(ex, gsmDataGen.cpu(0))
+    ex = gsm_data_generator.compile(mod_transform, target="llvm")
+    vm = relax.vm.VirtualMachine(ex, gsm_data_generator.cpu(0))
 
-    packed_weight, scales = vm[transform_func_name]((gsmDataGen.nd.array(y),))
+    packed_weight, scales = vm[transform_func_name]((gsm_data_generator.nd.array(y),))
 
-    dev = gsmDataGen.device("cuda", 0)
-    ex = gsmDataGen.compile(mod_deploy, target="cuda")
+    dev = gsm_data_generator.device("cuda", 0)
+    ex = gsm_data_generator.compile(mod_deploy, target="cuda")
     vm = relax.vm.VirtualMachine(ex, dev)
 
-    x_nd = gsmDataGen.nd.array(x, dev)
+    x_nd = gsm_data_generator.nd.array(x, dev)
     inp = [x_nd, packed_weight.copyto(dev), scales.copyto(dev)]
     out = vm["main"](*inp).numpy()
     ref = np.dot(x, y.transpose())
-    gsmDataGen.testing.assert_allclose(out, ref, rtol=1e-2, atol=1e-2)
+    gsm_data_generator.testing.assert_allclose(out, ref, rtol=1e-2, atol=1e-2)
 
 
 def test_fp16A_int8B_gemm_batched_finegrained():
@@ -2061,20 +2061,20 @@ def test_fp16A_int8B_gemm_batched_finegrained():
 
     mod_transform, mod_deploy, transform_func_name = split_transform_deploy_mod(mod)
 
-    ex = gsmDataGen.compile(mod_transform, target="llvm")
-    vm = relax.vm.VirtualMachine(ex, gsmDataGen.cpu(0))
+    ex = gsm_data_generator.compile(mod_transform, target="llvm")
+    vm = relax.vm.VirtualMachine(ex, gsm_data_generator.cpu(0))
 
-    packed_weight, scales = vm[transform_func_name]((gsmDataGen.nd.array(y),))
+    packed_weight, scales = vm[transform_func_name]((gsm_data_generator.nd.array(y),))
 
-    dev = gsmDataGen.device("cuda", 0)
-    ex = gsmDataGen.compile(mod_deploy, target="cuda")
+    dev = gsm_data_generator.device("cuda", 0)
+    ex = gsm_data_generator.compile(mod_deploy, target="cuda")
     vm = relax.vm.VirtualMachine(ex, dev)
 
-    x_nd = gsmDataGen.nd.array(x, dev)
+    x_nd = gsm_data_generator.nd.array(x, dev)
     inp = [x_nd, packed_weight.copyto(dev), scales.copyto(dev)]
     out = vm["main"](*inp).numpy()
     ref = np.dot(x, y.transpose())
-    gsmDataGen.testing.assert_allclose(out, ref, rtol=1e-2, atol=1e-2)
+    gsm_data_generator.testing.assert_allclose(out, ref, rtol=1e-2, atol=1e-2)
 
 
 def test_attention_rewrite_multi_query():
@@ -2120,13 +2120,13 @@ def test_attention_rewrite_multi_query():
 
     out = build_and_run(mod, args, "cuda")
 
-    gsmDataGen.testing.assert_allclose(out, ref, rtol=1e-2, atol=1e-2)
+    gsm_data_generator.testing.assert_allclose(out, ref, rtol=1e-2, atol=1e-2)
 
 
 def _test_batched_var_len_attention(
     mod, seq_lens, num_head, num_kv_head, head_size, window_size=None
 ):
-    if not gsmDataGen.get_global_func("tvm.contrib.thrust.sum_scan", True):
+    if not gsm_data_generator.get_global_func("tvm.contrib.thrust.sum_scan", True):
         return
 
     hidden_size = num_head * head_size
@@ -2165,9 +2165,9 @@ def _test_batched_var_len_attention(
     codegen_pass = relax.transform.RunCodegen({"cutlass": {"sm": 80}})
     mod = codegen_pass(mod)
 
-    with gsmDataGen.target.Target("cuda"):
+    with gsm_data_generator.target.Target("cuda"):
         mod = relax.transform.LegalizeOps()(mod)
-        mod = gsmDataGen.tir.transform.DefaultGPUSchedule()(mod)
+        mod = gsm_data_generator.tir.transform.DefaultGPUSchedule()(mod)
 
     out = build_and_run(
         mod,
@@ -2194,7 +2194,7 @@ def _test_batched_var_len_attention(
     # ).cpu().numpy()[0]
     # out = np.reshape(out, [-1, hidden_size])
 
-    gsmDataGen.testing.assert_allclose(out, ref, rtol=1e-2, atol=1e-2)
+    gsm_data_generator.testing.assert_allclose(out, ref, rtol=1e-2, atol=1e-2)
 
 
 def test_batched_var_len_attention():
@@ -2325,7 +2325,7 @@ def test_sliding_window():
 
     out = get_result_with_relax_cutlass_offload(mod, q, k, v, num_final_bindings=2)
 
-    gsmDataGen.testing.assert_allclose(out, ref, rtol=1e-2, atol=1e-2)
+    gsm_data_generator.testing.assert_allclose(out, ref, rtol=1e-2, atol=1e-2)
 
     ############# xformer reference for verification #############
 
@@ -2402,4 +2402,4 @@ def test_batched_var_len_sliding_window():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

@@ -15,15 +15,15 @@
 # specific language governing permissions and limitations
 # under the License.
 
-import gsmDataGen
-from gsmDataGen import relax
-import gsmDataGen.testing
+import gsm_data_generator
+from gsm_data_generator import relax
+import gsm_data_generator.testing
 import numpy as np
 import torch
 from torch import nn
 from torch.nn import functional as F
 from torch.export import export
-from gsmDataGen.relax.frontend.torch import from_exported_program
+from gsm_data_generator.relax.frontend.torch import from_exported_program
 from torch.nn import Softmax, Upsample
 
 
@@ -43,12 +43,12 @@ def assert_torch_output_vs_tvm_from_exported_to_cuda(raw_data, torch_module, tar
 
     tvm_mod, tvm_params = relax.frontend.detach_params(mod_from_torch)
 
-    relax_pipeline = relax.get_default_pipeline(gsmDataGen.target.Target.from_device(gsmDataGen.cuda()))
+    relax_pipeline = relax.get_default_pipeline(gsm_data_generator.target.Target.from_device(gsm_data_generator.cuda()))
     ex = relax.build(tvm_mod, target=target, relax_pipeline=relax_pipeline)
     vm = relax.VirtualMachine(ex, dev)
 
-    gpu_data = gsmDataGen.nd.array(raw_data_for_tvm, dev)
-    gpu_params = [gsmDataGen.nd.array(p, dev) for p in tvm_params["main"]]
+    gpu_data = gsm_data_generator.nd.array(raw_data_for_tvm, dev)
+    gpu_params = [gsm_data_generator.nd.array(p, dev) for p in tvm_params["main"]]
     gpu_out = vm["main"](gpu_data, *gpu_params)
 
     pytorch_out = torch_module(torch_data)
@@ -64,7 +64,7 @@ def assert_torch_output_vs_tvm_from_exported_to_cuda(raw_data, torch_module, tar
         np.testing.assert_allclose(actual=actual, desired=desired, rtol=1e-5, atol=1e-5)
 
 
-@gsmDataGen.testing.parametrize_targets("cuda")
+@gsm_data_generator.testing.parametrize_targets("cuda")
 def test_index_tensor(target, dev):
     class IndexModel0(nn.Module):
         def __init__(self):
@@ -166,7 +166,7 @@ def test_index_tensor(target, dev):
     assert_torch_output_vs_tvm_from_exported_to_cuda(raw_data, torch_module, target, dev)
 
 
-@gsmDataGen.testing.parametrize_targets("cuda")
+@gsm_data_generator.testing.parametrize_targets("cuda")
 def test_full(target, dev):
     class FullModel(nn.Module):
         def __init__(self):
@@ -180,7 +180,7 @@ def test_full(target, dev):
     assert_torch_output_vs_tvm_from_exported_to_cuda(raw_data, torch_module, target, dev)
 
 
-@gsmDataGen.testing.parametrize_targets("cuda")
+@gsm_data_generator.testing.parametrize_targets("cuda")
 def test_full_like(target, dev):
     class FullLike(nn.Module):
         def __init__(self):
@@ -195,7 +195,7 @@ def test_full_like(target, dev):
     assert_torch_output_vs_tvm_from_exported_to_cuda(raw_data, torch_module, target, dev)
 
 
-@gsmDataGen.testing.parametrize_targets("cuda")
+@gsm_data_generator.testing.parametrize_targets("cuda")
 def test_ones(target, dev):
     class FullModel(nn.Module):
         def __init__(self):
@@ -209,7 +209,7 @@ def test_ones(target, dev):
     assert_torch_output_vs_tvm_from_exported_to_cuda(raw_data, torch_module, target, dev)
 
 
-@gsmDataGen.testing.parametrize_targets("cuda")
+@gsm_data_generator.testing.parametrize_targets("cuda")
 def test_sort(target, dev):
     raw_data = np.array([[4, 1, 13], [-30, 1, 3], [4, 0, 10]]).astype("float32")
 
@@ -234,7 +234,7 @@ def test_sort(target, dev):
     assert_torch_output_vs_tvm_from_exported_to_cuda(raw_data, torch_module, target, dev)
 
 
-@gsmDataGen.testing.parametrize_targets("cuda")
+@gsm_data_generator.testing.parametrize_targets("cuda")
 def test_tensor_clamp(target, dev):
     class ClampBothTensor(torch.nn.Module):
         def __init__(self):
@@ -315,7 +315,7 @@ def test_tensor_clamp(target, dev):
     assert_torch_output_vs_tvm_from_exported_to_cuda(raw_data, torch_module6, target, dev)
 
 
-@gsmDataGen.testing.parametrize_targets("cuda")
+@gsm_data_generator.testing.parametrize_targets("cuda")
 def test_tensor_expand_as(target, dev):
     class ExpandAs0(torch.nn.Module):
         def __init__(self):
@@ -362,7 +362,7 @@ def test_tensor_expand_as(target, dev):
     assert_torch_output_vs_tvm_from_exported_to_cuda(raw_data, torch_module3, target, dev)
 
 
-@gsmDataGen.testing.parametrize_targets("cuda")
+@gsm_data_generator.testing.parametrize_targets("cuda")
 def test_copy_(target, dev):
     class CopyTester(nn.Module):
         def __init__(self, size):
@@ -380,7 +380,7 @@ def test_copy_(target, dev):
     assert_torch_output_vs_tvm_from_exported_to_cuda(raw_data, torch_module, target, dev)
 
 
-@gsmDataGen.testing.parametrize_targets("cuda")
+@gsm_data_generator.testing.parametrize_targets("cuda")
 def test_upsample_with_size(target, dev):
     """
     The Upsample module can be used with the size arugment or the scale
@@ -397,7 +397,7 @@ def test_upsample_with_size(target, dev):
     assert_torch_output_vs_tvm_from_exported_to_cuda(raw_data, torch_module, target, dev)
 
 
-@gsmDataGen.testing.parametrize_targets("cuda")
+@gsm_data_generator.testing.parametrize_targets("cuda")
 def test_detach_no_change(target, dev):
     # In TVM, detach() is just identity
     class DetachTester(nn.Module):
@@ -410,7 +410,7 @@ def test_detach_no_change(target, dev):
     assert_torch_output_vs_tvm_from_exported_to_cuda(raw_data, torch_module, target, dev)
 
 
-@gsmDataGen.testing.parametrize_targets("cuda")
+@gsm_data_generator.testing.parametrize_targets("cuda")
 def test_upsample_with_scale_factor(target, dev):
     """
     The Upsample module can be used with the size arugment or the scale
@@ -428,7 +428,7 @@ def test_upsample_with_scale_factor(target, dev):
     assert_torch_output_vs_tvm_from_exported_to_cuda(raw_data, torch_module, target, dev)
 
 
-@gsmDataGen.testing.parametrize_targets("cuda")
+@gsm_data_generator.testing.parametrize_targets("cuda")
 def test_linalg_vector_norm(target, dev):
     class VectorNorm0(torch.nn.Module):
         def forward(self, x):
@@ -459,7 +459,7 @@ def test_linalg_vector_norm(target, dev):
     assert_torch_output_vs_tvm_from_exported_to_cuda(raw_data, torch_module3, target, dev)
 
 
-@gsmDataGen.testing.parametrize_targets("cuda")
+@gsm_data_generator.testing.parametrize_targets("cuda")
 def test_batch_norm_prog(target, dev):
     # Default args, in a pytorch program (to ensure output is in proper type and format)
     raw_data = np.random.randn(2, 3, 2, 2).astype(np.float32)
@@ -478,7 +478,7 @@ def test_batch_norm_prog(target, dev):
     assert_torch_output_vs_tvm_from_exported_to_cuda(raw_data, torch_module, target, dev)
 
 
-@gsmDataGen.testing.parametrize_targets("cuda")
+@gsm_data_generator.testing.parametrize_targets("cuda")
 def test_split_size(target, dev):
     # Test split using the split_size argument such that it is not a divisor
     # of the dimension to split (the last tensor will be smaller)
@@ -502,7 +502,7 @@ def test_split_size(target, dev):
     assert_torch_output_vs_tvm_from_exported_to_cuda(raw_data, torch_module, target, dev)
 
 
-@gsmDataGen.testing.parametrize_targets("cuda")
+@gsm_data_generator.testing.parametrize_targets("cuda")
 def test_split_sections_list(target, dev):
     # Test split using a list of section sizes
     batch = 3
@@ -526,7 +526,7 @@ def test_split_sections_list(target, dev):
     assert_torch_output_vs_tvm_from_exported_to_cuda(raw_data, torch_module, target, dev)
 
 
-@gsmDataGen.testing.parametrize_targets("cuda")
+@gsm_data_generator.testing.parametrize_targets("cuda")
 def test_batch_norm0(target, dev):
     # Eval, no momentum, no affine, no running stats
     raw_data = np.random.randn(8, 3, 4, 4).astype(np.float32)
@@ -536,7 +536,7 @@ def test_batch_norm0(target, dev):
     assert_torch_output_vs_tvm_from_exported_to_cuda(raw_data, torch_module, target, dev)
 
 
-@gsmDataGen.testing.parametrize_targets("cuda")
+@gsm_data_generator.testing.parametrize_targets("cuda")
 def test_batch_norm1(target, dev):
     # Eval, with momentum, no affine, with running stats
     raw_data = np.random.randn(1, 4, 2, 2).astype(np.float32)
@@ -546,7 +546,7 @@ def test_batch_norm1(target, dev):
     assert_torch_output_vs_tvm_from_exported_to_cuda(raw_data, torch_module, target, dev)
 
 
-@gsmDataGen.testing.parametrize_targets("cuda")
+@gsm_data_generator.testing.parametrize_targets("cuda")
 def test_batch_norm2(target, dev):
     # Eval, with momentum, affine, no running stats
     raw_data = np.random.randn(3, 4, 2, 2).astype(np.float32)
@@ -556,7 +556,7 @@ def test_batch_norm2(target, dev):
     assert_torch_output_vs_tvm_from_exported_to_cuda(raw_data, torch_module, target, dev)
 
 
-@gsmDataGen.testing.parametrize_targets("cuda")
+@gsm_data_generator.testing.parametrize_targets("cuda")
 def test_batch_norm3(target, dev):
     # Eval, no momentum, affine, with running stats
     raw_data = np.random.randn(1, 2, 2, 2).astype(np.float32)
@@ -566,7 +566,7 @@ def test_batch_norm3(target, dev):
     assert_torch_output_vs_tvm_from_exported_to_cuda(raw_data, torch_module, target, dev)
 
 
-@gsmDataGen.testing.parametrize_targets("cuda")
+@gsm_data_generator.testing.parametrize_targets("cuda")
 def test_chunk_even(target, dev):
     # Chunks is a divisor of the dimension size
     batch = 6
@@ -590,7 +590,7 @@ def test_chunk_even(target, dev):
     assert_torch_output_vs_tvm_from_exported_to_cuda(raw_data, torch_module, target, dev)
 
 
-@gsmDataGen.testing.parametrize_targets("cuda")
+@gsm_data_generator.testing.parametrize_targets("cuda")
 def test_chunk_uneven(target, dev):
     # Chunks is not a divisor of the dimension size
     batch = 2
@@ -614,7 +614,7 @@ def test_chunk_uneven(target, dev):
     assert_torch_output_vs_tvm_from_exported_to_cuda(raw_data, torch_module, target, dev)
 
 
-@gsmDataGen.testing.parametrize_targets("cuda")
+@gsm_data_generator.testing.parametrize_targets("cuda")
 def test_chunk_too_many(target, dev):
     # If user asks for more chunks than the size of the dim, pytorch simply splits in sections of size 1
     batch = 1
@@ -638,7 +638,7 @@ def test_chunk_too_many(target, dev):
     assert_torch_output_vs_tvm_from_exported_to_cuda(raw_data, torch_module, target, dev)
 
 
-@gsmDataGen.testing.parametrize_targets("cuda")
+@gsm_data_generator.testing.parametrize_targets("cuda")
 def test_arange(target, dev):
     # arange.default
     raw_data = np.array([0, 0, 0, 0, 0])
@@ -671,7 +671,7 @@ def test_arange(target, dev):
     assert_torch_output_vs_tvm_from_exported_to_cuda(raw_data, torch_module, target, dev)
 
 
-@gsmDataGen.testing.parametrize_targets("cuda")
+@gsm_data_generator.testing.parametrize_targets("cuda")
 def test_index_select(target, dev):
     class IndexSelectModel(nn.Module):
         def forward(self, x):
@@ -683,7 +683,7 @@ def test_index_select(target, dev):
     assert_torch_output_vs_tvm_from_exported_to_cuda(raw_data, torch_module, target, dev)
 
 
-@gsmDataGen.testing.parametrize_targets("cuda")
+@gsm_data_generator.testing.parametrize_targets("cuda")
 def test_stack(target, dev):
     class StackModel(nn.Module):
         def forward(self, x):
@@ -698,7 +698,7 @@ def test_stack(target, dev):
     assert_torch_output_vs_tvm_from_exported_to_cuda(raw_data, torch_module, target, dev)
 
 
-@gsmDataGen.testing.parametrize_targets("cuda")
+@gsm_data_generator.testing.parametrize_targets("cuda")
 def test_sum(target, dev):
     class SumModel(nn.Module):
         def forward(self, x):
@@ -710,7 +710,7 @@ def test_sum(target, dev):
     assert_torch_output_vs_tvm_from_exported_to_cuda(raw_data, torch_module, target, dev)
 
 
-@gsmDataGen.testing.parametrize_targets("cuda")
+@gsm_data_generator.testing.parametrize_targets("cuda")
 def test_mul(target, dev):
     class MulModule(nn.Module):
         def __init__(self):
@@ -725,7 +725,7 @@ def test_mul(target, dev):
     assert_torch_output_vs_tvm_from_exported_to_cuda(raw_data, torch_module, target, dev)
 
 
-@gsmDataGen.testing.parametrize_targets("cuda")
+@gsm_data_generator.testing.parametrize_targets("cuda")
 def test_concat(target, dev):
     class ConcatFour(nn.Module):
         def __init__(self, dim=0):
@@ -743,7 +743,7 @@ def test_concat(target, dev):
     assert_torch_output_vs_tvm_from_exported_to_cuda(raw_data, torch_module, target, dev)
 
 
-@gsmDataGen.testing.parametrize_targets("cuda")
+@gsm_data_generator.testing.parametrize_targets("cuda")
 def test_leakyrelu_module(target, dev):
     class LeakyReLUModule(nn.Module):
         def __init__(self):
@@ -758,7 +758,7 @@ def test_leakyrelu_module(target, dev):
     assert_torch_output_vs_tvm_from_exported_to_cuda(raw_data, torch_module, target, dev)
 
 
-@gsmDataGen.testing.parametrize_targets("cuda")
+@gsm_data_generator.testing.parametrize_targets("cuda")
 def test_log_softmax_module(target, dev):
     class LogSoftmaxModule(nn.Module):
         def __init__(self):
@@ -773,7 +773,7 @@ def test_log_softmax_module(target, dev):
     assert_torch_output_vs_tvm_from_exported_to_cuda(raw_data, torch_module, target, dev)
 
 
-@gsmDataGen.testing.parametrize_targets("cuda")
+@gsm_data_generator.testing.parametrize_targets("cuda")
 def test_softmax_module(target, dev):
     class SoftmaxModule(nn.Module):
         def __init__(self):
@@ -788,7 +788,7 @@ def test_softmax_module(target, dev):
     assert_torch_output_vs_tvm_from_exported_to_cuda(raw_data, torch_module, target, dev)
 
 
-@gsmDataGen.testing.parametrize_targets("cuda")
+@gsm_data_generator.testing.parametrize_targets("cuda")
 def test_adaptive_avg_pool2d_module(target, dev):
     class AdaptiveAvgPool2dModule(nn.Module):
         def __init__(self):
@@ -803,7 +803,7 @@ def test_adaptive_avg_pool2d_module(target, dev):
     assert_torch_output_vs_tvm_from_exported_to_cuda(raw_data, torch_module, target, dev)
 
 
-@gsmDataGen.testing.parametrize_targets("cuda")
+@gsm_data_generator.testing.parametrize_targets("cuda")
 def test_avg_pool2d_module(target, dev):
     class AvgPool2dModule(nn.Module):
         def __init__(self):
@@ -818,7 +818,7 @@ def test_avg_pool2d_module(target, dev):
     assert_torch_output_vs_tvm_from_exported_to_cuda(raw_data, torch_module, target, dev)
 
 
-@gsmDataGen.testing.parametrize_targets("cuda")
+@gsm_data_generator.testing.parametrize_targets("cuda")
 def test_conv1d_module(target, dev):
     class Conv1dModule(nn.Module):
         def __init__(self):
@@ -833,7 +833,7 @@ def test_conv1d_module(target, dev):
     assert_torch_output_vs_tvm_from_exported_to_cuda(raw_data, torch_module, target, dev)
 
 
-@gsmDataGen.testing.parametrize_targets("cuda")
+@gsm_data_generator.testing.parametrize_targets("cuda")
 def test_conv2d_module(target, dev):
     class Conv2dModule(nn.Module):
         def __init__(self):
@@ -848,7 +848,7 @@ def test_conv2d_module(target, dev):
     assert_torch_output_vs_tvm_from_exported_to_cuda(raw_data, torch_module, target, dev)
 
 
-@gsmDataGen.testing.parametrize_targets("cuda")
+@gsm_data_generator.testing.parametrize_targets("cuda")
 def test_conv3d_module(target, dev):
     class Conv3dModule(nn.Module):
         def __init__(self):
@@ -863,7 +863,7 @@ def test_conv3d_module(target, dev):
     assert_torch_output_vs_tvm_from_exported_to_cuda(raw_data, torch_module, target, dev)
 
 
-@gsmDataGen.testing.parametrize_targets("cuda")
+@gsm_data_generator.testing.parametrize_targets("cuda")
 def test_group_norm_module(target, dev):
     class GroupNormModule(nn.Module):
         def __init__(self):
@@ -878,7 +878,7 @@ def test_group_norm_module(target, dev):
     assert_torch_output_vs_tvm_from_exported_to_cuda(raw_data, torch_module, target, dev)
 
 
-@gsmDataGen.testing.parametrize_targets("cuda")
+@gsm_data_generator.testing.parametrize_targets("cuda")
 def test_layer_norm_module(target, dev):
     class LayerNormModule(nn.Module):
         def __init__(self):
@@ -893,7 +893,7 @@ def test_layer_norm_module(target, dev):
     assert_torch_output_vs_tvm_from_exported_to_cuda(raw_data, torch_module, target, dev)
 
 
-@gsmDataGen.testing.parametrize_targets("cuda")
+@gsm_data_generator.testing.parametrize_targets("cuda")
 def test_linear_module(target, dev):
     class LinearModule(nn.Module):
         def __init__(self):
@@ -908,7 +908,7 @@ def test_linear_module(target, dev):
     assert_torch_output_vs_tvm_from_exported_to_cuda(raw_data, torch_module, target, dev)
 
 
-@gsmDataGen.testing.parametrize_targets("cuda")
+@gsm_data_generator.testing.parametrize_targets("cuda")
 def test_max_pool2d_module(target, dev):
     class MaxPool2dModule(nn.Module):
         def __init__(self):
@@ -923,7 +923,7 @@ def test_max_pool2d_module(target, dev):
     assert_torch_output_vs_tvm_from_exported_to_cuda(raw_data, torch_module, target, dev)
 
 
-@gsmDataGen.testing.parametrize_targets("cuda")
+@gsm_data_generator.testing.parametrize_targets("cuda")
 def test_embedding_module(target, dev):
     class EmbeddingModule(nn.Module):
         def __init__(self):
@@ -938,7 +938,7 @@ def test_embedding_module(target, dev):
     assert_torch_output_vs_tvm_from_exported_to_cuda(raw_data, torch_module, target, dev)
 
 
-@gsmDataGen.testing.parametrize_targets("cuda")
+@gsm_data_generator.testing.parametrize_targets("cuda")
 def test_flatten_module(target, dev):
     class FlattenModule(nn.Module):
         def __init__(self):
@@ -953,7 +953,7 @@ def test_flatten_module(target, dev):
     assert_torch_output_vs_tvm_from_exported_to_cuda(raw_data, torch_module, target, dev)
 
 
-@gsmDataGen.testing.parametrize_targets("cuda")
+@gsm_data_generator.testing.parametrize_targets("cuda")
 def test_numel(target, dev):
     class NumelModule(nn.Module):
         def forward(self, x):
@@ -964,7 +964,7 @@ def test_numel(target, dev):
     assert_torch_output_vs_tvm_from_exported_to_cuda(raw_data, torch_module, target, dev)
 
 
-@gsmDataGen.testing.parametrize_targets("cuda")
+@gsm_data_generator.testing.parametrize_targets("cuda")
 def test_size(target, dev):
     class SizeModule(nn.Module):
         def forward(self, x):
@@ -975,7 +975,7 @@ def test_size(target, dev):
     assert_torch_output_vs_tvm_from_exported_to_cuda(raw_data, torch_module, target, dev)
 
 
-@gsmDataGen.testing.parametrize_targets("cuda")
+@gsm_data_generator.testing.parametrize_targets("cuda")
 def test_tensor(target, dev):
     class TensorModule(nn.Module):
         def forward(self, x):
@@ -986,7 +986,7 @@ def test_tensor(target, dev):
     assert_torch_output_vs_tvm_from_exported_to_cuda(raw_data, torch_module, target, dev)
 
 
-@gsmDataGen.testing.parametrize_targets("cuda")
+@gsm_data_generator.testing.parametrize_targets("cuda")
 def test_type(target, dev):
     class TypeModule(nn.Module):
         def forward(self, x):
@@ -997,7 +997,7 @@ def test_type(target, dev):
     assert_torch_output_vs_tvm_from_exported_to_cuda(raw_data, torch_module, target, dev)
 
 
-@gsmDataGen.testing.parametrize_targets("cuda")
+@gsm_data_generator.testing.parametrize_targets("cuda")
 def test_float(target, dev):
     class FloatModule(nn.Module):
         def forward(self, x):
@@ -1008,7 +1008,7 @@ def test_float(target, dev):
     assert_torch_output_vs_tvm_from_exported_to_cuda(raw_data, torch_module, target, dev)
 
 
-@gsmDataGen.testing.parametrize_targets("cuda")
+@gsm_data_generator.testing.parametrize_targets("cuda")
 def test_half(target, dev):
     class HalfModule(nn.Module):
         def forward(self, x):
@@ -1019,7 +1019,7 @@ def test_half(target, dev):
     assert_torch_output_vs_tvm_from_exported_to_cuda(raw_data, torch_module, target, dev)
 
 
-@gsmDataGen.testing.parametrize_targets("cuda")
+@gsm_data_generator.testing.parametrize_targets("cuda")
 def test_getattr(target, dev):
     class GetAttrModule(nn.Module):
         def forward(self, x):
@@ -1031,7 +1031,7 @@ def test_getattr(target, dev):
     assert_torch_output_vs_tvm_from_exported_to_cuda(raw_data, torch_module, target, dev)
 
 
-@gsmDataGen.testing.parametrize_targets("cuda")
+@gsm_data_generator.testing.parametrize_targets("cuda")
 def test_sym_size_int(target, dev):
     class SymSizeIntModule(nn.Module):
         def forward(self, x):
@@ -1042,7 +1042,7 @@ def test_sym_size_int(target, dev):
     assert_torch_output_vs_tvm_from_exported_to_cuda(raw_data, torch_module, target, dev)
 
 
-@gsmDataGen.testing.parametrize_targets("cuda")
+@gsm_data_generator.testing.parametrize_targets("cuda")
 def test_interpolate(target, dev):
     class InterpolateModule(nn.Module):
         def forward(self, x):
@@ -1054,7 +1054,7 @@ def test_interpolate(target, dev):
     assert_torch_output_vs_tvm_from_exported_to_cuda(raw_data, torch_module, target, dev)
 
 
-@gsmDataGen.testing.parametrize_targets("cuda")
+@gsm_data_generator.testing.parametrize_targets("cuda")
 def test_cross_entropy_module(target, dev):
     class CrossEntropyModule(nn.Module):
         def __init__(self):
@@ -1071,4 +1071,4 @@ def test_cross_entropy_module(target, dev):
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

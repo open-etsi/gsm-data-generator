@@ -17,10 +17,10 @@
 
 import pytest
 
-import gsmDataGen
-from gsmDataGen import tir
-from gsmDataGen.script import tir as T
-from gsmDataGen.target.codegen import llvm_version_major
+import gsm_data_generator
+from gsm_data_generator import tir
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.target.codegen import llvm_version_major
 
 """
 Tests for scalable data types.
@@ -28,7 +28,7 @@ Tests for scalable data types.
 
 
 def test_create_scalable_data_type_python_api():
-    dtype = gsmDataGen.DataType("float32xvscalex4")
+    dtype = gsm_data_generator.DataType("float32xvscalex4")
     assert str(dtype) == "float32xvscalex4"
 
 
@@ -52,8 +52,8 @@ def test_tvm_script_create_scalable_tir_intrin():
 
 def test_invalid_data_type():
     with pytest.raises(ValueError):
-        gsmDataGen.DataType("float32x4xvscale")
+        gsm_data_generator.DataType("float32x4xvscale")
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

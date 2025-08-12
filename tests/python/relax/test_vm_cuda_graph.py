@@ -15,11 +15,11 @@
 # specific language governing permissions and limitations
 # under the License.
 
-import gsmDataGen
-import gsmDataGen.testing
+import gsm_data_generator
+import gsm_data_generator.testing
 
-from gsmDataGen import relax
-from gsmDataGen.script import tir as T, relax as R, ir as I
+from gsm_data_generator import relax
+from gsm_data_generator.script import tir as T, relax as R, ir as I
 
 import numpy as np
 import pytest
@@ -93,21 +93,21 @@ def codegen(mod, target, exec_mode="bytecode"):
     return relax.vm_build._vmlink(builder, target, tir_mod)
 
 
-@gsmDataGen.testing.requires_cuda
+@gsm_data_generator.testing.requires_cuda
 def test_vm_run():
     mod = Module
-    target = gsmDataGen.target.Target("cuda", host="llvm")
+    target = gsm_data_generator.target.Target("cuda", host="llvm")
     ex = codegen(mod, target)
-    dev = gsmDataGen.cuda(0)
+    dev = gsm_data_generator.cuda(0)
     vm = relax.VirtualMachine(ex, dev)
     x_np = np.random.uniform(size=(16, 16)).astype("float32")
-    x = gsmDataGen.nd.array(x_np, dev)
+    x = gsm_data_generator.nd.array(x_np, dev)
     y = vm["main"](x)
     y_np = x_np + 1.0 + 1.0 + 1.0 + 1.0
-    gsmDataGen.testing.assert_allclose(y.numpy(), y_np, rtol=1e-5, atol=1e-5)
+    gsm_data_generator.testing.assert_allclose(y.numpy(), y_np, rtol=1e-5, atol=1e-5)
 
 
-@gsmDataGen.testing.requires_cudagraph
+@gsm_data_generator.testing.requires_cudagraph
 def test_capture_error_is_recoverable():
     """Function calls while capturing cudagraph may throw exceptions
 
@@ -126,16 +126,16 @@ def test_capture_error_is_recoverable():
 
     """
 
-    target = gsmDataGen.target.Target("cuda")
-    dev = gsmDataGen.cuda()
+    target = gsm_data_generator.target.Target("cuda")
+    dev = gsm_data_generator.cuda()
 
-    @gsmDataGen.register_func("test_vm_cuda_graph.invalid_impl_for_cudagraph", override=True)
+    @gsm_data_generator.register_func("test_vm_cuda_graph.invalid_impl_for_cudagraph", override=True)
     def invalid_impl_for_cudagraph(arg_tensor):
         # Memory allocation/deallocation may not be performed while
         # capturing a cudaGraph.  This passes the warm-up run
         # performed by "vm.builtin.cuda_graph.run_or_capture", but
         # throws an exception when the cudaGraph is being captured.
-        _dummy_workspace = gsmDataGen.nd.empty([16], "float16", dev)
+        _dummy_workspace = gsm_data_generator.nd.empty([16], "float16", dev)
         return arg_tensor
 
     @I.ir_module
@@ -151,15 +151,15 @@ def test_capture_error_is_recoverable():
             D = R.add(C, C)
             return D
 
-    with target, gsmDataGen.ir.transform.PassContext(config={"relax.backend.use_cuda_graph": True}):
-        Module = gsmDataGen.ir.transform.Sequential(
+    with target, gsm_data_generator.ir.transform.PassContext(config={"relax.backend.use_cuda_graph": True}):
+        Module = gsm_data_generator.ir.transform.Sequential(
             [
-                gsmDataGen.relax.transform.LegalizeOps(),
-                gsmDataGen.tir.transform.DefaultGPUSchedule(),
-                gsmDataGen.relax.transform.RemovePurityChecking(),
-                gsmDataGen.relax.transform.CallTIRRewrite(),
-                gsmDataGen.relax.transform.StaticPlanBlockMemory(),
-                gsmDataGen.relax.transform.RewriteCUDAGraph(),
+                gsm_data_generator.relax.transform.LegalizeOps(),
+                gsm_data_generator.tir.transform.DefaultGPUSchedule(),
+                gsm_data_generator.relax.transform.RemovePurityChecking(),
+                gsm_data_generator.relax.transform.CallTIRRewrite(),
+                gsm_data_generator.relax.transform.StaticPlanBlockMemory(),
+                gsm_data_generator.relax.transform.RewriteCUDAGraph(),
             ]
         )(Module)
 
@@ -168,14 +168,14 @@ def test_capture_error_is_recoverable():
         "to have been captured by RewriteCUDAGraph."
     )
 
-    built = gsmDataGen.compile(Module, target=target)
-    vm = gsmDataGen.relax.VirtualMachine(built, dev)
+    built = gsm_data_generator.compile(Module, target=target)
+    vm = gsm_data_generator.relax.VirtualMachine(built, dev)
 
-    arg = gsmDataGen.nd.array(np.arange(16).astype("float16"), dev)
+    arg = gsm_data_generator.nd.array(np.arange(16).astype("float16"), dev)
 
-    with pytest.raises(gsmDataGen.TVMError):
+    with pytest.raises(gsm_data_generator.TVMError):
         vm["main"](arg)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

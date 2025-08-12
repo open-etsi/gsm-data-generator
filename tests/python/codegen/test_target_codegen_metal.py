@@ -16,33 +16,33 @@
 # under the License.
 import numpy as np
 
-import gsmDataGen
-import gsmDataGen.script
-import gsmDataGen.testing
-from gsmDataGen import te
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.script
+import gsm_data_generator.testing
+from gsm_data_generator import te
+from gsm_data_generator.script import tir as T
 
 
-@gsmDataGen.testing.requires_gpu
-@gsmDataGen.testing.requires_metal
+@gsm_data_generator.testing.requires_gpu
+@gsm_data_generator.testing.requires_metal
 def test_metal_inf_nan():
     target = "metal"
 
     def check_inf_nan(dev, n, value, dtype):
         A = te.placeholder((n,), name="A", dtype=dtype)
-        inf_value = gsmDataGen.tir.const(value, dtype=dtype)
+        inf_value = gsm_data_generator.tir.const(value, dtype=dtype)
         C = te.compute((n,), lambda i: inf_value, name="C")
         prim_func = te.create_prim_func([A, C])
-        sch = gsmDataGen.tir.Schedule(prim_func)
+        sch = gsm_data_generator.tir.Schedule(prim_func)
         (x,) = sch.get_loops(sch.get_block("C"))
         sch.bind(x, "threadIdx.x")
-        fun = gsmDataGen.compile(sch.mod, target=target)
-        a = gsmDataGen.nd.empty((n,), A.dtype, dev)
-        c = gsmDataGen.nd.empty((n,), A.dtype, dev)
+        fun = gsm_data_generator.compile(sch.mod, target=target)
+        a = gsm_data_generator.nd.empty((n,), A.dtype, dev)
+        c = gsm_data_generator.nd.empty((n,), A.dtype, dev)
         # Only need to test compiling here
         fun(a, c)
 
-    dev = gsmDataGen.device(target, 0)
+    dev = gsm_data_generator.device(target, 0)
 
     check_inf_nan(dev, 1, -float("inf"), "float32")
     check_inf_nan(dev, 1, -float("inf"), "float16")
@@ -52,10 +52,10 @@ def test_metal_inf_nan():
     check_inf_nan(dev, 1, float("nan"), "float16")
 
 
-@gsmDataGen.testing.requires_gpu
-@gsmDataGen.testing.requires_metal
+@gsm_data_generator.testing.requires_gpu
+@gsm_data_generator.testing.requires_metal
 def test_unaligned_vectorize():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class IRModule:
         @T.prim_func
         def main(A: T.Buffer((2, 3), "float32"), B: T.Buffer((6,), "float32")):
@@ -67,18 +67,18 @@ def test_unaligned_vectorize():
                         B[vi0] = A[vi0 // 3, vi0 % 3]
 
     target = "metal"
-    dev = gsmDataGen.metal()
+    dev = gsm_data_generator.metal()
 
     a = (np.arange(6).reshape(2, 3)).astype("float32")
-    a_nd = gsmDataGen.nd.array(a, dev)
-    b_nd = gsmDataGen.nd.empty((6,), "float32", dev)
-    f = gsmDataGen.compile(IRModule, target=target)
+    a_nd = gsm_data_generator.nd.array(a, dev)
+    b_nd = gsm_data_generator.nd.empty((6,), "float32", dev)
+    f = gsm_data_generator.compile(IRModule, target=target)
     f(a_nd, b_nd)
     np.testing.assert_allclose(b_nd.numpy(), a.reshape(6), atol=1e-5, rtol=1e-5)
 
 
-@gsmDataGen.testing.requires_gpu
-@gsmDataGen.testing.requires_metal
+@gsm_data_generator.testing.requires_gpu
+@gsm_data_generator.testing.requires_metal
 def test_metal_erf():
     target = "metal"
 
@@ -86,27 +86,27 @@ def test_metal_erf():
         A = te.placeholder((n,), name="A", dtype=dtype)
         C = te.compute(A.shape, lambda *i: te.erf(A(*i)), name="C")
         func = te.create_prim_func([A, C])
-        sch = gsmDataGen.tir.Schedule(func)
+        sch = gsm_data_generator.tir.Schedule(func)
         (x,) = sch.get_loops(sch.get_block("C"))
         sch.bind(x, "threadIdx.x")
-        fun = gsmDataGen.compile(sch.mod, target=target)
-        a = gsmDataGen.nd.empty((n,), A.dtype, dev)
-        c = gsmDataGen.nd.empty((n,), A.dtype, dev)
+        fun = gsm_data_generator.compile(sch.mod, target=target)
+        a = gsm_data_generator.nd.empty((n,), A.dtype, dev)
+        c = gsm_data_generator.nd.empty((n,), A.dtype, dev)
         # Only need to test compiling here
         fun(a, c)
 
-    dev = gsmDataGen.device(target, 0)
+    dev = gsm_data_generator.device(target, 0)
 
     check_erf(dev, 1, "float32")
     check_erf(dev, 1, "float16")
 
 
-@gsmDataGen.testing.requires_gpu
-@gsmDataGen.testing.requires_metal
+@gsm_data_generator.testing.requires_gpu
+@gsm_data_generator.testing.requires_metal
 def test_ramp():
     target = "metal"
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class IRModule:
         @T.prim_func
         def main(A: T.Buffer((1, 2), "int32")):
@@ -117,17 +117,17 @@ def test_ramp():
                     r = T.ramp(tx, 3, 2)
                     A[0, T.ramp(0, 1, 2)] = r
 
-    f = gsmDataGen.compile(IRModule, target=target)
-    dev = gsmDataGen.metal()
-    a_nd = gsmDataGen.nd.empty((1, 2), "int32", dev)
+    f = gsm_data_generator.compile(IRModule, target=target)
+    dev = gsm_data_generator.metal()
+    a_nd = gsm_data_generator.nd.empty((1, 2), "int32", dev)
     f(a_nd)
     assert tuple(a_nd.numpy()[0, :]) == (0, 3)
 
 
-@gsmDataGen.testing.requires_gpu
-@gsmDataGen.testing.requires_metal
+@gsm_data_generator.testing.requires_gpu
+@gsm_data_generator.testing.requires_metal
 def test_select_vectorize():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class IRModule:
         @T.prim_func
         def main(A: T.Buffer((6), "float32"), B: T.Buffer((6,), "float32")):
@@ -139,18 +139,18 @@ def test_select_vectorize():
                         B[vi0] = T.Select((vi0 % 2) == 0, A[vi0], T.float32(0))
 
     target = "metal"
-    dev = gsmDataGen.metal()
+    dev = gsm_data_generator.metal()
     a = np.arange(6).astype("float32")
-    a_nd = gsmDataGen.nd.array(a, dev)
-    b_nd = gsmDataGen.nd.empty((6,), "float32", dev)
-    f = gsmDataGen.compile(IRModule, target=target)
+    a_nd = gsm_data_generator.nd.array(a, dev)
+    b_nd = gsm_data_generator.nd.empty((6,), "float32", dev)
+    f = gsm_data_generator.compile(IRModule, target=target)
     f(a_nd, b_nd)
     a.reshape(3, 2)[:, 1] = 0
     np.testing.assert_allclose(b_nd.numpy(), a, atol=1e-5, rtol=1e-5)
 
 
-@gsmDataGen.testing.requires_gpu
-@gsmDataGen.testing.requires_metal
+@gsm_data_generator.testing.requires_gpu
+@gsm_data_generator.testing.requires_metal
 def test_vectorized_uint8():
     @T.prim_func
     def func(A: T.Buffer((16), "uint8"), B: T.Buffer((16), "float32")):
@@ -160,18 +160,18 @@ def test_vectorized_uint8():
                     vi = T.axis.spatial(16, i * 4 + j)
                     B[vi] = T.Cast("float32", A[vi])
 
-    dev = gsmDataGen.metal()
+    dev = gsm_data_generator.metal()
     a = np.arange(16).astype("uint8")
-    a_nd = gsmDataGen.nd.array(a, dev)
-    b_nd = gsmDataGen.nd.empty((16,), "float32", dev)
-    f = gsmDataGen.compile(func, target="metal")
+    a_nd = gsm_data_generator.nd.array(a, dev)
+    b_nd = gsm_data_generator.nd.empty((16,), "float32", dev)
+    f = gsm_data_generator.compile(func, target="metal")
     f(a_nd, b_nd)
     np.testing.assert_allclose(b_nd.numpy(), a.astype("float32"), atol=1e-5, rtol=1e-5)
 
 
-@gsmDataGen.testing.requires_metal(support_required="compile-only")
+@gsm_data_generator.testing.requires_metal(support_required="compile-only")
 def test_func_with_trailing_pod_params():
-    from gsmDataGen.contrib import xcode  # pylint: disable=import-outside-toplevel
+    from gsm_data_generator.contrib import xcode  # pylint: disable=import-outside-toplevel
 
     @T.prim_func
     def func(A: T.Buffer((16), "float32"), B: T.Buffer((16), "float32"), x: T.float32):
@@ -180,17 +180,17 @@ def test_func_with_trailing_pod_params():
                 vi = T.axis.spatial(16, i)
                 B[vi] = A[vi] + x
 
-    @gsmDataGen.register_func("tvm_callback_metal_compile")
+    @gsm_data_generator.register_func("tvm_callback_metal_compile")
     def compile_metal(src, target):
         return xcode.compile_metal(src)
 
-    mod = gsmDataGen.IRModule({"main": func})
+    mod = gsm_data_generator.IRModule({"main": func})
 
-    f = gsmDataGen.compile(mod, target="metal")
+    f = gsm_data_generator.compile(mod, target="metal")
     src: str = f.imported_modules[0].get_source()
     occurrences = src.count("struct func_kernel_args_t")
     assert occurrences == 1, occurrences
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

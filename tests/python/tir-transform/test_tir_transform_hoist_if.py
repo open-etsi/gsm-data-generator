@@ -14,11 +14,11 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-import gsmDataGen
-from gsmDataGen import te
+import gsm_data_generator
+from gsm_data_generator import te
 import numpy as np
 import pytest
-from gsmDataGen.testing import enabled_targets
+from gsm_data_generator.testing import enabled_targets
 
 var_list = []
 
@@ -29,25 +29,25 @@ def verify_structure(stmt, expected_struct):
 
     def _extract_vars(op):
         global var_list
-        if isinstance(op, gsmDataGen.tir.Var):
+        if isinstance(op, gsm_data_generator.tir.Var):
             var_list.append(op.name)
 
     def _visit(op):
         key = op
-        if isinstance(op, gsmDataGen.tir.IfThenElse):
+        if isinstance(op, gsm_data_generator.tir.IfThenElse):
             global var_list
-            gsmDataGen.tir.stmt_functor.post_order_visit(op.condition, _extract_vars)
+            gsm_data_generator.tir.stmt_functor.post_order_visit(op.condition, _extract_vars)
             val = [(op.then_case, op.else_case), ("tir.IfThenElse", tuple(var_list))]
             var_list.clear()
-        elif isinstance(op, gsmDataGen.tir.For):
+        elif isinstance(op, gsm_data_generator.tir.For):
             val = [(op.body,), ("tir.For", op.loop_var.name)]
-        elif isinstance(op, gsmDataGen.tir.AttrStmt):
+        elif isinstance(op, gsm_data_generator.tir.AttrStmt):
             val = [(op.body,), ("tir.AttrStmt", op.attr_key, int(op.value))]
         else:
             return
         node_dict[key] = val
 
-    gsmDataGen.tir.stmt_functor.post_order_visit(stmt, _visit)
+    gsm_data_generator.tir.stmt_functor.post_order_visit(stmt, _visit)
     for key, val in node_dict.items():
         struct[val[1]] = tuple(
             node_dict[child][1] if child in node_dict else None for child in val[0]
@@ -61,11 +61,11 @@ def verify_structure(stmt, expected_struct):
 
 
 def _opaque_eval(var):
-    return gsmDataGen.tir.Evaluate(gsmDataGen.tir.call_extern("int32", "dummy", var))
+    return gsm_data_generator.tir.Evaluate(gsm_data_generator.tir.call_extern("int32", "dummy", var))
 
 
 def test_hoist_top_for():
-    ib = gsmDataGen.tir.ir_builder.create()
+    ib = gsm_data_generator.tir.ir_builder.create()
     l = te.var("l")
     m = te.var("m")
     n = te.var("n")
@@ -80,8 +80,8 @@ def test_hoist_top_for():
                     ib.emit(_opaque_eval(n))
 
     stmt = ib.get()
-    mod = gsmDataGen.IRModule.from_expr(gsmDataGen.tir.PrimFunc([], stmt))
-    new_stmt = gsmDataGen.tir.transform.HoistIfThenElse()(mod)["main"].body
+    mod = gsm_data_generator.IRModule.from_expr(gsm_data_generator.tir.PrimFunc([], stmt))
+    new_stmt = gsm_data_generator.tir.transform.HoistIfThenElse()(mod)["main"].body
     expected_struct = {
         ("tir.For", "k"): (None,),
         ("tir.For", "j"): (("tir.For", "k"),),
@@ -92,7 +92,7 @@ def test_hoist_top_for():
 
 
 def test_hoist_multi_var_if():
-    ib = gsmDataGen.tir.ir_builder.create()
+    ib = gsm_data_generator.tir.ir_builder.create()
     l = te.var("l")
     m = te.var("m")
     n = te.var("n")
@@ -107,8 +107,8 @@ def test_hoist_multi_var_if():
                     ib.emit(_opaque_eval(n))
 
     stmt = ib.get()
-    mod = gsmDataGen.IRModule.from_expr(gsmDataGen.tir.PrimFunc([], stmt))
-    new_mod = gsmDataGen.tir.transform.HoistIfThenElse()(mod)
+    mod = gsm_data_generator.IRModule.from_expr(gsm_data_generator.tir.PrimFunc([], stmt))
+    new_mod = gsm_data_generator.tir.transform.HoistIfThenElse()(mod)
     new_stmt = new_mod["main"].body
     expected_struct = {
         ("tir.For", "k"): (None,),
@@ -120,7 +120,7 @@ def test_hoist_multi_var_if():
 
 
 def test_hoist_no_match_for():
-    ib = gsmDataGen.tir.ir_builder.create()
+    ib = gsm_data_generator.tir.ir_builder.create()
     l = te.var("l")
     m = te.var("m")
     n = te.var("n")
@@ -136,8 +136,8 @@ def test_hoist_no_match_for():
                     ib.emit(_opaque_eval(n))
 
     stmt = ib.get()
-    mod = gsmDataGen.IRModule.from_expr(gsmDataGen.tir.PrimFunc([], stmt))
-    new_stmt = gsmDataGen.tir.transform.HoistIfThenElse()(mod)["main"].body
+    mod = gsm_data_generator.IRModule.from_expr(gsm_data_generator.tir.PrimFunc([], stmt))
+    new_stmt = gsm_data_generator.tir.transform.HoistIfThenElse()(mod)["main"].body
     expected_struct = {
         ("tir.For", "k"): (None,),
         ("tir.IfThenElse", ("i",)): (("tir.For", "k"), ("tir.For", "k")),
@@ -148,7 +148,7 @@ def test_hoist_no_match_for():
 
 
 def test_no_else():
-    ib = gsmDataGen.tir.ir_builder.create()
+    ib = gsm_data_generator.tir.ir_builder.create()
     l = te.var("l")
     m = te.var("m")
     n = te.var("n")
@@ -160,8 +160,8 @@ def test_no_else():
                     ib.emit(_opaque_eval(m))
 
     stmt = ib.get()
-    mod = gsmDataGen.IRModule.from_expr(gsmDataGen.tir.PrimFunc([], stmt))
-    new_stmt = gsmDataGen.tir.transform.HoistIfThenElse()(mod)["main"].body
+    mod = gsm_data_generator.IRModule.from_expr(gsm_data_generator.tir.PrimFunc([], stmt))
+    new_stmt = gsm_data_generator.tir.transform.HoistIfThenElse()(mod)["main"].body
     expected_struct = {
         ("tir.For", "k"): (None,),
         ("tir.For", "j"): (("tir.For", "k"),),
@@ -172,7 +172,7 @@ def test_no_else():
 
 
 def test_attr_stmt():
-    ib = gsmDataGen.tir.ir_builder.create()
+    ib = gsm_data_generator.tir.ir_builder.create()
     dshape = (32, 64)
     data = ib.pointer("float32", name="data")
     l = te.var("l")
@@ -186,14 +186,14 @@ def test_attr_stmt():
     with ib.for_range(0, l, "i") as i:
         with ib.for_range(0, m, "j") as j:
             with ib.for_range(0, n, "k") as k:
-                with ib.if_scope(gsmDataGen.tir.any(i < 4, j >= 8)):
+                with ib.if_scope(gsm_data_generator.tir.any(i < 4, j >= 8)):
                     data[bx * j + tx * j * k] = data[bx * j + tx * j * k] + 0.5
                 with ib.else_scope():
                     data[bx * j + tx * j * k] = data[bx * j + tx * j * k] + 1.0
 
     stmt = ib.get()
-    mod = gsmDataGen.IRModule.from_expr(gsmDataGen.tir.PrimFunc([], stmt))
-    new_stmt = gsmDataGen.tir.transform.HoistIfThenElse()(mod)["main"].body
+    mod = gsm_data_generator.IRModule.from_expr(gsm_data_generator.tir.PrimFunc([], stmt))
+    new_stmt = gsm_data_generator.tir.transform.HoistIfThenElse()(mod)["main"].body
     expected_struct = {
         ("tir.For", "k"): (None,),
         ("tir.IfThenElse", ("i", "j")): (("tir.For", "k"), ("tir.For", "k")),
@@ -206,7 +206,7 @@ def test_attr_stmt():
 
 
 def test_nested_for():
-    ib = gsmDataGen.tir.ir_builder.create()
+    ib = gsm_data_generator.tir.ir_builder.create()
     data = ib.pointer("float32", name="data")
 
     with ib.for_range(0, 5, "i") as i:
@@ -215,14 +215,14 @@ def test_nested_for():
                 data[i * 3 + j] = data[i * 3 + j] + 0.5
                 with ib.for_range(0, 15, "k") as k:
                     with ib.for_range(0, 20, "l") as l:
-                        with ib.if_scope(gsmDataGen.tir.any(i < 4, j >= 8)):
+                        with ib.if_scope(gsm_data_generator.tir.any(i < 4, j >= 8)):
                             data[i * 3 + j + k + l] = data[i * 3 + j + k + l] * 2
                         with ib.else_scope():
                             data[i * 3 + j + k + l] = data[i * 3 + j + k + l] * 1.5
 
     stmt = ib.get()
-    mod = gsmDataGen.IRModule.from_expr(gsmDataGen.tir.PrimFunc([], stmt))
-    new_stmt = gsmDataGen.tir.transform.HoistIfThenElse()(mod)["main"].body
+    mod = gsm_data_generator.IRModule.from_expr(gsm_data_generator.tir.PrimFunc([], stmt))
+    new_stmt = gsm_data_generator.tir.transform.HoistIfThenElse()(mod)["main"].body
     expected_struct = {
         ("tir.For", "l"): (None,),
         ("tir.For", "k"): (("tir.For", "l"),),
@@ -235,7 +235,7 @@ def test_nested_for():
 
 
 def test_if_block():
-    ib = gsmDataGen.tir.ir_builder.create()
+    ib = gsm_data_generator.tir.ir_builder.create()
     data = ib.pointer("float32", name="data")
     n = te.var("n")
 
@@ -245,7 +245,7 @@ def test_if_block():
                 data[i * 3 + j] = data[i * 3 + j] + 0.5
                 with ib.for_range(0, 15, "k") as k:
                     with ib.for_range(0, 20, "l") as l:
-                        with ib.if_scope(gsmDataGen.tir.any(i < 4, j >= 8)):
+                        with ib.if_scope(gsm_data_generator.tir.any(i < 4, j >= 8)):
                             data[i * 3 + j + k + l] = data[i * 3 + j + k + l] * 2
                         with ib.else_scope():
                             data[i * 3 + j + k + l] = data[i * 3 + j + k + l] * 1.5
@@ -259,8 +259,8 @@ def test_if_block():
                     data[i * 3 + j + k] = data[i * 3 + j + k] + 0.6
 
     stmt = ib.get()
-    mod = gsmDataGen.IRModule.from_expr(gsmDataGen.tir.PrimFunc([], stmt))
-    new_stmt = gsmDataGen.tir.transform.HoistIfThenElse()(mod)["main"].body
+    mod = gsm_data_generator.IRModule.from_expr(gsm_data_generator.tir.PrimFunc([], stmt))
+    new_stmt = gsm_data_generator.tir.transform.HoistIfThenElse()(mod)["main"].body
     expected_struct = {
         ("tir.IfThenElse", ("i", "j")): (None, None),
         ("tir.IfThenElse", ("j",)): (None, None),
@@ -275,7 +275,7 @@ def test_if_block():
 
 
 def test_multi_if():
-    ib = gsmDataGen.tir.ir_builder.create()
+    ib = gsm_data_generator.tir.ir_builder.create()
     data = ib.pointer("float32", name="data")
 
     with ib.for_range(0, 10, "i") as i:
@@ -286,8 +286,8 @@ def test_multi_if():
                         data[i * 100 + j * 10 + k] = data[i * 100 + j * 10 + k] + 0.5
 
     stmt = ib.get()
-    mod = gsmDataGen.IRModule.from_expr(gsmDataGen.tir.PrimFunc([], stmt))
-    new_mod = gsmDataGen.tir.transform.HoistIfThenElse()(mod)
+    mod = gsm_data_generator.IRModule.from_expr(gsm_data_generator.tir.PrimFunc([], stmt))
+    new_mod = gsm_data_generator.tir.transform.HoistIfThenElse()(mod)
     new_stmt = new_mod["main"].body
     expected_struct = {
         ("tir.For", "k"): (None,),
@@ -300,7 +300,7 @@ def test_multi_if():
 
 
 def test_no_hoisting_1():
-    ib = gsmDataGen.tir.ir_builder.create()
+    ib = gsm_data_generator.tir.ir_builder.create()
     data = ib.pointer("float32", name="data")
     n = te.var("n")
 
@@ -311,19 +311,19 @@ def test_no_hoisting_1():
                     data[i * 100 + j * 10 + k] = data[i * 100 + j * 10 + k] + 0.5
 
     stmt = ib.get()
-    mod = gsmDataGen.IRModule.from_expr(gsmDataGen.tir.PrimFunc([], stmt))
-    new_stmt = gsmDataGen.tir.transform.HoistIfThenElse()(mod)["main"].body
-    gsmDataGen.ir.assert_structural_equal(new_stmt, stmt)
+    mod = gsm_data_generator.IRModule.from_expr(gsm_data_generator.tir.PrimFunc([], stmt))
+    new_stmt = gsm_data_generator.tir.transform.HoistIfThenElse()(mod)["main"].body
+    gsm_data_generator.ir.assert_structural_equal(new_stmt, stmt)
 
-    with gsmDataGen.transform.PassContext(
+    with gsm_data_generator.transform.PassContext(
         config={"tir.HoistIfThenElse": {"support_block_scope_hoisting": True}}
     ):
-        new_stmt = gsmDataGen.tir.transform.HoistIfThenElse()(mod)["main"].body
-    gsmDataGen.ir.assert_structural_equal(new_stmt, stmt)
+        new_stmt = gsm_data_generator.tir.transform.HoistIfThenElse()(mod)["main"].body
+    gsm_data_generator.ir.assert_structural_equal(new_stmt, stmt)
 
 
 def test_no_hoisting_2():
-    ib = gsmDataGen.tir.ir_builder.create()
+    ib = gsm_data_generator.tir.ir_builder.create()
     data = ib.pointer("float32", name="data")
     n = te.var("n")
     x = te.var("x")
@@ -336,20 +336,20 @@ def test_no_hoisting_2():
                 data[i * 100 + j * 10 + k] = data[i * 100 + j * 10 + k] + 0.5
 
     stmt = ib.get()
-    mod = gsmDataGen.IRModule.from_expr(gsmDataGen.tir.PrimFunc([], stmt))
-    new_stmt = gsmDataGen.tir.transform.HoistIfThenElse()(mod)["main"].body
-    gsmDataGen.ir.assert_structural_equal(new_stmt, stmt)
+    mod = gsm_data_generator.IRModule.from_expr(gsm_data_generator.tir.PrimFunc([], stmt))
+    new_stmt = gsm_data_generator.tir.transform.HoistIfThenElse()(mod)["main"].body
+    gsm_data_generator.ir.assert_structural_equal(new_stmt, stmt)
 
-    with gsmDataGen.transform.PassContext(
+    with gsm_data_generator.transform.PassContext(
         config={"tir.HoistIfThenElse": {"support_block_scope_hoisting": True}}
     ):
-        new_stmt = gsmDataGen.tir.transform.HoistIfThenElse()(mod)["main"].body
-    gsmDataGen.ir.assert_structural_equal(new_stmt, stmt)
+        new_stmt = gsm_data_generator.tir.transform.HoistIfThenElse()(mod)["main"].body
+    gsm_data_generator.ir.assert_structural_equal(new_stmt, stmt)
 
 
 @pytest.mark.xfail(reason="Inconsistent thread_extent", strict=True)
 def test_no_hoisting_3():
-    ib = gsmDataGen.tir.ir_builder.create()
+    ib = gsm_data_generator.tir.ir_builder.create()
     dshape = (32, 64)
     dshape_inner = (33, 63)
     data = ib.pointer("float32", name="data")
@@ -372,19 +372,19 @@ def test_no_hoisting_3():
                     data[bx * j + tx * j * k] = data[bx * j + tx * j * k] + 1.3
 
     stmt = ib.get()
-    mod = gsmDataGen.IRModule.from_expr(gsmDataGen.tir.PrimFunc([], stmt))
-    new_stmt = gsmDataGen.tir.transform.HoistIfThenElse()(mod)["main"].body
-    gsmDataGen.ir.assert_structural_equal(new_stmt, stmt)
+    mod = gsm_data_generator.IRModule.from_expr(gsm_data_generator.tir.PrimFunc([], stmt))
+    new_stmt = gsm_data_generator.tir.transform.HoistIfThenElse()(mod)["main"].body
+    gsm_data_generator.ir.assert_structural_equal(new_stmt, stmt)
 
-    with gsmDataGen.transform.PassContext(
+    with gsm_data_generator.transform.PassContext(
         config={"tir.HoistIfThenElse": {"support_block_scope_hoisting": True}}
     ):
-        new_stmt = gsmDataGen.tir.transform.HoistIfThenElse()(mod)["main"].body
-    gsmDataGen.ir.assert_structural_equal(new_stmt, stmt)
+        new_stmt = gsm_data_generator.tir.transform.HoistIfThenElse()(mod)["main"].body
+    gsm_data_generator.ir.assert_structural_equal(new_stmt, stmt)
 
 
 def test_no_hoisting_4():
-    ib = gsmDataGen.tir.ir_builder.create()
+    ib = gsm_data_generator.tir.ir_builder.create()
     dshape = (32, 64)
     dshape_inner = (33, 63)
     data = ib.pointer("float32", name="data")
@@ -405,20 +405,20 @@ def test_no_hoisting_4():
                     data[bx * j + tx * j * k] = data[bx * j + tx * j * k] + 1.3
 
     stmt = ib.get()
-    mod = gsmDataGen.IRModule.from_expr(gsmDataGen.tir.PrimFunc([], stmt))
-    new_stmt = gsmDataGen.tir.transform.HoistIfThenElse()(mod)["main"].body
-    gsmDataGen.ir.assert_structural_equal(new_stmt, stmt)
+    mod = gsm_data_generator.IRModule.from_expr(gsm_data_generator.tir.PrimFunc([], stmt))
+    new_stmt = gsm_data_generator.tir.transform.HoistIfThenElse()(mod)["main"].body
+    gsm_data_generator.ir.assert_structural_equal(new_stmt, stmt)
 
-    with gsmDataGen.transform.PassContext(
+    with gsm_data_generator.transform.PassContext(
         config={"tir.HoistIfThenElse": {"support_block_scope_hoisting": True}}
     ):
-        new_stmt = gsmDataGen.tir.transform.HoistIfThenElse()(mod)["main"].body
-    gsmDataGen.ir.assert_structural_equal(new_stmt, stmt)
+        new_stmt = gsm_data_generator.tir.transform.HoistIfThenElse()(mod)["main"].body
+    gsm_data_generator.ir.assert_structural_equal(new_stmt, stmt)
 
 
 @pytest.mark.xfail(reason="Inconsistent thread_extent", strict=True)
 def test_no_hoisting_5():
-    ib = gsmDataGen.tir.ir_builder.create()
+    ib = gsm_data_generator.tir.ir_builder.create()
     dshape = (32, 64)
     dshape_inner = (33, 63)
     data = ib.pointer("float32", name="data")
@@ -441,19 +441,19 @@ def test_no_hoisting_5():
                     data[bx * j + tx * j * k] = data[bx * j + tx * j * k] + 1.3
 
     stmt = ib.get()
-    mod = gsmDataGen.IRModule.from_expr(gsmDataGen.tir.PrimFunc([], stmt))
-    new_stmt = gsmDataGen.tir.transform.HoistIfThenElse()(mod)["main"].body
-    gsmDataGen.ir.assert_structural_equal(new_stmt, stmt)
+    mod = gsm_data_generator.IRModule.from_expr(gsm_data_generator.tir.PrimFunc([], stmt))
+    new_stmt = gsm_data_generator.tir.transform.HoistIfThenElse()(mod)["main"].body
+    gsm_data_generator.ir.assert_structural_equal(new_stmt, stmt)
 
-    with gsmDataGen.transform.PassContext(
+    with gsm_data_generator.transform.PassContext(
         config={"tir.HoistIfThenElse": {"support_block_scope_hoisting": True}}
     ):
-        new_stmt = gsmDataGen.tir.transform.HoistIfThenElse()(mod)["main"].body
-    gsmDataGen.ir.assert_structural_equal(new_stmt, stmt)
+        new_stmt = gsm_data_generator.tir.transform.HoistIfThenElse()(mod)["main"].body
+    gsm_data_generator.ir.assert_structural_equal(new_stmt, stmt)
 
 
 def test_no_hoisting_6():
-    ib = gsmDataGen.tir.ir_builder.create()
+    ib = gsm_data_generator.tir.ir_builder.create()
     dshape = (32, 64)
     data = ib.pointer("float32", name="data")
     l = te.var("l")
@@ -473,19 +473,19 @@ def test_no_hoisting_6():
                     data[bx * j + tx * j * k] = data[bx * j + tx * j * k] + 1.3
 
     stmt = ib.get()
-    mod = gsmDataGen.IRModule.from_expr(gsmDataGen.tir.PrimFunc([], stmt))
-    new_stmt = gsmDataGen.tir.transform.HoistIfThenElse()(mod)["main"].body
-    gsmDataGen.ir.assert_structural_equal(new_stmt, stmt)
+    mod = gsm_data_generator.IRModule.from_expr(gsm_data_generator.tir.PrimFunc([], stmt))
+    new_stmt = gsm_data_generator.tir.transform.HoistIfThenElse()(mod)["main"].body
+    gsm_data_generator.ir.assert_structural_equal(new_stmt, stmt)
 
-    with gsmDataGen.transform.PassContext(
+    with gsm_data_generator.transform.PassContext(
         config={"tir.HoistIfThenElse": {"support_block_scope_hoisting": True}}
     ):
-        new_stmt = gsmDataGen.tir.transform.HoistIfThenElse()(mod)["main"].body
-    gsmDataGen.ir.assert_structural_equal(new_stmt, stmt)
+        new_stmt = gsm_data_generator.tir.transform.HoistIfThenElse()(mod)["main"].body
+    gsm_data_generator.ir.assert_structural_equal(new_stmt, stmt)
 
 
 def test_no_hoisting_7():
-    ib = gsmDataGen.tir.ir_builder.create()
+    ib = gsm_data_generator.tir.ir_builder.create()
     dshape = (32, 64)
     data = ib.pointer("float32", name="data")
     l = te.var("l")
@@ -504,19 +504,19 @@ def test_no_hoisting_7():
                         data[bx * j + tx * j * k] = data[bx * j + tx * j * k] + 0.3
 
     stmt = ib.get()
-    mod = gsmDataGen.IRModule.from_expr(gsmDataGen.tir.PrimFunc([], stmt))
-    new_stmt = gsmDataGen.tir.transform.HoistIfThenElse()(mod)["main"].body
-    gsmDataGen.ir.assert_structural_equal(new_stmt, stmt)
+    mod = gsm_data_generator.IRModule.from_expr(gsm_data_generator.tir.PrimFunc([], stmt))
+    new_stmt = gsm_data_generator.tir.transform.HoistIfThenElse()(mod)["main"].body
+    gsm_data_generator.ir.assert_structural_equal(new_stmt, stmt)
 
-    with gsmDataGen.transform.PassContext(
+    with gsm_data_generator.transform.PassContext(
         config={"tir.HoistIfThenElse": {"support_block_scope_hoisting": True}}
     ):
-        new_stmt = gsmDataGen.tir.transform.HoistIfThenElse()(mod)["main"].body
-    gsmDataGen.ir.assert_structural_equal(new_stmt, stmt)
+        new_stmt = gsm_data_generator.tir.transform.HoistIfThenElse()(mod)["main"].body
+    gsm_data_generator.ir.assert_structural_equal(new_stmt, stmt)
 
 
 def test_hoisting_block_scope_2():
-    ib = gsmDataGen.tir.ir_builder.create()
+    ib = gsm_data_generator.tir.ir_builder.create()
     dshape = (32, 64)
     dshape_inner = (33, 63)
     data = ib.pointer("float32", name="data")
@@ -538,24 +538,24 @@ def test_hoisting_block_scope_2():
                     data[bx * j + tx * j * k] = data[bx * j + tx * j * k] + 1.3
 
     stmt = ib.get()
-    mod = gsmDataGen.IRModule.from_expr(gsmDataGen.tir.PrimFunc([], stmt))
-    mod = gsmDataGen.tir.transform.Simplify()(mod)
-    mod = gsmDataGen.tir.transform.RemoveNoOp()(mod)
+    mod = gsm_data_generator.IRModule.from_expr(gsm_data_generator.tir.PrimFunc([], stmt))
+    mod = gsm_data_generator.tir.transform.Simplify()(mod)
+    mod = gsm_data_generator.tir.transform.RemoveNoOp()(mod)
     stmt = mod["main"].body
 
-    new_stmt = gsmDataGen.tir.transform.HoistIfThenElse()(mod)["main"].body
-    gsmDataGen.ir.assert_structural_equal(new_stmt, stmt)
+    new_stmt = gsm_data_generator.tir.transform.HoistIfThenElse()(mod)["main"].body
+    gsm_data_generator.ir.assert_structural_equal(new_stmt, stmt)
 
-    with gsmDataGen.transform.PassContext(
+    with gsm_data_generator.transform.PassContext(
         config={"tir.HoistIfThenElse": {"support_block_scope_hoisting": True}}
     ):
-        new_stmt = gsmDataGen.tir.transform.HoistIfThenElse()(mod)["main"].body
-    assert not gsmDataGen.ir.structural_equal(new_stmt, stmt)
+        new_stmt = gsm_data_generator.tir.transform.HoistIfThenElse()(mod)["main"].body
+    assert not gsm_data_generator.ir.structural_equal(new_stmt, stmt)
 
 
 @pytest.mark.xfail(reason="Inconsistent thread_extent", strict=True)
 def test_hoisting_block_scope_3():
-    ib = gsmDataGen.tir.ir_builder.create()
+    ib = gsm_data_generator.tir.ir_builder.create()
     dshape = (32, 64)
     dshape_inner = (33, 63)
     data = ib.pointer("float32", name="data")
@@ -578,19 +578,19 @@ def test_hoisting_block_scope_3():
                     data[bx * j + tx * j * k] = data[bx * j + tx * j * k] + 1.3
 
     stmt = ib.get()
-    mod = gsmDataGen.IRModule.from_expr(gsmDataGen.tir.PrimFunc([], stmt))
-    new_stmt = gsmDataGen.tir.transform.HoistIfThenElse()(mod)["main"].body
-    gsmDataGen.ir.assert_structural_equal(new_stmt, stmt)
+    mod = gsm_data_generator.IRModule.from_expr(gsm_data_generator.tir.PrimFunc([], stmt))
+    new_stmt = gsm_data_generator.tir.transform.HoistIfThenElse()(mod)["main"].body
+    gsm_data_generator.ir.assert_structural_equal(new_stmt, stmt)
 
-    with gsmDataGen.transform.PassContext(
+    with gsm_data_generator.transform.PassContext(
         config={"tir.HoistIfThenElse": {"support_block_scope_hoisting": True}}
     ):
-        new_stmt = gsmDataGen.tir.transform.HoistIfThenElse()(mod)["main"].body
-    assert not gsmDataGen.ir.structural_equal(new_stmt, stmt)
+        new_stmt = gsm_data_generator.tir.transform.HoistIfThenElse()(mod)["main"].body
+    assert not gsm_data_generator.ir.structural_equal(new_stmt, stmt)
 
 
 def test_hoisting_block_scope_5():
-    ib = gsmDataGen.tir.ir_builder.create()
+    ib = gsm_data_generator.tir.ir_builder.create()
     data = ib.pointer("float32", name="data", scope="global")
     l = te.var("l")
     m = te.var("m")
@@ -607,22 +607,22 @@ def test_hoisting_block_scope_5():
                     data[9 * j + 3 * j * k] = data[9 * j + 3 * j * k] + 1.3
 
     stmt = ib.get()
-    mod = gsmDataGen.IRModule.from_expr(gsmDataGen.tir.PrimFunc([], stmt))
-    new_stmt = gsmDataGen.tir.transform.HoistIfThenElse()(mod)["main"].body
-    assert not gsmDataGen.ir.structural_equal(new_stmt, stmt)
+    mod = gsm_data_generator.IRModule.from_expr(gsm_data_generator.tir.PrimFunc([], stmt))
+    new_stmt = gsm_data_generator.tir.transform.HoistIfThenElse()(mod)["main"].body
+    assert not gsm_data_generator.ir.structural_equal(new_stmt, stmt)
 
     stmt = new_stmt
-    mod = gsmDataGen.IRModule.from_expr(gsmDataGen.tir.PrimFunc([], stmt))
+    mod = gsm_data_generator.IRModule.from_expr(gsm_data_generator.tir.PrimFunc([], stmt))
 
-    with gsmDataGen.transform.PassContext(
+    with gsm_data_generator.transform.PassContext(
         config={"tir.HoistIfThenElse": {"support_block_scope_hoisting": True}}
     ):
-        new_stmt = gsmDataGen.tir.transform.HoistIfThenElse()(mod)["main"].body
-    gsmDataGen.ir.assert_structural_equal(new_stmt, stmt)
+        new_stmt = gsm_data_generator.tir.transform.HoistIfThenElse()(mod)["main"].body
+    gsm_data_generator.ir.assert_structural_equal(new_stmt, stmt)
 
 
 def test_hoisting_block_scope_6():
-    ib = gsmDataGen.tir.ir_builder.create()
+    ib = gsm_data_generator.tir.ir_builder.create()
     dshape = (32, 64)
     data = ib.pointer("float32", name="data")
     l = te.var("l")
@@ -642,19 +642,19 @@ def test_hoisting_block_scope_6():
                     data[bx * j + tx * j * k] = data[bx * j + tx * j * k] + 1.3
 
     stmt = ib.get()
-    mod = gsmDataGen.IRModule.from_expr(gsmDataGen.tir.PrimFunc([], stmt))
-    new_stmt = gsmDataGen.tir.transform.HoistIfThenElse()(mod)["main"].body
-    gsmDataGen.ir.assert_structural_equal(new_stmt, stmt)
+    mod = gsm_data_generator.IRModule.from_expr(gsm_data_generator.tir.PrimFunc([], stmt))
+    new_stmt = gsm_data_generator.tir.transform.HoistIfThenElse()(mod)["main"].body
+    gsm_data_generator.ir.assert_structural_equal(new_stmt, stmt)
 
-    with gsmDataGen.transform.PassContext(
+    with gsm_data_generator.transform.PassContext(
         config={"tir.HoistIfThenElse": {"support_block_scope_hoisting": True}}
     ):
-        new_stmt = gsmDataGen.tir.transform.HoistIfThenElse()(mod)["main"].body
-    assert not gsmDataGen.ir.structural_equal(new_stmt, stmt)
+        new_stmt = gsm_data_generator.tir.transform.HoistIfThenElse()(mod)["main"].body
+    assert not gsm_data_generator.ir.structural_equal(new_stmt, stmt)
 
 
 def test_hoisting_block_scope_7():
-    ib = gsmDataGen.tir.ir_builder.create()
+    ib = gsm_data_generator.tir.ir_builder.create()
     dshape = (32, 64)
     data = ib.pointer("float32", name="data")
     l = te.var("l")
@@ -674,16 +674,16 @@ def test_hoisting_block_scope_7():
                     data[bx * j + tx * j * k] = data[bx * j + tx * j * k] + 1.3
 
     stmt = ib.get()
-    mod = gsmDataGen.IRModule.from_expr(gsmDataGen.tir.PrimFunc([], stmt))
-    new_stmt = gsmDataGen.tir.transform.HoistIfThenElse()(mod)["main"].body
-    gsmDataGen.ir.assert_structural_equal(new_stmt, stmt)
+    mod = gsm_data_generator.IRModule.from_expr(gsm_data_generator.tir.PrimFunc([], stmt))
+    new_stmt = gsm_data_generator.tir.transform.HoistIfThenElse()(mod)["main"].body
+    gsm_data_generator.ir.assert_structural_equal(new_stmt, stmt)
 
-    with gsmDataGen.transform.PassContext(
+    with gsm_data_generator.transform.PassContext(
         config={"tir.HoistIfThenElse": {"support_block_scope_hoisting": True}}
     ):
-        new_stmt = gsmDataGen.tir.transform.HoistIfThenElse()(mod)["main"].body
-    assert not gsmDataGen.ir.structural_equal(new_stmt, stmt)
+        new_stmt = gsm_data_generator.tir.transform.HoistIfThenElse()(mod)["main"].body
+    assert not gsm_data_generator.ir.structural_equal(new_stmt, stmt)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

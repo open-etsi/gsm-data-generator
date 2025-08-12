@@ -16,10 +16,10 @@
 # under the License.
 import pytest
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen.ffi.access_path import AccessPath
-from gsmDataGen.ir.base import get_first_structural_mismatch
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator.ffi.access_path import AccessPath
+from gsm_data_generator.ir.base import get_first_structural_mismatch
 
 
 def get_first_mismatch_ensure_symmetry(a, b):
@@ -86,8 +86,8 @@ def get_first_mismatch_ensure_symmetry(a, b):
     ],
 )
 def test_array_structural_mismatch(a, b, expected_a_path, expected_b_path):
-    a = gsmDataGen.runtime.convert(a)
-    b = gsmDataGen.runtime.convert(b)
+    a = gsm_data_generator.runtime.convert(a)
+    b = gsm_data_generator.runtime.convert(b)
     a_path, b_path = get_first_mismatch_ensure_symmetry(a, b)
     assert a_path == expected_a_path
     assert b_path == expected_b_path
@@ -102,8 +102,8 @@ def test_array_structural_mismatch(a, b, expected_a_path, expected_b_path):
     ],
 )
 def test_array_structural_equal_to_self(contents):
-    a = gsmDataGen.runtime.convert(list(contents))
-    b = gsmDataGen.runtime.convert(list(contents))
+    a = gsm_data_generator.runtime.convert(list(contents))
+    b = gsm_data_generator.runtime.convert(list(contents))
     assert get_first_mismatch_ensure_symmetry(a, b) is None
 
 
@@ -116,8 +116,8 @@ def test_array_structural_equal_to_self(contents):
     ],
 )
 def test_shape_tuple_structural_equal_to_self(contents):
-    a = gsmDataGen.runtime.ShapeTuple(list(contents))
-    b = gsmDataGen.runtime.ShapeTuple(list(contents))
+    a = gsm_data_generator.runtime.ShapeTuple(list(contents))
+    b = gsm_data_generator.runtime.ShapeTuple(list(contents))
     assert get_first_mismatch_ensure_symmetry(a, b) is None
 
 
@@ -130,8 +130,8 @@ def test_shape_tuple_structural_equal_to_self(contents):
     ],
 )
 def test_string_map_structural_equal_to_self(contents):
-    a = gsmDataGen.runtime.convert({**contents})
-    b = gsmDataGen.runtime.convert({**contents})
+    a = gsm_data_generator.runtime.convert({**contents})
+    b = gsm_data_generator.runtime.convert({**contents})
     assert get_first_mismatch_ensure_symmetry(a, b) is None
 
 
@@ -153,8 +153,8 @@ def test_string_map_structural_equal_to_self(contents):
     ],
 )
 def test_string_map_structural_mismatch(a, b, expected_a_path, expected_b_path):
-    a = gsmDataGen.runtime.convert(a)
-    b = gsmDataGen.runtime.convert(b)
+    a = gsm_data_generator.runtime.convert(a)
+    b = gsm_data_generator.runtime.convert(b)
     a_path, b_path = get_first_mismatch_ensure_symmetry(a, b)
     assert a_path == expected_a_path
     assert b_path == expected_b_path
@@ -169,10 +169,10 @@ def test_string_map_structural_mismatch(a, b, expected_a_path, expected_b_path):
     ],
 )
 def test_string_structural_equal_to_self(contents):
-    a = gsmDataGen.runtime.convert(dict(contents))
-    b = gsmDataGen.runtime.convert(dict(contents))
+    a = gsm_data_generator.runtime.convert(dict(contents))
+    b = gsm_data_generator.runtime.convert(dict(contents))
     assert get_first_mismatch_ensure_symmetry(a, b) is None
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

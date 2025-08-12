@@ -15,16 +15,16 @@
 # specific language governing permissions and limitations
 # under the License.
 """Test eliminate common subexpr pass"""
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen.relax.transform import EliminateCommonSubexpr
-from gsmDataGen.script.parser import ir as I, relax as R, tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator.relax.transform import EliminateCommonSubexpr
+from gsm_data_generator.script.parser import ir as I, relax as R, tir as T
 
 import numpy as np
 
 
 def verify(input, expected, call_only=False):
-    gsmDataGen.ir.assert_structural_equal(EliminateCommonSubexpr(call_only)(input), expected)
+    gsm_data_generator.ir.assert_structural_equal(EliminateCommonSubexpr(call_only)(input), expected)
 
 
 def test_simple():
@@ -63,8 +63,8 @@ def test_constants():
                 lv0 = R.add(R.const(1, dtype="int32"), R.const(1, dtype="int32"))
                 # we expect to bind the repeated large constants
                 lv1 = R.add(
-                    R.const(gsmDataGen.nd.array(np.zeros((2, 2), dtype="int32"))),
-                    R.const(gsmDataGen.nd.array(np.zeros((2, 2), dtype="int32"))),
+                    R.const(gsm_data_generator.nd.array(np.zeros((2, 2), dtype="int32"))),
+                    R.const(gsm_data_generator.nd.array(np.zeros((2, 2), dtype="int32"))),
                 )
                 gv = (lv0, lv1)
                 R.output(gv)
@@ -77,8 +77,8 @@ def test_constants():
             with R.dataflow():
                 lv0 = R.add(R.const(1, dtype="int32"), R.const(1, dtype="int32"))
                 lv1 = R.add(
-                    R.const(gsmDataGen.nd.array(np.zeros((2, 2), dtype="int32"))),
-                    R.const(gsmDataGen.nd.array(np.zeros((2, 2), dtype="int32"))),
+                    R.const(gsm_data_generator.nd.array(np.zeros((2, 2), dtype="int32"))),
+                    R.const(gsm_data_generator.nd.array(np.zeros((2, 2), dtype="int32"))),
                 )
                 gv = (lv0, lv1)
                 R.output(gv)
@@ -423,13 +423,13 @@ def test_call_tir_tuple_arg():
     # normalization of those expressions may produce additional
     # variables bindings.  This test case should be agnostic to those
     # additional bindings, so DCE is applied after CSE.
-    After = gsmDataGen.ir.transform.Sequential(
+    After = gsm_data_generator.ir.transform.Sequential(
         [
             EliminateCommonSubexpr(),
-            gsmDataGen.relax.transform.DeadCodeElimination(),
+            gsm_data_generator.relax.transform.DeadCodeElimination(),
         ]
     )(Before)
-    gsmDataGen.ir.assert_structural_equal(Expected, After)
+    gsm_data_generator.ir.assert_structural_equal(Expected, After)
 
 
 def test_do_not_eliminate_dtype():
@@ -660,4 +660,4 @@ def test_keep_alloc_storage():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

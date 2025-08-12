@@ -14,8 +14,8 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-import gsmDataGen
-from gsmDataGen import te
+import gsm_data_generator
+from gsm_data_generator import te
 import ctypes
 import numpy as np
 
@@ -23,20 +23,20 @@ import numpy as np
 def test_static_callback():
     dtype = "int64"
     n = te.size_var("n")
-    Ab = gsmDataGen.tir.decl_buffer((n,), dtype)
+    Ab = gsm_data_generator.tir.decl_buffer((n,), dtype)
     i = te.size_var("i")
-    ib = gsmDataGen.tir.ir_builder.create()
+    ib = gsm_data_generator.tir.ir_builder.create()
     A = ib.buffer_ptr(Ab)
     cp = te.thread_axis((0, 1), "cop")
-    finit = gsmDataGen.tir.StringImm("TVMBackendRunOnce")
+    finit = gsm_data_generator.tir.StringImm("TVMBackendRunOnce")
     ib.scope_attr(cp, "coproc_uop_scope", finit)
     with ib.for_range(0, n, "i", kind="parallel") as i:
         A[i] = A[i] + 1
     stmt = ib.get()
 
-    mod = gsmDataGen.IRModule.from_expr(gsmDataGen.tir.PrimFunc([Ab], stmt).with_attr("global_symbol", "ramp"))
-    f = gsmDataGen.driver.build(mod, target="llvm")
-    a = gsmDataGen.nd.array(np.zeros(10, dtype=dtype))
+    mod = gsm_data_generator.IRModule.from_expr(gsm_data_generator.tir.PrimFunc([Ab], stmt).with_attr("global_symbol", "ramp"))
+    f = gsm_data_generator.driver.build(mod, target="llvm")
+    a = gsm_data_generator.nd.array(np.zeros(10, dtype=dtype))
     f(a)
     f(a)
     np.testing.assert_equal(a.numpy(), np.ones(a.shape[0]))
@@ -45,21 +45,21 @@ def test_static_callback():
 def test_static_init():
     dtype = "int64"
     n = te.size_var("n")
-    Ab = gsmDataGen.tir.decl_buffer((n,), dtype)
+    Ab = gsm_data_generator.tir.decl_buffer((n,), dtype)
     i = te.size_var("i")
-    ib = gsmDataGen.tir.ir_builder.create()
-    handle = gsmDataGen.tir.call_intrin("handle", "tir.tvm_static_handle")
-    ib.emit(gsmDataGen.tir.call_packed("test_static_callback", handle, Ab))
+    ib = gsm_data_generator.tir.ir_builder.create()
+    handle = gsm_data_generator.tir.call_intrin("handle", "tir.tvm_static_handle")
+    ib.emit(gsm_data_generator.tir.call_packed("test_static_callback", handle, Ab))
 
-    @gsmDataGen.register_func("test_static_callback")
+    @gsm_data_generator.register_func("test_static_callback")
     def test_cb(sh, A):
         assert isinstance(sh, ctypes.c_void_p)
         return sh
 
     stmt = ib.get()
-    mod = gsmDataGen.IRModule.from_expr(gsmDataGen.tir.PrimFunc([Ab], stmt).with_attr("global_symbol", "ramp"))
-    f = gsmDataGen.driver.build(mod, target="llvm")
-    a = gsmDataGen.nd.array(np.zeros(10, dtype=dtype))
+    mod = gsm_data_generator.IRModule.from_expr(gsm_data_generator.tir.PrimFunc([Ab], stmt).with_attr("global_symbol", "ramp"))
+    f = gsm_data_generator.driver.build(mod, target="llvm")
+    a = gsm_data_generator.nd.array(np.zeros(10, dtype=dtype))
     f(a)
 
 

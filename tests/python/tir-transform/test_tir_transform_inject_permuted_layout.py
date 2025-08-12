@@ -14,21 +14,21 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import IRModule
-from gsmDataGen.script import tir as T
-from gsmDataGen.tir import PrimFunc
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import IRModule
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.tir import PrimFunc
 
 
 def _check_primfunc_transform(before: PrimFunc, expected: PrimFunc):
     before_module = IRModule.from_expr(before)
-    after_module = gsmDataGen.tir.transform.InjectPermutedLayout()(before_module)
+    after_module = gsm_data_generator.tir.transform.InjectPermutedLayout()(before_module)
 
     after = after_module["before"].without_attr("global_symbol")
     expected = expected.without_attr("global_symbol")
 
-    gsmDataGen.ir.assert_structural_equal(after, expected)
+    gsm_data_generator.ir.assert_structural_equal(after, expected)
 
 
 # This pass is adapted from another previous pass, so we need to ensure backward compatibility here
@@ -348,4 +348,4 @@ def test_buffer_c_fp32():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

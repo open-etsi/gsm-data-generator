@@ -23,14 +23,14 @@ import numpy as np
 import torch
 from torch import nn
 
-import gsmDataGen.testing
-from gsmDataGen import relax
-from gsmDataGen.relax.transform import BindParams
-from gsmDataGen.script import relax as R
-from gsmDataGen.contrib.msc.pipeline import MSCManager
-from gsmDataGen.contrib.msc.plugin import build_plugins
-from gsmDataGen.contrib.msc.core.utils.namespace import MSCFramework
-from gsmDataGen.contrib.msc.core import utils as msc_utils
+import gsm_data_generator.testing
+from gsm_data_generator import relax
+from gsm_data_generator.relax.transform import BindParams
+from gsm_data_generator.script import relax as R
+from gsm_data_generator.contrib.msc.pipeline import MSCManager
+from gsm_data_generator.contrib.msc.plugin import build_plugins
+from gsm_data_generator.contrib.msc.core.utils.namespace import MSCFramework
+from gsm_data_generator.contrib.msc.core import utils as msc_utils
 
 
 def _get_externs_header():
@@ -241,7 +241,7 @@ def _get_tvm_model(tvm_manager):
             data = block_builder.emit_output(data)
         block_builder.emit_func_output(data)
     mod = block_builder.finalize()
-    return BindParams("main", {"weight": gsmDataGen.nd.array(weights)})(mod)
+    return BindParams("main", {"weight": gsm_data_generator.nd.array(weights)})(mod)
 
 
 def _build_plugin(frameworks, plugin_root):
@@ -253,18 +253,18 @@ def _build_plugin(frameworks, plugin_root):
 
 
 def _run_relax(relax_mod, target_name, data):
-    target = gsmDataGen.target.Target(target_name)
-    relax_mod = gsmDataGen.relax.transform.LegalizeOps()(relax_mod)
+    target = gsm_data_generator.target.Target(target_name)
+    relax_mod = gsm_data_generator.relax.transform.LegalizeOps()(relax_mod)
     if target_name == "cuda":
         with target:
-            relax_mod = gsmDataGen.tir.transform.DefaultGPUSchedule()(relax_mod)
-        device = gsmDataGen.cuda()
+            relax_mod = gsm_data_generator.tir.transform.DefaultGPUSchedule()(relax_mod)
+        device = gsm_data_generator.cuda()
     else:
-        device = gsmDataGen.cpu()
-    with gsmDataGen.transform.PassContext(opt_level=3):
-        relax_exec = gsmDataGen.compile(relax_mod, target)
-        runnable = gsmDataGen.relax.VirtualMachine(relax_exec, device)
-    data = gsmDataGen.nd.array(data, device)
+        device = gsm_data_generator.cpu()
+    with gsm_data_generator.transform.PassContext(opt_level=3):
+        relax_exec = gsm_data_generator.compile(relax_mod, target)
+        runnable = gsm_data_generator.relax.VirtualMachine(relax_exec, device)
+    data = gsm_data_generator.nd.array(data, device)
     return runnable["main"](data).numpy()
 
 
@@ -329,14 +329,14 @@ def test_plugin():
     """Test the plugins"""
 
     frameworks = [MSCFramework.TORCH, MSCFramework.TVM]
-    if gsmDataGen.get_global_func("relax.ext.tensorrt", True) is not None:
+    if gsm_data_generator.get_global_func("relax.ext.tensorrt", True) is not None:
         frameworks.append(MSCFramework.TENSORRT)
     plugin_root = msc_utils.msc_dir("msc_plugin")
     managers = _build_plugin(frameworks, plugin_root)
 
     # test the plugin load
     _test_tvm_plugin(managers[MSCFramework.TVM], "llvm")
-    if gsmDataGen.cuda().exist:
+    if gsm_data_generator.cuda().exist:
         _test_tvm_plugin(managers[MSCFramework.TVM], "cuda")
     _test_torch_plugin(managers[MSCFramework.TORCH])
 
@@ -352,7 +352,7 @@ def test_plugin():
     }
     _test_with_manager(managers, MSCFramework.TORCH, model_info)
     _test_with_manager(managers, MSCFramework.TVM, model_info)
-    if gsmDataGen.get_global_func("relax.ext.tensorrt", True) is not None:
+    if gsm_data_generator.get_global_func("relax.ext.tensorrt", True) is not None:
         byoc_info = {
             "inputs": [
                 {"name": "input_0", "shape": [1, 3, 224, 224], "dtype": "float32", "layout": "NCHW"}
@@ -368,4 +368,4 @@ def test_plugin():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

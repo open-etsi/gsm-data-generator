@@ -16,14 +16,14 @@
 # under the License.
 import pytest
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import relax
-from gsmDataGen import tir
-from gsmDataGen.ir.base import assert_structural_equal
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import relax
+from gsm_data_generator import tir
+from gsm_data_generator.ir.base import assert_structural_equal
 
-import gsmDataGen.script
-from gsmDataGen.script import tir as T, relax as R, ir as I
+import gsm_data_generator.script
+from gsm_data_generator.script import tir as T, relax as R, ir as I
 
 
 @pytest.mark.skip_well_formed_check_before_transform
@@ -95,4 +95,4 @@ def test_normalize_tir_function():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

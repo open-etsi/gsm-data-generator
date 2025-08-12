@@ -16,12 +16,12 @@
 # under the License.
 # pylint: disable=missing-function-docstring,missing-module-docstring
 import pytest
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import tir
-from gsmDataGen.script import tir as T
-from gsmDataGen.tir.schedule.schedule import ScheduleError
-from gsmDataGen.tir.schedule.testing import (
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import tir
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.tir.schedule.schedule import ScheduleError
+from gsm_data_generator.tir.schedule.testing import (
     assert_structural_equal_ignore_global_symbol,
     verify_trace_roundtrip,
 )
@@ -281,8 +281,8 @@ def matmul_unit_dim_reindex_write(
             C[v0, v1] = C_reindex[v0, v1]
 
 
-use_block_name = gsmDataGen.testing.parameter(by_dict={"block_obj": False, "block_name": True})
-use_buffer_name = gsmDataGen.testing.parameter(by_dict={"buffer_index": False, "buffer_name": True})
+use_block_name = gsm_data_generator.testing.parameter(by_dict={"block_obj": False, "block_name": True})
+use_buffer_name = gsm_data_generator.testing.parameter(by_dict={"buffer_index": False, "buffer_name": True})
 
 
 def test_reindex_read_basic(use_block_name, use_buffer_name):
@@ -350,4 +350,4 @@ def test_matmul_unit_dim_reindex_write(use_block_name, use_buffer_name):
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

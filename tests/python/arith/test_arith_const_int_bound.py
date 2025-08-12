@@ -19,11 +19,11 @@ import contextlib
 
 import pytest
 
-import gsmDataGen
-import gsmDataGen.testing
+import gsm_data_generator
+import gsm_data_generator.testing
 
-from gsmDataGen import te
-from gsmDataGen.arith import ConstIntBound
+from gsm_data_generator import te
+from gsm_data_generator.arith import ConstIntBound
 
 NEG_INF = ConstIntBound.NEG_INF
 POS_INF = ConstIntBound.POS_INF
@@ -47,7 +47,7 @@ class TestCase:
 
 class BaseCompare:
     def test_const_bounds(self, test_case):
-        analyzer = gsmDataGen.arith.Analyzer()
+        analyzer = gsm_data_generator.arith.Analyzer()
 
         for var, bounds in test_case.known_bounds.items():
             analyzer.update(var, ConstIntBound(*bounds))
@@ -68,7 +68,7 @@ class BaseCompare:
 
 
 class TestDataType(BaseCompare):
-    test_case = gsmDataGen.testing.parameter(
+    test_case = gsm_data_generator.testing.parameter(
         TestCase(te.var("x", dtype="int64"), (NEG_INF, POS_INF)),
         TestCase(te.var("x", dtype="int8"), (-128, 127)),
         TestCase(te.var("x", dtype="uint8"), (0, 255)),
@@ -78,9 +78,9 @@ class TestDataType(BaseCompare):
 
 class TestCastBound(BaseCompare):
     x = te.var("x", dtype="int8")
-    tmod = gsmDataGen.tir.truncmod
+    tmod = gsm_data_generator.tir.truncmod
 
-    test_case = gsmDataGen.testing.parameter(
+    test_case = gsm_data_generator.testing.parameter(
         TestCase(tmod(x, 3).astype("uint32"), (0, 2)),
         TestCase(tmod(x, 3).astype("float32").astype("int32"), (-2, 2)),
     )
@@ -90,7 +90,7 @@ class TestAddSubBound(BaseCompare):
     x = te.var("x", "int64")
     y = te.var("y", "int64")
 
-    test_case = gsmDataGen.testing.parameter(
+    test_case = gsm_data_generator.testing.parameter(
         TestCase(x + y, (NEG_INF, POS_INF)),
         TestCase(x + y, (1, 14), known_bounds={x: (0, 4), y: (1, 10)}),
         TestCase(x - y, (-10, 3), known_bounds={x: (0, 4), y: (1, 10)}),
@@ -124,7 +124,7 @@ class TestBoundsUsingReciprocals(BaseCompare):
     symmetric_bounds = {A: (1, 4095), B: (1, 4095), C: (2048, 2048)}
     asymmetric_bounds = {A: (1, 1024), B: (1, POS_INF), C: (2048, 2048)}
 
-    test_case = gsmDataGen.testing.parameter(
+    test_case = gsm_data_generator.testing.parameter(
         TestCase((A + B) * C - A * B, (2048, None), known_bounds=symmetric_bounds),
         TestCase((A + B) * C - B * A, (2048, None), known_bounds=symmetric_bounds),
         TestCase(A * B - (A + B) * C, (None, -2048), known_bounds=symmetric_bounds),
@@ -139,7 +139,7 @@ class TestBoundsUsingReciprocals(BaseCompare):
 class TestMulBound(BaseCompare):
     x, y = te.var("x"), te.var("y")
 
-    test_case = gsmDataGen.testing.parameter(
+    test_case = gsm_data_generator.testing.parameter(
         TestCase(x * y + 20, (0, 60), {x: (-2, 4), y: (4, 10)}),
         TestCase(x * y, (-32, 24), {x: (-3, 4), y: (-8, 2)}),
         TestCase(x * y, (NEG_INF, POS_INF), {x: (NEG_INF, 4), y: (-8, 2)}),
@@ -149,9 +149,9 @@ class TestMulBound(BaseCompare):
 class TestTruncDivBound(BaseCompare):
     x, y = te.var("x"), te.var("y")
 
-    expr = gsmDataGen.tir.truncdiv(x, y)
+    expr = gsm_data_generator.tir.truncdiv(x, y)
 
-    test_case = gsmDataGen.testing.parameter(
+    test_case = gsm_data_generator.testing.parameter(
         TestCase(expr, (-2, None), {x: (-9, 4), y: (4, 10)}),
         TestCase(expr, (-4, 9), {x: (-9, 4), y: (-2, 0)}),
         TestCase(expr, (NEG_INF, POS_INF), {x: (NEG_INF, 4), y: (-2, 1)}),
@@ -162,9 +162,9 @@ class TestTruncDivBound(BaseCompare):
 class TestTruncModBound(BaseCompare):
     x, y = te.var("x"), te.var("y")
 
-    expr = gsmDataGen.tir.truncmod(x, y)
+    expr = gsm_data_generator.tir.truncmod(x, y)
 
-    test_case = gsmDataGen.testing.parameter(
+    test_case = gsm_data_generator.testing.parameter(
         TestCase(expr, (-9, 4), {x: (-9, 4), y: (4, 10)}),
         TestCase(expr, (-9, 9), {x: (NEG_INF, POS_INF), y: (4, 10)}),
         TestCase(expr, (0, 9), {x: (1, POS_INF), y: (4, 10)}),
@@ -176,7 +176,7 @@ class TestFloorDivBound(BaseCompare):
     ux = te.var("x", dtype="uint32")
     uy = te.var("y", dtype="uint32")
 
-    test_case = gsmDataGen.testing.parameter(
+    test_case = gsm_data_generator.testing.parameter(
         TestCase(x // y, (-9 // 4, None), {x: (-9, 4), y: (4, 10)}),
         TestCase(x // y, (-4, 9), {x: (-9, 4), y: (-2, 0)}),
         TestCase(x // y, (NEG_INF, POS_INF), {x: (NEG_INF, 4), y: (-2, 1)}),
@@ -188,7 +188,7 @@ class TestFloorDivBound(BaseCompare):
 class TestFloorModBound(BaseCompare):
     x, y = te.var("x"), te.var("y")
 
-    test_case = gsmDataGen.testing.parameter(
+    test_case = gsm_data_generator.testing.parameter(
         TestCase(x % y, (0, 9), {x: (-9, 4), y: (4, 10)}),
         TestCase(x % y, (0, 9), {x: (NEG_INF, POS_INF), y: (4, 10)}),
         TestCase(x % y, (0, 9), {x: (1, POS_INF), y: (4, 10)}),
@@ -198,20 +198,20 @@ class TestFloorModBound(BaseCompare):
 class TestMinMaxBound(BaseCompare):
     x, y = te.var("x"), te.var("y")
 
-    test_case = gsmDataGen.testing.parameter(
-        TestCase(gsmDataGen.te.min(x, y), (-9, 10), {x: (-9, 11), y: (4, 10)}),
-        TestCase(gsmDataGen.te.min(x, y), (NEG_INF, 10), {x: (NEG_INF, POS_INF), y: (4, 10)}),
-        TestCase(gsmDataGen.te.max(x, y), (4, POS_INF), {x: (NEG_INF, POS_INF), y: (4, 10)}),
-        TestCase(gsmDataGen.te.max(x, y), (4, POS_INF), {x: (1, POS_INF), y: (4, 10)}),
+    test_case = gsm_data_generator.testing.parameter(
+        TestCase(gsm_data_generator.te.min(x, y), (-9, 10), {x: (-9, 11), y: (4, 10)}),
+        TestCase(gsm_data_generator.te.min(x, y), (NEG_INF, 10), {x: (NEG_INF, POS_INF), y: (4, 10)}),
+        TestCase(gsm_data_generator.te.max(x, y), (4, POS_INF), {x: (NEG_INF, POS_INF), y: (4, 10)}),
+        TestCase(gsm_data_generator.te.max(x, y), (4, POS_INF), {x: (1, POS_INF), y: (4, 10)}),
     )
 
 
 class TestSelectBound(BaseCompare):
     x, y = te.var("x"), te.var("y")
 
-    test_case = gsmDataGen.testing.parameter(
+    test_case = gsm_data_generator.testing.parameter(
         TestCase(
-            gsmDataGen.tir.Select(x > 1, (y < 0).astype("int32"), y + 1),
+            gsm_data_generator.tir.Select(x > 1, (y < 0).astype("int32"), y + 1),
             (0, 11),
             {x: (-9, 11), y: (4, 10)},
         ),
@@ -221,7 +221,7 @@ class TestSelectBound(BaseCompare):
 class TestShiftAndBound(BaseCompare):
     x, y = te.var("x"), te.var("y")
 
-    test_case = gsmDataGen.testing.parameter(
+    test_case = gsm_data_generator.testing.parameter(
         TestCase(x >> y, (-3, 2), {x: (-9, 11), y: (2, 10)}),
         TestCase(x & y, (0, 10), {x: (-9, 11), y: (2, 10)}),
         TestCase(x & y, (0, 10), {x: (10, 11), y: (2, 10)}),
@@ -230,10 +230,10 @@ class TestShiftAndBound(BaseCompare):
 
 class TestMixIndexBound(BaseCompare):
     x, y = te.var("x"), te.var("y")
-    tdiv = gsmDataGen.tir.truncdiv
-    tmod = gsmDataGen.tir.truncmod
+    tdiv = gsm_data_generator.tir.truncdiv
+    tmod = gsm_data_generator.tir.truncmod
 
-    test_case = gsmDataGen.testing.parameter(
+    test_case = gsm_data_generator.testing.parameter(
         TestCase(tmod(x, 8) + tdiv(x, 8) * 8, (0, 24 - 1), {x: (0, 24 - 1), y: (0, 3 - 1)}),
         TestCase(y + x * 3, (0, 24 * 3 - 1), {x: (0, 24 - 1), y: (0, 3 - 1)}),
         TestCase(
@@ -244,16 +244,16 @@ class TestMixIndexBound(BaseCompare):
 
 class TestLetBound(BaseCompare):
     x = te.var("x")
-    test_case = gsmDataGen.testing.parameter(
-        TestCase(gsmDataGen.tir.Let(x, 1, x + 1), (2, 2)),
+    test_case = gsm_data_generator.testing.parameter(
+        TestCase(gsm_data_generator.tir.Let(x, 1, x + 1), (2, 2)),
     )
 
 
 class TestFloorModNegativeDivisor(BaseCompare):
-    flm, fld = gsmDataGen.te.floormod, gsmDataGen.te.floordiv
+    flm, fld = gsm_data_generator.te.floormod, gsm_data_generator.te.floordiv
     a, b = te.var("a"), te.var("b")
 
-    test_case = gsmDataGen.testing.parameter(
+    test_case = gsm_data_generator.testing.parameter(
         TestCase(a % b, (-4, 6), {a: (0, 6), b: (-5, 7)}),
     )
 
@@ -266,7 +266,7 @@ class TestDivModAssumeNoZeroDivisor(BaseCompare):
 
     a, b = te.var("a"), te.var("b")
 
-    test_case = gsmDataGen.testing.parameter(
+    test_case = gsm_data_generator.testing.parameter(
         TestCase(a // b, (0, 6), {a: (0, 6), b: (0, POS_INF)}),
         TestCase(a % b, (0, 6), {a: (0, 6), b: (0, POS_INF)}),
     )
@@ -274,29 +274,29 @@ class TestDivModAssumeNoZeroDivisor(BaseCompare):
 
 class TestMultipleCondition(BaseCompare):
     a = te.var("a")
-    test_case = gsmDataGen.testing.parameter(
+    test_case = gsm_data_generator.testing.parameter(
         TestCase(
             a % 58 - 1,
             (0, None),
             known_bounds={a: (0, 128)},
-            constraint=gsmDataGen.tir.all(1 <= a % 58, a % 58 < 57),
+            constraint=gsm_data_generator.tir.all(1 <= a % 58, a % 58 < 57),
         ),
     )
 
 
 class TestBroadcastBound(BaseCompare):
     a = te.var("a")
-    test_case = gsmDataGen.testing.parameter(
-        TestCase(gsmDataGen.tir.Broadcast(a, 4), (0, 128), {a: (0, 128)}),
+    test_case = gsm_data_generator.testing.parameter(
+        TestCase(gsm_data_generator.tir.Broadcast(a, 4), (0, 128), {a: (0, 128)}),
     )
 
 
 class TestRampBound(BaseCompare):
     a = te.var("a")
-    test_case = gsmDataGen.testing.parameter(
-        TestCase(gsmDataGen.tir.Ramp(a, 2, 4) + 2, (2, 128 + 2 * 3 + 2), {a: (0, 128)}),
+    test_case = gsm_data_generator.testing.parameter(
+        TestCase(gsm_data_generator.tir.Ramp(a, 2, 4) + 2, (2, 128 + 2 * 3 + 2), {a: (0, 128)}),
     )
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

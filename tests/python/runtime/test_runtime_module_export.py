@@ -15,28 +15,28 @@
 # specific language governing permissions and limitations
 # under the License.
 
-import gsmDataGen
-import gsmDataGen.testing
+import gsm_data_generator
+import gsm_data_generator.testing
 
-from gsmDataGen.contrib import utils
+from gsm_data_generator.contrib import utils
 
 
-@gsmDataGen.testing.requires_llvm
+@gsm_data_generator.testing.requires_llvm
 def test_import_static_library():
-    from gsmDataGen import te
+    from gsm_data_generator import te
 
     # Generate two LLVM modules.
     A = te.placeholder((1024,), name="A")
     B = te.compute(A.shape, lambda *i: A(*i) + 1.0, name="B")
-    irmod0 = gsmDataGen.IRModule.from_expr(
+    irmod0 = gsm_data_generator.IRModule.from_expr(
         te.create_prim_func([A, B]).with_attr("global_symbol", "myadd0")
     )
-    irmod1 = gsmDataGen.IRModule.from_expr(
+    irmod1 = gsm_data_generator.IRModule.from_expr(
         te.create_prim_func([A, B]).with_attr("global_symbol", "myadd1")
     )
 
-    mod0 = gsmDataGen.tir.build(irmod0, target="llvm")
-    mod1 = gsmDataGen.tir.build(irmod1, target="llvm")
+    mod0 = gsm_data_generator.tir.build(irmod0, target="llvm")
+    mod1 = gsm_data_generator.tir.build(irmod1, target="llvm")
 
     assert mod0.implements_function("myadd0")
     assert mod1.implements_function("myadd1")
@@ -47,7 +47,7 @@ def test_import_static_library():
     temp = utils.tempdir()
     mod1_o_path = temp.relpath("mod1.o")
     mod1.save(mod1_o_path)
-    mod1_o = gsmDataGen.runtime.load_static_library(mod1_o_path, ["myadd1"])
+    mod1_o = gsm_data_generator.runtime.load_static_library(mod1_o_path, ["myadd1"])
     assert mod1_o.implements_function("myadd1")
     assert mod1_o.is_dso_exportable
 
@@ -57,7 +57,7 @@ def test_import_static_library():
     mod0.export_library(mod0_dso_path)
 
     # The imported mod1 is statically linked into mod0.
-    loaded_lib = gsmDataGen.runtime.load_module(mod0_dso_path)
+    loaded_lib = gsm_data_generator.runtime.load_module(mod0_dso_path)
     assert loaded_lib.type_key == "library"
     assert len(loaded_lib.imported_modules) == 0
     assert loaded_lib.implements_function("myadd0")
@@ -68,4 +68,4 @@ def test_import_static_library():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

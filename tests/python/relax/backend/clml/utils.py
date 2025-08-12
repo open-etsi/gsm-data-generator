@@ -18,15 +18,15 @@
 import pytest
 import numpy as np
 import json
-import gsmDataGen
-import gsmDataGen.testing
+import gsm_data_generator
+import gsm_data_generator.testing
 import copy
 
-from gsmDataGen import relax, rpc
-from gsmDataGen.relax import transform
-from gsmDataGen import dlight as dl
-from gsmDataGen.contrib import utils, ndk
-from gsmDataGen.relax.backend.adreno.clml import OpenCLMLOffLoad
+from gsm_data_generator import relax, rpc
+from gsm_data_generator.relax import transform
+from gsm_data_generator import dlight as dl
+from gsm_data_generator.contrib import utils, ndk
+from gsm_data_generator.relax.backend.adreno.clml import OpenCLMLOffLoad
 
 
 def build_and_run(
@@ -37,11 +37,11 @@ def build_and_run(
     load_path="vm_library.so",
     clml_enable=False,
 ):
-    tgt = gsmDataGen.target.Target(target, host="llvm -mtriple=aarch64-linux-gnu")
+    tgt = gsm_data_generator.target.Target(target, host="llvm -mtriple=aarch64-linux-gnu")
     pipeline = relax.pipeline.get_default_pipeline(tgt)
     mod = pipeline(mod)
     if rpc:
-        ex = gsmDataGen.compile(mod, tgt)
+        ex = gsm_data_generator.compile(mod, tgt)
         temp = utils.tempdir()
         path = temp.relpath(load_path)
         path = "./" + load_path
@@ -51,12 +51,12 @@ def build_and_run(
         dev = rpc.cl(0)
         vm = relax.VirtualMachine(rexec, dev)
     else:
-        ex = gsmDataGen.compile(mod, target)
-        dev = gsmDataGen.device(target, 0)
+        ex = gsm_data_generator.compile(mod, target)
+        dev = gsm_data_generator.device(target, 0)
         vm = relax.VirtualMachine(ex, dev)
 
     f = vm["main"]
-    inputs = [gsmDataGen.nd.array(inp, dev) for inp in inputs_np]
+    inputs = [gsm_data_generator.nd.array(inp, dev) for inp in inputs_np]
     vm.set_input("main", *inputs)
     vm.invoke_stateful("main")
     tvm_output = vm.get_outputs("main")
@@ -65,8 +65,8 @@ def build_and_run(
 
 def run_compare(mod, inputs, params_np, rpc=None):
     clml_mod = copy.deepcopy(mod)
-    mod = gsmDataGen.relax.transform.BindParams("main", params_np)(mod)
-    clml_mod = gsmDataGen.relax.transform.BindParams("main", params_np)(clml_mod)
+    mod = gsm_data_generator.relax.transform.BindParams("main", params_np)(mod)
+    clml_mod = gsm_data_generator.relax.transform.BindParams("main", params_np)(clml_mod)
 
     if not rpc:
         return
@@ -74,14 +74,14 @@ def run_compare(mod, inputs, params_np, rpc=None):
     ref = build_and_run(
         mod,
         inputs,
-        gsmDataGen.target.adreno(),
+        gsm_data_generator.target.adreno(),
         rpc=rpc,
         load_path="vm_library_opencl.so",
     )
     out = build_and_run(
         clml_mod,
         inputs,
-        gsmDataGen.target.adreno(clml=True),
+        gsm_data_generator.target.adreno(clml=True),
         rpc=rpc,
         load_path="vm_library_clml.so",
         clml_enable=True,

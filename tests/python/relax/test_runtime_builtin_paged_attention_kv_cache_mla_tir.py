@@ -21,10 +21,10 @@ import numpy as np
 import pytest
 import torch
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import dlight as dl
-from gsmDataGen.relax.frontend.nn.llm.kv_cache import (
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import dlight as dl
+from gsm_data_generator.relax.frontend.nn.llm.kv_cache import (
     AttnKind,
     RopeMode,
     _attention_prefill_mla,
@@ -34,7 +34,7 @@ from gsmDataGen.relax.frontend.nn.llm.kv_cache import (
     _kv_cache_transpose_append_mla,
     _merge_state_inplace,
 )
-from gsmDataGen.runtime import ShapeTuple
+from gsm_data_generator.runtime import ShapeTuple
 
 reserved_nseq = 32
 maximum_total_seq_length = 2048
@@ -49,7 +49,7 @@ sm_scale = (qk_nope_head_dim + qk_rope_head_dim) ** (-0.5)
 kv_lora_rank = 512
 dtype = "float16"
 dtype_torch = getattr(torch, dtype)
-device = gsmDataGen.cuda()
+device = gsm_data_generator.cuda()
 device_torch = torch.device("cuda")
 
 fclear = None
@@ -79,7 +79,7 @@ w_uv = None
 
 
 # Register a dumb function for testing purpose.
-@gsmDataGen.register_func("test.dumb_function", override=True)
+@gsm_data_generator.register_func("test.dumb_function", override=True)
 def _dumb_function():
     raise RuntimeError("Dumb function isn't supposed to be accessed.")
 
@@ -93,23 +93,23 @@ def set_global_func(dtype):
     global fmerge_state, fmerge_state_additional, fcopy_single_page
     global w_kv, w_uk, w_uv
 
-    fclear = gsmDataGen.get_global_func("vm.builtin.kv_state_clear")
-    fadd_sequence = gsmDataGen.get_global_func("vm.builtin.kv_state_add_sequence")
-    fremove_sequence = gsmDataGen.get_global_func("vm.builtin.kv_state_remove_sequence")
-    ffork_sequence = gsmDataGen.get_global_func("vm.builtin.kv_state_fork_sequence")
-    fpopn = gsmDataGen.get_global_func("vm.builtin.kv_state_popn")
-    fbegin_forward = gsmDataGen.get_global_func("vm.builtin.kv_state_begin_forward")
-    fend_forward = gsmDataGen.get_global_func("vm.builtin.kv_state_end_forward")
-    fself_attn = gsmDataGen.get_global_func("vm.builtin.attention_kv_cache_self_attention")
-    fcross_attn = gsmDataGen.get_global_func("vm.builtin.attention_kv_cache_cross_attention")
-    fappend_mla_kv = gsmDataGen.get_global_func("vm.builtin.attention_kv_cache_append_mla_kv")
-    fkv_merge_attn_output = gsmDataGen.get_global_func(
+    fclear = gsm_data_generator.get_global_func("vm.builtin.kv_state_clear")
+    fadd_sequence = gsm_data_generator.get_global_func("vm.builtin.kv_state_add_sequence")
+    fremove_sequence = gsm_data_generator.get_global_func("vm.builtin.kv_state_remove_sequence")
+    ffork_sequence = gsm_data_generator.get_global_func("vm.builtin.kv_state_fork_sequence")
+    fpopn = gsm_data_generator.get_global_func("vm.builtin.kv_state_popn")
+    fbegin_forward = gsm_data_generator.get_global_func("vm.builtin.kv_state_begin_forward")
+    fend_forward = gsm_data_generator.get_global_func("vm.builtin.kv_state_end_forward")
+    fself_attn = gsm_data_generator.get_global_func("vm.builtin.attention_kv_cache_self_attention")
+    fcross_attn = gsm_data_generator.get_global_func("vm.builtin.attention_kv_cache_cross_attention")
+    fappend_mla_kv = gsm_data_generator.get_global_func("vm.builtin.attention_kv_cache_append_mla_kv")
+    fkv_merge_attn_output = gsm_data_generator.get_global_func(
         "vm.builtin.attention_kv_cache_merge_attn_output_inplace"
     )
-    fis_empty = gsmDataGen.get_global_func("vm.builtin.attention_kv_cache_empty")
-    fdebug_get_kv = gsmDataGen.get_global_func("vm.builtin.attention_kv_cache_debug_get_kv_mla")
+    fis_empty = gsm_data_generator.get_global_func("vm.builtin.attention_kv_cache_empty")
+    fdebug_get_kv = gsm_data_generator.get_global_func("vm.builtin.attention_kv_cache_debug_get_kv_mla")
 
-    target = gsmDataGen.target.Target.from_device(device)
+    target = gsm_data_generator.target.Target.from_device(device)
     builts = []
     for tir_func in [
         _kv_cache_transpose_append_mla(kv_lora_rank + qk_rope_head_dim, dtype),
@@ -130,10 +130,10 @@ def set_global_func(dtype):
         _merge_state_inplace(num_attention_heads, v_head_dim, dtype, target),
         _copy_single_page_mla(page_size, kv_lora_rank + qk_rope_head_dim, dtype, target),
     ]:
-        mod = gsmDataGen.IRModule({"main": tir_func})
+        mod = gsm_data_generator.IRModule({"main": tir_func})
         with target:
             mod = dl.ApplyDefaultSchedule(dl.gpu.Fallback())(mod)
-        f = gsmDataGen.tir.build(mod["main"], target=target)
+        f = gsm_data_generator.tir.build(mod["main"], target=target)
         builts.append(f.entry_func)
 
     (
@@ -162,10 +162,10 @@ def set_global_func(dtype):
 
 
 def create_kv_cache(dtype):
-    fcreate = gsmDataGen.get_global_func("vm.builtin.paged_attention_kv_cache_create")
-    fdumb = gsmDataGen.get_global_func("test.dumb_function")
+    fcreate = gsm_data_generator.get_global_func("vm.builtin.paged_attention_kv_cache_create")
+    fdumb = gsm_data_generator.get_global_func("test.dumb_function")
     cache = fcreate(
-        gsmDataGen.runtime.ShapeTuple(
+        gsm_data_generator.runtime.ShapeTuple(
             [
                 reserved_nseq,
                 maximum_total_seq_length,
@@ -174,18 +174,18 @@ def create_kv_cache(dtype):
                 0,
             ]
         ),
-        gsmDataGen.runtime.ShapeTuple([0, num_layers]),
+        gsm_data_generator.runtime.ShapeTuple([0, num_layers]),
         num_attention_heads,
         1,  # num_kv_heads
         kv_lora_rank + qk_rope_head_dim,
         kv_lora_rank,
-        gsmDataGen.runtime.ShapeTuple([int(AttnKind.MLA) for _ in range(num_layers)]),
+        gsm_data_generator.runtime.ShapeTuple([int(AttnKind.MLA) for _ in range(num_layers)]),
         False,  # enable_kv_transfer
         RopeMode.NONE,
         1,
         10000,
         None,  # rope_ext_factors
-        gsmDataGen.nd.empty((), dtype, device=device),
+        gsm_data_generator.nd.empty((), dtype, device=device),
         None,  # f_transpose_append_mha
         ftranspose_append,
         ["tir", fmla_prefill_ragged],  # fattn_prefill_ragged
@@ -218,7 +218,7 @@ def verify_cached_kv(kv_cache, seq_ids, expected_kv):
     for seq_id in seq_ids:
         kv_expected = expected_kv[seq_id]
         seq_length = expected_kv[seq_id].shape[1]
-        kv_actual = gsmDataGen.nd.empty(kv_expected.shape, dtype=dtype, device=device)
+        kv_actual = gsm_data_generator.nd.empty(kv_expected.shape, dtype=dtype, device=device)
         fdebug_get_kv(kv_cache, seq_id, 0, seq_length, kv_actual)
         torch.testing.assert_close(
             torch.from_numpy(kv_actual.numpy()).to(device_torch), kv_expected, rtol=1e-3, atol=1e-3
@@ -301,17 +301,17 @@ def apply_attention(
             is_decode_request = False
 
     for layer_id in range(num_layers):
-        queries = gsmDataGen.nd.array(global_new_q[layer_id].cpu().numpy(), device)
-        key_value = gsmDataGen.nd.array(global_new_kv[layer_id].cpu().numpy(), device)
+        queries = gsm_data_generator.nd.array(global_new_q[layer_id].cpu().numpy(), device)
+        key_value = gsm_data_generator.nd.array(global_new_kv[layer_id].cpu().numpy(), device)
         total_seq_length = global_new_q[layer_id].shape[0]
-        outputs1 = gsmDataGen.nd.empty(
+        outputs1 = gsm_data_generator.nd.empty(
             (total_seq_length, num_attention_heads, v_head_dim), dtype, device=device
         )
-        lse1 = gsmDataGen.nd.empty((total_seq_length, num_attention_heads), "float32", device=device)
-        outputs2 = gsmDataGen.nd.empty(
+        lse1 = gsm_data_generator.nd.empty((total_seq_length, num_attention_heads), "float32", device=device)
+        outputs2 = gsm_data_generator.nd.empty(
             (total_seq_length, num_attention_heads, kv_lora_rank), dtype, device=device
         )
-        lse2 = gsmDataGen.nd.empty((total_seq_length, num_attention_heads), "float32", device=device)
+        lse2 = gsm_data_generator.nd.empty((total_seq_length, num_attention_heads), "float32", device=device)
 
         fappend_mla_kv(kv_cache, layer_id, key_value)
         if not is_decode_request:
@@ -328,8 +328,8 @@ def apply_attention(
                 total_seq_length, num_attention_heads, qk_rope_head_dim
             )
             keys = torch.cat([keys, k_pe_expanded], dim=2)
-            keys_tvm = gsmDataGen.nd.array(keys.cpu().numpy(), device)
-            values_tvm = gsmDataGen.nd.array(values.cpu().numpy(), device)
+            keys_tvm = gsm_data_generator.nd.array(keys.cpu().numpy(), device)
+            values_tvm = gsm_data_generator.nd.array(values.cpu().numpy(), device)
             fself_attn(kv_cache, layer_id, sm_scale, queries, keys_tvm, values_tvm, outputs1, lse1)
 
         if not all_new_sequences or is_decode_request:
@@ -340,9 +340,9 @@ def apply_attention(
             queries_lora_np = torch.cat(
                 [torch.bmm(queries_lora_np.permute(1, 0, 2), w_uk).permute(1, 0, 2), q_pe], dim=2
             )
-            queries_lora = gsmDataGen.nd.array(queries_lora_np.cpu().numpy(), device)
+            queries_lora = gsm_data_generator.nd.array(queries_lora_np.cpu().numpy(), device)
             fcross_attn(kv_cache, layer_id, sm_scale, queries_lora, outputs2, lse2)
-            cross_attn_output = gsmDataGen.nd.array(
+            cross_attn_output = gsm_data_generator.nd.array(
                 torch.bmm(
                     torch.from_numpy(outputs2.numpy()).to(device_torch).permute(1, 0, 2), w_uv
                 )
@@ -412,8 +412,8 @@ def apply_attention(
     verify_cached_kv(kv_cache, seq_ids, cached_kv)
 
 
-@gsmDataGen.testing.requires_gpu
-@gsmDataGen.testing.requires_cuda
+@gsm_data_generator.testing.requires_gpu
+@gsm_data_generator.testing.requires_cuda
 def test_paged_attention_kv_cache_prefill_and_decode(kv_cache_and_config):
     (kv_cache,) = kv_cache_and_config
     fclear(kv_cache)
@@ -433,8 +433,8 @@ def test_paged_attention_kv_cache_prefill_and_decode(kv_cache_and_config):
         apply_attention(kv_cache, batch, cached_kv)
 
 
-@gsmDataGen.testing.requires_gpu
-@gsmDataGen.testing.requires_cuda
+@gsm_data_generator.testing.requires_gpu
+@gsm_data_generator.testing.requires_cuda
 def test_paged_attention_kv_cache_remove_sequence(kv_cache_and_config):
     (kv_cache,) = kv_cache_and_config
     fclear(kv_cache)
@@ -454,8 +454,8 @@ def test_paged_attention_kv_cache_remove_sequence(kv_cache_and_config):
         )
 
 
-@gsmDataGen.testing.requires_gpu
-@gsmDataGen.testing.requires_cuda
+@gsm_data_generator.testing.requires_gpu
+@gsm_data_generator.testing.requires_cuda
 def test_paged_attention_kv_cache_fork_sequence(kv_cache_and_config):
     (kv_cache,) = kv_cache_and_config
     fclear(kv_cache)
@@ -524,8 +524,8 @@ def test_paged_attention_kv_cache_fork_sequence(kv_cache_and_config):
     apply_attention(kv_cache, [(10, 1), (12, 1)], cached_kv)
 
 
-@gsmDataGen.testing.requires_gpu
-@gsmDataGen.testing.requires_cuda
+@gsm_data_generator.testing.requires_gpu
+@gsm_data_generator.testing.requires_cuda
 def test_paged_attention_kv_cache_popn(kv_cache_and_config):
     (kv_cache,) = kv_cache_and_config
     fclear(kv_cache)

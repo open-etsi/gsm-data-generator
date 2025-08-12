@@ -17,12 +17,12 @@
 """ Instrument test cases.
 """
 
-import gsmDataGen
-from gsmDataGen import relax
-from gsmDataGen.ir.instrument import PrintAfterAll, PrintBeforeAll
-from gsmDataGen.script import ir as I
-from gsmDataGen.script import relax as R
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+from gsm_data_generator import relax
+from gsm_data_generator.ir.instrument import PrintAfterAll, PrintBeforeAll
+from gsm_data_generator.script import ir as I
+from gsm_data_generator.script import relax as R
+from gsm_data_generator.script import tir as T
 
 # pylint: disable=invalid-name,missing-function-docstring,no-value-for-parameter
 
@@ -37,8 +37,8 @@ def test_tir_print_all_passes(capsys):
                 vi, vj, vk, vl = T.axis.remap("SSSS", [i, j, k, l])
                 B[vi, vj, vk, vl] = A[vi, vj, vk, vl] * 2.0
 
-    with gsmDataGen.transform.PassContext(opt_level=3, instruments=[PrintBeforeAll(), PrintAfterAll()]):
-        gsmDataGen.compile(func)
+    with gsm_data_generator.transform.PassContext(opt_level=3, instruments=[PrintBeforeAll(), PrintAfterAll()]):
+        gsm_data_generator.compile(func)
     all_passes_output = capsys.readouterr().out
     assert "Before Running Pass:" in all_passes_output
     assert "After Running Pass:" in all_passes_output
@@ -55,7 +55,7 @@ def test_relax_print_all_passes(capsys):
             return y
 
     pipeline = relax.get_pipeline("default_build")
-    with gsmDataGen.transform.PassContext(opt_level=3, instruments=[PrintBeforeAll(), PrintAfterAll()]):
+    with gsm_data_generator.transform.PassContext(opt_level=3, instruments=[PrintBeforeAll(), PrintAfterAll()]):
         pipeline(Module)
     all_passes_output = capsys.readouterr().out
     assert "Before Running Pass:" in all_passes_output

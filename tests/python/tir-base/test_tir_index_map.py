@@ -17,12 +17,12 @@
 import numpy as np
 import pytest
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen.ir import assert_structural_equal
-from gsmDataGen.runtime import const
-from gsmDataGen.tir import IndexMap, IntImm, floordiv, floormod
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator.ir import assert_structural_equal
+from gsm_data_generator.runtime import const
+from gsm_data_generator.tir import IndexMap, IntImm, floordiv, floormod
+from gsm_data_generator.script import tir as T
 
 
 def assert_equal_index_map(map1: IndexMap, map2: IndexMap) -> None:
@@ -30,7 +30,7 @@ def assert_equal_index_map(map1: IndexMap, map2: IndexMap) -> None:
     iters_2 = map2.final_indices
     assert len(iters_1) == len(iters_2)
 
-    analyzer = gsmDataGen.arith.Analyzer()
+    analyzer = gsm_data_generator.arith.Analyzer()
     for iter1, iter2 in zip(iters_1, iters_2):
         assert analyzer.can_prove_equal(iter1, iter2)
 
@@ -66,42 +66,42 @@ def test_inverse():
 def test_nonbijective_inverse_gives_error():
     index_map = IndexMap.from_func(lambda i: [i // 4, i % 4])
 
-    with pytest.raises(gsmDataGen.TVMError):
+    with pytest.raises(gsm_data_generator.TVMError):
         index_map.inverse([14])
 
 
-dynamic_N = gsmDataGen.tir.Var("N", "int32")
-padding_test_case = gsmDataGen.testing.parameter(
+dynamic_N = gsm_data_generator.tir.Var("N", "int32")
+padding_test_case = gsm_data_generator.testing.parameter(
     by_dict={
         "no_padding": dict(
             forward=lambda i: [i // 4, i % 4],
             inverse=lambda i, j: [4 * i + j],
             pre_shape=[16],
             post_shape=[T.int32(4), T.int32(4)],
-            padding=lambda i, j: gsmDataGen.runtime.convert(False),
+            padding=lambda i, j: gsm_data_generator.runtime.convert(False),
         ),
         "right_padding": dict(
             forward=lambda i: [i // 4, i % 4],
             inverse=lambda i, j: [4 * i + j],
             pre_shape=[15],
             post_shape=[T.int32(4), T.int32(4)],
-            padding=lambda i, j: gsmDataGen.tir.And(i == 3, gsmDataGen.runtime.convert(3) == j),
+            padding=lambda i, j: gsm_data_generator.tir.And(i == 3, gsm_data_generator.runtime.convert(3) == j),
         ),
         "left_padding": dict(
             forward=lambda i: [(i + 1) // 4, (i + 1) % 4],
             inverse=lambda i, j: [4 * i + j - 1],
             pre_shape=[15],
             post_shape=[T.int32(4), T.int32(4)],
-            padding=lambda i, j: gsmDataGen.tir.And(i == 0, j < 1),
+            padding=lambda i, j: gsm_data_generator.tir.And(i == 0, j < 1),
         ),
         "left_and_right_padding": dict(
             forward=lambda i: [(i + 1) // 4, (i + 1) % 4],
             inverse=lambda i, j: [4 * i + j - 1],
             pre_shape=[14],
             post_shape=[T.int32(4), T.int32(4)],
-            padding=lambda i, j: gsmDataGen.tir.Or(
-                gsmDataGen.tir.And(i == 0, j < 1),
-                gsmDataGen.tir.And(i == 3, gsmDataGen.runtime.convert(3) == j),
+            padding=lambda i, j: gsm_data_generator.tir.Or(
+                gsm_data_generator.tir.And(i == 0, j < 1),
+                gsm_data_generator.tir.And(i == 3, gsm_data_generator.runtime.convert(3) == j),
             ),
         ),
         "dynamic_size": dict(
@@ -109,9 +109,9 @@ padding_test_case = gsmDataGen.testing.parameter(
             inverse=lambda i, j: [4 * i + j],
             pre_shape=[dynamic_N],
             post_shape=[(dynamic_N - dynamic_N % (-4)) // 4, T.int32(4)],
-            padding=lambda i, j: gsmDataGen.tir.And(
+            padding=lambda i, j: gsm_data_generator.tir.And(
                 dynamic_N % (-4) != 0,
-                gsmDataGen.tir.And(i == dynamic_N // 4, j >= dynamic_N % 4),
+                gsm_data_generator.tir.And(i == dynamic_N // 4, j >= dynamic_N % 4),
             ),
         ),
         "2d_padding": dict(
@@ -127,14 +127,14 @@ padding_test_case = gsmDataGen.testing.parameter(
                 T.int32(4),  # Range of iter%4
                 T.int32(8),  # Range of iter%8
             ],
-            padding=lambda i_outer, j_outer, i_inner, j_inner: gsmDataGen.tir.Or(
-                gsmDataGen.tir.Or(
-                    gsmDataGen.tir.And(i_outer == 0, i_inner < 1),
-                    gsmDataGen.tir.And(i_outer == 3, gsmDataGen.runtime.convert(3) == i_inner),
+            padding=lambda i_outer, j_outer, i_inner, j_inner: gsm_data_generator.tir.Or(
+                gsm_data_generator.tir.Or(
+                    gsm_data_generator.tir.And(i_outer == 0, i_inner < 1),
+                    gsm_data_generator.tir.And(i_outer == 3, gsm_data_generator.runtime.convert(3) == i_inner),
                 ),
-                gsmDataGen.tir.Or(
-                    gsmDataGen.tir.And(j_outer == 0, j_inner < 5),
-                    gsmDataGen.tir.And(j_outer == 4, j_inner >= 4),
+                gsm_data_generator.tir.Or(
+                    gsm_data_generator.tir.And(j_outer == 0, j_inner < 5),
+                    gsm_data_generator.tir.And(j_outer == 4, j_inner >= 4),
                 ),
             ),
         ),
@@ -143,35 +143,35 @@ padding_test_case = gsmDataGen.testing.parameter(
             inverse=lambda i, j, k: [32 * i + 4 * j + k],
             pre_shape=[116],
             post_shape=[T.int32(4), T.int32(8), T.int32(4)],
-            padding=lambda i, j, k: gsmDataGen.tir.And(i == 3, 4 * j + k >= 20),
+            padding=lambda i, j, k: gsm_data_generator.tir.And(i == 3, 4 * j + k >= 20),
         ),
         "multiple_right_padding_transpose": dict(
             forward=lambda i: [(i // 4) % 8, i // 32, i % 4],
             inverse=lambda j, i, k: [32 * i + 4 * j + k],
             pre_shape=[116],
             post_shape=[T.int32(8), T.int32(4), T.int32(4)],
-            padding=lambda j, i, k: gsmDataGen.tir.And(i == 3, 4 * j + k >= 20),
+            padding=lambda j, i, k: gsm_data_generator.tir.And(i == 3, 4 * j + k >= 20),
         ),
         "multiple_left_padding": dict(
             forward=lambda i: [(i + 5) // 32, ((i + 5) // 4) % 8, (i + 5) % 4],
             inverse=lambda i, j, k: [32 * i + 4 * j + k - 5],
             pre_shape=[123],
             post_shape=[T.int32(4), T.int32(8), T.int32(4)],
-            padding=lambda i, j, k: gsmDataGen.tir.And(i == 0, j * 4 + k < 5),
+            padding=lambda i, j, k: gsm_data_generator.tir.And(i == 0, j * 4 + k < 5),
         ),
         "multiple_left_padding_with_transpose": dict(
             forward=lambda i: [((i + 5) // 4) % 8, (i + 5) // 32, (i + 5) % 4],
             inverse=lambda j, i, k: [32 * i + 4 * j + k - 5],
             pre_shape=[123],
             post_shape=[T.int32(8), T.int32(4), T.int32(4)],
-            padding=lambda j, i, k: gsmDataGen.tir.And(i == 0, j * 4 + k < 5),
+            padding=lambda j, i, k: gsm_data_generator.tir.And(i == 0, j * 4 + k < 5),
         ),
         "outer_loop_extent_one": dict(
             forward=lambda i: [i // 4, i % 4],
             inverse=lambda i, j: [i * 4 + j],
             pre_shape=[3],
             post_shape=[T.int32(1), T.int32(4)],
-            padding=lambda i, j: gsmDataGen.runtime.convert(3) == j,
+            padding=lambda i, j: gsm_data_generator.runtime.convert(3) == j,
         ),
     }
 )
@@ -185,16 +185,16 @@ def test_nonsurjective_inverse(padding_test_case):
     assert inverse.is_equivalent_to(expected_inverse)
 
     post_shape = index_map.map_shape(padding_test_case["pre_shape"])
-    gsmDataGen.ir.assert_structural_equal(post_shape, padding_test_case["post_shape"])
+    gsm_data_generator.ir.assert_structural_equal(post_shape, padding_test_case["post_shape"])
 
     expected_predicate = padding_test_case["padding"](*inverse.initial_indices)
 
     # Can't use analyzer.can_prove_equal, because it can't simplify
     # expressions like `(4*i+j >= 14) - (4*i+j >= 14)`.
-    analyzer = gsmDataGen.arith.Analyzer()
+    analyzer = gsm_data_generator.arith.Analyzer()
     expected_predicate = analyzer.simplify(expected_predicate)
     padding_predicate = analyzer.simplify(padding_predicate)
-    gsmDataGen.ir.assert_structural_equal(padding_predicate, expected_predicate)
+    gsm_data_generator.ir.assert_structural_equal(padding_predicate, expected_predicate)
 
 
 def test_index_map_inverse_no_iter():
@@ -219,7 +219,7 @@ def test_map_ndarray():
 
     inp = np.arange(16).astype("int8")
 
-    out = index_map.map_ndarray(gsmDataGen.nd.array(inp)).numpy()
+    out = index_map.map_ndarray(gsm_data_generator.nd.array(inp)).numpy()
 
     ref = np.zeros(out.shape).astype("int8")
 
@@ -232,7 +232,7 @@ def test_map_ndarray():
 
     inp = np.random.randn(10, 10, 10, 10).astype("float16")
 
-    out = index_map.map_ndarray(gsmDataGen.nd.array(inp)).numpy()
+    out = index_map.map_ndarray(gsm_data_generator.nd.array(inp)).numpy()
 
     ref = np.transpose(inp, (3, 0, 1, 2))
 
@@ -254,7 +254,7 @@ def test_map_ndarray():
     I = 64
     O = 64
     inp = np.random.randn(kH, kW, I, O).astype("float32")
-    arr = gsmDataGen.nd.array(inp)
+    arr = gsm_data_generator.nd.array(inp)
     out = index_map.map_ndarray(arr).numpy()
 
     ref = np.zeros(out.shape).astype("float32")
@@ -273,4 +273,4 @@ def test_map_ndarray():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

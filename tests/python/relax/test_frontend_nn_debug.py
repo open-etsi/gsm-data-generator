@@ -17,12 +17,12 @@
 # pylint: disable=missing-docstring
 import torch
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import tir
-from gsmDataGen.relax.frontend import nn
-from gsmDataGen.relax.frontend.nn import op, spec
-from gsmDataGen.runtime import NDArray
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import tir
+from gsm_data_generator.relax.frontend import nn
+from gsm_data_generator.relax.frontend.nn import op, spec
+from gsm_data_generator.runtime import NDArray
 
 
 def test_debug_print():
@@ -43,7 +43,7 @@ def test_debug_print():
 
 
 def test_debug_func():
-    @gsmDataGen.register_func("testing.relax.frontend.nn.test_debug_func")
+    @gsm_data_generator.register_func("testing.relax.frontend.nn.test_debug_func")
     def _debug(  # pylint: disable=too-many-arguments
         lineno: str,
         tensor: NDArray,

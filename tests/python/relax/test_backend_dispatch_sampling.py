@@ -16,14 +16,14 @@
 # under the License.
 # pylint: disable=missing-docstring
 
-import gsmDataGen
-import gsmDataGen.script
-import gsmDataGen.testing
-from gsmDataGen.ir.base import assert_structural_equal
-from gsmDataGen.relax.backend import DispatchSampling
-from gsmDataGen.script import ir as I
-from gsmDataGen.script import relax as R
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.script
+import gsm_data_generator.testing
+from gsm_data_generator.ir.base import assert_structural_equal
+from gsm_data_generator.relax.backend import DispatchSampling
+from gsm_data_generator.script import ir as I
+from gsm_data_generator.script import relax as R
+from gsm_data_generator.script import tir as T
 
 
 @I.ir_module
@@ -73,7 +73,7 @@ def test_dispatch_multinomial_from_uniform_generic():
             return gv
     # fmt: on
 
-    with gsmDataGen.target.Target("llvm"):
+    with gsm_data_generator.target.Target("llvm"):
         mod = DispatchSampling()(MultiFromUniformModule)
 
     assert_structural_equal(mod, Expected)
@@ -191,11 +191,11 @@ def test_dispatch_multinomial_from_uniform_gpu():
             return gv
     # fmt: on
 
-    with gsmDataGen.target.Target("cuda"):
+    with gsm_data_generator.target.Target("cuda"):
         mod = DispatchSampling()(MultiFromUniformModule)
 
     assert_structural_equal(mod, Expected)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

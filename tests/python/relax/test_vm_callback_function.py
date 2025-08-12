@@ -15,16 +15,16 @@
 # specific language governing permissions and limitations
 # under the License.
 
-import gsmDataGen
-import gsmDataGen.testing
+import gsm_data_generator
+import gsm_data_generator.testing
 
-from gsmDataGen.script import relax as R
+from gsm_data_generator.script import relax as R
 
 import numpy as np
 
-exec_mode = gsmDataGen.testing.parameter("bytecode", "compiled")
+exec_mode = gsm_data_generator.testing.parameter("bytecode", "compiled")
 
-pytestmark = gsmDataGen.testing.parametrize_targets("llvm")
+pytestmark = gsm_data_generator.testing.parametrize_targets("llvm")
 
 
 def test_pass_tensor_to_function(exec_mode, target, dev):
@@ -37,12 +37,12 @@ def test_pass_tensor_to_function(exec_mode, target, dev):
         _ = callback(B)
         return R.tuple()
 
-    ex = gsmDataGen.relax.build(
-        gsmDataGen.IRModule.from_expr(relax_func),
+    ex = gsm_data_generator.relax.build(
+        gsm_data_generator.IRModule.from_expr(relax_func),
         target=target,
         exec_mode=exec_mode,
     )
-    vm = gsmDataGen.relax.VirtualMachine(ex, dev)
+    vm = gsm_data_generator.relax.VirtualMachine(ex, dev)
 
     from_callback = None
 
@@ -51,7 +51,7 @@ def test_pass_tensor_to_function(exec_mode, target, dev):
         from_callback = arr
 
     np_A = np.arange(16, dtype="int32")
-    tvm_A = gsmDataGen.nd.array(np_A)
+    tvm_A = gsm_data_generator.nd.array(np_A)
 
     vm["relax_func"](tvm_A, custom_callback)
 
@@ -68,17 +68,17 @@ def test_generate_tensor_in_function(exec_mode, target, dev):
         B = R.multiply(A, R.const(2))
         return B
 
-    ex = gsmDataGen.relax.build(
-        gsmDataGen.IRModule.from_expr(relax_func),
+    ex = gsm_data_generator.relax.build(
+        gsm_data_generator.IRModule.from_expr(relax_func),
         target=target,
         exec_mode=exec_mode,
     )
-    vm = gsmDataGen.relax.VirtualMachine(ex, dev)
+    vm = gsm_data_generator.relax.VirtualMachine(ex, dev)
 
     np_A = np.arange(16, dtype="int32")
 
     def custom_callback():
-        return gsmDataGen.nd.array(np_A)
+        return gsm_data_generator.nd.array(np_A)
 
     output = vm["relax_func"](custom_callback)
 
@@ -93,12 +93,12 @@ def test_catch_exception_with_full_stack_trace(exec_mode, target, dev):
         A = callback()
         return A
 
-    ex = gsmDataGen.relax.build(
-        gsmDataGen.IRModule.from_expr(relax_func),
+    ex = gsm_data_generator.relax.build(
+        gsm_data_generator.IRModule.from_expr(relax_func),
         target=target,
         exec_mode=exec_mode,
     )
-    vm = gsmDataGen.relax.VirtualMachine(ex, dev)
+    vm = gsm_data_generator.relax.VirtualMachine(ex, dev)
 
     # custom callback that raises an error in python
     def custom_callback():
@@ -121,4 +121,4 @@ def test_catch_exception_with_full_stack_trace(exec_mode, target, dev):
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

@@ -23,15 +23,15 @@ import contextlib
 
 import numpy as np
 import pytest
-import gsmDataGen
+import gsm_data_generator
 
 # Needed to register the link_shared packedfunc.
-import gsmDataGen.contrib.hexagon
-import gsmDataGen.testing
-from gsmDataGen import te
-from gsmDataGen.contrib.hexagon.pytest_plugin import requires_hexagon_toolchain
-from gsmDataGen.tir.stmt_functor import post_order_visit
-from gsmDataGen.contrib.hexagon import allocate_hexagon_array
+import gsm_data_generator.contrib.hexagon
+import gsm_data_generator.testing
+from gsm_data_generator import te
+from gsm_data_generator.contrib.hexagon.pytest_plugin import requires_hexagon_toolchain
+from gsm_data_generator.tir.stmt_functor import post_order_visit
+from gsm_data_generator.contrib.hexagon import allocate_hexagon_array
 
 from .infrastructure import get_hexagon_target
 
@@ -42,32 +42,32 @@ from .infrastructure import get_hexagon_target
 # there as well
 # pylint: disable=invalid-name
 
-schedule_type = gsmDataGen.testing.parameter("TE", "TIR")
+schedule_type = gsm_data_generator.testing.parameter("TE", "TIR")
 
-dtype = gsmDataGen.testing.parameter("int8")
-batch_size = gsmDataGen.testing.parameter(
+dtype = gsm_data_generator.testing.parameter("int8")
+batch_size = gsm_data_generator.testing.parameter(
     16,
     2,
 )
-input_channels = gsmDataGen.testing.parameter(
+input_channels = gsm_data_generator.testing.parameter(
     32,
 )
-input_image_shape = gsmDataGen.testing.parameter(
+input_image_shape = gsm_data_generator.testing.parameter(
     by_dict={
         "8x8": (8, 8),
         "32x32": (32, 32),
     }
 )
 
-input_layout = gsmDataGen.testing.parameter(
+input_layout = gsm_data_generator.testing.parameter(
     "nhwc",
     "nchw-8h8w32c-1d",
 )
-output_layout = gsmDataGen.testing.parameter(
+output_layout = gsm_data_generator.testing.parameter(
     "nhwc",
     "nchw-8h8w32c-1d",
 )
-working_layout, working_scope = gsmDataGen.testing.parameters(
+working_layout, working_scope = gsm_data_generator.testing.parameters(
     ("nhwc", "global"),
     ("nhwc", "global.vtcm"),
     ("nchw-8h8w32c-1d", "global"),
@@ -79,7 +79,7 @@ working_layout, working_scope = gsmDataGen.testing.parameters(
 # pylint: enable=invalid-name
 
 
-@gsmDataGen.testing.fixture
+@gsm_data_generator.testing.fixture
 def target_host():
     """Return tvm target.Target with host attached"""
     return get_hexagon_target("v68")
@@ -91,7 +91,7 @@ def target_host():
 # pylint: disable=redefined-outer-name
 
 
-@gsmDataGen.testing.fixture
+@gsm_data_generator.testing.fixture
 def input_shape(batch_size, input_channels, input_image_shape):
     return [batch_size, *input_image_shape, input_channels]
 
@@ -116,27 +116,27 @@ def transform_numpy(arr_np, layout):
     raise RuntimeError(f"Unexpected layout '{layout}'")
 
 
-@gsmDataGen.testing.fixture
+@gsm_data_generator.testing.fixture
 def transformed_input_shape(input_shape, input_layout):
     return transform_shape(input_shape, input_layout)
 
 
-@gsmDataGen.testing.fixture
+@gsm_data_generator.testing.fixture
 def transformed_output_shape(output_shape, output_layout):
     return transform_shape(output_shape, output_layout)
 
 
-@gsmDataGen.testing.fixture
+@gsm_data_generator.testing.fixture
 def input_np(input_shape, dtype):
     return (100 * np.random.uniform(size=input_shape)).astype(dtype)
 
 
-@gsmDataGen.testing.fixture
+@gsm_data_generator.testing.fixture
 def transformed_input_np(input_np, input_layout):
     return transform_numpy(input_np, input_layout)
 
 
-@gsmDataGen.testing.fixture
+@gsm_data_generator.testing.fixture
 def transformed_expected_output_np(expected_output_np, output_layout):
     return transform_numpy(expected_output_np, output_layout)
 
@@ -170,7 +170,7 @@ def extract_buffers(stmt):
     buffers = []
 
     def visitor(node):
-        if isinstance(node, (gsmDataGen.tir.BufferLoad, gsmDataGen.tir.BufferStore, gsmDataGen.tir.BufferRealize)):
+        if isinstance(node, (gsm_data_generator.tir.BufferLoad, gsm_data_generator.tir.BufferStore, gsm_data_generator.tir.BufferRealize)):
             buffers.append(node.buffer)
 
     post_order_visit(stmt, visitor)
@@ -180,15 +180,15 @@ def extract_buffers(stmt):
 class TestElementWise:
     """TestElementWise"""
 
-    @gsmDataGen.testing.fixture
+    @gsm_data_generator.testing.fixture
     def expected_output_np(self, input_np):
         return 2 * input_np
 
-    @gsmDataGen.testing.fixture
+    @gsm_data_generator.testing.fixture
     def output_shape(self, input_shape):
         return input_shape
 
-    @gsmDataGen.testing.fixture
+    @gsm_data_generator.testing.fixture
     def schedule_args(
         self,
         schedule_type,
@@ -222,7 +222,7 @@ class TestElementWise:
     ):
         tensors = self._te_tensors(input_shape, dtype)
 
-        sch = gsmDataGen.tir.Schedule(te.create_prim_func(tensors))
+        sch = gsm_data_generator.tir.Schedule(te.create_prim_func(tensors))
 
         cache_read_block = sch.cache_read("Output", 0, working_scope)
         cache_write_block = sch.cache_write("Output", 0, working_scope)
@@ -244,7 +244,7 @@ class TestElementWise:
 
         return [sch.mod]
 
-    @gsmDataGen.testing.fixture
+    @gsm_data_generator.testing.fixture
     def uses_unsupported_physical_dimensions(  # pylint: disable=invalid-name
         self, target_host, input_layout, working_layout, output_layout
     ):
@@ -299,18 +299,18 @@ class TestElementWise:
             is_hexagon = target_host.kind.name == "hexagon"
             uses_2d_memory = "nchw-8h8w32c-2d" in [input_layout, working_layout, output_layout]
             if uses_2d_memory and not is_hexagon:
-                stack.enter_context(pytest.raises(gsmDataGen.TVMError))
+                stack.enter_context(pytest.raises(gsm_data_generator.TVMError))
 
-            gsmDataGen.compile(*schedule_args, target=target_host)
+            gsm_data_generator.compile(*schedule_args, target=target_host)
 
-    @gsmDataGen.testing.fixture
+    @gsm_data_generator.testing.fixture
     def runtime_module(self, schedule_args, target_host):
         if target_host.kind.name != "hexagon":
             pytest.skip("Only running on hexagon")
 
-        return gsmDataGen.compile(*schedule_args, target=target_host)
+        return gsm_data_generator.compile(*schedule_args, target=target_host)
 
-    @gsmDataGen.testing.requires_hexagon
+    @gsm_data_generator.testing.requires_hexagon
     def test_execute(
         self,
         runtime_module,
@@ -351,4 +351,4 @@ class TestElementWise:
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

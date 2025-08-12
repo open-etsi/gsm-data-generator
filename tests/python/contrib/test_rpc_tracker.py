@@ -18,20 +18,20 @@
 # pylint: disable=invalid-name
 import logging
 import time
-import gsmDataGen
-from gsmDataGen import rpc
+import gsm_data_generator
+from gsm_data_generator import rpc
 
 
 def check_server_drop():
     """test when server drops"""
     try:
         # pylint: disable=import-outside-toplevel
-        from gsmDataGen.rpc import tracker, proxy, base
+        from gsm_data_generator.rpc import tracker, proxy, base
 
         # pylint: disable=import-outside-toplevel
-        from gsmDataGen.rpc.base import TrackerCode
+        from gsm_data_generator.rpc.base import TrackerCode
 
-        @gsmDataGen.register_func("rpc.test2.addone")
+        @gsm_data_generator.register_func("rpc.test2.addone")
         def addone(x):
             return x + 1
 
@@ -82,7 +82,7 @@ def check_server_drop():
                 f1 = remote2.get_function("rpc.test2.addone")
                 assert f1(10) == 11
 
-            except gsmDataGen.error.TVMError:
+            except gsm_data_generator.error.TVMError:
                 pass
             remote3 = tclient.request("abc")
             f1 = remote3.get_function("rpc.test2.addone")

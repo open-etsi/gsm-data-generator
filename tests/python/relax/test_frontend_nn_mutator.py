@@ -17,8 +17,8 @@
 
 from typing import Any
 
-import gsmDataGen
-from gsmDataGen.relax.frontend import nn
+import gsm_data_generator
+from gsm_data_generator.relax.frontend import nn
 
 
 def test_mutator_naming_basic():
@@ -222,4 +222,4 @@ def test_mutator_recursively():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

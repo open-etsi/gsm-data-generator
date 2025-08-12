@@ -19,14 +19,14 @@
 """Hexagon testing infrastructure"""
 
 import numpy
-import gsmDataGen
-from gsmDataGen import te
+import gsm_data_generator
+from gsm_data_generator import te
 
 
 def ceildiv(o, d):
     assert o >= 0
     assert d >= 0
-    return gsmDataGen.tir.floordiv(o + d - 1, d)
+    return gsm_data_generator.tir.floordiv(o + d - 1, d)
 
 
 # defines inner block shape: 8h8w32c
@@ -94,15 +94,15 @@ def build_and_run(inputs, func, target: str, target_host: str, *args, **kwargs):
     """build and run the function func"""
     schedule, placeholders, binds = func(*args, **kwargs)
 
-    func = gsmDataGen.compile(
-        schedule, placeholders, target=gsmDataGen.target.Target(target, host=target_host), binds=binds
+    func = gsm_data_generator.compile(
+        schedule, placeholders, target=gsm_data_generator.target.Target(target, host=target_host), binds=binds
     )
-    dev = gsmDataGen.device(target)
+    dev = gsm_data_generator.device(target)
     tensors = []
     for tensor in inputs:
-        tensors.append(gsmDataGen.nd.array(tensor, dev))
+        tensors.append(gsm_data_generator.nd.array(tensor, dev))
     tensors.append(
-        gsmDataGen.nd.array(
+        gsm_data_generator.nd.array(
             numpy.zeros([i.value for i in placeholders[-1].shape], dtype=placeholders[-1].dtype),
             dev,
         )
@@ -153,7 +153,7 @@ def conv2d_verify(output, ref_output, dtype):
         tol = {"atol": 0, "rtol": 0}
     elif dtype == "float32":
         tol = {"rtol": 1e-4, "atol": 2e-4}
-    gsmDataGen.testing.assert_allclose(output, ref_output, **tol)
+    gsm_data_generator.testing.assert_allclose(output, ref_output, **tol)
 
 
 def conv2d_compute(X, filt, pad, stride, dilation):
@@ -351,7 +351,7 @@ def quantize_np(arr_np: numpy.ndarray, dtype: str):
     return quant_np, scale, zero_point
 
 
-def get_hexagon_target(cpu_ver: str, **kwargs) -> gsmDataGen.target.Target:
+def get_hexagon_target(cpu_ver: str, **kwargs) -> gsm_data_generator.target.Target:
     """Creates a Hexagon target"""
-    target = gsmDataGen.target.hexagon(cpu_ver, **kwargs)
-    return gsmDataGen.target.Target(target, host=target)
+    target = gsm_data_generator.target.hexagon(cpu_ver, **kwargs)
+    return gsm_data_generator.target.Target(target, host=target)

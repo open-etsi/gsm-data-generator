@@ -16,14 +16,14 @@
 # under the License.
 # pylint: disable=missing-module-docstring,missing-function-docstring,missing-class-docstring
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import meta_schedule as ms
-from gsmDataGen import tir
-from gsmDataGen.meta_schedule.testing import te_workload
-from gsmDataGen.script import tir as T
-from gsmDataGen.target import Target
-from gsmDataGen.te import create_prim_func
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import meta_schedule as ms
+from gsm_data_generator import tir
+from gsm_data_generator.meta_schedule.testing import te_workload
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.target import Target
+from gsm_data_generator.te import create_prim_func
 
 
 def _target() -> Target:
@@ -49,7 +49,7 @@ def _create_context(mod, target) -> ms.TuneContext:
 # fmt: off
 # pylint: disable=no-member,invalid-name,unused-variable,no-self-argument,line-too-long,chained-comparison,not-callable,too-many-nested-blocks
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class AfterRewrite0:
     @T.prim_func
     def main(var_A: T.handle, var_B: T.handle, var_C: T.handle) -> None:
@@ -103,7 +103,7 @@ class AfterRewrite0:
                             C[v0, v1] = C_local[v0, v1]
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class WarpExecutionAfterRewrite:
     @T.prim_func
     def main(
@@ -250,7 +250,7 @@ def test_rewrite_cooperative_fetch():
     # fmt: on
     sch.enter_postproc()
     assert ctx.space_generator.postprocs[0].apply(sch)
-    gsmDataGen.ir.assert_structural_equal(sch.mod, AfterRewrite0)
+    gsm_data_generator.ir.assert_structural_equal(sch.mod, AfterRewrite0)
 
 
 def test_rewrite_warp_execution():
@@ -295,8 +295,8 @@ def test_rewrite_warp_execution():
     # fmt: on
     sch.enter_postproc()
     assert ctx.space_generator.postprocs[0].apply(sch)
-    gsmDataGen.ir.assert_structural_equal(sch.mod, WarpExecutionAfterRewrite)
+    gsm_data_generator.ir.assert_structural_equal(sch.mod, WarpExecutionAfterRewrite)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

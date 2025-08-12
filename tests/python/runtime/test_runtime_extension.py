@@ -14,25 +14,25 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-import gsmDataGen
-from gsmDataGen import te
+import gsm_data_generator
+from gsm_data_generator import te
 import numpy as np
 
 
 def test_dltensor_compatible():
     dtype = "int64"
     n = te.var("n")
-    Ab = gsmDataGen.tir.decl_buffer((n,), dtype)
+    Ab = gsm_data_generator.tir.decl_buffer((n,), dtype)
     i = te.var("i")
-    ib = gsmDataGen.tir.ir_builder.create()
+    ib = gsm_data_generator.tir.ir_builder.create()
     A = ib.buffer_ptr(Ab)
     with ib.for_range(0, n - 1, "i") as i:
         A[i + 1] = A[i] + 1
     stmt = ib.get()
 
-    mod = gsmDataGen.IRModule.from_expr(gsmDataGen.tir.PrimFunc([Ab], stmt).with_attr("global_symbol", "arange"))
-    f = gsmDataGen.compile(mod, target="llvm")
-    a = gsmDataGen.nd.array(np.zeros(10, dtype=dtype))
+    mod = gsm_data_generator.IRModule.from_expr(gsm_data_generator.tir.PrimFunc([Ab], stmt).with_attr("global_symbol", "arange"))
+    f = gsm_data_generator.compile(mod, target="llvm")
+    a = gsm_data_generator.nd.array(np.zeros(10, dtype=dtype))
     f(a)
     np.testing.assert_equal(a.numpy(), np.arange(a.shape[0]))
 

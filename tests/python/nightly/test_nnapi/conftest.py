@@ -19,7 +19,7 @@ import os
 
 import pytest
 
-from gsmDataGen import rpc
+from gsm_data_generator import rpc
 
 
 def remote():

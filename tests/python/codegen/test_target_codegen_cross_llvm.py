@@ -15,25 +15,25 @@
 # specific language governing permissions and limitations
 # under the License.
 """Test cross compilation"""
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import te
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import te
 import os
 import struct
-from gsmDataGen import rpc
-from gsmDataGen.contrib import utils, cc
+from gsm_data_generator import rpc
+from gsm_data_generator.contrib import utils, cc
 import numpy as np
 
 
-@gsmDataGen.testing.requires_llvm
+@gsm_data_generator.testing.requires_llvm
 def test_llvm_add_pipeline():
     nn = 1024
-    n = gsmDataGen.runtime.convert(nn)
+    n = gsm_data_generator.runtime.convert(nn)
     A = te.placeholder((n,), name="A")
     B = te.placeholder((n,), name="B")
     C = te.compute(A.shape, lambda *i: A(*i) + B(*i), name="C")
 
-    sch = gsmDataGen.tir.Schedule(te.create_prim_func([A, B, C]))
+    sch = gsm_data_generator.tir.Schedule(te.create_prim_func([A, B, C]))
     xo, xi = sch.split(sch.get_loops("C")[0], factors=[None, 4])
     sch.parallel(xo)
     sch.vectorize(xi)
@@ -49,18 +49,18 @@ def test_llvm_add_pipeline():
     def build_i386():
         temp = utils.tempdir()
         target = "llvm -mtriple=i386-pc-linux-gnu"
-        f = gsmDataGen.tir.build(sch.mod, target=target)
+        f = gsm_data_generator.tir.build(sch.mod, target=target)
         path = temp.relpath("myadd.o")
         f.save(path)
         verify_elf(path, 0x03)
 
     def build_arm():
         target = "llvm -mtriple=armv7-none-linux-gnueabihf"
-        if not gsmDataGen.runtime.enabled(target):
+        if not gsm_data_generator.runtime.enabled(target):
             print("Skip because %s is not enabled.." % target)
             return
         temp = utils.tempdir()
-        f = gsmDataGen.tir.build(sch.mod, target=target)
+        f = gsm_data_generator.tir.build(sch.mod, target=target)
         path = temp.relpath("myadd.o")
         f.save(path)
         verify_elf(path, 0x28)
@@ -73,7 +73,7 @@ def test_llvm_add_pipeline():
             port = int(os.environ["TVM_RPC_ARM_PORT"])
             try:
                 remote = rpc.connect(host, port)
-            except gsmDataGen.error.TVMError as e:
+            except gsm_data_generator.error.TVMError as e:
                 pass
 
         if remote:
@@ -81,11 +81,11 @@ def test_llvm_add_pipeline():
             farm = remote.load_module("myadd.o")
             dev = remote.cpu(0)
             n = nn
-            a = gsmDataGen.nd.array(np.random.uniform(size=n).astype(A.dtype), dev)
-            b = gsmDataGen.nd.array(np.random.uniform(size=n).astype(A.dtype), dev)
-            c = gsmDataGen.nd.array(np.zeros(n, dtype=C.dtype), dev)
+            a = gsm_data_generator.nd.array(np.random.uniform(size=n).astype(A.dtype), dev)
+            b = gsm_data_generator.nd.array(np.random.uniform(size=n).astype(A.dtype), dev)
+            c = gsm_data_generator.nd.array(np.zeros(n, dtype=C.dtype), dev)
             farm(a, b, c)
-            gsmDataGen.testing.assert_allclose(c.numpy(), a.numpy() + b.numpy())
+            gsm_data_generator.testing.assert_allclose(c.numpy(), a.numpy() + b.numpy())
             print("Verification finish on remote..")
 
     build_i386()

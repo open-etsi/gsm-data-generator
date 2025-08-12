@@ -14,13 +14,13 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import te
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import te
 
 
 def test_cast():
-    analyzer = gsmDataGen.arith.Analyzer()
+    analyzer = gsm_data_generator.arith.Analyzer()
     x = te.var("x", dtype="int8")
     m = analyzer.modular_set((x * 3).astype("uint32"))
     assert m.coeff == 3
@@ -31,7 +31,7 @@ def test_cast():
 
 
 def test_add_sub():
-    analyzer = gsmDataGen.arith.Analyzer()
+    analyzer = gsm_data_generator.arith.Analyzer()
     x, y = te.var("x", "int64"), te.var("y", "int64")
     m = analyzer.modular_set(x * 6 + y * 4)
     assert m.coeff == 2
@@ -44,7 +44,7 @@ def test_add_sub():
 
 
 def test_mul():
-    analyzer = gsmDataGen.arith.Analyzer()
+    analyzer = gsm_data_generator.arith.Analyzer()
     x, y = te.var("x"), te.var("y")
     m = analyzer.modular_set((x * 4 + 2) * (y * 6 + 1))
     assert m.coeff == 4
@@ -52,18 +52,18 @@ def test_mul():
 
 
 def test_floormod():
-    analyzer = gsmDataGen.arith.Analyzer()
+    analyzer = gsm_data_generator.arith.Analyzer()
     x, y = te.var("x"), te.var("y")
-    m = analyzer.modular_set(gsmDataGen.tir.floormod(x * 128 + y * 4, 256))
+    m = analyzer.modular_set(gsm_data_generator.tir.floormod(x * 128 + y * 4, 256))
     assert m.coeff == 4
     assert m.base == 0
 
 
 def test_div_shift():
-    analyzer = gsmDataGen.arith.Analyzer()
+    analyzer = gsm_data_generator.arith.Analyzer()
     x, y = te.var("x"), te.var("y")
     # not sure if x is non-negative
-    tdiv = gsmDataGen.tir.truncdiv
+    tdiv = gsm_data_generator.tir.truncdiv
     m = analyzer.modular_set(tdiv(x * 4 + 2, 2))
     assert m.coeff == 1
     assert m.base == 0
@@ -71,22 +71,22 @@ def test_div_shift():
     m = analyzer.modular_set((x * 4 + 2) >> 1)
     assert m.coeff == 2
     assert m.base == 1
-    fld = gsmDataGen.te.floordiv
+    fld = gsm_data_generator.te.floordiv
     m = analyzer.modular_set(fld(x * 4 + 2, 2))
     assert m.coeff == 2
     assert m.base == 1
     # x is non-negative
-    analyzer.update(x, gsmDataGen.arith.ConstIntBound(0, 100))
+    analyzer.update(x, gsm_data_generator.arith.ConstIntBound(0, 100))
     m = analyzer.modular_set(tdiv(x * 4 + 2, 2))
     assert m.coeff == 2
     assert m.base == 1
 
 
 def test_mod():
-    analyzer = gsmDataGen.arith.Analyzer()
+    analyzer = gsm_data_generator.arith.Analyzer()
     x, y = te.var("x"), te.var("y")
-    tmod = gsmDataGen.tir.truncmod
-    fmod = gsmDataGen.tir.floormod
+    tmod = gsm_data_generator.tir.truncmod
+    fmod = gsm_data_generator.tir.floormod
     # not sure if x is non-negative
     m = analyzer.modular_set(tmod(x * 4 + 1, 4))
     assert m.coeff == 1
@@ -103,24 +103,24 @@ def test_mod():
     assert m.coeff == 4
     assert m.base == 3
     # x is non-negative
-    analyzer.update(x, gsmDataGen.arith.ConstIntBound(0, 100))
+    analyzer.update(x, gsm_data_generator.arith.ConstIntBound(0, 100))
     m = analyzer.modular_set(tmod(x * 4 + 3, 2))
     assert m.coeff == 2
     assert m.base == 1
 
 
 def test_min_max_select():
-    analyzer = gsmDataGen.arith.Analyzer()
+    analyzer = gsm_data_generator.arith.Analyzer()
     x, y = te.var("x"), te.var("y")
-    m = analyzer.modular_set(gsmDataGen.te.min(x * 3, y * 9))
+    m = analyzer.modular_set(gsm_data_generator.te.min(x * 3, y * 9))
     assert m.coeff == 3
     assert m.base == 0
 
-    m = analyzer.modular_set(gsmDataGen.te.max(x * 3 + 1, y * 9 + 4))
+    m = analyzer.modular_set(gsm_data_generator.te.max(x * 3 + 1, y * 9 + 4))
     assert m.coeff == 3
     assert m.base == 1
 
-    m = analyzer.modular_set(gsmDataGen.tir.Select(x > 0, x * 3 + 1, y * 9 + 2))
+    m = analyzer.modular_set(gsm_data_generator.tir.Select(x > 0, x * 3 + 1, y * 9 + 2))
     assert m.coeff == 1
     assert m.base == 0
 
@@ -128,8 +128,8 @@ def test_min_max_select():
 def test_mix_index():
     a = te.var("a")
     b = te.var("b")
-    analyzer = gsmDataGen.arith.Analyzer()
-    tdiv = gsmDataGen.tir.truncdiv
+    analyzer = gsm_data_generator.arith.Analyzer()
+    tdiv = gsm_data_generator.tir.truncdiv
     m = analyzer.modular_set(a * 4 + b * 6 + 7)
     assert m.coeff == 2
     assert m.base == 1
@@ -150,7 +150,7 @@ def test_mix_index():
     assert m.coeff == 3
     assert m.base == 2
 
-    m = analyzer.modular_set(a * 12 + gsmDataGen.te.min(b * 3 * 7, 2))
+    m = analyzer.modular_set(a * 12 + gsm_data_generator.te.min(b * 3 * 7, 2))
     assert m.coeff == 1
     assert m.base == 0
 
@@ -158,8 +158,8 @@ def test_mix_index():
 def test_constraint_scope():
     a = te.var("a")
     b = te.var("b")
-    analyzer = gsmDataGen.arith.Analyzer()
-    tmod = gsmDataGen.tir.truncmod
+    analyzer = gsm_data_generator.arith.Analyzer()
+    tmod = gsm_data_generator.tir.truncmod
 
     with analyzer.constraint_scope(tmod(b, 4) == 2):
         m = analyzer.modular_set(b + 1)
@@ -180,8 +180,8 @@ def test_constraint_scope():
 
 def test_intersect():
     a = te.var("a")
-    analyzer = gsmDataGen.arith.Analyzer()
-    tmod = gsmDataGen.tir.truncmod
+    analyzer = gsm_data_generator.arith.Analyzer()
+    tmod = gsm_data_generator.tir.truncmod
     with analyzer.constraint_scope(tmod(a, 4) == 1):
         with analyzer.constraint_scope(tmod(a, 3) == 1):
             m = analyzer.modular_set(a)
@@ -197,16 +197,16 @@ def test_intersect():
 
 
 def test_let():
-    analyzer = gsmDataGen.arith.Analyzer()
+    analyzer = gsm_data_generator.arith.Analyzer()
     x = te.var("x")
     y = te.var("y")
-    m = analyzer.modular_set(gsmDataGen.tir.Let(x, y * 10, x + 1))
+    m = analyzer.modular_set(gsm_data_generator.tir.Let(x, y * 10, x + 1))
     assert m.coeff == 10
     assert m.base == 1
 
 
 def test_bitwise_and():
-    analyzer = gsmDataGen.arith.Analyzer()
+    analyzer = gsm_data_generator.arith.Analyzer()
     x = te.var("x")
     y = te.var("y")
 
@@ -222,4 +222,4 @@ def test_bitwise_and():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

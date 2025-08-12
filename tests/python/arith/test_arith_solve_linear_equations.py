@@ -17,9 +17,9 @@
 import random
 import sys
 import pytest
-import gsmDataGen
-from gsmDataGen import te, arith, ir, tir, testing
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+from gsm_data_generator import te, arith, ir, tir, testing
+from gsm_data_generator.script import tir as T
 
 
 def test_solution_consistency():
@@ -40,13 +40,13 @@ def test_solution_consistency():
             s2 = sum([v * random.randint(coef[0], coef[1]) for v in variables])
             s2 += random.randint(coef[0], coef[1])
             if random.random() < 0.7:
-                op = gsmDataGen.tir.EQ
+                op = gsm_data_generator.tir.EQ
             else:
                 # we also make sure it can correctly handle inequalities
-                op = random.choice([gsmDataGen.tir.LE, gsmDataGen.tir.LT, gsmDataGen.tir.GE, gsmDataGen.tir.GT])
+                op = random.choice([gsm_data_generator.tir.LE, gsm_data_generator.tir.LT, gsm_data_generator.tir.GE, gsm_data_generator.tir.GT])
             relations.append(op(s1, s2))
 
-        vranges = {v: gsmDataGen.ir.expr.Range(bounds[0], bounds[1] + 1) for v in variables}
+        vranges = {v: gsm_data_generator.ir.expr.Range(bounds[0], bounds[1] + 1) for v in variables}
         solution = arith.solve_linear_equations(relations, variables, vranges)
 
         testing.check_int_constraints_trans_consistency(solution)
@@ -87,8 +87,8 @@ def test_solution_consistency():
 def test_empty_var_to_solve():
     x, y = te.var("x"), te.var("y")
     equations = [
-        gsmDataGen.tir.EQ(x + y, 20),
-        gsmDataGen.tir.EQ(x - y, 10),
+        gsm_data_generator.tir.EQ(x + y, 20),
+        gsm_data_generator.tir.EQ(x - y, 10),
     ]
     solution = arith.solve_linear_equations(equations)
     assert len(solution.src_to_dst) == 0
@@ -104,8 +104,8 @@ def test_unique_solution():
 
     solution = arith.solve_linear_equations(
         [
-            gsmDataGen.tir.EQ(x + y, 20),
-            gsmDataGen.tir.EQ(x - y, 10),
+            gsm_data_generator.tir.EQ(x + y, 20),
+            gsm_data_generator.tir.EQ(x - y, 10),
         ],
         [x, y],
     )
@@ -120,8 +120,8 @@ def test_low_rank():
 
     solution = arith.solve_linear_equations(
         [
-            gsmDataGen.tir.EQ(x + y + z, 15),
-            gsmDataGen.tir.EQ(x + y, 10),
+            gsm_data_generator.tir.EQ(x + y + z, 15),
+            gsm_data_generator.tir.EQ(x + y, 10),
         ],
         [x, y, z],
         ranges,
@@ -135,13 +135,13 @@ def test_low_rank():
 def test_infer_range():
     x, y = te.var("x"), te.var("y")
     ranges = {
-        x: gsmDataGen.ir.Range.from_min_extent(-5, 10),
-        y: gsmDataGen.ir.Range.from_min_extent(0, 10),
+        x: gsm_data_generator.ir.Range.from_min_extent(-5, 10),
+        y: gsm_data_generator.ir.Range.from_min_extent(0, 10),
     }
 
     solution = arith.solve_linear_equations(
         [
-            gsmDataGen.tir.EQ(x + y, 0),
+            gsm_data_generator.tir.EQ(x + y, 0),
         ],
         [x, y],
         ranges,
@@ -154,7 +154,7 @@ def test_infer_range():
     assert ir.structural_equal(solution.dst.ranges[n0].extent, T.int32(10))
     # additional inequality is added into the system for x
     [ineq] = solution.dst.relations
-    assert isinstance(ineq, gsmDataGen.tir.LE)
+    assert isinstance(ineq, gsm_data_generator.tir.LE)
     assert ir.structural_equal(ineq.a, T.int32(-5))
     assert ir.structural_equal(ineq.b, n0)
 
@@ -164,9 +164,9 @@ def test_ill_formed():
 
     solution = arith.solve_linear_equations(
         [
-            gsmDataGen.tir.EQ(x + y, 0),
-            gsmDataGen.tir.EQ(x - y, 0),
-            gsmDataGen.tir.EQ(x, 5),
+            gsm_data_generator.tir.EQ(x + y, 0),
+            gsm_data_generator.tir.EQ(x - y, 0),
+            gsm_data_generator.tir.EQ(x, 5),
         ],
         [x, y],
         {},
@@ -179,4 +179,4 @@ def test_ill_formed():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

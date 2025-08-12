@@ -19,13 +19,13 @@ from typing import List
 import tempfile
 import pytest
 
-import gsmDataGen
-from gsmDataGen import meta_schedule as ms
-from gsmDataGen.meta_schedule.schedule_rule import ApplyCustomRule
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+from gsm_data_generator import meta_schedule as ms
+from gsm_data_generator.meta_schedule.schedule_rule import ApplyCustomRule
+from gsm_data_generator.script import tir as T
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Matmul:
     @T.prim_func
     def main(a: T.handle, b: T.handle, c: T.handle) -> None:
@@ -42,8 +42,8 @@ class Matmul:
                 C[vi, vj] = C[vi, vj] + A[vi, vk] * B[vk, vj]
 
 
-@gsmDataGen.register_func("meta_schedule.cpu.test_apply_custom_rule")
-def sch_fn(sch: gsmDataGen.tir.Schedule, block: gsmDataGen.tir.Block) -> List[gsmDataGen.tir.Schedule]:
+@gsm_data_generator.register_func("meta_schedule.cpu.test_apply_custom_rule")
+def sch_fn(sch: gsm_data_generator.tir.Schedule, block: gsm_data_generator.tir.Block) -> List[gsm_data_generator.tir.Schedule]:
     raise ValueError("Intended for meta_schedule.cpu.test_apply_custom_rule")
 
 

@@ -17,15 +17,15 @@
 """Test layout and bijective-layout node"""
 
 import pytest
-import gsmDataGen
-import gsmDataGen.error
-from gsmDataGen.topi.utils import get_const_tuple
+import gsm_data_generator
+import gsm_data_generator.error
+from gsm_data_generator.topi.utils import get_const_tuple
 
 
 def test_layout():
-    layout = gsmDataGen.tir.layout("NCHW16c")
+    layout = gsm_data_generator.tir.layout("NCHW16c")
     assert layout is not None
-    assert isinstance(layout, gsmDataGen.tir.Layout)
+    assert isinstance(layout, gsm_data_generator.tir.Layout)
 
     assert layout.factor_of("c") == 16
     assert layout.factor_of("C") == 16
@@ -54,7 +54,7 @@ def test_layout():
 
 
 def test_layout_dtype():
-    layout_i32 = gsmDataGen.tir.layout("NCHW")
+    layout_i32 = gsm_data_generator.tir.layout("NCHW")
     assert layout_i32.axes[0].var.dtype == "int32"
     assert layout_i32.axes[0].dom.min.dtype == "int32"
     assert layout_i32.axes[0].dom.extent.dtype == "int32"
@@ -62,7 +62,7 @@ def test_layout_dtype():
     assert layout_i32.axes[1].dom.min.dtype == "int32"
     assert layout_i32.axes[1].dom.extent.dtype == "int32"
 
-    layout_i64 = gsmDataGen.tir.layout("NCHW", dtype="int64")
+    layout_i64 = gsm_data_generator.tir.layout("NCHW", dtype="int64")
     assert layout_i64.axes[2].var.dtype == "int64"
     assert layout_i64.axes[2].dom.min.dtype == "int64"
     assert layout_i64.axes[2].dom.extent.dtype == "int64"
@@ -71,27 +71,27 @@ def test_layout_dtype():
     assert layout_i64.axes[3].dom.extent.dtype == "int64"
 
     with pytest.raises(TypeError):
-        gsmDataGen.tir.layout("NCHW", dtype="float32")
+        gsm_data_generator.tir.layout("NCHW", dtype="float32")
     with pytest.raises(TypeError):
-        gsmDataGen.tir.layout("NCHW", dtype=None)
+        gsm_data_generator.tir.layout("NCHW", dtype=None)
 
 
 def test_bilayout_convertible():
     # not convertible
-    assert gsmDataGen.tir.bijective_layout("NCHW", "ABCD") is None
-    assert gsmDataGen.tir.bijective_layout("__undef__", "NCHW") is None
-    assert gsmDataGen.tir.bijective_layout("NCHW", "__undef__") is None
-    assert gsmDataGen.tir.bijective_layout("__undef__", "__undef__") is None
-    assert gsmDataGen.tir.bijective_layout("", "NCHW") is None
-    assert gsmDataGen.tir.bijective_layout("NCHW", "") is None
-    assert gsmDataGen.tir.bijective_layout("", "") is None
+    assert gsm_data_generator.tir.bijective_layout("NCHW", "ABCD") is None
+    assert gsm_data_generator.tir.bijective_layout("__undef__", "NCHW") is None
+    assert gsm_data_generator.tir.bijective_layout("NCHW", "__undef__") is None
+    assert gsm_data_generator.tir.bijective_layout("__undef__", "__undef__") is None
+    assert gsm_data_generator.tir.bijective_layout("", "NCHW") is None
+    assert gsm_data_generator.tir.bijective_layout("NCHW", "") is None
+    assert gsm_data_generator.tir.bijective_layout("", "") is None
     # convertible
-    assert gsmDataGen.tir.bijective_layout("NCHW", "NCHW16c") is not None
+    assert gsm_data_generator.tir.bijective_layout("NCHW", "NCHW16c") is not None
 
 
 def test_bilayout_shape():
-    bilayout = gsmDataGen.tir.bijective_layout("NCHW", "NCHW16c")
-    assert isinstance(bilayout, gsmDataGen.tir.BijectiveLayout)
+    bilayout = gsm_data_generator.tir.bijective_layout("NCHW", "NCHW16c")
+    assert isinstance(bilayout, gsm_data_generator.tir.BijectiveLayout)
 
     dst_shape = bilayout.forward_shape((1, 32, 7, 7))
     assert get_const_tuple(dst_shape) == (1, 2, 7, 7, 16)
@@ -101,7 +101,7 @@ def test_bilayout_shape():
 
 
 def test_bilayout_index():
-    bilayout = gsmDataGen.tir.bijective_layout("NCHW", "NCHW16c")
+    bilayout = gsm_data_generator.tir.bijective_layout("NCHW", "NCHW16c")
 
     dst_index = bilayout.forward_index([0, 18, 6, 6])
     assert get_const_tuple(dst_index) == (0, 1, 6, 6, 2)

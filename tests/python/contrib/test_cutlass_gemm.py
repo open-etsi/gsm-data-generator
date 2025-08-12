@@ -19,9 +19,9 @@ from typing import Tuple
 import ml_dtypes
 import numpy as np
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen.contrib.pickle_memoize import memoize
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator.contrib.pickle_memoize import memoize
 
 
 def get_random_ndarray(shape, dtype):
@@ -35,7 +35,7 @@ def get_random_ndarray(shape, dtype):
 def verify_group_gemm(
     func_name, M, N, K, num_groups, x_dtype, weight_dtype, out_dtype, use_scale, rtol, atol
 ):
-    group_gemm_func = gsmDataGen.get_global_func(func_name, allow_missing=True)
+    group_gemm_func = gsm_data_generator.get_global_func(func_name, allow_missing=True)
     if group_gemm_func is None:
         print(f"Skipped as {func_name} is not available")
         return
@@ -58,22 +58,22 @@ def verify_group_gemm(
         return mapping.get(dtype, dtype)
 
     a_np, b_np, indptr_np, c_np = get_ref_data()
-    dev = gsmDataGen.cuda(0)
-    a_nd = gsmDataGen.nd.array(a_np.astype(to_numpy_dtype(x_dtype)), device=dev)
-    b_nd = gsmDataGen.nd.array(b_np.astype(to_numpy_dtype(weight_dtype)), device=dev)
-    c_nd = gsmDataGen.nd.empty(c_np.shape, dtype=out_dtype, device=dev)
-    indptr_nd = gsmDataGen.nd.array(indptr_np, device=dev)
-    workspace = gsmDataGen.nd.empty((4096 * 1024,), dtype="uint8", device=dev)
+    dev = gsm_data_generator.cuda(0)
+    a_nd = gsm_data_generator.nd.array(a_np.astype(to_numpy_dtype(x_dtype)), device=dev)
+    b_nd = gsm_data_generator.nd.array(b_np.astype(to_numpy_dtype(weight_dtype)), device=dev)
+    c_nd = gsm_data_generator.nd.empty(c_np.shape, dtype=out_dtype, device=dev)
+    indptr_nd = gsm_data_generator.nd.array(indptr_np, device=dev)
+    workspace = gsm_data_generator.nd.empty((4096 * 1024,), dtype="uint8", device=dev)
     if use_scale:
-        scale = gsmDataGen.nd.array(np.array([1.0], dtype="float32"), device=dev)
+        scale = gsm_data_generator.nd.array(np.array([1.0], dtype="float32"), device=dev)
         group_gemm_func(a_nd, b_nd, indptr_nd, workspace, scale, c_nd)
     else:
         group_gemm_func(a_nd, b_nd, indptr_nd, workspace, c_nd)
-    gsmDataGen.testing.assert_allclose(c_nd.numpy(), c_np, rtol=rtol, atol=atol)
+    gsm_data_generator.testing.assert_allclose(c_nd.numpy(), c_np, rtol=rtol, atol=atol)
 
 
-@gsmDataGen.testing.requires_cutlass
-@gsmDataGen.testing.requires_cuda_compute_version(9)
+@gsm_data_generator.testing.requires_cutlass
+@gsm_data_generator.testing.requires_cuda_compute_version(9)
 def test_group_gemm_sm90():
     verify_group_gemm(
         "cutlass.group_gemm",
@@ -116,8 +116,8 @@ def test_group_gemm_sm90():
     )
 
 
-@gsmDataGen.testing.requires_cutlass
-@gsmDataGen.testing.requires_cuda_compute_version(10)
+@gsm_data_generator.testing.requires_cutlass
+@gsm_data_generator.testing.requires_cuda_compute_version(10)
 def test_group_gemm_sm100():
     verify_group_gemm(
         "cutlass.group_gemm",
@@ -299,8 +299,8 @@ def blockwise_bmm(
     return o_np
 
 
-@gsmDataGen.testing.requires_cutlass
-@gsmDataGen.testing.requires_cuda_compute_version(9)
+@gsm_data_generator.testing.requires_cutlass
+@gsm_data_generator.testing.requires_cuda_compute_version(9)
 def test_fp8_e4m3_groupwise_scaled_gemm():
     M = 16
     N = 4608
@@ -309,31 +309,31 @@ def test_fp8_e4m3_groupwise_scaled_gemm():
     assert N % 128 == 0 and K % 128 == 0  # Only support N/K are multiple of 128
 
     func_name = "cutlass.groupwise_scaled_gemm_e4m3fn_e4m3fn"
-    gemm_func = gsmDataGen.get_global_func(func_name, allow_missing=True)
+    gemm_func = gsm_data_generator.get_global_func(func_name, allow_missing=True)
     if gemm_func is None:
         print(f"Skipped as {func_name} is not available")
         return
 
-    device = gsmDataGen.cuda(0)
+    device = gsm_data_generator.cuda(0)
     dtype = "bfloat16"
     x_np, x_scale_np = rowwise_quant_fp8_e4m3((M, K), block_size, dtype)
     w_np, w_scale_np = blockwise_quant_fp8_e4m3((N, K), block_size, dtype)
     o_np = blockwise_matmul(x_np, x_scale_np, w_np, w_scale_np, block_size, dtype)
-    x_tvm = gsmDataGen.nd.array(x_np, device=device)
-    x_scale_tvm = gsmDataGen.nd.array(x_scale_np.T, device=device)
-    w_tvm = gsmDataGen.nd.array(w_np, device=device)
-    w_scale_tvm = gsmDataGen.nd.array(w_scale_np, device=device)
-    workspace = gsmDataGen.nd.empty((4096 * 1024,), dtype="uint8", device=device)
-    o_tvm = gsmDataGen.nd.empty((M, N), dtype=dtype, device=device)
+    x_tvm = gsm_data_generator.nd.array(x_np, device=device)
+    x_scale_tvm = gsm_data_generator.nd.array(x_scale_np.T, device=device)
+    w_tvm = gsm_data_generator.nd.array(w_np, device=device)
+    w_scale_tvm = gsm_data_generator.nd.array(w_scale_np, device=device)
+    workspace = gsm_data_generator.nd.empty((4096 * 1024,), dtype="uint8", device=device)
+    o_tvm = gsm_data_generator.nd.empty((M, N), dtype=dtype, device=device)
     gemm_func(
         x_tvm, w_tvm, x_scale_tvm, w_scale_tvm, workspace, block_size[0], block_size[1], o_tvm
     )
     o_tvm = o_tvm.numpy()
-    gsmDataGen.testing.assert_allclose(o_tvm, o_np, rtol=1e-4, atol=0.5)
+    gsm_data_generator.testing.assert_allclose(o_tvm, o_np, rtol=1e-4, atol=0.5)
 
 
-@gsmDataGen.testing.requires_cutlass
-@gsmDataGen.testing.requires_cuda_compute_version(9)
+@gsm_data_generator.testing.requires_cutlass
+@gsm_data_generator.testing.requires_cuda_compute_version(9)
 def test_fp8_e4m3_groupwise_scaled_bmm():
     B = 16
     M = 40
@@ -343,28 +343,28 @@ def test_fp8_e4m3_groupwise_scaled_bmm():
     assert N % 128 == 0 and K % 128 == 0  # Only support N/K are multiple of 128
 
     func_name = "cutlass.groupwise_scaled_bmm_e4m3fn_e4m3fn"
-    gemm_func = gsmDataGen.get_global_func(func_name, allow_missing=True)
+    gemm_func = gsm_data_generator.get_global_func(func_name, allow_missing=True)
     if gemm_func is None:
         print(f"Skipped as {func_name} is not available")
         return
 
-    device = gsmDataGen.cuda(0)
+    device = gsm_data_generator.cuda(0)
     dtype = "bfloat16"
     x_np, x_scale_np = rowwise_quant_fp8_e4m3((B, M, K), block_size, dtype)
     w_np, w_scale_np = blockwise_quant_fp8_e4m3((B, N, K), block_size, dtype)
     o_np = blockwise_bmm(x_np, x_scale_np, w_np, w_scale_np, block_size, dtype)
-    x_tvm = gsmDataGen.nd.array(x_np, device=device)
-    x_scale_tvm = gsmDataGen.nd.array(x_scale_np.transpose(0, 2, 1), device=device)
-    w_tvm = gsmDataGen.nd.array(w_np, device=device)
-    w_scale_tvm = gsmDataGen.nd.array(w_scale_np, device=device)
-    workspace = gsmDataGen.nd.empty((4096 * 1024,), dtype="uint8", device=device)
-    o_tvm = gsmDataGen.nd.empty((B, M, N), dtype=dtype, device=device)
+    x_tvm = gsm_data_generator.nd.array(x_np, device=device)
+    x_scale_tvm = gsm_data_generator.nd.array(x_scale_np.transpose(0, 2, 1), device=device)
+    w_tvm = gsm_data_generator.nd.array(w_np, device=device)
+    w_scale_tvm = gsm_data_generator.nd.array(w_scale_np, device=device)
+    workspace = gsm_data_generator.nd.empty((4096 * 1024,), dtype="uint8", device=device)
+    o_tvm = gsm_data_generator.nd.empty((B, M, N), dtype=dtype, device=device)
     gemm_func(
         x_tvm, w_tvm, x_scale_tvm, w_scale_tvm, workspace, block_size[0], block_size[1], o_tvm
     )
     o_tvm = o_tvm.numpy()
-    gsmDataGen.testing.assert_allclose(o_tvm, o_np, rtol=1e-4, atol=0.5)
+    gsm_data_generator.testing.assert_allclose(o_tvm, o_np, rtol=1e-4, atol=0.5)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

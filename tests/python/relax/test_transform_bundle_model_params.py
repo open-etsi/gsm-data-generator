@@ -15,17 +15,17 @@
 # specific language governing permissions and limitations
 # under the License.
 
-import gsmDataGen
-import gsmDataGen.testing
+import gsm_data_generator
+import gsm_data_generator.testing
 
-from gsmDataGen import relax
-from gsmDataGen.script import relax as R, tir as T
-from gsmDataGen.script import ir as I
-import gsmDataGen.topi.testing
+from gsm_data_generator import relax
+from gsm_data_generator.script import relax as R, tir as T
+from gsm_data_generator.script import ir as I
+import gsm_data_generator.topi.testing
 
 
 def test_basic():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Before:
         @R.function
         def main(
@@ -39,7 +39,7 @@ def test_basic():
             expr = R.add(expr, c)
             return expr
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(
@@ -56,7 +56,7 @@ def test_basic():
 
     mod = Before
     after = relax.transform.BundleModelParams()(mod)
-    gsmDataGen.ir.assert_structural_equal(after, Expected)
+    gsm_data_generator.ir.assert_structural_equal(after, Expected)
 
 
 def test_no_model_params():
@@ -68,7 +68,7 @@ def test_no_model_params():
     transformation returns an empty tuple.
     """
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Before:
         @R.function
         def main(
@@ -82,7 +82,7 @@ def test_no_model_params():
             expr = R.add(expr, c)
             return expr
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(
@@ -99,13 +99,13 @@ def test_no_model_params():
 
     mod = Before
     after = relax.transform.BundleModelParams()(mod)
-    gsmDataGen.ir.assert_structural_equal(after, Expected)
+    gsm_data_generator.ir.assert_structural_equal(after, Expected)
 
 
 def test_dataflow():
     """Parameters can be substituted into a dataflow block"""
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Before:
         @R.function
         def main(
@@ -121,7 +121,7 @@ def test_dataflow():
                 R.output(expr)
             return expr
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(
@@ -140,7 +140,7 @@ def test_dataflow():
 
     mod = Before
     after = relax.transform.BundleModelParams()(mod)
-    gsmDataGen.ir.assert_structural_equal(after, Expected)
+    gsm_data_generator.ir.assert_structural_equal(after, Expected)
 
 
 def test_variable_names():
@@ -153,7 +153,7 @@ def test_variable_names():
     variables.
     """
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Before:
         @R.function
         def main(
@@ -167,7 +167,7 @@ def test_variable_names():
             expr = R.add(expr, c)
             return expr
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(
@@ -184,7 +184,7 @@ def test_variable_names():
 
     mod = Before
     after = relax.transform.BundleModelParams()(mod)
-    gsmDataGen.ir.assert_structural_equal(after, Expected)
+    gsm_data_generator.ir.assert_structural_equal(after, Expected)
 
     for binding, expected_binding in zip(
         after["main"].body.blocks[0].bindings,
@@ -196,7 +196,7 @@ def test_variable_names():
 def test_bundled_param_name():
     """The tuple parameter can have an explicit name"""
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Before:
         @R.function
         def main(
@@ -210,7 +210,7 @@ def test_bundled_param_name():
             expr = R.add(expr, c)
             return expr
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(
@@ -227,11 +227,11 @@ def test_bundled_param_name():
 
     mod = Before
     after = relax.transform.BundleModelParams("custom_tuple_name")(mod)
-    gsmDataGen.ir.assert_structural_equal(after, Expected)
+    gsm_data_generator.ir.assert_structural_equal(after, Expected)
 
     for param, expected_param in zip(after["main"].params, Expected["main"].params):
         assert param.name_hint == expected_param.name_hint
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

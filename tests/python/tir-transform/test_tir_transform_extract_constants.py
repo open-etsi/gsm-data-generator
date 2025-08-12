@@ -15,13 +15,13 @@
 # specific language governing permissions and limitations
 # under the License.
 import numpy as np
-import gsmDataGen
-from gsmDataGen import tir
-from gsmDataGen.script import tir as T
-import gsmDataGen.testing
+import gsm_data_generator
+from gsm_data_generator import tir
+from gsm_data_generator.script import tir as T
+import gsm_data_generator.testing
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Module4:
     @T.prim_func
     def constant1(a: T.handle) -> None:
@@ -52,17 +52,17 @@ class Module4:
 
 
 def test_const_extraction():
-    mod = gsmDataGen.tir.transform.ExtractPrimFuncConstants()(Module4)
+    mod = gsm_data_generator.tir.transform.ExtractPrimFuncConstants()(Module4)
     constants = mod.attrs["constants"]
     assert len(constants) == 2
 
     def _visit(stmt):
-        if isinstance(stmt, gsmDataGen.tir.AllocateConst):
+        if isinstance(stmt, gsm_data_generator.tir.AllocateConst):
             assert np.array_equal(stmt.data.numpy(), constants[int(stmt.irmod_storage_idx)].numpy())
 
     for n, f in mod.functions.items():
-        gsmDataGen.tir.stmt_functor.post_order_visit(f.body, _visit)
+        gsm_data_generator.tir.stmt_functor.post_order_visit(f.body, _visit)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

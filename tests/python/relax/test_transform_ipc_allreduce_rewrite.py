@@ -15,12 +15,12 @@
 # specific language governing permissions and limitations
 # under the License.
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import relax
-from gsmDataGen.script import ir as I
-from gsmDataGen.script import relax as R
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import relax
+from gsm_data_generator.script import ir as I
+from gsm_data_generator.script import relax as R
+from gsm_data_generator.script import tir as T
 
 
 def test_ipc_allreduce_rewrite():
@@ -62,11 +62,11 @@ def test_ipc_allreduce_rewrite():
 
     allreduce_strategy = 1
     mod = relax.transform.IPCAllReduceRewrite(allreduce_strategy)(Module)
-    gsmDataGen.ir.assert_structural_equal(
+    gsm_data_generator.ir.assert_structural_equal(
         mod,
         (
             Expected
-            if gsmDataGen.get_global_func("runtime.disco.cuda_ipc.custom_allreduce", allow_missing=True)
+            if gsm_data_generator.get_global_func("runtime.disco.cuda_ipc.custom_allreduce", allow_missing=True)
             is not None
             else Module
         ),
@@ -116,11 +116,11 @@ def test_ipc_allreduce_spread_along_reshape():
 
     allreduce_strategy = 1
     mod = relax.transform.IPCAllReduceRewrite(allreduce_strategy)(Module)
-    gsmDataGen.ir.assert_structural_equal(
+    gsm_data_generator.ir.assert_structural_equal(
         mod,
         (
             Expected
-            if gsmDataGen.get_global_func("runtime.disco.cuda_ipc.custom_allreduce", allow_missing=True)
+            if gsm_data_generator.get_global_func("runtime.disco.cuda_ipc.custom_allreduce", allow_missing=True)
             is not None
             else Module
         ),
@@ -148,8 +148,8 @@ def test_ipc_allreduce_skip_reducer_other_than_sum():
 
     allreduce_strategy = 1
     mod = relax.transform.IPCAllReduceRewrite(allreduce_strategy)(Module)
-    gsmDataGen.ir.assert_structural_equal(mod, Module)
+    gsm_data_generator.ir.assert_structural_equal(mod, Module)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

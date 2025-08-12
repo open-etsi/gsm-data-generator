@@ -14,11 +14,11 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import te
-from gsmDataGen import tir
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import te
+from gsm_data_generator import tir
+from gsm_data_generator.script import tir as T
 
 
 class BaseCompactTest:
@@ -34,15 +34,15 @@ class BaseCompactTest:
         is_lower_order_free = getattr(self, "is_lower_order_free", True)
         is_strict = getattr(self, "is_strict_mode", True)
 
-        before = gsmDataGen.IRModule.from_expr(self.before.with_attr("global_symbol", "main"))
-        expected = gsmDataGen.IRModule.from_expr(self.expected.with_attr("global_symbol", "main"))
-        simplify = gsmDataGen.transform.Sequential([tir.transform.Simplify(), tir.transform.RemoveNoOp()])
+        before = gsm_data_generator.IRModule.from_expr(self.before.with_attr("global_symbol", "main"))
+        expected = gsm_data_generator.IRModule.from_expr(self.expected.with_attr("global_symbol", "main"))
+        simplify = gsm_data_generator.transform.Sequential([tir.transform.Simplify(), tir.transform.RemoveNoOp()])
         after = simplify(tir.transform.CompactBufferAllocation(is_strict=is_strict)(before))
         expected = simplify(expected)
         try:
-            gsmDataGen.ir.assert_structural_equal(after, expected)
+            gsm_data_generator.ir.assert_structural_equal(after, expected)
         except ValueError as err:
-            script = gsmDataGen.IRModule(
+            script = gsm_data_generator.IRModule(
                 {"expected": expected["main"], "after": after["main"], "before": before["main"]}
             ).script()
             raise ValueError(
@@ -59,9 +59,9 @@ class BaseCompactTest:
         lower_after_compact = tir.transform.LowerOpaqueBlock()(after)
         lower_after_compact = simplify(lower_after_compact)
         try:
-            gsmDataGen.ir.assert_structural_equal(lower_before_compact, lower_after_compact)
+            gsm_data_generator.ir.assert_structural_equal(lower_before_compact, lower_after_compact)
         except ValueError as err:
-            script = gsmDataGen.IRModule(
+            script = gsm_data_generator.IRModule(
                 {
                     "lower_before_compact": lower_before_compact["main"],
                     "lower_after_compact": lower_after_compact["main"],
@@ -1059,12 +1059,12 @@ class TestTileAwareCompaction(BaseCompactTest):
                             C[i_0 * 26 + ax0, j_0 * 26 + ax1] = C_local[ax0, ax1]
 
         # Get partitioned workload to compact
-        mod = gsmDataGen.IRModule.from_expr(main)
-        with gsmDataGen.transform.PassContext(
+        mod = gsm_data_generator.IRModule.from_expr(main)
+        with gsm_data_generator.transform.PassContext(
             config={"tir.LoopPartition": {"partition_const_loop": True}}
         ):
-            mod = gsmDataGen.tir.transform.LowerOpaqueBlock()(mod)
-            mod = gsmDataGen.tir.transform.LoopPartition()(mod)
+            mod = gsm_data_generator.tir.transform.LowerOpaqueBlock()(mod)
+            mod = gsm_data_generator.tir.transform.LoopPartition()(mod)
 
         return mod["main"]
 
@@ -1412,4 +1412,4 @@ class TestSymbolicDiagMaskCase:
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

@@ -18,12 +18,12 @@
 
 import numpy as np
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import te
-from gsmDataGen import tir
-from gsmDataGen import topi
-from gsmDataGen.contrib.hexagon import allocate_hexagon_array
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import te
+from gsm_data_generator import tir
+from gsm_data_generator import topi
+from gsm_data_generator.contrib.hexagon import allocate_hexagon_array
 
 from .infrastructure import get_hexagon_target
 
@@ -43,7 +43,7 @@ def sigmoid_stir_schedule(sigmoid_input, sigmoid_output):
 
 
 class BaseSigmoid:
-    (in_shape, dtype, min_val, max_val,) = gsmDataGen.testing.parameters(
+    (in_shape, dtype, min_val, max_val,) = gsm_data_generator.testing.parameters(
         ((64,), "float16", -8.0, 8.0),
         ((64,), "float16", -6.0, 7.0),
         ((64,), "float16", -10.0, 15.0),
@@ -55,16 +55,16 @@ class BaseSigmoid:
 class TestSigmoid(BaseSigmoid):
     """Sigmoid test class."""
 
-    @gsmDataGen.testing.fixture
+    @gsm_data_generator.testing.fixture
     def input_np(self, in_shape, dtype, min_val, max_val):
         return np.random.uniform(low=min_val, high=max_val, size=in_shape).astype(dtype)
 
-    @gsmDataGen.testing.fixture
+    @gsm_data_generator.testing.fixture
     def ref_output_np(self, input_np):
         output_np = 1 / (1 + np.exp(-input_np))
         return output_np
 
-    @gsmDataGen.testing.requires_hexagon
+    @gsm_data_generator.testing.requires_hexagon
     def test_sigmoid(
         self,
         in_shape,
@@ -91,8 +91,8 @@ class TestSigmoid(BaseSigmoid):
         )
 
         func_name = "sigmoid"
-        with gsmDataGen.transform.PassContext(opt_level=3):
-            runtime_module = gsmDataGen.compile(tir_s.mod, target=get_hexagon_target("v69"))
+        with gsm_data_generator.transform.PassContext(opt_level=3):
+            runtime_module = gsm_data_generator.compile(tir_s.mod, target=get_hexagon_target("v69"))
 
         assert "hvx_sigmoid" in runtime_module.get_source("asm")
         assert "vmin" in runtime_module.get_source("asm")
@@ -102,7 +102,7 @@ class TestSigmoid(BaseSigmoid):
         mod(input_data, output_data)
         output_np = output_data.numpy()
 
-        gsmDataGen.testing.assert_allclose(
+        gsm_data_generator.testing.assert_allclose(
             output_np,
             ref_output_np,
             1e-3,
@@ -111,4 +111,4 @@ class TestSigmoid(BaseSigmoid):
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

@@ -18,8 +18,8 @@
 """ Test different strategies for loading data into vtcm before running HVX workloads. """
 
 import numpy as np
-import gsmDataGen
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+from gsm_data_generator.script import tir as T
 
 from .infrastructure import get_hexagon_target
 
@@ -314,17 +314,17 @@ def evaluate_result(operations, tag, time, result, expected_output):
     mean_ms = round(time.mean * 1000, 6)
 
     print(f"\ntest_{transfer_mb}MB_{tag} took {mean_ms} ms @ GOPS: {gops}")
-    gsmDataGen.testing.assert_allclose(result, expected_output)
+    gsm_data_generator.testing.assert_allclose(result, expected_output)
 
 
 def setup_and_run(hexagon_session, sch, a, b, c, operations, mem_scope="global"):
     """Setup and run operator."""
-    func_tir = gsmDataGen.compile(sch.mod["main"], target=get_hexagon_target("v69"))
+    func_tir = gsm_data_generator.compile(sch.mod["main"], target=get_hexagon_target("v69"))
     module = hexagon_session.load_module(func_tir)
 
-    a_hexagon = gsmDataGen.runtime.ndarray.array(a, device=hexagon_session.device, mem_scope=mem_scope)
-    b_hexagon = gsmDataGen.runtime.ndarray.array(b, device=hexagon_session.device, mem_scope=mem_scope)
-    c_hexagon = gsmDataGen.runtime.ndarray.array(c, device=hexagon_session.device, mem_scope=mem_scope)
+    a_hexagon = gsm_data_generator.runtime.ndarray.array(a, device=hexagon_session.device, mem_scope=mem_scope)
+    b_hexagon = gsm_data_generator.runtime.ndarray.array(b, device=hexagon_session.device, mem_scope=mem_scope)
+    c_hexagon = gsm_data_generator.runtime.ndarray.array(c, device=hexagon_session.device, mem_scope=mem_scope)
 
     # These are reduced for CI but number=100 and repeat=10 does a good job of removing noise.
     number = 1
@@ -340,23 +340,23 @@ def setup_and_run(hexagon_session, sch, a, b, c, operations, mem_scope="global")
 
 def setup_and_run_preallocated(hexagon_session, sch, a, b, c, operations):
     """Setup and run for preallocated."""
-    func_tir = gsmDataGen.compile(sch.mod["main"], target=get_hexagon_target("v69"))
+    func_tir = gsm_data_generator.compile(sch.mod["main"], target=get_hexagon_target("v69"))
     module = hexagon_session.load_module(func_tir)
 
     a_vtcm = np.zeros((a.size), dtype="uint8")
     b_vtcm = np.zeros((b.size), dtype="uint8")
     c_vtcm = np.zeros((c.size), dtype="int32")
 
-    a_hexagon = gsmDataGen.runtime.ndarray.array(a, device=hexagon_session.device, mem_scope="global")
-    b_hexagon = gsmDataGen.runtime.ndarray.array(b, device=hexagon_session.device, mem_scope="global")
-    c_hexagon = gsmDataGen.runtime.ndarray.array(c, device=hexagon_session.device, mem_scope="global")
-    a_vtcm_hexagon = gsmDataGen.runtime.ndarray.array(
+    a_hexagon = gsm_data_generator.runtime.ndarray.array(a, device=hexagon_session.device, mem_scope="global")
+    b_hexagon = gsm_data_generator.runtime.ndarray.array(b, device=hexagon_session.device, mem_scope="global")
+    c_hexagon = gsm_data_generator.runtime.ndarray.array(c, device=hexagon_session.device, mem_scope="global")
+    a_vtcm_hexagon = gsm_data_generator.runtime.ndarray.array(
         a_vtcm, device=hexagon_session.device, mem_scope="global.vtcm"
     )
-    b_vtcm_hexagon = gsmDataGen.runtime.ndarray.array(
+    b_vtcm_hexagon = gsm_data_generator.runtime.ndarray.array(
         b_vtcm, device=hexagon_session.device, mem_scope="global.vtcm"
     )
-    c_vtcm_hexagon = gsmDataGen.runtime.ndarray.array(
+    c_vtcm_hexagon = gsm_data_generator.runtime.ndarray.array(
         c_vtcm, device=hexagon_session.device, mem_scope="global.vtcm"
     )
 
@@ -376,7 +376,7 @@ class TestMatMulVec:
     """MatMul test class."""
 
     # Removed most of these to speedup CI.
-    operations = gsmDataGen.testing.parameter(
+    operations = gsm_data_generator.testing.parameter(
         1024,
         # 2048,
         # 4096,
@@ -386,25 +386,25 @@ class TestMatMulVec:
     )
 
     # Experimentally best configurations for the memcopy
-    outer_split = gsmDataGen.testing.parameter(4)
-    unroll_split = gsmDataGen.testing.parameter(8)
-    vector_split = gsmDataGen.testing.parameter(64)
-    c_vector_split = gsmDataGen.testing.parameter(16)
-    c_vector_split_unallocated = gsmDataGen.testing.parameter(8)
+    outer_split = gsm_data_generator.testing.parameter(4)
+    unroll_split = gsm_data_generator.testing.parameter(8)
+    vector_split = gsm_data_generator.testing.parameter(64)
+    c_vector_split = gsm_data_generator.testing.parameter(16)
+    c_vector_split_unallocated = gsm_data_generator.testing.parameter(8)
 
-    @gsmDataGen.testing.fixture
+    @gsm_data_generator.testing.fixture
     def input_a(self, operations):
         return np.random.randint(0, 16, (operations, 128), dtype="uint8")
 
-    @gsmDataGen.testing.fixture
+    @gsm_data_generator.testing.fixture
     def input_b(self, operations):
         return np.random.randint(0, 16, (operations, 128), dtype="uint8")
 
-    @gsmDataGen.testing.fixture
+    @gsm_data_generator.testing.fixture
     def input_c(self, operations):
         return np.zeros((operations, 32), dtype="int32")
 
-    @gsmDataGen.testing.fixture
+    @gsm_data_generator.testing.fixture
     def expected_output(self, operations, input_a, input_b, input_c):
         expected_output = np.zeros(input_c.shape, dtype="int32")
         for n in range(operations):
@@ -415,7 +415,7 @@ class TestMatMulVec:
                     ) * np.uint32(input_b[n, i * 4 + r_ind])
         return expected_output
 
-    @gsmDataGen.testing.requires_hexagon
+    @gsm_data_generator.testing.requires_hexagon
     def test_loading_vtcm_for_vrmpy(
         self,
         hexagon_session,
@@ -432,24 +432,24 @@ class TestMatMulVec:
     ):
         """Load VTCM for VRMPY operator test."""
         # Run parallel vrmpy without loading to VTCM.
-        sch = gsmDataGen.tir.Schedule(vrmpy(operations))
+        sch = gsm_data_generator.tir.Schedule(vrmpy(operations))
         sch = apply_vrmpy_parallelization(sch)
         base_runtime, result = setup_and_run(
             hexagon_session, sch, input_a, input_b, input_c, operations
         )
-        gsmDataGen.testing.assert_allclose(result, expected_output)
+        gsm_data_generator.testing.assert_allclose(result, expected_output)
 
         # Run parallel vrmpy with basic memory loads to VTCM.
-        sch = gsmDataGen.tir.Schedule(vrmpy(operations))
+        sch = gsm_data_generator.tir.Schedule(vrmpy(operations))
         sch = apply_vtcm_cache_read_write(sch)
         sch = apply_vrmpy_parallelization(sch)
         basic_load_runtime, result = setup_and_run(
             hexagon_session, sch, input_a, input_b, input_c, operations
         )
-        gsmDataGen.testing.assert_allclose(result, expected_output)
+        gsm_data_generator.testing.assert_allclose(result, expected_output)
 
         # Run parallel vrmpy with vectorized memory loads to VTCM.
-        sch = gsmDataGen.tir.Schedule(vrmpy(operations))
+        sch = gsm_data_generator.tir.Schedule(vrmpy(operations))
         sch = apply_vtcm_cache_read_write(sch)
         sch = apply_vrmpy_parallelization(sch)
         sch = apply_unroll_vectorize(
@@ -464,10 +464,10 @@ class TestMatMulVec:
         vectorized_runtime, result = setup_and_run(
             hexagon_session, sch, input_a, input_b, input_c, operations
         )
-        gsmDataGen.testing.assert_allclose(result, expected_output)
+        gsm_data_generator.testing.assert_allclose(result, expected_output)
 
         # Run parallel vrmpy with vectorized and parallelized memory loads to VTCM.
-        sch = gsmDataGen.tir.Schedule(vrmpy(operations))
+        sch = gsm_data_generator.tir.Schedule(vrmpy(operations))
         sch = apply_vtcm_cache_read_write(sch)
         sch = apply_vrmpy_parallelization(sch)
         sch = apply_parallel_unroll_vectorize(
@@ -487,10 +487,10 @@ class TestMatMulVec:
         vectorized_parallelized_runtime, result = setup_and_run(
             hexagon_session, sch, input_a, input_b, input_c, operations
         )
-        gsmDataGen.testing.assert_allclose(result, expected_output)
+        gsm_data_generator.testing.assert_allclose(result, expected_output)
 
         # Run parallel vrmpy with preallocated and vectorized memory loads to VTCM.
-        sch = gsmDataGen.tir.Schedule(preallocated_vrmpy(operations))
+        sch = gsm_data_generator.tir.Schedule(preallocated_vrmpy(operations))
         sch = apply_vrmpy_parallelization(sch)
         sch = apply_unroll_vectorize(
             sch,
@@ -505,10 +505,10 @@ class TestMatMulVec:
             hexagon_session, sch, input_a, input_b, input_c, operations
         )
         result = result.reshape((operations, 32))
-        gsmDataGen.testing.assert_allclose(result, expected_output)
+        gsm_data_generator.testing.assert_allclose(result, expected_output)
 
         # Run parallel vrmpy with preallocated, vectorized, and parallelized memory loads to VTCM.
-        sch = gsmDataGen.tir.Schedule(preallocated_vrmpy(operations))
+        sch = gsm_data_generator.tir.Schedule(preallocated_vrmpy(operations))
         sch = apply_vrmpy_parallelization(sch)
         sch = apply_parallel_unroll_vectorize(
             sch,
@@ -524,19 +524,19 @@ class TestMatMulVec:
             hexagon_session, sch, input_a, input_b, input_c, operations
         )
         result = result.reshape((operations, 32))
-        gsmDataGen.testing.assert_allclose(result, expected_output)
+        gsm_data_generator.testing.assert_allclose(result, expected_output)
 
         # Run parallel vrmpy with preallocated single dma memory load to VTCM.
-        sch = gsmDataGen.tir.Schedule(preallocated_single_dma_vrmpy(operations))
+        sch = gsm_data_generator.tir.Schedule(preallocated_single_dma_vrmpy(operations))
         sch = apply_vrmpy_parallelization(sch)
         single_dma_runtime, result = setup_and_run_preallocated(
             hexagon_session, sch, input_a, input_b, input_c, operations
         )
         result = result.reshape((operations, 32))
-        gsmDataGen.testing.assert_allclose(result, expected_output)
+        gsm_data_generator.testing.assert_allclose(result, expected_output)
 
         # Run parallel vrmpy with data preloaded in VTCM.
-        sch = gsmDataGen.tir.Schedule(preloaded_vrmpy(operations))
+        sch = gsm_data_generator.tir.Schedule(preloaded_vrmpy(operations))
         sch = apply_vrmpy_parallelization(sch)
         input_a = input_a.reshape(operations * 128)
         input_b = input_b.reshape(operations * 128)
@@ -545,7 +545,7 @@ class TestMatMulVec:
             hexagon_session, sch, input_a, input_b, input_c, operations, "global.vtcm"
         )
         result = result.reshape((operations, 32))
-        gsmDataGen.testing.assert_allclose(result, expected_output)
+        gsm_data_generator.testing.assert_allclose(result, expected_output)
 
         transfer_mb = round(3 * operations * 128 / 1e6, 2)
         print(
@@ -564,4 +564,4 @@ class TestMatMulVec:
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

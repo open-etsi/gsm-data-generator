@@ -16,11 +16,11 @@
 # under the License.
 # pylint: disable=missing-function-docstring,missing-module-docstring
 import pytest
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import tir
-from gsmDataGen.script import tir as T
-from gsmDataGen.tir.schedule.testing import (
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import tir
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.tir.schedule.testing import (
     verify_trace_roundtrip,
     assert_structural_equal_ignore_global_symbol,
 )

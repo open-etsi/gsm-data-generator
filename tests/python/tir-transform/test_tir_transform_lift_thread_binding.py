@@ -14,9 +14,9 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-import gsmDataGen
-from gsmDataGen import tir
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+from gsm_data_generator import tir
+from gsm_data_generator.script import tir as T
 
 
 def test_lift_tx_beyond_local():
@@ -130,9 +130,9 @@ def test_lift_tx_beyond_local():
                         T.writes(C[blockIdx_x // n, 0, blockIdx_x % n])
                         C[blockIdx_x // n, 0, blockIdx_x % n] = D_local[blockIdx_x // n, 0, blockIdx_x % n] * T.float32(0.088397790055248615)
     # fmt: on
-    mod = gsmDataGen.IRModule({"main": before.with_attr("global_symbol", "main")})
+    mod = gsm_data_generator.IRModule({"main": before.with_attr("global_symbol", "main")})
     after = tir.transform.LiftThreadBinding()(mod)
-    gsmDataGen.ir.assert_structural_equal(expected.with_attr("global_symbol", "main"), after["main"])
+    gsm_data_generator.ir.assert_structural_equal(expected.with_attr("global_symbol", "main"), after["main"])
 
 
 if __name__ == "__main__":

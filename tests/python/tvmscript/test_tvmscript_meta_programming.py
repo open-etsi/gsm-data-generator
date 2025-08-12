@@ -15,8 +15,8 @@
 # specific language governing permissions and limitations
 # under the License.
 
-import gsmDataGen
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+from gsm_data_generator.script import tir as T
 
 
 def test_meta_programming_matmul():
@@ -50,7 +50,7 @@ def test_meta_programming_matmul():
                 C[vi, vj] = C[vi, vj] + A[vi, vk] * B[vj, vk]
 
     f = matmul_generator(128, 128, 128, "float16").with_attr("global_symbol", "main")
-    gsmDataGen.ir.assert_structural_equal(f, matmul_128_128_128_fp16.with_attr("global_symbol", "main"))
+    gsm_data_generator.ir.assert_structural_equal(f, matmul_128_128_128_fp16.with_attr("global_symbol", "main"))
 
 
 def test_meta_programming_uncaptured_var():
@@ -75,8 +75,8 @@ def test_meta_programming_uncaptured_var():
             with T.block("C"):
                 C[i] = T.erf(A[i])
 
-    gsmDataGen.ir.assert_structural_equal(fp16.with_attr("global_symbol", "main"), generate_erf("float16"))
-    gsmDataGen.ir.assert_structural_equal(fp32.with_attr("global_symbol", "main"), generate_erf("float32"))
+    gsm_data_generator.ir.assert_structural_equal(fp16.with_attr("global_symbol", "main"), generate_erf("float16"))
+    gsm_data_generator.ir.assert_structural_equal(fp32.with_attr("global_symbol", "main"), generate_erf("float32"))
 
 
 if __name__ == "__main__":

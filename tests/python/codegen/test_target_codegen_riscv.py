@@ -14,14 +14,14 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen.script import tir as T
-from gsmDataGen.target.codegen import target_has_features
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.target.codegen import target_has_features
 
 
-@gsmDataGen.testing.requires_llvm_minimum_version(14)
-@gsmDataGen.testing.parametrize_targets(
+@gsm_data_generator.testing.requires_llvm_minimum_version(14)
+@gsm_data_generator.testing.parametrize_targets(
     "llvm -device=riscv_cpu -mtriple=riscv32-linux-gnu -mcpu=generic-rv32 -mattr=+i,+m",
     "llvm -device=riscv_cpu -mtriple=riscv32-linux-gnu -mcpu=generic-rv32 -mattr=+i,+m,+v",
     "llvm -device=riscv_cpu -mtriple=riscv64-linux-gnu -mcpu=generic-rv64 -mattr=+64bit,+a,+c,+d,+f,+m",
@@ -34,7 +34,7 @@ def test_rvv(target):
             for j in T.vectorized(0, extent):
                 A[j] = 1
 
-        f = gsmDataGen.tir.build(load_vec, target)
+        f = gsm_data_generator.tir.build(load_vec, target)
         # Check RVV `vsetvli` prensence
         assembly = f.get_source("asm")
         if target_has_features("v"):
@@ -42,9 +42,9 @@ def test_rvv(target):
         else:
             assert "vsetvli" not in assembly
 
-    with gsmDataGen.target.Target(target):
+    with gsm_data_generator.target.Target(target):
         check_rvv_presence(16, 32)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

@@ -16,12 +16,12 @@
 # under the License.
 """Unit tests for relax optimizer APIs."""
 import pytest
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import relax
-from gsmDataGen.ir.base import assert_structural_equal
-from gsmDataGen.relax.training.optimizer import SGD, MomentumSGD, Adam
-from gsmDataGen.script.parser import relax as R
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import relax
+from gsm_data_generator.ir.base import assert_structural_equal
+from gsm_data_generator.relax.training.optimizer import SGD, MomentumSGD, Adam
+from gsm_data_generator.script.parser import relax as R
 
 
 def test_optimizer_error():
@@ -599,4 +599,4 @@ def test_adam_float64():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

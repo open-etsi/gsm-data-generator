@@ -14,35 +14,35 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen.contrib import tvmjs, utils
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator.contrib import tvmjs, utils
 
 import pytest
 import numpy as np
 
-from gsmDataGen.ir import assert_structural_equal
-from gsmDataGen.relax.testing.runtime_builtin import MatchShapeCode, MakeShapeCode
+from gsm_data_generator.ir import assert_structural_equal
+from gsm_data_generator.relax.testing.runtime_builtin import MatchShapeCode, MakeShapeCode
 
 
 def test_make_shape():
     MK = MakeShapeCode
-    make_shape = gsmDataGen.get_global_func("vm.builtin.make_shape")
-    heap = gsmDataGen.nd.array(np.arange(10).astype("int64"))
+    make_shape = gsm_data_generator.get_global_func("vm.builtin.make_shape")
+    heap = gsm_data_generator.nd.array(np.arange(10).astype("int64"))
     s = make_shape(heap, 3, MK.USE_IMM, 10, MK.LOAD_SHAPE, 0, MK.LOAD_SHAPE, 2)
 
-    assert s == gsmDataGen.runtime.container.ShapeTuple([10, 0, 2])
+    assert s == gsm_data_generator.runtime.container.ShapeTuple([10, 0, 2])
 
 
 def test_match_shape():
     MS = MatchShapeCode
-    match_shape = gsmDataGen.get_global_func("vm.builtin.match_shape")
-    heap = gsmDataGen.nd.array(np.zeros(10).astype("int64"))
+    match_shape = gsm_data_generator.get_global_func("vm.builtin.match_shape")
+    heap = gsm_data_generator.nd.array(np.zeros(10).astype("int64"))
 
     assert heap.numpy()[2] == 0
 
-    s = gsmDataGen.runtime.container.ShapeTuple([1, 2, 3])
-    x = gsmDataGen.nd.array(np.zeros([1, 2, 3]))
+    s = gsm_data_generator.runtime.container.ShapeTuple([1, 2, 3])
+    x = gsm_data_generator.nd.array(np.zeros([1, 2, 3]))
 
     match_shape(s, heap, 3, MS.ASSERT_EQUAL_TO_IMM, 1, MS.STORE_TO_HEAP, 2, MS.NO_OP, 0, "")
 
@@ -69,8 +69,8 @@ def test_match_shape():
 
 
 def test_check_shape_info():
-    check_shape_info = gsmDataGen.get_global_func("vm.builtin.check_shape_info")
-    s = gsmDataGen.runtime.container.ShapeTuple([1, 2, 3])
+    check_shape_info = gsm_data_generator.get_global_func("vm.builtin.check_shape_info")
+    s = gsm_data_generator.runtime.container.ShapeTuple([1, 2, 3])
 
     check_shape_info(s, 3, "")
     check_shape_info(s, -1, "")
@@ -85,8 +85,8 @@ def test_check_shape_info():
 
 
 def test_check_tensor_info():
-    check_tensor_info = gsmDataGen.get_global_func("vm.builtin.check_tensor_info")
-    x = gsmDataGen.nd.array(np.zeros((2, 3)).astype("int32"))
+    check_tensor_info = gsm_data_generator.get_global_func("vm.builtin.check_tensor_info")
+    x = gsm_data_generator.nd.array(np.zeros((2, 3)).astype("int32"))
 
     check_tensor_info(x, 2, "int32", "")
     check_tensor_info(x, -1, "int32", "")
@@ -115,9 +115,9 @@ def test_check_tensor_info():
 
 
 def test_check_tuple_info():
-    check_tuple_info = gsmDataGen.get_global_func("vm.builtin.check_tuple_info")
-    x = gsmDataGen.nd.array(np.zeros((2, 3)).astype("int32"))
-    t = gsmDataGen.runtime.convert([x, x, x])
+    check_tuple_info = gsm_data_generator.get_global_func("vm.builtin.check_tuple_info")
+    x = gsm_data_generator.nd.array(np.zeros((2, 3)).astype("int32"))
+    t = gsm_data_generator.runtime.convert([x, x, x])
 
     check_tuple_info(t, 3, "")
 
@@ -131,9 +131,9 @@ def test_check_tuple_info():
 
 
 def test_check_func_info():
-    check_func_info = gsmDataGen.get_global_func("vm.builtin.check_func_info")
-    f = gsmDataGen.runtime.convert(lambda x: x)
-    x = gsmDataGen.nd.array(np.zeros((2, 3)).astype("int32"))
+    check_func_info = gsm_data_generator.get_global_func("vm.builtin.check_func_info")
+    f = gsm_data_generator.runtime.convert(lambda x: x)
+    x = gsm_data_generator.nd.array(np.zeros((2, 3)).astype("int32"))
 
     check_func_info(f, "")
 
@@ -143,34 +143,34 @@ def test_check_func_info():
 
 
 def test_tuple_getitem():
-    tuple_getitem = gsmDataGen.get_global_func("vm.builtin.tuple_getitem")
-    x = gsmDataGen.nd.array(np.zeros((2, 3)).astype("int32"))
-    y = gsmDataGen.nd.array(np.zeros((2, 3)).astype("int32"))
-    t = gsmDataGen.runtime.convert([x, y])
+    tuple_getitem = gsm_data_generator.get_global_func("vm.builtin.tuple_getitem")
+    x = gsm_data_generator.nd.array(np.zeros((2, 3)).astype("int32"))
+    y = gsm_data_generator.nd.array(np.zeros((2, 3)).astype("int32"))
+    t = gsm_data_generator.runtime.convert([x, y])
 
     assert tuple_getitem(t, 0) == x
     assert tuple_getitem(t, 1) == y
 
 
 def test_attention_kv_cache():
-    fcreate = gsmDataGen.get_global_func("vm.builtin.attention_kv_cache_create")
-    fappend = gsmDataGen.get_global_func("vm.builtin.attention_kv_cache_append")
-    fview = gsmDataGen.get_global_func("vm.builtin.attention_kv_cache_view")
+    fcreate = gsm_data_generator.get_global_func("vm.builtin.attention_kv_cache_create")
+    fappend = gsm_data_generator.get_global_func("vm.builtin.attention_kv_cache_append")
+    fview = gsm_data_generator.get_global_func("vm.builtin.attention_kv_cache_view")
 
-    cache = fcreate(gsmDataGen.nd.empty((1, 2), dtype="int32"), gsmDataGen.runtime.ShapeTuple([2, 2]), 0)
+    cache = fcreate(gsm_data_generator.nd.empty((1, 2), dtype="int32"), gsm_data_generator.runtime.ShapeTuple([2, 2]), 0)
     num_steps = 2
     for i in range(num_steps):
-        cache = fappend(cache, gsmDataGen.nd.array(i * np.ones((1, 2)).astype("int32")))
+        cache = fappend(cache, gsm_data_generator.nd.array(i * np.ones((1, 2)).astype("int32")))
 
-    res = fview(cache, gsmDataGen.runtime.ShapeTuple((num_steps, 2))).numpy()
+    res = fview(cache, gsm_data_generator.runtime.ShapeTuple((num_steps, 2))).numpy()
     for i in range(num_steps):
         assert res[i][0] == i
         assert res[i][1] == i
 
 
 def test_ndarray_cache():
-    fload = gsmDataGen.get_global_func("vm.builtin.ndarray_cache.load")
-    fget_params = gsmDataGen.get_global_func("vm.builtin.param_array_from_cache")
+    fload = gsm_data_generator.get_global_func("vm.builtin.ndarray_cache.load")
+    fget_params = gsm_data_generator.get_global_func("vm.builtin.param_array_from_cache")
 
     param_dict = {
         "x_0": np.array([1, 2, 3], dtype="int32"),
@@ -179,7 +179,7 @@ def test_ndarray_cache():
 
     temp = utils.tempdir()
     tvmjs.dump_ndarray_cache(param_dict, temp.path, encode_format="f32-to-bf16")
-    fload(str(temp.path), gsmDataGen.cpu().device_type, 0)
+    fload(str(temp.path), gsm_data_generator.cpu().device_type, 0)
     res = fget_params("x", -1)
     for i, v in enumerate(res):
         v_np = param_dict[f"x_{i}"]
@@ -189,8 +189,8 @@ def test_ndarray_cache():
 
 
 def test_ndarray_cache_update():
-    fload = gsmDataGen.get_global_func("vm.builtin.ndarray_cache.load")
-    fget_params = gsmDataGen.get_global_func("vm.builtin.param_array_from_cache")
+    fload = gsm_data_generator.get_global_func("vm.builtin.ndarray_cache.load")
+    fget_params = gsm_data_generator.get_global_func("vm.builtin.param_array_from_cache")
 
     param_dict = {
         "x_0": np.array([1, 2, 3], dtype="int32"),
@@ -204,7 +204,7 @@ def test_ndarray_cache_update():
     tvmjs.dump_ndarray_cache(
         param_dict, temp.path, encode_format="f32-to-bf16", update_if_exists=True
     )
-    fload(str(temp.path), gsmDataGen.cpu().device_type, 0)
+    fload(str(temp.path), gsm_data_generator.cpu().device_type, 0)
     res = fget_params("x", -1)
     for i, v in enumerate(res):
         v_np = param_dict[f"x_{i}"]
@@ -214,14 +214,14 @@ def test_ndarray_cache_update():
 
 
 def test_attention_kv_cache_window_override():
-    fcreate = gsmDataGen.get_global_func("vm.builtin.attention_kv_cache_create")
-    foverride = gsmDataGen.get_global_func("vm.builtin.attention_kv_cache_window_override")
-    fview = gsmDataGen.get_global_func("vm.builtin.attention_kv_cache_view")
+    fcreate = gsm_data_generator.get_global_func("vm.builtin.attention_kv_cache_create")
+    foverride = gsm_data_generator.get_global_func("vm.builtin.attention_kv_cache_window_override")
+    fview = gsm_data_generator.get_global_func("vm.builtin.attention_kv_cache_view")
 
     current_pos = 4
     cache = fcreate(
-        gsmDataGen.nd.array(np.full((16, 2), -1).astype("int32")),
-        gsmDataGen.runtime.ShapeTuple([16, 2]),
+        gsm_data_generator.nd.array(np.full((16, 2), -1).astype("int32")),
+        gsm_data_generator.runtime.ShapeTuple([16, 2]),
         current_pos,
     )
     np_all_arrays = np.zeros((0, 2)).astype("int32")
@@ -230,10 +230,10 @@ def test_attention_kv_cache_window_override():
     for i in range(1, num_steps):
         np_array = i * np.ones((i, 2)).astype("int32")
         np_all_arrays = np.concatenate((np_all_arrays, np_array), axis=0)
-        cache = foverride(cache, gsmDataGen.nd.array(np_array), 16)
+        cache = foverride(cache, gsm_data_generator.nd.array(np_array), 16)
         current_pos = (current_pos + i) % 16
 
-    res = fview(cache, gsmDataGen.runtime.ShapeTuple((16, 2))).numpy()
+    res = fview(cache, gsm_data_generator.runtime.ShapeTuple((16, 2))).numpy()
 
     # unrotate cache and assert cache matches last 16 elements
     assert (
@@ -243,17 +243,17 @@ def test_attention_kv_cache_window_override():
 
 
 def test_attention_kv_cache_window_override_with_sinks():
-    fcreate = gsmDataGen.get_global_func("vm.builtin.attention_kv_cache_create")
-    foverride = gsmDataGen.get_global_func("vm.builtin.attention_kv_cache_window_override_with_sinks")
-    fview = gsmDataGen.get_global_func("vm.builtin.attention_kv_cache_view")
+    fcreate = gsm_data_generator.get_global_func("vm.builtin.attention_kv_cache_create")
+    foverride = gsm_data_generator.get_global_func("vm.builtin.attention_kv_cache_window_override_with_sinks")
+    fview = gsm_data_generator.get_global_func("vm.builtin.attention_kv_cache_view")
 
     num_attention_sinks = 2
     has_sink = False
     current_pos = 0
 
     cache = fcreate(
-        gsmDataGen.nd.array(np.full((16, 2), -1).astype("int32")),
-        gsmDataGen.runtime.ShapeTuple([16, 2]),
+        gsm_data_generator.nd.array(np.full((16, 2), -1).astype("int32")),
+        gsm_data_generator.runtime.ShapeTuple([16, 2]),
         current_pos,
     )
     np_all_arrays = np.zeros((0, 2)).astype("int32")
@@ -262,7 +262,7 @@ def test_attention_kv_cache_window_override_with_sinks():
     for i in range(num_steps):
         np_array = i * np.ones((1, 2)).astype("int32")
         np_all_arrays = np.concatenate((np_all_arrays, np_array), axis=0)
-        cache = foverride(cache, gsmDataGen.nd.array(np_array), 16, num_attention_sinks)
+        cache = foverride(cache, gsm_data_generator.nd.array(np_array), 16, num_attention_sinks)
 
         if has_sink:
             current_pos = max((current_pos + 1) % 16, num_attention_sinks)
@@ -270,7 +270,7 @@ def test_attention_kv_cache_window_override_with_sinks():
             current_pos += 1
             has_sink = current_pos >= num_attention_sinks
 
-    res = fview(cache, gsmDataGen.runtime.ShapeTuple((16, 2))).numpy()
+    res = fview(cache, gsm_data_generator.runtime.ShapeTuple((16, 2))).numpy()
 
     # unrotate cache and assert cache matches last 16 elements
     assert (
@@ -284,4 +284,4 @@ def test_attention_kv_cache_window_override_with_sinks():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

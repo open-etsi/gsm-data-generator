@@ -18,16 +18,16 @@
 from typing import Optional
 
 import pytest
-from gsmDataGen.ffi.access_path import AccessPath
-from gsmDataGen.script.printer.doc import (
+from gsm_data_generator.ffi.access_path import AccessPath
+from gsm_data_generator.script.printer.doc import (
     ExprStmtDoc,
     IdDoc,
     OperationDoc,
     OperationKind,
     StmtBlockDoc,
 )
-from gsmDataGen.script.printer.doc_printer import to_python_script
-from gsmDataGen.script import ir as I, tir as T
+from gsm_data_generator.script.printer.doc_printer import to_python_script
+from gsm_data_generator.script import ir as I, tir as T
 
 
 def make_path(name: str) -> AccessPath:

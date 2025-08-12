@@ -15,16 +15,16 @@
 # specific language governing permissions and limitations
 # under the License.
 import pytest
-import gsmDataGen
-from gsmDataGen.base import TVMError
-import gsmDataGen.testing
-from gsmDataGen import relax
-from gsmDataGen.script.parser import relax as R
+import gsm_data_generator
+from gsm_data_generator.base import TVMError
+import gsm_data_generator.testing
+from gsm_data_generator import relax
+from gsm_data_generator.script.parser import relax as R
 
 
 def _check_inference(bb: relax.BlockBuilder, call: relax.Call, expected_sinfo: relax.StructInfo):
     ret = bb.normalize(call)
-    gsmDataGen.ir.assert_structural_equal(ret.struct_info, expected_sinfo)
+    gsm_data_generator.ir.assert_structural_equal(ret.struct_info, expected_sinfo)
 
 
 def test_redistribute_R_to_S():
@@ -55,4 +55,4 @@ def test_redistribute_R_to_S():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

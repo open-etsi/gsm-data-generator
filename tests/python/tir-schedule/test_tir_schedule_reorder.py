@@ -18,11 +18,11 @@
 import sys
 
 import pytest
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import tir
-from gsmDataGen.script import tir as T
-from gsmDataGen.tir.schedule.testing import (
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import tir
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.tir.schedule.testing import (
     assert_structural_equal_ignore_global_symbol,
     verify_trace_roundtrip,
 )
@@ -262,7 +262,7 @@ def test_reorder_with_partial_affineness():
 
     sch = tir.Schedule(non_affine_func, debug_mask="all")
     v0, v1, v2 = sch.get_loops(sch.get_block("block"))
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         sch.reorder(v0, v2, v1)
 
     sch.reorder(v2, v1)
@@ -318,7 +318,7 @@ def test_reorder_with_cascade_tiled_ops():
                         y2[ax0, ax1, ax2, ax3] + y1[ax0, ax1, ax2 + rv0, ax3 + rv1]
                     )
 
-    sch = gsmDataGen.tir.schedule.Schedule(cascade_pool_ops)
+    sch = gsm_data_generator.tir.schedule.Schedule(cascade_pool_ops)
     pool_0 = sch.get_block("pool_0")
     pool_1 = sch.get_block("pool_1")
     _, _, h, w, _, _ = sch.get_loops(pool_1)
@@ -336,7 +336,7 @@ def test_reorder_with_predicate():
     sch = tir.Schedule(elementwise_predicate, debug_mask="all")
     block_b = sch.get_block("B")
     i, j, k, l = sch.get_loops(block_b)
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         sch.reorder(l, i)
 
 
@@ -344,7 +344,7 @@ def test_reorder_fail_with_multi_appearance_loops():
     sch = tir.Schedule(elementwise, debug_mask="all")
     block_b = sch.get_block("B")
     i, j, k, l = sch.get_loops(block_b)
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         sch.reorder(k, i, i)
 
 
@@ -352,14 +352,14 @@ def test_reorder_fail_with_non_single_branch_loop():
     sch = tir.Schedule(elementwise_non_single_branch, debug_mask="all")
     block_b = sch.get_block("B")
     i, j, k = sch.get_loops(block_b)
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         sch.reorder(k, i)
     sch = tir.Schedule(elementwise_non_single_branch, debug_mask="all")
     block_b = sch.get_block("B")
     block_c = sch.get_block("C")
     i, j, k1 = sch.get_loops(block_b)
     _, _, k2 = sch.get_loops(block_c)
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         sch.reorder(k1, i, k2)
 
 
@@ -369,7 +369,7 @@ def test_reorder_fail_with_loops_not_under_same_scope():
     block_a = sch.get_block("A")
     i, j = sch.get_loops(block_a)
     k = sch.get_loops(block_b)[0]
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         sch.reorder(k, i)
 
 
@@ -377,7 +377,7 @@ def test_reorder_fail_with_wrong_block_var_type():
     sch = tir.Schedule(elementwise_with_wrong_block_var_type, debug_mask="all")
     block_b = sch.get_block("B")
     i, j, k = sch.get_loops(block_b)
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         sch.reorder(k, i)
 
 
@@ -385,7 +385,7 @@ def test_reorder_fail_with_dependent_loops():
     sch = tir.Schedule(elementwise_dependent_loop, debug_mask="all")
     block_b = sch.get_block("B")
     i, j, k, l = sch.get_loops(block_b)
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         sch.reorder(l, i)
 
 
@@ -393,9 +393,9 @@ def test_reorder_fail_not_affine_bindings():
     sch = tir.Schedule(elementwise_not_affine, debug_mask="all")
     block_b = sch.get_block("B")
     i, j, k, l = sch.get_loops(block_b)
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         sch.reorder(l, i)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

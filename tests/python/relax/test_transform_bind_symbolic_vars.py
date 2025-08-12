@@ -17,19 +17,19 @@
 
 import pytest
 
-import gsmDataGen
-import gsmDataGen.script
-import gsmDataGen.testing
-from gsmDataGen import relax
-from gsmDataGen.script import ir as I
-from gsmDataGen.script import relax as R
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.script
+import gsm_data_generator.testing
+from gsm_data_generator import relax
+from gsm_data_generator.script import ir as I
+from gsm_data_generator.script import relax as R
+from gsm_data_generator.script import tir as T
 
 
 def test_bind_tensors():
     """Symbolic variables may occur in Tensor shapes"""
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Before:
         @R.function
         def main(
@@ -73,13 +73,13 @@ def test_bind_tensors():
                 R.output(out)
             return out
 
-    gsmDataGen.ir.assert_structural_equal(Expected, After)
+    gsm_data_generator.ir.assert_structural_equal(Expected, After)
 
 
 def test_bind_shape():
     """Symbolic variables may occur in ShapeExpr"""
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Before:
         @R.function
         def main(
@@ -113,13 +113,13 @@ def test_bind_shape():
                 R.output(out)
             return out
 
-    gsmDataGen.ir.assert_structural_equal(Expected, After)
+    gsm_data_generator.ir.assert_structural_equal(Expected, After)
 
 
 def test_arith():
     """Symbolic shapes may use TIR arithmetic expressions"""
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Before:
         @R.function
         def main(
@@ -168,13 +168,13 @@ def test_arith():
                 R.output(out)
             return out
 
-    gsmDataGen.ir.assert_structural_equal(Expected, After)
+    gsm_data_generator.ir.assert_structural_equal(Expected, After)
 
 
 def test_bind_multiple_variables_by_name():
     """String names may be used to replace across multiple functions"""
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Before:
         @R.function
         def main_1(x: R.Tensor(("m", "n"), dtype="float32")):
@@ -184,7 +184,7 @@ def test_bind_multiple_variables_by_name():
         def main_2(x: R.Tensor(("m", "n"), dtype="float32")):
             return x
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main_1(x: R.Tensor(("m", 16), dtype="float32")):
@@ -195,13 +195,13 @@ def test_bind_multiple_variables_by_name():
             return x
 
     After = relax.transform.BindSymbolicVars({"n": 16})(Before)
-    gsmDataGen.ir.assert_structural_equal(Expected, After)
+    gsm_data_generator.ir.assert_structural_equal(Expected, After)
 
 
 def test_bind_single_variable_by_identity():
     """TIR variables may be used to replace a specific var"""
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Before:
         @R.function
         def main_1(x: R.Tensor(("m", "n"), dtype="float32")):
@@ -211,7 +211,7 @@ def test_bind_single_variable_by_identity():
         def main_2(x: R.Tensor(("m", "n"), dtype="float32")):
             return x
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main_1(x: R.Tensor(("m", 16), dtype="float32")):
@@ -223,13 +223,13 @@ def test_bind_single_variable_by_identity():
 
     main_1_n = Before["main_1"].params[0].struct_info.shape[1]
     After = relax.transform.BindSymbolicVars({main_1_n: 16})(Before)
-    gsmDataGen.ir.assert_structural_equal(Expected, After)
+    gsm_data_generator.ir.assert_structural_equal(Expected, After)
 
 
 def test_bind_single_variable_by_function_name():
     """Variable name and function name may be used to replace a specific var"""
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Before:
         @R.function
         def main_1(x: R.Tensor(("m", "n"), dtype="float32")):
@@ -239,7 +239,7 @@ def test_bind_single_variable_by_function_name():
         def main_2(x: R.Tensor(("m", "n"), dtype="float32")):
             return x
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main_1(x: R.Tensor(("m", 16), dtype="float32")):
@@ -250,21 +250,21 @@ def test_bind_single_variable_by_function_name():
             return x
 
     After = relax.transform.BindSymbolicVars({"n": 16}, "main_1")(Before)
-    gsmDataGen.ir.assert_structural_equal(Expected, After)
+    gsm_data_generator.ir.assert_structural_equal(Expected, After)
 
 
 def test_error_for_unused_replacement():
     """Each replacement must be used"""
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Before:
         @R.function
         def main(x: R.Tensor(("m", "n"), dtype="float32")):
             return x
 
-    with pytest.raises(gsmDataGen.TVMError):
+    with pytest.raises(gsm_data_generator.TVMError):
         relax.transform.BindSymbolicVars({"non_existing_var_name": 16})(Before)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

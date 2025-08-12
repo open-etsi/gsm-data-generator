@@ -17,9 +17,9 @@
 """Unittests for tvm.script.parser.tir"""
 
 import pytest
-import gsmDataGen.testing
-from gsmDataGen.script.parser import tir as T
-from gsmDataGen import ir, tir
+import gsm_data_generator.testing
+from gsm_data_generator.script.parser import tir as T
+from gsm_data_generator import ir, tir
 
 
 def test_tir_buffer_proxy():
@@ -89,7 +89,7 @@ def test_tir_func_private_attrs():
 
 
 def test_tir_func_private_manual_global_symbol_fail():
-    with pytest.raises(gsmDataGen.error.DiagnosticError):
+    with pytest.raises(gsm_data_generator.error.DiagnosticError):
 
         @T.prim_func(private=True)
         def matmul(a: T.handle, b: T.handle, c: T.handle) -> None:
@@ -120,7 +120,7 @@ def test_tir_macro_decorator_signature():
     def use1():
         func1()
 
-    gsmDataGen.ir.assert_structural_equal(use1, evaluate0)
+    gsm_data_generator.ir.assert_structural_equal(use1, evaluate0)
 
     # Ok, empty parentheses
     @T.macro()
@@ -131,7 +131,7 @@ def test_tir_macro_decorator_signature():
     def use2():
         func2()
 
-    gsmDataGen.ir.assert_structural_equal(use1, evaluate0)
+    gsm_data_generator.ir.assert_structural_equal(use1, evaluate0)
 
     with pytest.raises(ValueError):
         # Wrong: non-keyword argument
@@ -165,7 +165,7 @@ def test_tir_macro_signature():
                 vi, vj, vk = T.axis.remap("SSR", [i, j, k])
                 C[vi, vj] = C[vi, vj] + A[vi, vk] * B[vj, vk]
 
-    gsmDataGen.ir.assert_structural_equal(matmul_no_macro, matmul_w_macro)
+    gsm_data_generator.ir.assert_structural_equal(matmul_no_macro, matmul_w_macro)
 
 
 def test_tir_macro_hygienic():
@@ -185,7 +185,7 @@ def test_tir_macro_hygienic():
         for x_value in range(10):
             B[()] = A[128]
 
-    gsmDataGen.ir.assert_structural_equal(use_hygienic, expected_hygienic)
+    gsm_data_generator.ir.assert_structural_equal(use_hygienic, expected_hygienic)
 
 
 def test_tir_macro_non_hygienic():
@@ -205,7 +205,7 @@ def test_tir_macro_non_hygienic():
         for x_value in range(10):
             B[()] = A[x_value]
 
-    gsmDataGen.ir.assert_structural_equal(use_non_hygienic, expected_non_hygienic)
+    gsm_data_generator.ir.assert_structural_equal(use_non_hygienic, expected_non_hygienic)
 
 
 def test_tir_macro_in_class():
@@ -243,7 +243,7 @@ def test_tir_macro_in_class():
                 vi, vj = T.axis.remap("SS", [i, j])
                 local_b[vi, vj] = local_a[vi, vj]
 
-    gsmDataGen.ir.assert_structural_equal(func_no_macro, func_w_macro)
+    gsm_data_generator.ir.assert_structural_equal(func_no_macro, func_w_macro)
 
 
 def test_tir_starred_expression():
@@ -261,7 +261,7 @@ def test_tir_starred_expression():
         for i, j, k in T.grid(128, 128, 128):
             A[i, j, k] = T.int32(1)
 
-    gsmDataGen.ir.assert_structural_equal(starred, non_starred)
+    gsm_data_generator.ir.assert_structural_equal(starred, non_starred)
 
 
 def test_tir_starred_shape_expression():
@@ -279,7 +279,7 @@ def test_tir_starred_shape_expression():
         for i, j, k in T.grid(128, 128, 128):
             A[i, j, k] = T.int32(1)
 
-    gsmDataGen.ir.assert_structural_equal(starred, non_starred)
+    gsm_data_generator.ir.assert_structural_equal(starred, non_starred)
 
 
 def test_tir_dynamic_for_loop():
@@ -297,7 +297,7 @@ def test_tir_dynamic_for_loop():
         for i, j, k in T.grid(128, 128, 128):
             A[i, j, k] = T.int32(1)
 
-    gsmDataGen.ir.assert_structural_equal(starred, non_starred)
+    gsm_data_generator.ir.assert_structural_equal(starred, non_starred)
 
 
 def test_tir_starred_for_loop():
@@ -323,7 +323,7 @@ def test_tir_starred_for_loop():
                     B[i, j] = T.int32(0)
                 B[i, j] = B[i, j] + A[i, j, k]
 
-    gsmDataGen.ir.assert_structural_equal(starred, non_starred)
+    gsm_data_generator.ir.assert_structural_equal(starred, non_starred)
 
 
 def test_tir_empty_tuple_index():
@@ -339,7 +339,7 @@ def test_tir_empty_tuple_index():
     def expected(A: T.Buffer((), "int32"), B: T.Buffer((), "int32")):
         T.evaluate(A[()])
 
-    gsmDataGen.ir.assert_structural_equal(func_with_empty_tuple, expected)
+    gsm_data_generator.ir.assert_structural_equal(func_with_empty_tuple, expected)
 
 
 def test_tir_builtin_expression():
@@ -356,7 +356,7 @@ def test_tir_builtin_expression():
         for i, j, k in T.grid(2, 128, 128):
             A[i, j, k] = 4
 
-    gsmDataGen.ir.assert_structural_equal(with_builtin, evaluated)
+    gsm_data_generator.ir.assert_structural_equal(with_builtin, evaluated)
 
 
 def test_thread_binding_dtype():
@@ -381,15 +381,15 @@ def test_inferred_sinfo_with_prim_args():
     def func(M: T.int32, N: T.int32) -> T.int32:
         T.ret(M * N)
 
-    expected = gsmDataGen.relax.FuncStructInfo(
+    expected = gsm_data_generator.relax.FuncStructInfo(
         [
-            gsmDataGen.relax.PrimStructInfo("int32"),
-            gsmDataGen.relax.PrimStructInfo("int32"),
+            gsm_data_generator.relax.PrimStructInfo("int32"),
+            gsm_data_generator.relax.PrimStructInfo("int32"),
         ],
-        gsmDataGen.relax.PrimStructInfo("int32"),
+        gsm_data_generator.relax.PrimStructInfo("int32"),
         purity=True,
     )
-    gsmDataGen.ir.assert_structural_equal(func.struct_info, expected)
+    gsm_data_generator.ir.assert_structural_equal(func.struct_info, expected)
 
 
 def test_inferred_sinfo_with_buffer_args():
@@ -399,15 +399,15 @@ def test_inferred_sinfo_with_buffer_args():
     def func(A: T.Buffer([16, 16], "float32"), B: T.Buffer([256], "int32")) -> T.float32:
         T.ret(T.float32(42.0))
 
-    expected = gsmDataGen.relax.FuncStructInfo(
+    expected = gsm_data_generator.relax.FuncStructInfo(
         [
-            gsmDataGen.relax.TensorStructInfo([16, 16], "float32"),
-            gsmDataGen.relax.TensorStructInfo([256], "int32"),
+            gsm_data_generator.relax.TensorStructInfo([16, 16], "float32"),
+            gsm_data_generator.relax.TensorStructInfo([256], "int32"),
         ],
-        gsmDataGen.relax.PrimStructInfo("float32"),
+        gsm_data_generator.relax.PrimStructInfo("float32"),
         purity=True,
     )
-    gsmDataGen.ir.assert_structural_equal(func.struct_info, expected)
+    gsm_data_generator.ir.assert_structural_equal(func.struct_info, expected)
 
 
 def test_inferred_sinfo_with_internal_allocation():
@@ -426,14 +426,14 @@ def test_inferred_sinfo_with_internal_allocation():
 
         T.ret(Sum[()])
 
-    expected = gsmDataGen.relax.FuncStructInfo(
+    expected = gsm_data_generator.relax.FuncStructInfo(
         [
-            gsmDataGen.relax.TensorStructInfo([16, 16], "float32"),
+            gsm_data_generator.relax.TensorStructInfo([16, 16], "float32"),
         ],
-        gsmDataGen.relax.PrimStructInfo("float32"),
+        gsm_data_generator.relax.PrimStructInfo("float32"),
         purity=True,
     )
-    gsmDataGen.ir.assert_structural_equal(func.struct_info, expected)
+    gsm_data_generator.ir.assert_structural_equal(func.struct_info, expected)
 
 
 def test_inferred_sinfo_with_output_buffer():
@@ -447,15 +447,15 @@ def test_inferred_sinfo_with_output_buffer():
         for i in range(16):
             B[i] = A[i]
 
-    expected = gsmDataGen.relax.FuncStructInfo(
+    expected = gsm_data_generator.relax.FuncStructInfo(
         [
-            gsmDataGen.relax.TensorStructInfo([16], "float32"),
-            gsmDataGen.relax.TensorStructInfo([16], "float32"),
+            gsm_data_generator.relax.TensorStructInfo([16], "float32"),
+            gsm_data_generator.relax.TensorStructInfo([16], "float32"),
         ],
-        gsmDataGen.relax.TupleStructInfo([]),
+        gsm_data_generator.relax.TupleStructInfo([]),
         purity=False,
     )
-    gsmDataGen.ir.assert_structural_equal(func.struct_info, expected)
+    gsm_data_generator.ir.assert_structural_equal(func.struct_info, expected)
 
 
 def test_inferred_sinfo_with_dynamic_buffer():
@@ -470,17 +470,17 @@ def test_inferred_sinfo_with_dynamic_buffer():
         for i, j in T.grid(M, N):
             B[i * N + j] = A[i, j]
 
-    M = gsmDataGen.tir.Var("M", "int64")
-    N = gsmDataGen.tir.Var("N", "int64")
-    expected = gsmDataGen.relax.FuncStructInfo(
+    M = gsm_data_generator.tir.Var("M", "int64")
+    N = gsm_data_generator.tir.Var("N", "int64")
+    expected = gsm_data_generator.relax.FuncStructInfo(
         [
-            gsmDataGen.relax.TensorStructInfo([M, N], "float32"),
-            gsmDataGen.relax.TensorStructInfo([M * N], "float32"),
+            gsm_data_generator.relax.TensorStructInfo([M, N], "float32"),
+            gsm_data_generator.relax.TensorStructInfo([M * N], "float32"),
         ],
-        gsmDataGen.relax.TupleStructInfo([]),
+        gsm_data_generator.relax.TupleStructInfo([]),
         purity=False,
     )
-    gsmDataGen.ir.assert_structural_equal(func.struct_info, expected)
+    gsm_data_generator.ir.assert_structural_equal(func.struct_info, expected)
 
 
 def test_reinterpret_nop():
@@ -502,7 +502,7 @@ def test_reinterpret_nop():
                 vi = T.axis.remap("S", [i])
                 B[vi] = A[vi]
 
-    gsmDataGen.ir.assert_structural_equal(func, expected)
+    gsm_data_generator.ir.assert_structural_equal(func, expected)
 
 
 def test_launch_thread_i64():
@@ -540,15 +540,15 @@ def test_deterministic_branch():
 
         return expected
 
-    gsmDataGen.ir.assert_structural_equal(create_func(True), create_expected(0))
-    gsmDataGen.ir.assert_structural_equal(create_func(False), create_expected(1))
+    gsm_data_generator.ir.assert_structural_equal(create_func(True), create_expected(0))
+    gsm_data_generator.ir.assert_structural_equal(create_func(False), create_expected(1))
 
 
 def test_block_annotation_merge():
-    def _to_dict(anno: gsmDataGen.ffi.container.Map):
+    def _to_dict(anno: gsm_data_generator.ffi.container.Map):
         result = {}
         for k, v in anno.items():
-            result[k] = _to_dict(v) if isinstance(v, gsmDataGen.ffi.container.Map) else v
+            result[k] = _to_dict(v) if isinstance(v, gsm_data_generator.ffi.container.Map) else v
         return result
 
     @T.prim_func
@@ -578,7 +578,7 @@ def test_block_annotation_merge():
 
     assert _to_dict(func2.body.block.annotations) == {"key1": "block1"}
 
-    with pytest.raises(gsmDataGen.TVMError):
+    with pytest.raises(gsm_data_generator.TVMError):
 
         @T.prim_func
         def func3():
@@ -608,8 +608,8 @@ def test_alloc_inside_block():
                 B[j] = T.float32(j)
                 A[i] += B[j]
 
-    gsmDataGen.ir.assert_structural_equal(func, expected)
+    gsm_data_generator.ir.assert_structural_equal(func, expected)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

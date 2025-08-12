@@ -21,13 +21,13 @@ import tempfile
 
 import numpy as np
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen.runtime import Executable
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator.runtime import Executable
+from gsm_data_generator.script import tir as T
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class MyModule:
     @T.prim_func
     def add(
@@ -41,7 +41,7 @@ class MyModule:
 
 def test_executable_init():
     """Test initialization of Executable class."""
-    lib = gsmDataGen.tir.build(MyModule, target="llvm")
+    lib = gsm_data_generator.tir.build(MyModule, target="llvm")
     executable = Executable(lib)
 
     assert executable.mod is lib
@@ -50,7 +50,7 @@ def test_executable_init():
 
 def test_executable_getitem():
     """Test __getitem__ method of Executable class."""
-    lib = gsmDataGen.tir.build(MyModule, target="llvm")
+    lib = gsm_data_generator.tir.build(MyModule, target="llvm")
     executable = Executable(lib)
 
     # Jit the module first
@@ -60,19 +60,19 @@ def test_executable_getitem():
     add_func = executable["add"]
 
     # Verify the function works
-    a = gsmDataGen.nd.array(np.array([1.0] * 10, dtype="float32"))
-    b = gsmDataGen.nd.array(np.array([2.0] * 10, dtype="float32"))
-    c = gsmDataGen.nd.array(np.array([0.0] * 10, dtype="float32"))
+    a = gsm_data_generator.nd.array(np.array([1.0] * 10, dtype="float32"))
+    b = gsm_data_generator.nd.array(np.array([2.0] * 10, dtype="float32"))
+    c = gsm_data_generator.nd.array(np.array([0.0] * 10, dtype="float32"))
 
     add_func(a, b, c)
 
     # Check results
-    gsmDataGen.testing.assert_allclose(c.numpy(), np.array([3.0] * 10, dtype="float32"))
+    gsm_data_generator.testing.assert_allclose(c.numpy(), np.array([3.0] * 10, dtype="float32"))
 
 
 def test_executable_jit_already_jitted():
     """Test jit method when module is already jitted."""
-    lib = gsmDataGen.tir.build(MyModule, target="llvm")
+    lib = gsm_data_generator.tir.build(MyModule, target="llvm")
     executable = Executable(lib)
 
     # First jit call
@@ -87,21 +87,21 @@ def test_executable_jit_already_jitted():
     # The module might be different after force recompilation
 
     # Verify both modules work correctly
-    a = gsmDataGen.nd.array(np.array([1.0] * 10, dtype="float32"))
-    b = gsmDataGen.nd.array(np.array([2.0] * 10, dtype="float32"))
-    c1 = gsmDataGen.nd.array(np.array([0.0] * 10, dtype="float32"))
-    c2 = gsmDataGen.nd.array(np.array([0.0] * 10, dtype="float32"))
+    a = gsm_data_generator.nd.array(np.array([1.0] * 10, dtype="float32"))
+    b = gsm_data_generator.nd.array(np.array([2.0] * 10, dtype="float32"))
+    c1 = gsm_data_generator.nd.array(np.array([0.0] * 10, dtype="float32"))
+    c2 = gsm_data_generator.nd.array(np.array([0.0] * 10, dtype="float32"))
 
     jitted_mod1["add"](a, b, c1)
     jitted_mod3["add"](a, b, c2)
 
-    gsmDataGen.testing.assert_allclose(c1.numpy(), np.array([3.0] * 10, dtype="float32"))
-    gsmDataGen.testing.assert_allclose(c2.numpy(), np.array([3.0] * 10, dtype="float32"))
+    gsm_data_generator.testing.assert_allclose(c1.numpy(), np.array([3.0] * 10, dtype="float32"))
+    gsm_data_generator.testing.assert_allclose(c2.numpy(), np.array([3.0] * 10, dtype="float32"))
 
 
 def test_executable_export_library():
     """Test export_library method."""
-    lib = gsmDataGen.tir.build(MyModule, target="llvm")
+    lib = gsm_data_generator.tir.build(MyModule, target="llvm")
     executable = Executable(lib)
 
     # Create a temporary directory for the library
@@ -114,18 +114,18 @@ def test_executable_export_library():
         assert os.path.exists(lib_path)
 
         # Load the library back
-        loaded_mod = gsmDataGen.runtime.load_module(lib_path)
+        loaded_mod = gsm_data_generator.runtime.load_module(lib_path)
         assert loaded_mod is not None
 
         # Test the loaded module
-        a = gsmDataGen.nd.array(np.array([1.0] * 10, dtype="float32"))
-        b = gsmDataGen.nd.array(np.array([2.0] * 10, dtype="float32"))
-        c = gsmDataGen.nd.array(np.array([0.0] * 10, dtype="float32"))
+        a = gsm_data_generator.nd.array(np.array([1.0] * 10, dtype="float32"))
+        b = gsm_data_generator.nd.array(np.array([2.0] * 10, dtype="float32"))
+        c = gsm_data_generator.nd.array(np.array([0.0] * 10, dtype="float32"))
 
         loaded_mod["add"](a, b, c)
 
         # Check results
-        gsmDataGen.testing.assert_allclose(c.numpy(), np.array([3.0] * 10, dtype="float32"))
+        gsm_data_generator.testing.assert_allclose(c.numpy(), np.array([3.0] * 10, dtype="float32"))
     finally:
         # Clean up
         if os.path.exists(temp_dir):
@@ -136,7 +136,7 @@ def test_executable_export_library():
 
 def test_executable_export_library_with_workspace():
     """Test export_library method with workspace_dir."""
-    lib = gsmDataGen.tir.build(MyModule, target="llvm")
+    lib = gsm_data_generator.tir.build(MyModule, target="llvm")
     executable = Executable(lib)
 
     # Create temporary directories
@@ -151,18 +151,18 @@ def test_executable_export_library_with_workspace():
         assert os.path.exists(lib_path)
 
         # Load the library back
-        loaded_mod = gsmDataGen.runtime.load_module(lib_path)
+        loaded_mod = gsm_data_generator.runtime.load_module(lib_path)
         assert loaded_mod is not None
 
         # Test the loaded module
-        a = gsmDataGen.nd.array(np.array([1.0] * 10, dtype="float32"))
-        b = gsmDataGen.nd.array(np.array([2.0] * 10, dtype="float32"))
-        c = gsmDataGen.nd.array(np.array([0.0] * 10, dtype="float32"))
+        a = gsm_data_generator.nd.array(np.array([1.0] * 10, dtype="float32"))
+        b = gsm_data_generator.nd.array(np.array([2.0] * 10, dtype="float32"))
+        c = gsm_data_generator.nd.array(np.array([0.0] * 10, dtype="float32"))
 
         loaded_mod["add"](a, b, c)
 
         # Check results
-        gsmDataGen.testing.assert_allclose(c.numpy(), np.array([3.0] * 10, dtype="float32"))
+        gsm_data_generator.testing.assert_allclose(c.numpy(), np.array([3.0] * 10, dtype="float32"))
     finally:
         # Clean up
         for directory in [temp_dir, workspace_dir]:
@@ -175,8 +175,8 @@ def test_executable_export_library_with_workspace():
 def test_executable_integration():
     """Integration test for Executable with a simple TVM module."""
     # Create target and build
-    target = gsmDataGen.target.Target("llvm")
-    lib = gsmDataGen.tir.build(MyModule, target=target)
+    target = gsm_data_generator.target.Target("llvm")
+    lib = gsm_data_generator.tir.build(MyModule, target=target)
 
     # Create an executable
     executable = Executable(lib)
@@ -190,14 +190,14 @@ def test_executable_integration():
     assert add_func is not None
 
     # Test the function works
-    a = gsmDataGen.nd.array(np.array([1.0] * 10, dtype="float32"))
-    b = gsmDataGen.nd.array(np.array([2.0] * 10, dtype="float32"))
-    c = gsmDataGen.nd.array(np.array([0.0] * 10, dtype="float32"))
+    a = gsm_data_generator.nd.array(np.array([1.0] * 10, dtype="float32"))
+    b = gsm_data_generator.nd.array(np.array([2.0] * 10, dtype="float32"))
+    c = gsm_data_generator.nd.array(np.array([0.0] * 10, dtype="float32"))
 
     add_func(a, b, c)
 
     # Check results
-    gsmDataGen.testing.assert_allclose(c.numpy(), np.array([3.0] * 10, dtype="float32"))
+    gsm_data_generator.testing.assert_allclose(c.numpy(), np.array([3.0] * 10, dtype="float32"))
 
     # Test export_library
     temp_dir = tempfile.mkdtemp()
@@ -209,16 +209,16 @@ def test_executable_integration():
         assert os.path.exists(lib_path)
 
         # Load the library back
-        loaded_mod = gsmDataGen.runtime.load_module(lib_path)
+        loaded_mod = gsm_data_generator.runtime.load_module(lib_path)
         assert loaded_mod is not None
 
         # Test the loaded module
         loaded_add = loaded_mod["add"]
-        c_loaded = gsmDataGen.nd.array(np.array([0.0] * 10, dtype="float32"))
+        c_loaded = gsm_data_generator.nd.array(np.array([0.0] * 10, dtype="float32"))
         loaded_add(a, b, c_loaded)
 
         # Check results
-        gsmDataGen.testing.assert_allclose(c_loaded.numpy(), np.array([3.0] * 10, dtype="float32"))
+        gsm_data_generator.testing.assert_allclose(c_loaded.numpy(), np.array([3.0] * 10, dtype="float32"))
 
     finally:
         # Clean up
@@ -231,8 +231,8 @@ def test_executable_integration():
 def test_executable_jit_force_recompile():
     """Test jit method with force_recompile=True."""
     # Create target and build
-    target = gsmDataGen.target.Target("c")
-    lib = gsmDataGen.tir.build(MyModule, target=target)
+    target = gsm_data_generator.target.Target("c")
+    lib = gsm_data_generator.tir.build(MyModule, target=target)
 
     # Create an executable
     executable = Executable(lib)
@@ -249,15 +249,15 @@ def test_executable_jit_force_recompile():
     assert jitted_mod3 is not jitted_mod1
 
     # Test the function works
-    a = gsmDataGen.nd.array(np.array([1.0] * 10, dtype="float32"))
-    b = gsmDataGen.nd.array(np.array([2.0] * 10, dtype="float32"))
-    c = gsmDataGen.nd.array(np.array([0.0] * 10, dtype="float32"))
+    a = gsm_data_generator.nd.array(np.array([1.0] * 10, dtype="float32"))
+    b = gsm_data_generator.nd.array(np.array([2.0] * 10, dtype="float32"))
+    c = gsm_data_generator.nd.array(np.array([0.0] * 10, dtype="float32"))
 
     jitted_mod3["add"](a, b, c)
 
     # Check results
-    gsmDataGen.testing.assert_allclose(c.numpy(), np.array([3.0] * 10, dtype="float32"))
+    gsm_data_generator.testing.assert_allclose(c.numpy(), np.array([3.0] * 10, dtype="float32"))
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

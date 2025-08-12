@@ -15,11 +15,11 @@
 # specific language governing permissions and limitations
 # under the License.
 
-import gsmDataGen.testing
-from gsmDataGen import relax
-from gsmDataGen.script import ir as I
-from gsmDataGen.script import relax as R
-from gsmDataGen.script import tir as T
+import gsm_data_generator.testing
+from gsm_data_generator import relax
+from gsm_data_generator.script import ir as I
+from gsm_data_generator.script import relax as R
+from gsm_data_generator.script import tir as T
 
 
 def test_single_buffer():
@@ -101,7 +101,7 @@ def test_single_buffer():
             return gv
 
     mod = relax.transform.SplitLayoutRewritePreproc()(Before)
-    gsmDataGen.ir.assert_structural_equal(mod, After)
+    gsm_data_generator.ir.assert_structural_equal(mod, After)
 
 
 def test_multiple_buffers():
@@ -213,7 +213,7 @@ def test_multiple_buffers():
             return gv
 
     mod = relax.transform.SplitLayoutRewritePreproc()(Before)
-    gsmDataGen.ir.assert_structural_equal(mod, After)
+    gsm_data_generator.ir.assert_structural_equal(mod, After)
 
 
 def test_attr_inheritance():
@@ -297,8 +297,8 @@ def test_attr_inheritance():
             return gv
 
     mod = relax.transform.SplitLayoutRewritePreproc()(Before)
-    gsmDataGen.ir.assert_structural_equal(mod, After)
+    gsm_data_generator.ir.assert_structural_equal(mod, After)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

@@ -16,8 +16,8 @@
 # under the License.
 import pytest
 
-import gsmDataGen
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+from gsm_data_generator.script import tir as T
 
 
 @T.prim_func
@@ -49,29 +49,29 @@ def unknown_bounds(A: T.Buffer((2, 3), "float32"), B: T.Buffer((3, 2), "float32"
 
 
 def test_oob_load():
-    with pytest.raises(gsmDataGen.tir.ScheduleError) as err:
-        gsmDataGen.tir.analysis.OOBChecker()(gsmDataGen.IRModule.from_expr(bad_load))
+    with pytest.raises(gsm_data_generator.tir.ScheduleError) as err:
+        gsm_data_generator.tir.analysis.OOBChecker()(gsm_data_generator.IRModule.from_expr(bad_load))
     assert "buffer A" in err.value.args[0]
 
-    with pytest.raises(gsmDataGen.tir.ScheduleError) as err:
-        gsmDataGen.tir.analysis.OOBChecker()(gsmDataGen.IRModule.from_expr(bad_load_loop))
+    with pytest.raises(gsm_data_generator.tir.ScheduleError) as err:
+        gsm_data_generator.tir.analysis.OOBChecker()(gsm_data_generator.IRModule.from_expr(bad_load_loop))
     assert "buffer A" in err.value.args[0]
 
 
 def test_oob_store():
-    with pytest.raises(gsmDataGen.tir.ScheduleError) as err:
-        gsmDataGen.tir.analysis.OOBChecker()(gsmDataGen.IRModule.from_expr(bad_store))
+    with pytest.raises(gsm_data_generator.tir.ScheduleError) as err:
+        gsm_data_generator.tir.analysis.OOBChecker()(gsm_data_generator.IRModule.from_expr(bad_store))
     assert "buffer B" in err.value.args[0]
 
-    with pytest.raises(gsmDataGen.tir.ScheduleError) as err:
-        gsmDataGen.tir.analysis.OOBChecker()(gsmDataGen.IRModule.from_expr(bad_store_loop))
+    with pytest.raises(gsm_data_generator.tir.ScheduleError) as err:
+        gsm_data_generator.tir.analysis.OOBChecker()(gsm_data_generator.IRModule.from_expr(bad_store_loop))
     assert "buffer B" in err.value.args[0]
 
 
 def test_unknown_bounds():
     # This should not return an error as we can't probe that N goes out of bounds
-    gsmDataGen.tir.analysis.OOBChecker()(gsmDataGen.IRModule.from_expr(unknown_bounds))
+    gsm_data_generator.tir.analysis.OOBChecker()(gsm_data_generator.IRModule.from_expr(unknown_bounds))
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

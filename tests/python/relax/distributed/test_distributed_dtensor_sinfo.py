@@ -15,26 +15,26 @@
 # specific language governing permissions and limitations
 # under the License.
 
-import gsmDataGen
-import gsmDataGen.testing
+import gsm_data_generator
+import gsm_data_generator.testing
 import pytest
 
-from gsmDataGen import relax as rx, TVMError, tir
-from gsmDataGen.ir import structural_equal, Range
+from gsm_data_generator import relax as rx, TVMError, tir
+from gsm_data_generator.ir import structural_equal, Range
 
 
 def _check_equal(x, y, map_free_vars=False):
-    gsmDataGen.ir.assert_structural_equal(x, y, map_free_vars)
-    gsmDataGen.ir.assert_structural_equal(y, x, map_free_vars)
+    gsm_data_generator.ir.assert_structural_equal(x, y, map_free_vars)
+    gsm_data_generator.ir.assert_structural_equal(y, x, map_free_vars)
 
-    xhash = gsmDataGen.ir.structural_hash(x, map_free_vars)
-    yhash = gsmDataGen.ir.structural_hash(y, map_free_vars)
+    xhash = gsm_data_generator.ir.structural_hash(x, map_free_vars)
+    yhash = gsm_data_generator.ir.structural_hash(y, map_free_vars)
 
     assert xhash == yhash
 
 
 def _check_json_roundtrip(x):
-    xret = gsmDataGen.ir.load_json(gsmDataGen.ir.save_json(x))
+    xret = gsm_data_generator.ir.load_json(gsm_data_generator.ir.save_json(x))
     _check_equal(x, xret, map_free_vars=True)
     return xret
 
@@ -48,14 +48,14 @@ def test_dtensor_struct_info():
 
     device_mesh0 = rx.distributed.DeviceMesh((2, 2), Range(0, 4))
     device_mesh1 = rx.distributed.DeviceMesh((2, 2), Range(0, 4))
-    gsmDataGen.ir.assert_structural_equal(device_mesh0, device_mesh1)
+    gsm_data_generator.ir.assert_structural_equal(device_mesh0, device_mesh1)
 
     shard0 = rx.distributed.PlacementSpec.sharding(0)
     replica = rx.distributed.PlacementSpec.replica()
 
     placement0 = rx.distributed.Placement([shard0, replica])
     placement1 = rx.distributed.Placement([shard0, replica])
-    gsmDataGen.ir.assert_structural_equal(placement0, placement1)
+    gsm_data_generator.ir.assert_structural_equal(placement0, placement1)
 
     s0 = rx.distributed.DTensorStructInfo(tensor_s0, device_mesh0, placement0)
     s1 = rx.distributed.DTensorStructInfo(tensor_s1, device_mesh1, placement1)
@@ -64,10 +64,10 @@ def test_dtensor_struct_info():
     _check_json_roundtrip(s1)
 
     assert s0 == s1
-    gsmDataGen.ir.assert_structural_equal(s0.device_mesh, device_mesh0)
+    gsm_data_generator.ir.assert_structural_equal(s0.device_mesh, device_mesh0)
     assert s0.device_mesh.shape == (2, 2)
-    gsmDataGen.ir.assert_structural_equal(s0.device_mesh.device_range, Range(0, 4))
-    gsmDataGen.ir.assert_structural_equal(s0.placement, placement0)
+    gsm_data_generator.ir.assert_structural_equal(s0.device_mesh.device_range, Range(0, 4))
+    gsm_data_generator.ir.assert_structural_equal(s0.placement, placement0)
     assert len(s0.placement.dim_specs) == 2
     assert s0.placement.dim_specs[0] == shard0
     assert s0.placement.dim_specs[1] == replica
@@ -90,4 +90,4 @@ def test_dtensor_struct_info():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

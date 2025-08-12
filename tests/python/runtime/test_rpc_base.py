@@ -14,7 +14,7 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-from gsmDataGen.rpc import base
+from gsm_data_generator.rpc import base
 import pytest
 import random
 

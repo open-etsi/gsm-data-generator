@@ -21,12 +21,12 @@ import tempfile
 import numpy as np
 import pytest
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import meta_schedule as ms
-from gsmDataGen.meta_schedule.runner.config import EvaluatorConfig
-from gsmDataGen.script import tir as T
-from gsmDataGen.target import Target
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import meta_schedule as ms
+from gsm_data_generator.meta_schedule.runner.config import EvaluatorConfig
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.target import Target
 
 logging.basicConfig()
 logging.getLogger("tvm.meta_schedule").setLevel(logging.DEBUG)
@@ -46,7 +46,7 @@ def matmul(a: T.handle, b: T.handle, c: T.handle) -> None:
 
 
 @pytest.mark.skip("Integration test")
-@gsmDataGen.testing.requires_llvm
+@gsm_data_generator.testing.requires_llvm
 def test_tune_matmul_cpu():
     with tempfile.TemporaryDirectory() as work_dir:
         target = Target("llvm --num-cores=16")
@@ -84,7 +84,7 @@ def test_tune_matmul_cpu():
 
 
 @pytest.mark.skip("Integration test")
-@gsmDataGen.testing.requires_cuda
+@gsm_data_generator.testing.requires_cuda
 def test_tune_matmul_cuda():
     with tempfile.TemporaryDirectory() as work_dir:
         target = Target("nvidia/geforce-rtx-3070")

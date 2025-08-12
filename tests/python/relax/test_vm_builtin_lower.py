@@ -17,11 +17,11 @@
 
 import pytest
 
-import gsmDataGen
-from gsmDataGen import relax
+import gsm_data_generator
+from gsm_data_generator import relax
 
-import gsmDataGen.script
-from gsmDataGen.script import ir as I, relax as R, tir as T
+import gsm_data_generator.script
+from gsm_data_generator.script import ir as I, relax as R, tir as T
 
 
 def test_vm_builtin_lower_mem_alloc_storage():
@@ -58,7 +58,7 @@ def test_vm_builtin_lower_mem_alloc_storage():
             return gv0
 
     After = relax.transform.LowerRuntimeBuiltin()(Before)
-    gsmDataGen.ir.assert_structural_equal(Expected, After)
+    gsm_data_generator.ir.assert_structural_equal(Expected, After)
 
 
 def test_vm_builtin_alloc_tensor_raises_error():
@@ -78,7 +78,7 @@ def test_vm_builtin_alloc_tensor_raises_error():
             gv0 = alloc
             return gv0
 
-    with pytest.raises(gsmDataGen.TVMError):
+    with pytest.raises(gsm_data_generator.TVMError):
         relax.transform.LowerRuntimeBuiltin()(Before)
 
 
@@ -108,7 +108,7 @@ def test_vm_reshape_may_be_var():
 
     After = relax.transform.VMBuiltinLower()(Before)
 
-    gsmDataGen.ir.assert_structural_equal(Expected, After)
+    gsm_data_generator.ir.assert_structural_equal(Expected, After)
 
 
 def test_vm_reshape_using_tensor_to_shape():
@@ -144,8 +144,8 @@ def test_vm_reshape_using_tensor_to_shape():
 
     After = relax.transform.VMBuiltinLower()(Before)
 
-    gsmDataGen.ir.assert_structural_equal(Expected, After)
+    gsm_data_generator.ir.assert_structural_equal(Expected, After)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

@@ -17,11 +17,11 @@
 import math
 import random
 import numpy as np
-import gsmDataGen
-import gsmDataGen.testing
+import gsm_data_generator
+import gsm_data_generator.testing
 import pytest
-from gsmDataGen import tir
-from gsmDataGen.script import tir as T
+from gsm_data_generator import tir
+from gsm_data_generator.script import tir as T
 import pytest
 
 
@@ -54,7 +54,7 @@ def test_tir_make_intimm(dtype, literals):
 )
 def test_tir_invalid_intimm(dtype, literals):
     for l in literals:
-        with pytest.raises(gsmDataGen.TVMError):
+        with pytest.raises(gsm_data_generator.TVMError):
             tir.const(l, dtype)
 
 
@@ -128,7 +128,7 @@ def test_tir_make_floatimm(dtype, literals):
 def test_tir_invalid_floatimm(dtype, literals):
     """Currently only fp16 and fp32 have range check."""
     for l in literals:
-        with pytest.raises(gsmDataGen.TVMError):
+        with pytest.raises(gsm_data_generator.TVMError):
             tir.const(l, dtype)
 
 
@@ -139,7 +139,7 @@ def test_tir_special_floatimms(dtype, literal):
     compare_float_value(x.value, literal, "imm value should match feed value")
 
 
-@gsmDataGen.testing.requires_llvm()
+@gsm_data_generator.testing.requires_llvm()
 def test_tir_too_large_literal_f64():
     # Behavior check: if literal f64 value is out of dtype range, the
     # object is still constructed, and eval to infinity.
@@ -147,7 +147,7 @@ def test_tir_too_large_literal_f64():
     def imm_overflow_fp64() -> T.float64:
         T.evaluate(T.ret(T.float64(1.7976e309), dtype="float64"))
 
-    f = gsmDataGen.compile(imm_overflow_fp64, target="llvm")
+    f = gsm_data_generator.compile(imm_overflow_fp64, target="llvm")
     assert math.isinf(f())
 
 
@@ -249,7 +249,7 @@ def check_tir_const_fold(
             assert expect == calc_res, flaky_msg
 
 
-@gsmDataGen.testing.requires_llvm()
+@gsm_data_generator.testing.requires_llvm()
 def test_tir_floatimm_const_fold():
     """Behavior check: folding fp32 match platform f32 arithmetic"""
 
@@ -270,8 +270,8 @@ def test_tir_floatimm_const_fold():
         z[()] = x / y
 
     def __wrap_build(f):
-        lib = gsmDataGen.compile(f, target="llvm")
-        z = gsmDataGen.nd.array(np.zeros([]).astype("float32"))
+        lib = gsm_data_generator.compile(f, target="llvm")
+        z = gsm_data_generator.nd.array(np.zeros([]).astype("float32"))
 
         def _func(x, y):
             lib(x, y, z)
@@ -290,7 +290,7 @@ def test_tir_floatimm_const_fold():
     check_tir_const_fold("float32", lambda x, y: x / y, fdiv, 3.0e30, 3.0e-30, np.inf)
 
     # divide by zero
-    with pytest.raises(gsmDataGen.TVMError):
+    with pytest.raises(gsm_data_generator.TVMError):
         check_tir_const_fold("float32", lambda x, y: x / y, fdiv, 1.0, 0.0)
 
     # nan and inf
@@ -307,7 +307,7 @@ def test_tir_floatimm_const_fold():
     )
 
 
-@gsmDataGen.testing.requires_llvm()
+@gsm_data_generator.testing.requires_llvm()
 def test_tir_int8_const_fold():
     """Behavior check: folding i8 operation match platform i8 arithmetic"""
 
@@ -331,20 +331,20 @@ def test_tir_int8_const_fold():
     def imm_floordiv(x: T.int8, y: T.int8) -> T.int8:
         T.evaluate(T.ret(T.floordiv(x, y), dtype="int8"))
 
-    fmul = gsmDataGen.compile(imm_multiply, target="llvm")
-    fadd = gsmDataGen.compile(imm_add, target="llvm")
-    fsub = gsmDataGen.compile(imm_sub, target="llvm")
-    ffloordiv = gsmDataGen.compile(imm_floordiv, target="llvm")
-    ftruncdiv = gsmDataGen.compile(imm_truncdiv, target="llvm")
+    fmul = gsm_data_generator.compile(imm_multiply, target="llvm")
+    fadd = gsm_data_generator.compile(imm_add, target="llvm")
+    fsub = gsm_data_generator.compile(imm_sub, target="llvm")
+    ffloordiv = gsm_data_generator.compile(imm_floordiv, target="llvm")
+    ftruncdiv = gsm_data_generator.compile(imm_truncdiv, target="llvm")
 
     # overflow
     check_tir_const_fold("int8", lambda x, y: x + y, fadd, 127, 1, -128)
     check_tir_const_fold("int8", lambda x, y: x * y, fmul, 127, 127, 1)
 
     # divide by zero
-    with pytest.raises(gsmDataGen.TVMError):
+    with pytest.raises(gsm_data_generator.TVMError):
         check_tir_const_fold("int8", lambda x, y: tir.floordiv(x, y), ffloordiv, 1, 0)
-    with pytest.raises(gsmDataGen.TVMError):
+    with pytest.raises(gsm_data_generator.TVMError):
         check_tir_const_fold("int8", lambda x, y: tir.truncdiv(x, y), ftruncdiv, 1, 0)
 
     # i8 mod folding is not implemented
@@ -363,7 +363,7 @@ def test_tir_int8_const_fold():
     )
 
 
-@gsmDataGen.testing.requires_llvm()
+@gsm_data_generator.testing.requires_llvm()
 def test_tir_uint8_const_fold():
     """Behavior check: folding u8 operation match platform u8 arithmetic"""
 
@@ -387,23 +387,23 @@ def test_tir_uint8_const_fold():
     def imm_floordiv(x: T.uint8, y: T.uint8) -> T.uint8:
         T.evaluate(T.ret(T.floordiv(x, y), dtype="uint8"))
 
-    fmul = gsmDataGen.compile(imm_multiply, target="llvm")
-    fadd = gsmDataGen.compile(imm_add, target="llvm")
-    fsub = gsmDataGen.compile(imm_sub, target="llvm")
-    ffloordiv = gsmDataGen.compile(imm_floordiv, target="llvm")
-    ftruncdiv = gsmDataGen.compile(imm_truncdiv, target="llvm")
+    fmul = gsm_data_generator.compile(imm_multiply, target="llvm")
+    fadd = gsm_data_generator.compile(imm_add, target="llvm")
+    fsub = gsm_data_generator.compile(imm_sub, target="llvm")
+    ffloordiv = gsm_data_generator.compile(imm_floordiv, target="llvm")
+    ftruncdiv = gsm_data_generator.compile(imm_truncdiv, target="llvm")
 
     # overflow
     check_tir_const_fold("uint8", lambda x, y: x + y, fadd, 255, 1, 0)
 
     # zero sub
-    with pytest.raises(gsmDataGen.TVMError):
+    with pytest.raises(gsm_data_generator.TVMError):
         check_tir_const_fold("uint8", lambda x, y: x - y, fsub, 0, 10)
 
     # divide by zero
-    with pytest.raises(gsmDataGen.TVMError):
+    with pytest.raises(gsm_data_generator.TVMError):
         check_tir_const_fold("uint8", lambda x, y: tir.floordiv(x, y), ffloordiv, 1, 0)
-    with pytest.raises(gsmDataGen.TVMError):
+    with pytest.raises(gsm_data_generator.TVMError):
         check_tir_const_fold("uint8", lambda x, y: tir.truncdiv(x, y), ftruncdiv, 1, 0)
 
     # u8 mod folding is not implemented
@@ -422,7 +422,7 @@ def test_tir_uint8_const_fold():
     )
 
 
-@gsmDataGen.testing.requires_llvm()
+@gsm_data_generator.testing.requires_llvm()
 def test_tir_int32_const_fold():
     """Behavior check: folding i32 operation match platform i32 arithmetic"""
 
@@ -454,26 +454,26 @@ def test_tir_int32_const_fold():
     def imm_floormod(x: T.int32, y: T.int32) -> T.int32:
         T.evaluate(T.ret(T.floormod(x, y), dtype="int32"))
 
-    fmul = gsmDataGen.compile(imm_multiply, target="llvm")
-    fadd = gsmDataGen.compile(imm_add, target="llvm")
-    fsub = gsmDataGen.compile(imm_sub, target="llvm")
-    ffloordiv = gsmDataGen.compile(imm_floordiv, target="llvm")
-    ffloormod = gsmDataGen.compile(imm_floormod, target="llvm")
-    ftruncdiv = gsmDataGen.compile(imm_truncdiv, target="llvm")
-    ftruncmod = gsmDataGen.compile(imm_truncmod, target="llvm")
+    fmul = gsm_data_generator.compile(imm_multiply, target="llvm")
+    fadd = gsm_data_generator.compile(imm_add, target="llvm")
+    fsub = gsm_data_generator.compile(imm_sub, target="llvm")
+    ffloordiv = gsm_data_generator.compile(imm_floordiv, target="llvm")
+    ffloormod = gsm_data_generator.compile(imm_floormod, target="llvm")
+    ftruncdiv = gsm_data_generator.compile(imm_truncdiv, target="llvm")
+    ftruncmod = gsm_data_generator.compile(imm_truncmod, target="llvm")
 
     # i32 overflow is not specified, only check for range
     assert -(2**31) <= int(tir.const(2**31 - 1, "int32") + tir.const(1, "int32")) < 2**31
     assert -(2**31) <= int(tir.const(-(2**31), "int32") - tir.const(1, "int32")) < 2**31
 
     # divide by zero
-    with pytest.raises(gsmDataGen.TVMError):
+    with pytest.raises(gsm_data_generator.TVMError):
         check_tir_const_fold("int32", lambda x, y: tir.floordiv(x, y), ffloordiv, 1, 0)
-    with pytest.raises(gsmDataGen.TVMError):
+    with pytest.raises(gsm_data_generator.TVMError):
         check_tir_const_fold("int32", lambda x, y: tir.floormod(x, y), ffloormod, 1, 0)
-    with pytest.raises(gsmDataGen.TVMError):
+    with pytest.raises(gsm_data_generator.TVMError):
         check_tir_const_fold("int32", lambda x, y: tir.truncdiv(x, y), ftruncdiv, 1, 0)
-    with pytest.raises(gsmDataGen.TVMError):
+    with pytest.raises(gsm_data_generator.TVMError):
         check_tir_const_fold("int32", lambda x, y: tir.truncmod(x, y), ftruncmod, 1, 0)
 
     # randomized check
@@ -510,7 +510,7 @@ def test_tir_int32_const_fold():
     )
 
 
-@gsmDataGen.testing.requires_llvm()
+@gsm_data_generator.testing.requires_llvm()
 def test_tir_uint32_const_fold():
     """Behavior check: folding u32 operation match platform u32 arithmetic"""
 
@@ -534,19 +534,19 @@ def test_tir_uint32_const_fold():
     def imm_floordiv(x: T.uint32, y: T.uint32) -> T.uint32:
         T.evaluate(T.ret(T.floordiv(x, y), dtype="uint32"))
 
-    fmul = gsmDataGen.compile(imm_multiply, target="llvm")
-    fadd = gsmDataGen.compile(imm_add, target="llvm")
-    fsub = gsmDataGen.compile(imm_sub, target="llvm")
-    ffloordiv = gsmDataGen.compile(imm_floordiv, target="llvm")
-    ftruncdiv = gsmDataGen.compile(imm_truncdiv, target="llvm")
+    fmul = gsm_data_generator.compile(imm_multiply, target="llvm")
+    fadd = gsm_data_generator.compile(imm_add, target="llvm")
+    fsub = gsm_data_generator.compile(imm_sub, target="llvm")
+    ffloordiv = gsm_data_generator.compile(imm_floordiv, target="llvm")
+    ftruncdiv = gsm_data_generator.compile(imm_truncdiv, target="llvm")
 
     # u32 overflow is not specified, only check for range
     assert 0 <= int(tir.const(2**32 - 1, "uint32") + tir.const(1, "uint32")) < 2**32
 
     # divide by zero
-    with pytest.raises(gsmDataGen.TVMError):
+    with pytest.raises(gsm_data_generator.TVMError):
         check_tir_const_fold("uint32", lambda x, y: tir.floordiv(x, y), ffloordiv, 1, 0)
-    with pytest.raises(gsmDataGen.TVMError):
+    with pytest.raises(gsm_data_generator.TVMError):
         check_tir_const_fold("uint32", lambda x, y: tir.truncdiv(x, y), ftruncdiv, 1, 0)
 
     # u8 mod folding is not implemented
@@ -574,4 +574,4 @@ def test_tir_uint32_const_fold():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

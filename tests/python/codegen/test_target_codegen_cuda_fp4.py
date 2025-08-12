@@ -20,9 +20,9 @@ from itertools import product
 import numpy as np
 import pytest
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator.script import tir as T
 
 try:
     import ml_dtypes
@@ -31,7 +31,7 @@ except ImportError:
 
 
 @pytest.mark.parametrize("promoted_dtype", ["float32x2", "float16x2"])
-@gsmDataGen.testing.requires_cuda_compute_version(10)
+@gsm_data_generator.testing.requires_cuda_compute_version(10)
 def test_e2m1_vector_conversions(promoted_dtype):
     native_dtype = "float4_e2m1fnx2"
     vector_length = 64
@@ -52,7 +52,7 @@ def test_e2m1_vector_conversions(promoted_dtype):
                     native_dtype, T.Cast(promoted_dtype, A[v_i]) + T.Cast(promoted_dtype, B[v_i])
                 )
 
-    sch = gsmDataGen.tir.Schedule(add)
+    sch = gsm_data_generator.tir.Schedule(add)
     block = sch.get_block("C")
     b = sch.get_loops(block)
     bx, tx = sch.split(b[0], factors=[None, 32])
@@ -60,8 +60,8 @@ def test_e2m1_vector_conversions(promoted_dtype):
     sch.bind(tx, "threadIdx.x")
 
     target = "cuda"
-    fadd = gsmDataGen.compile(sch.mod, target=target)
-    dev = gsmDataGen.device(target, 0)
+    fadd = gsm_data_generator.compile(sch.mod, target=target)
+    dev = gsm_data_generator.device(target, 0)
 
     numpytype = "float4_e2m1fn"
     if "x" in native_dtype:
@@ -76,25 +76,25 @@ def test_e2m1_vector_conversions(promoted_dtype):
 
     np_shape = (vector_length, lanes) if lanes > 1 else (vector_length,)
     a_np = np.random.uniform(low=0, high=5, size=np_shape).astype(numpytype)
-    a = gsmDataGen.nd.empty(shape=(vector_length,), dtype=native_dtype, device=dev)
+    a = gsm_data_generator.nd.empty(shape=(vector_length,), dtype=native_dtype, device=dev)
     a.copyfrom(a_np)
     b_np = np.random.uniform(low=0, high=5, size=np_shape).astype(numpytype)
-    b = gsmDataGen.nd.empty(shape=(vector_length,), dtype=native_dtype, device=dev)
+    b = gsm_data_generator.nd.empty(shape=(vector_length,), dtype=native_dtype, device=dev)
     b.copyfrom(b_np)
-    c = gsmDataGen.nd.empty(shape=(vector_length,), dtype=native_dtype, device=dev)
+    c = gsm_data_generator.nd.empty(shape=(vector_length,), dtype=native_dtype, device=dev)
     fadd(a, b, c)
 
-    gsmDataGen.testing.assert_allclose(
+    gsm_data_generator.testing.assert_allclose(
         c.numpy().astype(promoted_base_dtype), (a_np + b_np).astype(promoted_base_dtype)
     )
 
 
-@gsmDataGen.testing.requires_cuda_compute_version(10)
+@gsm_data_generator.testing.requires_cuda_compute_version(10)
 def test_e2m1_dequantize():
     n = 128
 
-    dev = gsmDataGen.device("cuda", 0)
-    target = gsmDataGen.target.Target.from_device(dev)
+    dev = gsm_data_generator.device("cuda", 0)
+    target = gsm_data_generator.target.Target.from_device(dev)
     num_elem_per_storage = 32 // 4
 
     def get_reinterpret_mod(func_type, vector_length):
@@ -150,7 +150,7 @@ def test_e2m1_dequantize():
                     ).astype("float16")
 
         func = shuffle_reinterpret if func_type == "shuffle" else scalar_reinterpret
-        sch = gsmDataGen.tir.Schedule(func)
+        sch = gsm_data_generator.tir.Schedule(func)
         block = sch.get_block("C")
         b = sch.get_loops(block)
         bx, tx, vec = sch.split(b[0], factors=[None, 32, vector_length])
@@ -165,8 +165,8 @@ def test_e2m1_dequantize():
             # Vectorize is necessary for shuffle.
             continue
         mod = get_reinterpret_mod(func_type, vector_length)
-        gsmDataGen.compile(mod, target=target)
+        gsm_data_generator.compile(mod, target=target)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

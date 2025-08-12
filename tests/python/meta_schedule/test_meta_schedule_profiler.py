@@ -17,7 +17,7 @@
 """ Test Meta Schedule Profiler """
 import time
 
-from gsmDataGen import meta_schedule as ms
+from gsm_data_generator import meta_schedule as ms
 
 
 def test_meta_schedule_profiler_context_manager():

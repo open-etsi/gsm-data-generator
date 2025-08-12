@@ -16,10 +16,10 @@
 # under the License.
 # pylint: disable=missing-docstring
 
-import gsmDataGen.testing
-from gsmDataGen import dlight as dl
-from gsmDataGen.script import tir as T
-from gsmDataGen.target import Target
+import gsm_data_generator.testing
+from gsm_data_generator import dlight as dl
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.target import Target
 
 
 def test_batch_decode_gemv():
@@ -142,10 +142,10 @@ def test_batch_decode_gemv():
                                 NT_matmul_intermediate[v0, T.int64(0), v1] = NT_matmul_intermediate_pad_local[v0, T.int64(0), v1]
 
     # fmt: on
-    mod = gsmDataGen.IRModule({"main": before})
+    mod = gsm_data_generator.IRModule({"main": before})
     with Target("metal"):
         mod = dl.ApplyDefaultSchedule(dl.gpu.LowBatchGEMV(4))(mod)
-    gsmDataGen.ir.assert_structural_equal(mod["main"], expected)
+    gsm_data_generator.ir.assert_structural_equal(mod["main"], expected)
 
 
 def test_batch_gemv():
@@ -245,10 +245,10 @@ def test_batch_gemv():
                                 T.writes(NT_matmul[v0, T.int64(0), v1])
                                 NT_matmul[v0, T.int64(0), v1] = NT_matmul_pad_local[v0, T.int64(0), v1]
     # fmt: on
-    mod = gsmDataGen.IRModule({"main": before})
+    mod = gsm_data_generator.IRModule({"main": before})
     with Target("metal"):
         mod = dl.ApplyDefaultSchedule(dl.gpu.LowBatchGEMV(4))(mod)
-    gsmDataGen.ir.assert_structural_equal(mod["main"], expected)
+    gsm_data_generator.ir.assert_structural_equal(mod["main"], expected)
 
 
 def test_reduction_symbolic_var():
@@ -269,10 +269,10 @@ def test_reduction_symbolic_var():
                     matmul[v_i0, v_i1, v_i2, v_i3] = T.float32(0)
                 matmul[v_i0, v_i1, v_i2, v_i3] = matmul[v_i0, v_i1, v_i2, v_i3] + A[v_i0, v_i1, v_i2, v_k] * B[v_i0, v_i1, v_k, v_i3]
     # fmt: on
-    mod = gsmDataGen.IRModule({"main": before})
+    mod = gsm_data_generator.IRModule({"main": before})
     with Target("metal"):
         mod = dl.ApplyDefaultSchedule(dl.gpu.LowBatchGEMV(4))(mod)
-    gsmDataGen.ir.assert_structural_equal(mod["main"], before)
+    gsm_data_generator.ir.assert_structural_equal(mod["main"], before)
 
 
 def test_small_spatial_axis():
@@ -375,10 +375,10 @@ def test_small_spatial_axis():
                                 C[v0, v1] = C_pad_local[v0, v1]
     # fmt: on
 
-    mod = gsmDataGen.IRModule({"main": func})
+    mod = gsm_data_generator.IRModule({"main": func})
     with Target("cuda"):
         mod = dl.ApplyDefaultSchedule(dl.gpu.LowBatchGEMV(4))(mod)
-    gsmDataGen.ir.assert_structural_equal(mod["main"], expected)
+    gsm_data_generator.ir.assert_structural_equal(mod["main"], expected)
 
 
 def test_outer_reduction():
@@ -521,11 +521,11 @@ def test_outer_reduction():
                             T.writes(C[v0, 0, v1])
                             C[v0, 0, v1] = C_pad_local[v0, 0, v1]
     # fmt: on
-    mod = gsmDataGen.IRModule({"main": before})
+    mod = gsm_data_generator.IRModule({"main": before})
     with Target("metal"):
         mod = dl.ApplyDefaultSchedule(dl.gpu.LowBatchGEMV(4))(mod)  # pylint: disable=not-callable
-    gsmDataGen.ir.assert_structural_equal(mod["main"], expected)
+    gsm_data_generator.ir.assert_structural_equal(mod["main"], expected)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

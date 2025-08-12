@@ -16,11 +16,11 @@
 # under the License.
 # pylint: disable=missing-module-docstring,missing-function-docstring,missing-class-docstring
 
-import gsmDataGen
-from gsmDataGen import meta_schedule as ms
-from gsmDataGen import tir
-from gsmDataGen.script import tir as T
-from gsmDataGen.target import Target
+import gsm_data_generator
+from gsm_data_generator import meta_schedule as ms
+from gsm_data_generator import tir
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.target import Target
 
 
 def _target() -> Target:
@@ -44,7 +44,7 @@ def _create_context(mod, target) -> ms.TuneContext:
 # pylint: disable=no-member,invalid-name,unused-variable,no-self-argument,line-too-long,chained-comparison,not-callable,too-many-nested-blocks
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Before_cooperative_fetch:
     @T.prim_func
     def main(var_A: T.handle, var_B: T.handle) -> None:
@@ -56,7 +56,7 @@ class Before_cooperative_fetch:
                 B[vi, vj] = A[vi, vj] + 1.0
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class After_cooperative_fetch:
     @T.prim_func
     def main(var_A: T.handle, var_B: T.handle) -> None:
@@ -70,7 +70,7 @@ class After_cooperative_fetch:
                     B[vi, vj] = A[vi, vj] + 1.0
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Before_norm_bmn:
     @T.prim_func
     def main(A: T.Buffer((1, 256, 256), "float32"), D: T.Buffer((1,), "float32")) -> None:
@@ -87,7 +87,7 @@ class Before_norm_bmn:
                 D[b] = T.sqrt(C[b], dtype="float32")
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class After_norm_bmn:
     @T.prim_func
     def main(A: T.Buffer((1, 256, 256), "float32"), D: T.Buffer((1,), "float32")) -> None:
@@ -108,7 +108,7 @@ class After_norm_bmn:
                     D[b] = T.sqrt(C[b], dtype="float32")
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Bert_fused_reshape_transpose_reshape:
     @T.prim_func
     def main(
@@ -127,7 +127,7 @@ class Bert_fused_reshape_transpose_reshape:
                 ]
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Bert_fused_reshape_transpose_reshape_large:
     @T.prim_func
     def main(
@@ -146,7 +146,7 @@ class Bert_fused_reshape_transpose_reshape_large:
                 ]
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Bert_fused_reshape_transpose_reshape_after_rub:
     @T.prim_func
     def main(
@@ -180,7 +180,7 @@ class Bert_fused_reshape_transpose_reshape_after_rub:
                     ]
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Bert_fused_reshape_transpose_reshape_after_rub_large:
     @T.prim_func
     def main(
@@ -326,7 +326,7 @@ def test_rewrite_cooperative_fetch():
     sch = tir.Schedule(mod, debug_mask="all")
     sch.enter_postproc()
     assert ctx.space_generator.postprocs[0].apply(sch)
-    gsmDataGen.ir.assert_structural_equal(sch.mod, After_cooperative_fetch)
+    gsm_data_generator.ir.assert_structural_equal(sch.mod, After_cooperative_fetch)
 
 
 def test_rewrite_norm_bmn():
@@ -336,7 +336,7 @@ def test_rewrite_norm_bmn():
     sch = tir.Schedule(mod, debug_mask="all")
     sch.enter_postproc()
     assert ctx.space_generator.postprocs[0].apply(sch)
-    gsmDataGen.ir.assert_structural_equal(sch.mod, After_norm_bmn)
+    gsm_data_generator.ir.assert_structural_equal(sch.mod, After_norm_bmn)
 
 
 def test_rewrite_cuda_loop_split_no_reduction():
@@ -346,7 +346,7 @@ def test_rewrite_cuda_loop_split_no_reduction():
     sch = tir.Schedule(mod, debug_mask="all")
     sch.enter_postproc()
     assert ctx.space_generator.postprocs[0].apply(sch)
-    gsmDataGen.ir.assert_structural_equal(sch.mod, Bert_fused_reshape_transpose_reshape_after_rub)
+    gsm_data_generator.ir.assert_structural_equal(sch.mod, Bert_fused_reshape_transpose_reshape_after_rub)
 
 
 def test_rewrite_cuda_loop_split_no_reduction_large():
@@ -356,7 +356,7 @@ def test_rewrite_cuda_loop_split_no_reduction_large():
     sch = tir.Schedule(mod, debug_mask="all")
     sch.enter_postproc()
     assert ctx.space_generator.postprocs[0].apply(sch)
-    gsmDataGen.ir.assert_structural_equal(sch.mod, Bert_fused_reshape_transpose_reshape_after_rub_large)
+    gsm_data_generator.ir.assert_structural_equal(sch.mod, Bert_fused_reshape_transpose_reshape_after_rub_large)
 
 
 def test_rewrite_cuda_loop_split_for_kind():
@@ -366,7 +366,7 @@ def test_rewrite_cuda_loop_split_for_kind():
     sch = tir.Schedule(mod, debug_mask="all")
     sch.enter_postproc()
     assert ctx.space_generator.postprocs[0].apply(sch)
-    gsmDataGen.ir.assert_structural_equal(sch.mod["main"], after_unrolled_loop)
+    gsm_data_generator.ir.assert_structural_equal(sch.mod["main"], after_unrolled_loop)
 
 
 if __name__ == "__main__":

@@ -17,10 +17,10 @@
 """Unittests for tvm.script.parser.core"""
 import pytest
 import inspect
-import gsmDataGen.testing
-from gsmDataGen.script.parser.core.diagnostics import Source
-from gsmDataGen.script.parser.core import doc_core as doc
-from gsmDataGen.script import tir as T
+import gsm_data_generator.testing
+from gsm_data_generator.script.parser.core.diagnostics import Source
+from gsm_data_generator.script.parser.core import doc_core as doc
+from gsm_data_generator.script import tir as T
 
 
 def matmul(a: T.handle, b: T.handle, c: T.handle) -> None:
@@ -88,7 +88,7 @@ def test_nesting_parsing():
 
     for i in range(1):
 
-        @gsmDataGen.script.ir_module
+        @gsm_data_generator.script.ir_module
         class Module:
             @T.prim_func
             def impl(
@@ -98,4 +98,4 @@ def test_nesting_parsing():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

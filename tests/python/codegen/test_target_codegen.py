@@ -17,11 +17,11 @@
 
 import pytest
 
-import gsmDataGen
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+from gsm_data_generator.script import tir as T
 
 
-@gsmDataGen.testing.parametrize_targets("c")
+@gsm_data_generator.testing.parametrize_targets("c")
 def test_buffer_store_predicate_not_supported(target):
     @T.prim_func
     def func(b: T.handle):
@@ -29,12 +29,12 @@ def test_buffer_store_predicate_not_supported(target):
         B.vstore([T.Ramp(0, 2, 4)], T.Broadcast(1.0, 4), predicate=T.Broadcast(T.bool(True), 4))
 
     err_msg = "Predicated buffer store is not supported."
-    with pytest.raises(gsmDataGen.TVMError, match=err_msg):
-        with gsmDataGen.target.Target(target):
-            gsmDataGen.compile(func)
+    with pytest.raises(gsm_data_generator.TVMError, match=err_msg):
+        with gsm_data_generator.target.Target(target):
+            gsm_data_generator.compile(func)
 
 
-@gsmDataGen.testing.parametrize_targets("cuda", "opencl", "metal", "rocm", "vulkan -from_device=0")
+@gsm_data_generator.testing.parametrize_targets("cuda", "opencl", "metal", "rocm", "vulkan -from_device=0")
 def test_buffer_store_predicate_not_supported_gpu(target):
     @T.prim_func
     def func(a: T.handle, b: T.handle):
@@ -47,12 +47,12 @@ def test_buffer_store_predicate_not_supported_gpu(target):
             )
 
     err_msg = "Predicated buffer store is not supported."
-    with pytest.raises(gsmDataGen.TVMError, match=err_msg):
-        with gsmDataGen.target.Target(target):
-            gsmDataGen.compile(func)
+    with pytest.raises(gsm_data_generator.TVMError, match=err_msg):
+        with gsm_data_generator.target.Target(target):
+            gsm_data_generator.compile(func)
 
 
-@gsmDataGen.testing.parametrize_targets("c")
+@gsm_data_generator.testing.parametrize_targets("c")
 def test_buffer_load_predicate_not_supported(target):
     @T.prim_func
     def func(a: T.handle, b: T.handle):
@@ -65,12 +65,12 @@ def test_buffer_load_predicate_not_supported(target):
             )
 
     err_msg = "Predicated buffer load is not supported."
-    with pytest.raises(gsmDataGen.TVMError, match=err_msg):
-        with gsmDataGen.target.Target(target):
-            gsmDataGen.compile(func)
+    with pytest.raises(gsm_data_generator.TVMError, match=err_msg):
+        with gsm_data_generator.target.Target(target):
+            gsm_data_generator.compile(func)
 
 
-@gsmDataGen.testing.parametrize_targets("cuda", "opencl", "metal", "rocm", "vulkan -from_device=0")
+@gsm_data_generator.testing.parametrize_targets("cuda", "opencl", "metal", "rocm", "vulkan -from_device=0")
 def test_buffer_load_predicate_not_supported_gpu(target):
     @T.prim_func
     def func(a: T.handle, b: T.handle):
@@ -83,10 +83,10 @@ def test_buffer_load_predicate_not_supported_gpu(target):
             )
 
     err_msg = "Predicated buffer load is not supported."
-    with pytest.raises(gsmDataGen.TVMError, match=err_msg):
-        with gsmDataGen.target.Target(target):
-            gsmDataGen.compile(func)
+    with pytest.raises(gsm_data_generator.TVMError, match=err_msg):
+        with gsm_data_generator.target.Target(target):
+            gsm_data_generator.compile(func)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

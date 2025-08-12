@@ -14,30 +14,30 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import te
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import te
 import numpy as np
-from gsmDataGen.script import tir as T
+from gsm_data_generator.script import tir as T
 
 
-@gsmDataGen.testing.requires_rocm
+@gsm_data_generator.testing.requires_rocm
 def test_rocm_inf_nan():
     def check_inf_nan(dev, n, value, dtype):
         A = te.placeholder((n,), name="A", dtype=dtype)
-        inf_value = gsmDataGen.tir.const(value, dtype=dtype)
+        inf_value = gsm_data_generator.tir.const(value, dtype=dtype)
         C = te.compute((n,), lambda i: inf_value, name="C")
-        sch = gsmDataGen.tir.Schedule(te.create_prim_func([A, C]))
+        sch = gsm_data_generator.tir.Schedule(te.create_prim_func([A, C]))
         xo, xi = sch.split(sch.get_loops("C")[0], factors=[None, 128])
         sch.bind(xo, "blockIdx.x")
         sch.bind(xi, "threadIdx.x")
-        fun = gsmDataGen.compile(sch.mod, "rocm")
-        a = gsmDataGen.nd.empty((n,), A.dtype, dev)
-        c = gsmDataGen.nd.empty((n,), A.dtype, dev)
+        fun = gsm_data_generator.compile(sch.mod, "rocm")
+        a = gsm_data_generator.nd.empty((n,), A.dtype, dev)
+        c = gsm_data_generator.nd.empty((n,), A.dtype, dev)
         # Only need to test compiling here
         fun(a, c)
 
-    dev = gsmDataGen.rocm(0)
+    dev = gsm_data_generator.rocm(0)
 
     check_inf_nan(dev, 1, -float("inf"), "float32")
     check_inf_nan(dev, 1, -float("inf"), "float64")
@@ -47,16 +47,16 @@ def test_rocm_inf_nan():
     check_inf_nan(dev, 1, float("nan"), "float64")
 
 
-@gsmDataGen.testing.requires_rocm
+@gsm_data_generator.testing.requires_rocm
 def test_rocm_copy():
     def check_rocm(dtype, n):
         A = te.placeholder((n,), name="A", dtype=dtype)
-        dev = gsmDataGen.rocm(0)
+        dev = gsm_data_generator.rocm(0)
         a_np = np.random.uniform(size=(n,)).astype(A.dtype)
-        a = gsmDataGen.nd.empty((n,), A.dtype, dev).copyfrom(a_np)
+        a = gsm_data_generator.nd.empty((n,), A.dtype, dev).copyfrom(a_np)
         b_np = a.numpy()
-        gsmDataGen.testing.assert_allclose(a_np, b_np)
-        gsmDataGen.testing.assert_allclose(a_np, a.numpy())
+        gsm_data_generator.testing.assert_allclose(a_np, b_np)
+        gsm_data_generator.testing.assert_allclose(a_np, a.numpy())
 
     for _ in range(100):
         dtype = np.random.choice(["float32", "float16", "int8", "int32"])
@@ -65,30 +65,30 @@ def test_rocm_copy():
         check_rocm(dtype, int(peturb * (2**logN)))
 
 
-@gsmDataGen.testing.requires_rocm
+@gsm_data_generator.testing.requires_rocm
 def test_rocm_vectorize_add():
     num_thread = 8
 
     def check_rocm(dtype, n, lanes):
         A = te.placeholder((n,), name="A", dtype="%sx%d" % (dtype, lanes))
-        B = te.compute((n,), lambda i: A[i] + gsmDataGen.tir.const(1, A.dtype), name="B")
+        B = te.compute((n,), lambda i: A[i] + gsm_data_generator.tir.const(1, A.dtype), name="B")
         sch = tir.Schedule(te.create_prim_func([A, B]))
         xo, xi = sch.split(sch.get_loops("B")[0], factors=[None, 4])
         sch.bind(xo, "blockIdx.x")
         sch.bind(xi, "threadIdx.x")
-        fun = gsmDataGen.compile(sch.mod, target="rocm")
+        fun = gsm_data_generator.compile(sch.mod, target="rocm")
 
-        dev = gsmDataGen.rocm(0)
-        a = gsmDataGen.nd.empty((n,), A.dtype, dev).copyfrom(np.random.uniform(size=(n, lanes)))
-        c = gsmDataGen.nd.empty((n,), B.dtype, dev)
+        dev = gsm_data_generator.rocm(0)
+        a = gsm_data_generator.nd.empty((n,), A.dtype, dev).copyfrom(np.random.uniform(size=(n, lanes)))
+        c = gsm_data_generator.nd.empty((n,), B.dtype, dev)
         fun(a, c)
-        gsmDataGen.testing.assert_allclose(c.numpy(), a.numpy() + 1)
+        gsm_data_generator.testing.assert_allclose(c.numpy(), a.numpy() + 1)
 
     check_rocm("float32", 64, 2)
     check_rocm("float16", 64, 2)
 
 
-@gsmDataGen.testing.requires_rocm
+@gsm_data_generator.testing.requires_rocm
 def test_rocm_warp_shuffle():
     @T.prim_func
     def func(
@@ -107,14 +107,14 @@ def test_rocm_warp_shuffle():
                     A_local[0] = T.tvm_warp_shuffle(mask[0], A_local[0], 0, 32, 32)
                     A[tx] = A_local[0]
 
-    mod = gsmDataGen.compile(func, target="rocm")
-    dev = gsmDataGen.rocm(0)
-    a = gsmDataGen.nd.array(np.random.uniform(size=(32,)).astype("float32"), dev)
+    mod = gsm_data_generator.compile(func, target="rocm")
+    dev = gsm_data_generator.rocm(0)
+    a = gsm_data_generator.nd.array(np.random.uniform(size=(32,)).astype("float32"), dev)
     mod(a)
-    gsmDataGen.testing.assert_allclose(a.numpy(), np.ones((32,)) * a.numpy()[0])
+    gsm_data_generator.testing.assert_allclose(a.numpy(), np.ones((32,)) * a.numpy()[0])
 
 
-@gsmDataGen.testing.requires_rocm
+@gsm_data_generator.testing.requires_rocm
 def test_rocm_vectorized_exp():
     @T.prim_func
     def func(
@@ -130,9 +130,9 @@ def test_rocm_vectorized_exp():
                     for i in T.vectorized(0, 4):
                         B[i] = T.exp2(A[i])
 
-    mod = gsmDataGen.compile(func, target="rocm")
-    dev = gsmDataGen.rocm(0)
-    a = gsmDataGen.nd.array(np.ones((4,)).astype("float32"), dev)
-    b = gsmDataGen.nd.array(np.zeros((4,)).astype("float32"), dev)
+    mod = gsm_data_generator.compile(func, target="rocm")
+    dev = gsm_data_generator.rocm(0)
+    a = gsm_data_generator.nd.array(np.ones((4,)).astype("float32"), dev)
+    b = gsm_data_generator.nd.array(np.zeros((4,)).astype("float32"), dev)
     mod(a, b)
-    gsmDataGen.testing.assert_allclose(b.numpy(), np.exp2(a.numpy()))
+    gsm_data_generator.testing.assert_allclose(b.numpy(), np.exp2(a.numpy()))

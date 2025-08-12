@@ -16,11 +16,11 @@
 # under the License.
 import pytest
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import tir
-from gsmDataGen.ir import Range
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import tir
+from gsm_data_generator.ir import Range
+from gsm_data_generator.script import tir as T
 
 
 @T.prim_func
@@ -212,11 +212,11 @@ def test_block_access_region_detector():
     buffer_var_map = {buf.data: buf for buf in alloc_buffers}
     ret = tir.analysis.get_block_access_region(block, buffer_var_map)
 
-    gsmDataGen.ir.assert_structural_equal(block.reads, ret[0])
-    gsmDataGen.ir.assert_structural_equal(block.writes, ret[1])
+    gsm_data_generator.ir.assert_structural_equal(block.reads, ret[0])
+    gsm_data_generator.ir.assert_structural_equal(block.writes, ret[1])
     D = alloc_buffers[-1]
-    gsmDataGen.ir.assert_structural_equal(
-        [gsmDataGen.tir.BufferRegion(D, [Range(0, 128), Range(0, 128)])], ret[2]
+    gsm_data_generator.ir.assert_structural_equal(
+        [gsm_data_generator.tir.BufferRegion(D, [Range(0, 128), Range(0, 128)])], ret[2]
     )
 
 
@@ -226,13 +226,13 @@ def test_opaque_block():
 
     block0 = opaque_block_func.body.block.body.body.block
     ret = tir.analysis.get_block_access_region(block0, buffer_var_map)
-    gsmDataGen.ir.assert_structural_equal(block0.reads, ret[0])
-    gsmDataGen.ir.assert_structural_equal(block0.writes, ret[1])
+    gsm_data_generator.ir.assert_structural_equal(block0.reads, ret[0])
+    gsm_data_generator.ir.assert_structural_equal(block0.writes, ret[1])
 
     block1 = block0.body.body.block
     ret = tir.analysis.get_block_access_region(block1, buffer_var_map)
-    gsmDataGen.ir.assert_structural_equal(block1.reads, ret[0])
-    gsmDataGen.ir.assert_structural_equal(block1.writes, ret[1])
+    gsm_data_generator.ir.assert_structural_equal(block1.reads, ret[0])
+    gsm_data_generator.ir.assert_structural_equal(block1.writes, ret[1])
 
 
 def test_opaque_access():
@@ -243,9 +243,9 @@ def test_opaque_access():
     ret0 = tir.analysis.get_block_read_write_region(block, buffer_var_map)
     ret1 = tir.analysis.get_block_access_region(block, buffer_var_map)
     with pytest.raises(ValueError):
-        gsmDataGen.ir.assert_structural_equal(ret0[0], ret1[0])
+        gsm_data_generator.ir.assert_structural_equal(ret0[0], ret1[0])
     with pytest.raises(ValueError):
-        gsmDataGen.ir.assert_structural_equal(ret0[1], ret1[1])
+        gsm_data_generator.ir.assert_structural_equal(ret0[1], ret1[1])
 
 
 def test_opaque_access_with_tvm_access_ptr():
@@ -255,12 +255,12 @@ def test_opaque_access_with_tvm_access_ptr():
 
     ret0 = tir.analysis.get_block_read_write_region(block, buffer_var_map)
     ret1 = tir.analysis.get_block_access_region(block, buffer_var_map)
-    gsmDataGen.ir.assert_structural_equal(block.reads, ret0[0])
-    gsmDataGen.ir.assert_structural_equal(block.writes, ret0[1])
+    gsm_data_generator.ir.assert_structural_equal(block.reads, ret0[0])
+    gsm_data_generator.ir.assert_structural_equal(block.writes, ret0[1])
     with pytest.raises(ValueError):
-        gsmDataGen.ir.assert_structural_equal(ret0[0], ret1[0])
+        gsm_data_generator.ir.assert_structural_equal(ret0[0], ret1[0])
     with pytest.raises(ValueError):
-        gsmDataGen.ir.assert_structural_equal(ret0[1], ret1[1])
+        gsm_data_generator.ir.assert_structural_equal(ret0[1], ret1[1])
 
 
 def test_match_buffer():
@@ -272,14 +272,14 @@ def test_match_buffer():
 
     # Check block
     ret = tir.analysis.get_block_access_region(block, buffer_var_map)
-    gsmDataGen.ir.assert_structural_equal(block.writes, ret[1])
+    gsm_data_generator.ir.assert_structural_equal(block.writes, ret[1])
     # B is opaque access
-    gsmDataGen.ir.assert_structural_equal(block.reads, ret[2])
+    gsm_data_generator.ir.assert_structural_equal(block.reads, ret[2])
 
     # Check inner block AAA without updating buffer_var_map
     ret = tir.analysis.get_block_access_region(block_inner, buffer_var_map)
     # Since AA is not in the buffer_var_map, region of AA will not be collected.
-    gsmDataGen.ir.assert_structural_equal([], ret[1])
+    gsm_data_generator.ir.assert_structural_equal([], ret[1])
 
     # Check inner block AAA
     for match_buffer in block.match_buffers:
@@ -287,8 +287,8 @@ def test_match_buffer():
         buffer_var_map[target_buffer.data] = target_buffer
 
     ret = tir.analysis.get_block_access_region(block_inner, buffer_var_map)
-    gsmDataGen.ir.assert_structural_equal(block_inner.reads, ret[0])
-    gsmDataGen.ir.assert_structural_equal(block_inner.writes, ret[1])
+    gsm_data_generator.ir.assert_structural_equal(block_inner.reads, ret[0])
+    gsm_data_generator.ir.assert_structural_equal(block_inner.writes, ret[1])
 
 
 def test_access_in_if_then_else_func():
@@ -297,8 +297,8 @@ def test_access_in_if_then_else_func():
     buffer_var_map = {buf.data: buf for buf in alloc_buffers}
     ret0 = tir.analysis.get_block_read_write_region(block, buffer_var_map)
     ret1 = tir.analysis.get_block_access_region(block, buffer_var_map)
-    gsmDataGen.ir.assert_structural_equal(ret0[0], ret1[0])
-    gsmDataGen.ir.assert_structural_equal(ret0[1], ret1[1])
+    gsm_data_generator.ir.assert_structural_equal(ret0[0], ret1[0])
+    gsm_data_generator.ir.assert_structural_equal(ret0[1], ret1[1])
 
 
 def test_access_in_branch_func():
@@ -307,18 +307,18 @@ def test_access_in_branch_func():
     buffer_var_map = {buf.data: buf for buf in alloc_buffers}
     ret0 = tir.analysis.get_block_read_write_region(block, buffer_var_map)
     ret1 = tir.analysis.get_block_access_region(block, buffer_var_map)
-    gsmDataGen.ir.assert_structural_equal(ret0[0], ret1[0])
-    gsmDataGen.ir.assert_structural_equal(ret0[1], ret1[1])
+    gsm_data_generator.ir.assert_structural_equal(ret0[0], ret1[0])
+    gsm_data_generator.ir.assert_structural_equal(ret0[1], ret1[1])
 
 
 def test_access_of_padding_pattern():
-    s = gsmDataGen.tir.schedule.Schedule(access_of_padding_pattern)
+    s = gsm_data_generator.tir.schedule.Schedule(access_of_padding_pattern)
     alloc_buffers = s.get_sref(s.get_block("root")).stmt.alloc_buffers
     buffer_var_map = {buf.data: buf for buf in alloc_buffers}
 
     def do_compare_buffer_region(region, expect):
         assert region.buffer == expect.buffer
-        analyzer = gsmDataGen.arith.Analyzer()
+        analyzer = gsm_data_generator.arith.Analyzer()
         for observed_range, expected_range in zip(region.region, expect.region):
             analyzer.can_prove_equal(observed_range.min, expected_range.min)
             analyzer.can_prove_equal(observed_range.extent, expected_range.extent)
@@ -342,8 +342,8 @@ def test_access_of_reduction():
     alloc_buffers = gemm.body.block.alloc_buffers
     buffer_var_map = {buf.data: buf for buf in alloc_buffers}
     ret = tir.analysis.get_block_access_region(block, buffer_var_map)
-    gsmDataGen.ir.assert_structural_equal(block.reads, ret[0])
-    gsmDataGen.ir.assert_structural_equal(block.writes, ret[1])
+    gsm_data_generator.ir.assert_structural_equal(block.reads, ret[0])
+    gsm_data_generator.ir.assert_structural_equal(block.writes, ret[1])
 
 
 def test_access_of_decompose_reduction():
@@ -353,8 +353,8 @@ def test_access_of_decompose_reduction():
     buffer_var_map = {buf.data: buf for buf in alloc_buffers}
     for block in [init, update]:
         ret = tir.analysis.get_block_access_region(block, buffer_var_map)
-        gsmDataGen.ir.assert_structural_equal(block.reads, ret[0])
-        gsmDataGen.ir.assert_structural_equal(block.writes, ret[1])
+        gsm_data_generator.ir.assert_structural_equal(block.reads, ret[0])
+        gsm_data_generator.ir.assert_structural_equal(block.writes, ret[1])
 
 
 def test_buffer_access_with_let_binding():
@@ -381,8 +381,8 @@ def test_buffer_access_with_let_binding():
     block = func.body.block.body.body.body.block
     buffer_var_map = {buf.data: buf for buf in func.buffer_map.values()}
     ret = tir.analysis.get_block_access_region(block, buffer_var_map)
-    gsmDataGen.ir.assert_structural_equal(block.reads, ret[0])
-    gsmDataGen.ir.assert_structural_equal(block.writes, ret[1])
+    gsm_data_generator.ir.assert_structural_equal(block.reads, ret[0])
+    gsm_data_generator.ir.assert_structural_equal(block.writes, ret[1])
 
 
 def test_buffer_access_with_nested_let_binding():
@@ -407,9 +407,9 @@ def test_buffer_access_with_nested_let_binding():
     block = func.body.block.body.body.body.block
     buffer_var_map = {buf.data: buf for buf in func.buffer_map.values()}
     ret = tir.analysis.get_block_access_region(block, buffer_var_map)
-    gsmDataGen.ir.assert_structural_equal(block.reads, ret[0])
-    gsmDataGen.ir.assert_structural_equal(block.writes, ret[1])
+    gsm_data_generator.ir.assert_structural_equal(block.reads, ret[0])
+    gsm_data_generator.ir.assert_structural_equal(block.writes, ret[1])
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

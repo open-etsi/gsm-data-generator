@@ -15,18 +15,18 @@
 # specific language governing permissions and limitations
 # under the License.
 
-import gsmDataGen
-from gsmDataGen.relax.transform.transform import CanonicalizeBindings
-import gsmDataGen.script
-import gsmDataGen.testing
+import gsm_data_generator
+from gsm_data_generator.relax.transform.transform import CanonicalizeBindings
+import gsm_data_generator.script
+import gsm_data_generator.testing
 import pytest
-from gsmDataGen import relax
-from gsmDataGen.ir.base import assert_structural_equal
-from gsmDataGen.script import ir as I, relax as R, tir as T
+from gsm_data_generator import relax
+from gsm_data_generator.ir.base import assert_structural_equal
+from gsm_data_generator.script import ir as I, relax as R, tir as T
 
 
 def verify(input, expected):
-    gsmDataGen.ir.assert_structural_equal(CanonicalizeBindings()(input), expected)
+    gsm_data_generator.ir.assert_structural_equal(CanonicalizeBindings()(input), expected)
 
 
 def test_simple_assignments():
@@ -1283,7 +1283,7 @@ def test_trivial_binding_of_replaced_non_dataflow_var():
             return C
 
     After = CanonicalizeBindings()(Before)
-    gsmDataGen.ir.assert_structural_equal(After, Expected)
+    gsm_data_generator.ir.assert_structural_equal(After, Expected)
 
     def _get_binding_names(mod):
         return [binding.var.name_hint for binding in mod["main"].body.blocks[0].bindings]
@@ -1322,7 +1322,7 @@ def test_trace_tuple_through_round_trip():
             return param_tuple
 
     After = CanonicalizeBindings()(Before)
-    gsmDataGen.ir.assert_structural_equal(After, Expected)
+    gsm_data_generator.ir.assert_structural_equal(After, Expected)
 
 
 def test_trace_partial_tuple_through_round_trip():
@@ -1342,8 +1342,8 @@ def test_trace_partial_tuple_through_round_trip():
     Expected = Before
 
     After = CanonicalizeBindings()(Before)
-    gsmDataGen.ir.assert_structural_equal(After, Expected)
+    gsm_data_generator.ir.assert_structural_equal(After, Expected)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

@@ -17,13 +17,13 @@
 # pylint: disable=missing-docstring
 import pytest
 
-import gsmDataGen.testing
-from gsmDataGen import dlight as dl
-from gsmDataGen.script import tir as T
-from gsmDataGen.target import Target
+import gsm_data_generator.testing
+from gsm_data_generator import dlight as dl
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.target import Target
 
 
-class BaseBeforeAfter(gsmDataGen.testing.CompareBeforeAfter):
+class BaseBeforeAfter(gsm_data_generator.testing.CompareBeforeAfter):
     @pytest.fixture
     def transform(self):
         def transform(mod):
@@ -115,4 +115,4 @@ class TestConv3d(BaseBeforeAfter):
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

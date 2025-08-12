@@ -15,13 +15,13 @@
 # specific language governing permissions and limitations
 # under the License.
 
-import gsmDataGen
-import gsmDataGen.relax
-import gsmDataGen.testing
+import gsm_data_generator
+import gsm_data_generator.relax
+import gsm_data_generator.testing
 
-from gsmDataGen.script import ir as I, relax as R
+from gsm_data_generator.script import ir as I, relax as R
 
-from gsmDataGen.relax.transform import KillAfterLastUse
+from gsm_data_generator.relax.transform import KillAfterLastUse
 
 
 def test_basic():
@@ -48,7 +48,7 @@ def test_basic():
             return z
 
     After = KillAfterLastUse()(Before)
-    gsmDataGen.ir.assert_structural_equal(Expected, After)
+    gsm_data_generator.ir.assert_structural_equal(Expected, After)
 
 
 def test_track_usage_across_trivial_rebindings():
@@ -73,7 +73,7 @@ def test_track_usage_across_trivial_rebindings():
             return z
 
     After = KillAfterLastUse()(Before)
-    gsmDataGen.ir.assert_structural_equal(Expected, After)
+    gsm_data_generator.ir.assert_structural_equal(Expected, After)
 
 
 def test_track_usage_across_trivial_rebindings_in_match_cast():
@@ -100,8 +100,8 @@ def test_track_usage_across_trivial_rebindings_in_match_cast():
             return z
 
     After = KillAfterLastUse()(Before)
-    gsmDataGen.ir.assert_structural_equal(Expected, After)
+    gsm_data_generator.ir.assert_structural_equal(Expected, After)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

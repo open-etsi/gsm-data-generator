@@ -15,11 +15,11 @@
 # specific language governing permissions and limitations
 # under the License.
 # pylint: disable=missing-function-docstring,missing-module-docstring
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import tir
-from gsmDataGen.script import tir as T
-from gsmDataGen.tir.schedule.testing import verify_trace_roundtrip
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import tir
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.tir.schedule.testing import verify_trace_roundtrip
 import pytest
 
 # fmt: off
@@ -54,7 +54,7 @@ def test_blockize_outer():
     s = tir.Schedule(func, debug_mask="all")
     x, _ = s.get_loops(s.get_block("B"))
     s.blockize(x)
-    gsmDataGen.ir.assert_structural_equal(
+    gsm_data_generator.ir.assert_structural_equal(
         s.mod["main"], after_blockize_outer.with_attr("global_symbol", "single_elementwise")
     )
     verify_trace_roundtrip(sch=s, mod=func)
@@ -79,7 +79,7 @@ def test_blockize_inner():
     s = tir.Schedule(func, debug_mask="all")
     _, y = s.get_loops(s.get_block("B"))
     s.blockize(y)
-    gsmDataGen.ir.assert_structural_equal(
+    gsm_data_generator.ir.assert_structural_equal(
         s.mod["main"], after_blockize_inner.with_attr("global_symbol", "single_elementwise")
     )
     verify_trace_roundtrip(sch=s, mod=func)
@@ -143,7 +143,7 @@ def test_two_elementwise_blockize_reverse_compute_at():
     s = tir.Schedule(func, debug_mask="all")
     _, _, x, _ = s.get_loops(s.get_block("C"))
     s.blockize(x)
-    gsmDataGen.ir.assert_structural_equal(
+    gsm_data_generator.ir.assert_structural_equal(
         s.mod["main"], after_blockize_rca.with_attr("global_symbol", "before_blockize_rca")
     )
     verify_trace_roundtrip(sch=s, mod=func)
@@ -215,7 +215,7 @@ def test_two_elementwise_blockize_compute_at():
     s = tir.Schedule(func, debug_mask="all")
     _, _, x, _ = s.get_loops(s.get_block("B"))
     s.blockize(x)
-    gsmDataGen.ir.assert_structural_equal(
+    gsm_data_generator.ir.assert_structural_equal(
         s.mod["main"],
         after_blockize_compute_at.with_attr("global_symbol", "before_blockize_compute_at"),
     )
@@ -253,7 +253,7 @@ def test_blockize_init_loops():
     s = tir.Schedule(rowsum, debug_mask="all")
     k, _ = s.get_loops(s.get_block("B"))
     s.blockize(k)
-    gsmDataGen.ir.assert_structural_equal(
+    gsm_data_generator.ir.assert_structural_equal(
         s.mod["main"], after_rowsum_blockize.with_attr("global_symbol", "rowsum")
     )
     verify_trace_roundtrip(sch=s, mod=rowsum)
@@ -312,7 +312,7 @@ def test_blockize_outer_int64_shape(preserve_unit_iters):
         if preserve_unit_iters
         else after_single_elementwise_int64_blockize
     )
-    gsmDataGen.ir.assert_structural_equal(
+    gsm_data_generator.ir.assert_structural_equal(
         s.mod["main"], expected.with_attr("global_symbol", "single_elementwise_int64")
     )
     verify_trace_roundtrip(sch=s, mod=single_elementwise_int64)
@@ -363,11 +363,11 @@ def test_blockize_blocks():
     blocks = [s.get_block("B"), s.get_block("C")]
     s.blockize(blocks, preserve_unit_iters=False)
     expected = after_blocks_blockize
-    gsmDataGen.ir.assert_structural_equal(
+    gsm_data_generator.ir.assert_structural_equal(
         s.mod["main"], expected.with_attr("global_symbol", "blocks_func")
     )
     verify_trace_roundtrip(sch=s, mod=blocks_func)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

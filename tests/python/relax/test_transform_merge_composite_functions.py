@@ -16,14 +16,14 @@
 # under the License.
 import pytest
 
-import gsmDataGen
-from gsmDataGen import relax
-from gsmDataGen.script import relax as R
-from gsmDataGen.script import ir as I
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+from gsm_data_generator import relax
+from gsm_data_generator.script import relax as R
+from gsm_data_generator.script import ir as I
+from gsm_data_generator.script import tir as T
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Conv2dReLUx2:
     @R.function
     def main(
@@ -75,7 +75,7 @@ class Conv2dReLUx2:
         return gv2
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Conv2dReLUx2_merged:
     @R.function
     def main(
@@ -139,7 +139,7 @@ class Conv2dReLUx2_merged:
         return gv3
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Diamond:
     @R.function
     def main(
@@ -204,7 +204,7 @@ class Diamond:
         return gv4
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Diamond_merged:
     @R.function
     def fused_relax_nn_conv2d_relax_nn_relu_relax_nn_gelu_relax_add_compiler_A(
@@ -301,7 +301,7 @@ class Diamond_merged:
         return gv5
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Diamond_cyclic_dep:
     @R.function
     def main(
@@ -366,7 +366,7 @@ class Diamond_cyclic_dep:
         return gv4
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Diamond_cyclic_dep_merged:
     @R.function
     def main(
@@ -471,7 +471,7 @@ class Diamond_cyclic_dep_merged:
         return gv6
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class MultipleProducers:
     @R.function
     def main(
@@ -518,7 +518,7 @@ class MultipleProducers:
         return gv
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class MultipleProducers_merged:
     @R.function
     def fused_relax_nn_relu_relax_nn_gelu_relax_nn_relu_relax_nn_gelu_relax_add_compiler_A(
@@ -584,7 +584,7 @@ class MultipleProducers_merged:
         return gv4
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class MultipleProducersCyclic:
     @R.function
     def main(x1: R.Tensor((10,), dtype="float32")) -> R.Tensor((10,), dtype="float32"):
@@ -628,7 +628,7 @@ class MultipleProducersCyclic:
         return gv
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class MultipleProducersCyclic_merged:
     @R.function
     def main(x1: R.Tensor((10,), dtype="float32")) -> R.Tensor((10,), dtype="float32"):
@@ -700,7 +700,7 @@ class MultipleProducersCyclic_merged:
         return gv5
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class MergeCompilerRegionsExample:
     @R.function
     def main(
@@ -751,7 +751,7 @@ class MergeCompilerRegionsExample:
         return gv3
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class MergeCompilerRegionsExampleRef:
     @R.function
     def fused_relax_add_relax_add_relax_nn_relu_compiler_A(
@@ -854,7 +854,7 @@ class MergeCompilerRegionsExampleRef:
         return gv6
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class ModuleWithNonComposite:
     @R.function
     def main(
@@ -884,7 +884,7 @@ class ModuleWithNonComposite:
         return gv
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class ModuleWithNonComposite_ref:
     @R.function
     def main(
@@ -928,7 +928,7 @@ class ModuleWithNonComposite_ref:
 
 def check(mod, expected):
     partitioned = relax.transform.MergeCompositeFunctions()(mod)
-    gsmDataGen.ir.assert_structural_equal(partitioned, expected)
+    gsm_data_generator.ir.assert_structural_equal(partitioned, expected)
 
 
 def test_conv2d_relu_x2():
@@ -1218,7 +1218,7 @@ def test_handle_existence_of_call_tir():
             return Output
 
     After = relax.transform.MergeCompositeFunctions()(Before)
-    gsmDataGen.ir.assert_structural_equal(Expected, After)
+    gsm_data_generator.ir.assert_structural_equal(Expected, After)
 
 
 if __name__ == "__main__":

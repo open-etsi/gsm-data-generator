@@ -18,16 +18,16 @@
 import sys
 import pytest
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import tir
-from gsmDataGen.script import tir as T, ir as I, relax as R
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import tir
+from gsm_data_generator.script import tir as T, ir as I, relax as R
 
 import numpy as np
 
 
 def opt_gemm_normalize():
-    @gsmDataGen.script.ir_module(check_well_formed=False)
+    @gsm_data_generator.script.ir_module(check_well_formed=False)
     class Module:
         # packedB is treated as undefined
         @T.prim_func
@@ -85,7 +85,7 @@ def opt_gemm_normalize():
 
 
 def opt_gemm_lower():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Module:
         @T.prim_func
         def mmult(A: T.handle, B: T.handle, C: T.handle) -> None:
@@ -181,7 +181,7 @@ def launch_env_thread():
 
 
 def opt_gemm_mod_host():
-    @gsmDataGen.script.ir_module(check_well_formed=False)
+    @gsm_data_generator.script.ir_module(check_well_formed=False)
     class Module:
         # packedB is treated as undefined
         @T.prim_func
@@ -2576,18 +2576,18 @@ def predicate():
 
 
 def test_module_define():
-    func1 = gsmDataGen.ir.IRModule({"matmul": matmul()})["matmul"]
-    func2 = gsmDataGen.ir.IRModule({"element_wise": element_wise()})["element_wise"]
-    func3 = gsmDataGen.ir.IRModule({"predicate": predicate()})["predicate"]
-    mod1 = gsmDataGen.ir.IRModule({"func1": func1, "func2": func2, "func3": func3})
-    mod2 = gsmDataGen.ir.IRModule({"func1": matmul(), "func2": element_wise(), "func3": predicate()})
-    gsmDataGen.ir.assert_structural_equal(mod1, mod2)
+    func1 = gsm_data_generator.ir.IRModule({"matmul": matmul()})["matmul"]
+    func2 = gsm_data_generator.ir.IRModule({"element_wise": element_wise()})["element_wise"]
+    func3 = gsm_data_generator.ir.IRModule({"predicate": predicate()})["predicate"]
+    mod1 = gsm_data_generator.ir.IRModule({"func1": func1, "func2": func2, "func3": func3})
+    mod2 = gsm_data_generator.ir.IRModule({"func1": matmul(), "func2": element_wise(), "func3": predicate()})
+    gsm_data_generator.ir.assert_structural_equal(mod1, mod2)
 
 
 def test_matmul_original():
     func = matmul_original()
-    rt_func = gsmDataGen.script.from_source(func.script())
-    gsmDataGen.ir.assert_structural_equal(func, rt_func)
+    rt_func = gsm_data_generator.script.from_source(func.script())
+    gsm_data_generator.ir.assert_structural_equal(func, rt_func)
 
     assert isinstance(rt_func.body.block, tir.stmt.Block)
     assert isinstance(rt_func.body.block.body, tir.stmt.For)
@@ -2600,8 +2600,8 @@ def test_matmul_original():
 
 def test_element_wise():
     func = element_wise()
-    rt_func = gsmDataGen.script.from_source(func.script())
-    gsmDataGen.ir.assert_structural_equal(func, rt_func)
+    rt_func = gsm_data_generator.script.from_source(func.script())
+    gsm_data_generator.ir.assert_structural_equal(func, rt_func)
 
     assert isinstance(rt_func.body.block, tir.stmt.Block)
     assert isinstance(rt_func.body.block.body, tir.stmt.SeqStmt)
@@ -2616,8 +2616,8 @@ def test_element_wise():
 
 def test_predicate():
     func = predicate()
-    rt_func = gsmDataGen.script.from_source(func.script())
-    gsmDataGen.ir.assert_structural_equal(func, rt_func)
+    rt_func = gsm_data_generator.script.from_source(func.script())
+    gsm_data_generator.ir.assert_structural_equal(func, rt_func)
 
     assert isinstance(rt_func.body.block, tir.stmt.Block)
     assert isinstance(rt_func.body.block.body, tir.stmt.For)
@@ -2643,8 +2643,8 @@ def for_thread_binding():
 
 def test_for_thread_binding():
     func = for_thread_binding()
-    rt_func = gsmDataGen.script.from_source(func.script())
-    gsmDataGen.ir.assert_structural_equal(func, rt_func)
+    rt_func = gsm_data_generator.script.from_source(func.script())
+    gsm_data_generator.ir.assert_structural_equal(func, rt_func)
 
     assert isinstance(rt_func.body, tir.stmt.For)
     assert rt_func.body.kind == 4
@@ -2677,8 +2677,8 @@ def match_buffer_region():
 
 def test_match_buffer_region():
     func = match_buffer_region()
-    rt_func = gsmDataGen.script.from_source(func.script())
-    gsmDataGen.ir.assert_structural_equal(func, rt_func)
+    rt_func = gsm_data_generator.script.from_source(func.script())
+    gsm_data_generator.ir.assert_structural_equal(func, rt_func)
 
     assert isinstance(rt_func.body, tir.stmt.BlockRealize)
     root = rt_func.body.block
@@ -2689,14 +2689,14 @@ def test_match_buffer_region():
     outer_block = root.body.body.body.block
     assert len(outer_block.match_buffers) == 1
     buffer_C = outer_block.match_buffers[0].buffer
-    gsmDataGen.ir.assert_structural_equal(buffer_C.shape, [T.int32(16), T.int32(1), T.int32(4)])
+    gsm_data_generator.ir.assert_structural_equal(buffer_C.shape, [T.int32(16), T.int32(1), T.int32(4)])
 
     assert isinstance(outer_block.body, tir.stmt.For)
     assert isinstance(outer_block.body.body, tir.stmt.BlockRealize)
     inner_block = outer_block.body.body.block
     assert len(inner_block.match_buffers) == 1
     buffer_D = inner_block.match_buffers[0].buffer
-    gsmDataGen.ir.assert_structural_equal(buffer_D.shape, [T.int32(4), T.int32(1), T.int32(4)])
+    gsm_data_generator.ir.assert_structural_equal(buffer_D.shape, [T.int32(4), T.int32(1), T.int32(4)])
 
 
 def block_elements():
@@ -2722,8 +2722,8 @@ def block_elements():
 
 def test_block_elements():
     func = block_elements()
-    rt_func = gsmDataGen.script.from_source(func.script())
-    gsmDataGen.ir.assert_structural_equal(func, rt_func)
+    rt_func = gsm_data_generator.script.from_source(func.script())
+    gsm_data_generator.ir.assert_structural_equal(func, rt_func)
 
     assert isinstance(rt_func.body.block, tir.stmt.Block)
     assert isinstance(rt_func.body.block.body, tir.stmt.BlockRealize)
@@ -2758,8 +2758,8 @@ def opaque_block():
 
 def test_opaque_block():
     func = opaque_block()
-    rt_func = gsmDataGen.script.from_source(func.script())
-    gsmDataGen.ir.assert_structural_equal(func, rt_func)
+    rt_func = gsm_data_generator.script.from_source(func.script())
+    gsm_data_generator.ir.assert_structural_equal(func, rt_func)
 
     root_block = rt_func.body.block
     assert isinstance(root_block, tir.stmt.Block)
@@ -2774,7 +2774,7 @@ def test_opaque_block():
 
 
 def module_const():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Module4:
         # There is an ongoing (python)dict->(c++)Map->(python)dict issue which potentially
         # changes order of the items in dict after roundtrip due to map not support order
@@ -2942,8 +2942,8 @@ def var_with_same_name():
 def test_same_name_var():
     func = var_with_same_name()
     out_str = func.script()
-    rt_func = gsmDataGen.script.from_source(out_str)
-    gsmDataGen.ir.assert_structural_equal(func, rt_func)
+    rt_func = gsm_data_generator.script.from_source(out_str)
+    gsm_data_generator.ir.assert_structural_equal(func, rt_func)
     assert out_str.count("for i, j in T.grid(16, 16)") == 2
     assert out_str.find("i_") == -1
     assert out_str.find("i_") == -1
@@ -3062,12 +3062,12 @@ def func_div_mod():
 
 def test_div_mod():
     func = func_div_mod()
-    rt_func = gsmDataGen.script.from_source(func.script(), check_well_formed=False)
-    gsmDataGen.ir.assert_structural_equal(func, rt_func, True)
+    rt_func = gsm_data_generator.script.from_source(func.script(), check_well_formed=False)
+    gsm_data_generator.ir.assert_structural_equal(func, rt_func, True)
 
-    assert isinstance(func.body[0].value, gsmDataGen.tir.FloorDiv)
-    assert isinstance(func.body[1].value, gsmDataGen.tir.FloorMod)
-    assert isinstance(func.body[2].value, gsmDataGen.tir.Mod)
+    assert isinstance(func.body[0].value, gsm_data_generator.tir.FloorDiv)
+    assert isinstance(func.body[1].value, gsm_data_generator.tir.FloorMod)
+    assert isinstance(func.body[2].value, gsm_data_generator.tir.Mod)
 
 
 def loop_extent_dependent():
@@ -3392,7 +3392,7 @@ def test_void_ptr_vs_handle():
     def handle(out_ret_value: T.handle):
         T.evaluate(out_ret_value)
 
-    assert not gsmDataGen.ir.structural_equal(void_ptr, handle)
+    assert not gsm_data_generator.ir.structural_equal(void_ptr, handle)
 
 
 def void_ptr():
@@ -3603,8 +3603,8 @@ def multi_env_threads():
         for i in T.thread_binding(128, thread="threadIdx.x"):
             C[i] = B[i] + 2.0
 
-    mod = gsmDataGen.tir.transform.LowerOpaqueBlock()(
-        gsmDataGen.IRModule.from_expr(func.with_attr("global_symbol", "main"))
+    mod = gsm_data_generator.tir.transform.LowerOpaqueBlock()(
+        gsm_data_generator.IRModule.from_expr(func.with_attr("global_symbol", "main"))
     )
     return mod["main"]
 
@@ -3784,8 +3784,8 @@ def make_packed_api_result():
         bx = T.launch_thread("blockIdx.x", 64)
         T.evaluate(A[bx])
 
-    mod = gsmDataGen.IRModule.from_expr(func)
-    return gsmDataGen.tir.transform.MakePackedAPI()(mod)
+    mod = gsm_data_generator.IRModule.from_expr(func)
+    return gsm_data_generator.tir.transform.MakePackedAPI()(mod)
 
 
 def tvm_struct_set_generated_in_cpp():
@@ -3818,7 +3818,7 @@ def tvm_struct_set_generated_in_cpp():
                 )
             )
 
-    return gsmDataGen.tir.transform.LowerTVMBuiltin()(Module)
+    return gsm_data_generator.tir.transform.LowerTVMBuiltin()(Module)
 
 
 def ir_module_with_attrs():
@@ -3845,12 +3845,12 @@ def nested_seqstmt():
     of `tir.SeqStmt` below results in a single flat `tir.SeqStmt`
     containing the three `tir.Evaluate` calls.
     """
-    func = gsmDataGen.tir.PrimFunc(
+    func = gsm_data_generator.tir.PrimFunc(
         params=[],
-        body=gsmDataGen.tir.SeqStmt(
+        body=gsm_data_generator.tir.SeqStmt(
             [
-                gsmDataGen.tir.SeqStmt([gsmDataGen.tir.Evaluate(0), gsmDataGen.tir.Evaluate(1)]),
-                gsmDataGen.tir.Evaluate(2),
+                gsm_data_generator.tir.SeqStmt([gsm_data_generator.tir.Evaluate(0), gsm_data_generator.tir.Evaluate(1)]),
+                gsm_data_generator.tir.Evaluate(2),
             ]
         ),
     )
@@ -4103,11 +4103,11 @@ def relax_match_cast_struct_info_proxy():
     # This list is a subset of `StructInfoProxy.__subclasses__()`,
     # excluding `PrimProxy` and `DTensorProxy`.
     subclasses = [
-        gsmDataGen.script.parser.relax.entry.ObjectProxy,
-        gsmDataGen.script.parser.relax.entry.TensorProxy,
-        gsmDataGen.script.parser.relax.entry.CallableProxy,
-        gsmDataGen.script.parser.relax.entry.TupleProxy,
-        gsmDataGen.script.parser.relax.entry.ShapeProxy,
+        gsm_data_generator.script.parser.relax.entry.ObjectProxy,
+        gsm_data_generator.script.parser.relax.entry.TensorProxy,
+        gsm_data_generator.script.parser.relax.entry.CallableProxy,
+        gsm_data_generator.script.parser.relax.entry.TupleProxy,
+        gsm_data_generator.script.parser.relax.entry.ShapeProxy,
     ]
 
     for subclass in subclasses:
@@ -4116,7 +4116,7 @@ def relax_match_cast_struct_info_proxy():
 
 def relax_symbolic_size_var():
     """Relax symbolic variables may be SizeVar"""
-    N = gsmDataGen.tir.SizeVar("N", "int64")
+    N = gsm_data_generator.tir.SizeVar("N", "int64")
 
     @R.function
     def func(A: R.Tensor([N], "float16")):
@@ -4140,7 +4140,7 @@ def relax_float_symbolic_var():
     return func
 
 
-ir_generator = gsmDataGen.testing.parameter(
+ir_generator = gsm_data_generator.testing.parameter(
     launch_env_thread,
     opt_gemm_normalize,
     opt_gemm_lower,
@@ -4231,11 +4231,11 @@ ir_generator = gsmDataGen.testing.parameter(
     relax_float_symbolic_var,
 )
 
-relax_ir_generator = gsmDataGen.testing.parameter(
+relax_ir_generator = gsm_data_generator.testing.parameter(
     relax_extern_func,
 )
 
-show_all_relax_struct_info = gsmDataGen.testing.parameter(
+show_all_relax_struct_info = gsm_data_generator.testing.parameter(
     by_dict={
         "show_all_struct_info": True,
         "hide_inferable_struct_info": False,
@@ -4245,21 +4245,21 @@ show_all_relax_struct_info = gsmDataGen.testing.parameter(
 
 def test_roundtrip(ir_generator):
     original = ir_generator()
-    after_roundtrip = gsmDataGen.script.from_source(
+    after_roundtrip = gsm_data_generator.script.from_source(
         original.script(show_meta=True), check_well_formed=False
     )
-    gsmDataGen.ir.assert_structural_equal(original, after_roundtrip, True)
+    gsm_data_generator.ir.assert_structural_equal(original, after_roundtrip, True)
 
 
 def test_relax_roundtrip(relax_ir_generator, show_all_relax_struct_info):
     original = relax_ir_generator()
-    after_roundtrip = gsmDataGen.script.from_source(
+    after_roundtrip = gsm_data_generator.script.from_source(
         original.script(
             show_meta=True,
             show_all_struct_info=show_all_relax_struct_info,
         )
     )
-    gsmDataGen.ir.assert_structural_equal(original, after_roundtrip, True)
+    gsm_data_generator.ir.assert_structural_equal(original, after_roundtrip, True)
 
 
 def test_return_none_no_trailing_type():
@@ -4278,4 +4278,4 @@ def test_address_of_buffer():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

@@ -21,18 +21,18 @@ import tempfile
 
 import numpy as np
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import dlight as dl
-from gsmDataGen import relax as rx
-from gsmDataGen.ffi import register_func
-from gsmDataGen.contrib import tvmjs
-from gsmDataGen.runtime import ShapeTuple
-from gsmDataGen.runtime import disco as di
-from gsmDataGen.script import ir as I
-from gsmDataGen.script import relax as R
-from gsmDataGen.target import Target
-from gsmDataGen.contrib import tvmjs
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import dlight as dl
+from gsm_data_generator import relax as rx
+from gsm_data_generator.ffi import register_func
+from gsm_data_generator.contrib import tvmjs
+from gsm_data_generator.runtime import ShapeTuple
+from gsm_data_generator.runtime import disco as di
+from gsm_data_generator.script import ir as I
+from gsm_data_generator.script import relax as R
+from gsm_data_generator.target import Target
+from gsm_data_generator.contrib import tvmjs
 
 
 @register_func("tests.disco.shard_dim_0", override=True)
@@ -100,7 +100,7 @@ def _simulate_presharded_weights(base_path, param_dict, num_shards, shard_info):
         assert key in shard_info, f"ShardInfo lacks shard info about param: {key}"
         shard_dim = shard_info[key]
         sharded_params[key] = [
-            gsmDataGen.nd.array(np_shard) for np_shard in np.split(ndarray, num_shards, axis=shard_dim)
+            gsm_data_generator.nd.array(np_shard) for np_shard in np.split(ndarray, num_shards, axis=shard_dim)
         ]
 
     # Re-order so that the parameter order is sorted first by shard,
@@ -270,7 +270,7 @@ def test_load_shard_in_relax():
     def relax_build(mod, target):
         with target:
             mod = rx.get_pipeline("zero")(mod)  # pylint: disable=no-value-for-parameter
-            return gsmDataGen.compile(mod, target="cuda")
+            return gsm_data_generator.compile(mod, target="cuda")
 
     target = Target(
         {
@@ -456,4 +456,4 @@ def test_load_qkv_proj_shard():  # pylint: disable=too-many-locals
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

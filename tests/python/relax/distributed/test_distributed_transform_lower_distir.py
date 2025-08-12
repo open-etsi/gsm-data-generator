@@ -16,13 +16,13 @@
 # under the License.
 
 #  type: ignore
-from gsmDataGen.script.parser import ir as I
-from gsmDataGen.script.parser import relax as R
-from gsmDataGen.script.parser import tir as T
-import gsmDataGen
-from gsmDataGen import relax
-from gsmDataGen.ir import assert_structural_equal
-import gsmDataGen.testing
+from gsm_data_generator.script.parser import ir as I
+from gsm_data_generator.script.parser import relax as R
+from gsm_data_generator.script.parser import tir as T
+import gsm_data_generator
+from gsm_data_generator import relax
+from gsm_data_generator.ir import assert_structural_equal
+import gsm_data_generator.testing
 
 
 def test_mlp():
@@ -181,7 +181,7 @@ def test_mlp():
 
     mod = MLP
     mod = relax.distributed.transform.LowerDistIR()(mod)
-    gsmDataGen.ir.assert_structural_equal(mod, LoweredMLP)
+    gsm_data_generator.ir.assert_structural_equal(mod, LoweredMLP)
 
 
 def test_mlp_with_tuple():
@@ -389,8 +389,8 @@ def test_mlp_with_tuple():
 
     mod = MLPWithTuple
     mod = relax.distributed.transform.LowerDistIR()(mod)
-    gsmDataGen.ir.assert_structural_equal(mod, LoweredMLPWithTuple)
+    gsm_data_generator.ir.assert_structural_equal(mod, LoweredMLPWithTuple)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

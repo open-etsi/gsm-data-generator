@@ -16,11 +16,11 @@
 # under the License.
 
 #  type: ignore
-from gsmDataGen.script.parser import ir as I
-from gsmDataGen.script.parser import relax as R
-import gsmDataGen
-from gsmDataGen import relax
-import gsmDataGen.testing
+from gsm_data_generator.script.parser import ir as I
+from gsm_data_generator.script.parser import relax as R
+import gsm_data_generator
+from gsm_data_generator import relax
+import gsm_data_generator.testing
 
 
 def test_simple():
@@ -62,8 +62,8 @@ def test_simple():
             return (lv0, lv1)
 
     after = relax.distributed.transform.LegalizeRedistribute()(Before)
-    gsmDataGen.ir.assert_structural_equal(after, Expected)
+    gsm_data_generator.ir.assert_structural_equal(after, Expected)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

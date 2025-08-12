@@ -16,10 +16,10 @@
 # under the License.
 # pylint: disable=missing-function-docstring,missing-module-docstring
 import pytest
-import gsmDataGen
-from gsmDataGen import tir
-from gsmDataGen.script import tir as T
-from gsmDataGen.tir.schedule.testing import (
+import gsm_data_generator
+from gsm_data_generator import tir
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.tir.schedule.testing import (
     assert_structural_equal_ignore_global_symbol,
     verify_trace_roundtrip,
 )
@@ -101,7 +101,7 @@ def element_wise_invalid_annotation(a: T.handle, c: T.handle) -> None:
                     C[vi_1, vj_1] = (B[vi_1, vj_1] + T.float32(1))
 
 
-use_block_name = gsmDataGen.testing.parameter(by_dict={"block_obj": False, "block_name": True})
+use_block_name = gsm_data_generator.testing.parameter(by_dict={"block_obj": False, "block_name": True})
 
 def test_storage_align(use_block_name):
     func = element_wise

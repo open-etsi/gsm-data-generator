@@ -15,14 +15,14 @@
 # specific language governing permissions and limitations
 # under the License.
 """Unit tests for gradient with checkpointing."""
-import gsmDataGen
-import gsmDataGen.testing
+import gsm_data_generator
+import gsm_data_generator.testing
 
-from gsmDataGen import relax
-from gsmDataGen.ir.base import assert_structural_equal
-from gsmDataGen.relax.block_builder import BlockBuilder
-from gsmDataGen.relax.testing import nn
-from gsmDataGen.script.parser import ir as I, relax as R
+from gsm_data_generator import relax
+from gsm_data_generator.ir.base import assert_structural_equal
+from gsm_data_generator.relax.block_builder import BlockBuilder
+from gsm_data_generator.relax.testing import nn
+from gsm_data_generator.script.parser import ir as I, relax as R
 
 
 def test_sequential():
@@ -752,4 +752,4 @@ def test_checkpoint_with_intermediate_require_grads():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

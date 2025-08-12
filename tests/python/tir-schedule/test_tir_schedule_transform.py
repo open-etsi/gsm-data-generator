@@ -14,14 +14,14 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-import gsmDataGen
-from gsmDataGen.script import tir as T
-from gsmDataGen.tir import Schedule
-from gsmDataGen.tir.schedule.transform import tile_with_tensor_intrin
-from gsmDataGen.tir.tensor_intrin.x86 import VNNI_DOT_16x4_INTRIN, AVX512_DOT_16x4_INTRIN
+import gsm_data_generator
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.tir import Schedule
+from gsm_data_generator.tir.schedule.transform import tile_with_tensor_intrin
+from gsm_data_generator.tir.tensor_intrin.x86 import VNNI_DOT_16x4_INTRIN, AVX512_DOT_16x4_INTRIN
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class DenseTIRModule:
     @T.prim_func
     def main(
@@ -45,7 +45,7 @@ class DenseTIRModule:
                     )
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class DenseTIRModuleTiled:
     @T.prim_func
     def main(
@@ -71,7 +71,7 @@ class DenseTIRModuleTiled:
                 )
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Conv2dNCHWcTIRModule:
     @T.prim_func
     def main(
@@ -112,7 +112,7 @@ class Conv2dNCHWcTIRModule:
                 )
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Conv2dNCHWcTIRModuleTiled:
     @T.prim_func
     def main(
@@ -159,7 +159,7 @@ def test_tile_with_tensor_intrin_dense(intrin=VNNI_DOT_16x4_INTRIN):
     _, _, _, i1_1, _ = s.get_loops(block)
 
     assert s.get(tiled_loop) == s.get(i1_1)
-    gsmDataGen.ir.assert_structural_equal(s.mod, DenseTIRModuleTiled)
+    gsm_data_generator.ir.assert_structural_equal(s.mod, DenseTIRModuleTiled)
 
 
 def test_tile_with_tensor_intrin_conv2d_nchwc(intrin=VNNI_DOT_16x4_INTRIN):
@@ -169,7 +169,7 @@ def test_tile_with_tensor_intrin_conv2d_nchwc(intrin=VNNI_DOT_16x4_INTRIN):
     tiled_loops = s.get_loops(block)
     assert len(tiled_loops) == 12
     assert s.get(tiled_loop) == s.get(tiled_loops[-2])
-    gsmDataGen.ir.assert_structural_equal(s.mod, Conv2dNCHWcTIRModuleTiled)
+    gsm_data_generator.ir.assert_structural_equal(s.mod, Conv2dNCHWcTIRModuleTiled)
 
 
 if __name__ == "__main__":

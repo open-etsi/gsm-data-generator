@@ -15,17 +15,17 @@
 # specific language governing permissions and limitations
 # under the License.
 # pylint: disable=missing-module-docstring,missing-function-docstring,missing-class-docstring
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen.meta_schedule.postproc import RewriteParallelVectorizeUnroll
-from gsmDataGen.script import tir as T
-from gsmDataGen.tir.schedule import Schedule
-from gsmDataGen.tir.schedule.testing import assert_structural_equal_ignore_global_symbol
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator.meta_schedule.postproc import RewriteParallelVectorizeUnroll
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.tir.schedule import Schedule
+from gsm_data_generator.tir.schedule.testing import assert_structural_equal_ignore_global_symbol
 
 # pylint: disable=invalid-name,no-member,line-too-long,too-many-nested-blocks,no-self-argument,not-callable,misplaced-comparison-constant
 # fmt: off
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Move_PUV:
     @T.prim_func
     def main(a: T.handle, b: T.handle) -> None:
@@ -72,7 +72,7 @@ def Move_PUV0(a: T.handle, b: T.handle) -> None:
                         B[vi, vj, vk] = A[vi, vj, vk]
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Fused_NN_Dense:
     @T.prim_func
     def main(placeholder: T.Buffer((64, 768), "float32"), placeholder_1: T.Buffer((768, 768), "float32"), T_matmul_NT: T.Buffer((64, 768), "float32")) -> None:
@@ -188,8 +188,8 @@ def test_meta_schedule_postproc_rewrite_parallel_unroll_vectorize():
     postproc = RewriteParallelVectorizeUnroll()
     sch = Schedule(Move_PUV)
     assert postproc.apply(sch)
-    mod = gsmDataGen.tir.transform.Simplify()(sch.mod)
-    gsmDataGen.ir.assert_structural_equal(mod["main"], Move_PUV0)
+    mod = gsm_data_generator.tir.transform.Simplify()(sch.mod)
+    gsm_data_generator.ir.assert_structural_equal(mod["main"], Move_PUV0)
 
 
 def test_vectorize_inner_loop():
@@ -264,9 +264,9 @@ def test_no_unroll_for_spatial_block():
     postproc = RewriteParallelVectorizeUnroll()
     sch = Schedule(layer_norm)
     assert postproc.apply(sch)
-    mod = gsmDataGen.tir.transform.Simplify()(sch.mod)
+    mod = gsm_data_generator.tir.transform.Simplify()(sch.mod)
     assert_structural_equal_ignore_global_symbol(mod["main"], expected)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

@@ -14,16 +14,16 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator.script import tir as T
 
 
 # fmt: off
 # pylint: disable=no-member,invalid-name,unused-variable,line-too-long,redefined-outer-name,unexpected-keyword-arg,too-many-nested-blocks
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class MatmulBefore:
     @T.prim_func
     def main(A: T.Buffer((1024, 1024), "float32"), B: T.Buffer((1024, 1024), "float32"), C: T.Buffer((1024, 1024), "float32")) -> None:
@@ -64,7 +64,7 @@ class MatmulBefore:
                                         C[blockIdx_y * 32 + threadIdx_y * 16 + i_2, blockIdx_x * 32 + threadIdx_x * 16 + j_2] = C[blockIdx_y * 32 + threadIdx_y * 16 + i_2, blockIdx_x * 32 + threadIdx_x * 16 + j_2] + A_shared[blockIdx_y * 32 + threadIdx_y * 16 + i_2, k_0 * 32 + k_1 * 16 + k_2] * B_shared[k_0 * 32 + k_1 * 16 + k_2, blockIdx_x * 32 + threadIdx_x * 16 + j_2]
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class MatmulAfter:
     @T.prim_func
     def main(A: T.Buffer((1024, 1024), "float32"), B: T.Buffer((1024, 1024), "float32"), C: T.Buffer((1024, 1024), "float32")) -> None:
@@ -122,8 +122,8 @@ class MatmulAfter:
 
 
 def _check(before, expected):
-    after = gsmDataGen.tir.transform.ManifestSharedMemoryLocalStage()(before)
-    gsmDataGen.ir.assert_structural_equal(after, expected)
+    after = gsm_data_generator.tir.transform.ManifestSharedMemoryLocalStage()(before)
+    gsm_data_generator.ir.assert_structural_equal(after, expected)
 
 
 def test_transform_matmul():
@@ -131,4 +131,4 @@ def test_transform_matmul():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

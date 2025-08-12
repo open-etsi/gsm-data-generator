@@ -16,9 +16,9 @@
 # under the License.
 
 import numpy as np
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator.script import tir as T
 
 
 @T.prim_func
@@ -59,7 +59,7 @@ def get_valid_counts(
 
 def _check_get_valid_counts_with_numpy(f, dshape, score_threshold, id_index, score_index):
     dtype = "float32"
-    ctx = gsmDataGen.cpu()
+    ctx = gsm_data_generator.cpu()
     batch_size, num_anchor, elem_length = dshape
     np_data = np.random.uniform(low=-2, high=2, size=dshape).astype(dtype)
     np_out1 = np.zeros(shape=(batch_size,), dtype="int32")
@@ -81,14 +81,14 @@ def _check_get_valid_counts_with_numpy(f, dshape, score_threshold, id_index, sco
                     np_out2[i, j, k] = -1.0
                 np_out3[i, j] = -1
 
-    in_data = gsmDataGen.nd.array(np_data, ctx)
-    out1 = gsmDataGen.nd.array(np_out1, ctx)
-    out2 = gsmDataGen.nd.array(np_out2, ctx)
-    out3 = gsmDataGen.nd.array(np_out3, ctx)
+    in_data = gsm_data_generator.nd.array(np_data, ctx)
+    out1 = gsm_data_generator.nd.array(np_out1, ctx)
+    out2 = gsm_data_generator.nd.array(np_out2, ctx)
+    out3 = gsm_data_generator.nd.array(np_out3, ctx)
     f(in_data, out1, out2, out3, score_threshold, id_index, score_index)
-    gsmDataGen.testing.assert_allclose(out1.numpy(), np_out1, rtol=1e-5)
-    gsmDataGen.testing.assert_allclose(out2.numpy(), np_out2, rtol=1e-5)
-    gsmDataGen.testing.assert_allclose(out3.numpy(), np_out3, rtol=1e-5)
+    gsm_data_generator.testing.assert_allclose(out1.numpy(), np_out1, rtol=1e-5)
+    gsm_data_generator.testing.assert_allclose(out2.numpy(), np_out2, rtol=1e-5)
+    gsm_data_generator.testing.assert_allclose(out3.numpy(), np_out3, rtol=1e-5)
     print("test get_valid_counts end")
 
 
@@ -96,10 +96,10 @@ def test_get_valid_counts_script_func():
     device = "llvm"
     # check lowering
     print(get_valid_counts.script())
-    mod = gsmDataGen.ir.IRModule({"get_valid_counts": get_valid_counts})
+    mod = gsm_data_generator.ir.IRModule({"get_valid_counts": get_valid_counts})
     print(mod.script())
     # check building
-    f = gsmDataGen.compile(mod["get_valid_counts"], target=device)
+    f = gsm_data_generator.compile(mod["get_valid_counts"], target=device)
     _check_get_valid_counts_with_numpy(f, (1, 2500, 6), 0.0, 0, 1)
 
 
@@ -130,12 +130,12 @@ def alloc_zero_dim_buffer_block(a: T.handle, b: T.handle) -> None:
 
 def _check_alloc_zero_dim_buffer(f):
     dtype = "float32"
-    ctx = gsmDataGen.cpu()
+    ctx = gsm_data_generator.cpu()
 
     np_data = np.zeros(shape=()).astype(dtype)
     np_out = np.zeros(shape=()).astype(dtype)
-    tvm_data = gsmDataGen.nd.array(np_data, ctx)
-    tvm_out = gsmDataGen.nd.array(np_out, ctx)
+    tvm_data = gsm_data_generator.nd.array(np_data, ctx)
+    tvm_out = gsm_data_generator.nd.array(np_out, ctx)
 
     # np func exection
     np_inter = np.array(1)
@@ -145,20 +145,20 @@ def _check_alloc_zero_dim_buffer(f):
 
     # tvm func execution
     f(tvm_data, tvm_out)
-    gsmDataGen.testing.assert_allclose(tvm_out.numpy(), np_out, rtol=1e-5)
+    gsm_data_generator.testing.assert_allclose(tvm_out.numpy(), np_out, rtol=1e-5)
 
 
 def test_alloc_zero_dim_buffer_round_trip():
     func = alloc_zero_dim_buffer
     func_with_block = alloc_zero_dim_buffer_block
-    rt_func = gsmDataGen.script.from_source(func.script())
-    rt_func_with_block = gsmDataGen.script.from_source(func_with_block.script())
-    rt_mod = gsmDataGen.compile(rt_func, "llvm")
-    rt_mod_with_block = gsmDataGen.compile(rt_func_with_block, "llvm")
-    gsmDataGen.ir.assert_structural_equal(
+    rt_func = gsm_data_generator.script.from_source(func.script())
+    rt_func_with_block = gsm_data_generator.script.from_source(func_with_block.script())
+    rt_mod = gsm_data_generator.compile(rt_func, "llvm")
+    rt_mod_with_block = gsm_data_generator.compile(rt_func_with_block, "llvm")
+    gsm_data_generator.ir.assert_structural_equal(
         func.with_attr("global_symbol", "main"), func_with_block.with_attr("global_symbol", "main")
     )
-    gsmDataGen.ir.assert_structural_equal(
+    gsm_data_generator.ir.assert_structural_equal(
         rt_func.with_attr("global_symbol", "main"),
         rt_func_with_block.with_attr("global_symbol", "main"),
     )
@@ -172,13 +172,13 @@ def ceildiv_test(A: T.Buffer(16, "int32")):
         A[i] = T.ceildiv(A[i], 4)
 
 
-@gsmDataGen.testing.requires_llvm
+@gsm_data_generator.testing.requires_llvm
 def test_ceildiv():
-    f = gsmDataGen.compile(ceildiv_test, "llvm")
-    a = gsmDataGen.nd.array(np.arange(16).astype("int32"))
+    f = gsm_data_generator.compile(ceildiv_test, "llvm")
+    a = gsm_data_generator.nd.array(np.arange(16).astype("int32"))
     f(a)
     ref = (np.arange(16) + 3) // 4
-    gsmDataGen.testing.assert_allclose(a.numpy(), ref)
+    gsm_data_generator.testing.assert_allclose(a.numpy(), ref)
 
 
 @T.prim_func
@@ -246,7 +246,7 @@ def slice_op_test_ref(
 
 
 def test_slice_op():
-    gsmDataGen.ir.assert_structural_equal(
+    gsm_data_generator.ir.assert_structural_equal(
         slice_op_test.with_attr("global_symbol", "main"),
         slice_op_test_ref.with_attr("global_symbol", "main"),
     )

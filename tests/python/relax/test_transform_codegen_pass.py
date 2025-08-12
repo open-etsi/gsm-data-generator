@@ -21,18 +21,18 @@ import tempfile
 import numpy as np
 import pytest
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import relax, tir
-from gsmDataGen.contrib import utils
-from gsmDataGen.relax.dpl import is_op, wildcard
-from gsmDataGen.relax.testing import transform
-from gsmDataGen.script import ir as I
-from gsmDataGen.script import relax as R
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import relax, tir
+from gsm_data_generator.contrib import utils
+from gsm_data_generator.relax.dpl import is_op, wildcard
+from gsm_data_generator.relax.testing import transform
+from gsm_data_generator.script import ir as I
+from gsm_data_generator.script import relax as R
+from gsm_data_generator.script import tir as T
 
-env_checker_codegen = gsmDataGen.get_global_func("relax.ext.tensorrt", True)
-env_checker_runtime = gsmDataGen.get_global_func("relax.is_tensorrt_runtime_enabled", True)
+env_checker_codegen = gsm_data_generator.get_global_func("relax.ext.tensorrt", True)
+env_checker_runtime = gsm_data_generator.get_global_func("relax.is_tensorrt_runtime_enabled", True)
 
 requires_tensorrt_codegen = pytest.mark.skipif(
     not env_checker_codegen,
@@ -44,24 +44,24 @@ requires_tensorrt_runtime = pytest.mark.skipif(
 )
 
 # Global variable in pytest that applies markers to all tests.
-pytestmark = [requires_tensorrt_codegen] + gsmDataGen.testing.requires_cuda.marks()
+pytestmark = [requires_tensorrt_codegen] + gsm_data_generator.testing.requires_cuda.marks()
 
 # Target gpu
 target_str = "nvidia/nvidia-t4"
-target = gsmDataGen.target.Target(target_str)
-dev = gsmDataGen.cuda()
+target = gsm_data_generator.target.Target(target_str)
+dev = gsm_data_generator.cuda()
 
 
 def check_executable(exec, dev, inputs, expected, entry_func_name):
     vm = relax.VirtualMachine(exec, dev)
     out = vm[entry_func_name](*inputs)
-    gsmDataGen.testing.assert_allclose(out.numpy(), expected.numpy(), atol=1e-5, rtol=1e-5)
+    gsm_data_generator.testing.assert_allclose(out.numpy(), expected.numpy(), atol=1e-5, rtol=1e-5)
 
 
 def check_roundtrip(exec0, dev, inputs, expected, entry_func_name="main"):
     with utils.tempdir() as temp:
         exec0.mod.export_library(temp.relpath("exec.so"))
-        exec1 = gsmDataGen.runtime.load_module(temp.relpath("exec.so"))
+        exec1 = gsm_data_generator.runtime.load_module(temp.relpath("exec.so"))
     assert exec0.stats() == exec1["stats"]()
     assert exec0.as_text() == exec1["as_text"]()
 
@@ -73,17 +73,17 @@ def gen_ground_truth(mod, target, dev, inputs):
     # Lower and run tuning
     # Since there is no default schedule for GPU in MS yet, this is necessary
     with target:
-        seq = gsmDataGen.transform.Sequential(
+        seq = gsm_data_generator.transform.Sequential(
             [relax.transform.LegalizeOps(), tir.transform.DefaultGPUSchedule()]
         )
         new_mod = seq(mod)
     assert relax.analysis.well_formed(new_mod)
-    exec = gsmDataGen.compile(new_mod, target, params={})
+    exec = gsm_data_generator.compile(new_mod, target, params={})
     vm = relax.VirtualMachine(exec, dev)
     return vm["main"](*inputs)
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class InputModule:
     @R.function
     def main(
@@ -102,12 +102,12 @@ class InputModule:
 def setup_test():
     # Prepare IRModule and its input
     mod = InputModule
-    assert isinstance(mod, gsmDataGen.IRModule)
+    assert isinstance(mod, gsm_data_generator.IRModule)
 
     np0 = np.random.rand(16, 16).astype(np.float32)
     np1 = np.random.rand(16, 16).astype(np.float32)
-    data0 = gsmDataGen.nd.array(np0, dev)
-    data1 = gsmDataGen.nd.array(np1, dev)
+    data0 = gsm_data_generator.nd.array(np0, dev)
+    data1 = gsm_data_generator.nd.array(np1, dev)
     inputs = [data0, data1]
 
     # Ground truth should be generated before annotation
@@ -117,10 +117,10 @@ def setup_test():
     return mod, inputs, expected
 
 
-entry_func_name = gsmDataGen.testing.parameter("main", "func")
+entry_func_name = gsm_data_generator.testing.parameter("main", "func")
 
 
-@gsmDataGen.testing.requires_gpu
+@gsm_data_generator.testing.requires_gpu
 @requires_tensorrt_runtime
 def test_tensorrt_only(entry_func_name):
     mod, inputs, expected = setup_test()
@@ -137,7 +137,7 @@ def test_tensorrt_only(entry_func_name):
         ("tensorrt.add", is_op("relax.add")(wildcard(), wildcard())),
     ]
 
-    new_mod = gsmDataGen.transform.Sequential(
+    new_mod = gsm_data_generator.transform.Sequential(
         [
             relax.transform.FuseOpsByPattern(patterns),
             relax.transform.MergeCompositeFunctions(),
@@ -145,12 +145,12 @@ def test_tensorrt_only(entry_func_name):
         ]
     )(mod)
 
-    ex0 = gsmDataGen.compile(new_mod, target, params={})
+    ex0 = gsm_data_generator.compile(new_mod, target, params={})
     # Sanity check for the correctness and roundtrip
     check_roundtrip(ex0, dev, inputs, expected, entry_func_name)
 
 
-@gsmDataGen.testing.requires_gpu
+@gsm_data_generator.testing.requires_gpu
 @requires_tensorrt_runtime
 def test_mix_use_tensorrt_and_tvm():
     mod, inputs, expected = setup_test()
@@ -164,8 +164,8 @@ def test_mix_use_tensorrt_and_tvm():
 
     # Run Codegen pass
     with tempfile.TemporaryDirectory() as work_dir:
-        with target, gsmDataGen.transform.PassContext(opt_level=0):
-            new_mod = gsmDataGen.transform.Sequential(
+        with target, gsm_data_generator.transform.PassContext(opt_level=0):
+            new_mod = gsm_data_generator.transform.Sequential(
                 [
                     relax.transform.FuseOpsByPattern(patterns),
                     relax.transform.MergeCompositeFunctions(),
@@ -179,13 +179,13 @@ def test_mix_use_tensorrt_and_tvm():
             )(mod)
     assert relax.analysis.well_formed(new_mod)
     with transform.PassContext(opt_level=0):
-        ex0 = gsmDataGen.compile(new_mod, target, params={})
+        ex0 = gsm_data_generator.compile(new_mod, target, params={})
 
     # Sanity check for the correctness and roundtrip
     check_roundtrip(ex0, dev, inputs, expected)
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Conv2dx2:
     @R.function
     def main(
@@ -233,7 +233,7 @@ class Conv2dx2:
         return gv1
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Conv2dx2_after:
     @R.function
     def main(
@@ -258,7 +258,7 @@ class Conv2dx2_after:
 
 def test_multiple_calls_same_extern():
     mod = relax.transform.RunCodegen()(Conv2dx2)
-    gsmDataGen.ir.assert_structural_equal(mod["main"], Conv2dx2_after["main"])
+    gsm_data_generator.ir.assert_structural_equal(mod["main"], Conv2dx2_after["main"])
 
 
 def test_default_entry_func():
@@ -280,11 +280,11 @@ def test_default_entry_func():
     expected_with_func = rename_main(after_with_main)
     after_with_func = relax.transform.RunCodegen()(before_with_func)
 
-    gsmDataGen.ir.assert_structural_equal(expected_with_func["func"], after_with_func["func"])
+    gsm_data_generator.ir.assert_structural_equal(expected_with_func["func"], after_with_func["func"])
 
 
 def test_dynamic_shape():
-    import gsmDataGen.relax.backend.cuda.cublas
+    import gsm_data_generator.relax.backend.cuda.cublas
 
     @I.ir_module
     class Before:
@@ -355,7 +355,7 @@ def test_dynamic_shape():
             return gv
 
     after = relax.transform.RunCodegen()(Before)
-    gsmDataGen.ir.assert_structural_equal(after["main"], Expected["main"])
+    gsm_data_generator.ir.assert_structural_equal(after["main"], Expected["main"])
 
 
 def test_no_op_for_call_to_tir():
@@ -370,7 +370,7 @@ def test_no_op_for_call_to_tir():
     which produced an error.
     """
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Before:
         @R.function
         def main(x: R.Tensor([4], "int64")):
@@ -384,7 +384,7 @@ def test_no_op_for_call_to_tir():
 
     Expected = Before
     After = relax.transform.RunCodegen()(Before)
-    gsmDataGen.ir.assert_structural_equal(Expected, After)
+    gsm_data_generator.ir.assert_structural_equal(Expected, After)
 
 
 # TODO(@sunggg):  test with more complex patterns (e.g., multiple annots, mixed codegens, different ops, const binding)

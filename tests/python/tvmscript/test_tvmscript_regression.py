@@ -15,9 +15,9 @@
 # specific language governing permissions and limitations
 # under the License.
 import numpy
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator.script import tir as T
 
 # This numpy array is used to test the comparison between the global objects and the
 # `tvm.script.tir` submodule.
@@ -40,8 +40,8 @@ def matmul(a: T.handle, b: T.handle, c: T.handle) -> None:
 
 def test_multi_element_array_in_outmost_namespace():
     func = matmul
-    rt_func = gsmDataGen.script.from_source(func.script())
-    gsmDataGen.ir.assert_structural_equal(func, rt_func)
+    rt_func = gsm_data_generator.script.from_source(func.script())
+    gsm_data_generator.ir.assert_structural_equal(func, rt_func)
 
 
 def test_different_dtype_assignment_to_var():
@@ -54,7 +54,7 @@ def test_different_dtype_assignment_to_var():
         a = T.alloc_buffer([10, 10], dtype="int8")
         T.evaluate(0)
 
-    gsmDataGen.ir.assert_structural_equal(
+    gsm_data_generator.ir.assert_structural_equal(
         test_case.with_attr("global_symbol", "main"), func_ref.with_attr("global_symbol", "main")
     )
 
@@ -71,7 +71,7 @@ def test_var_capturing_order():
         k: T.int32 = 2
         T.evaluate(0)
 
-    gsmDataGen.ir.assert_structural_equal(
+    gsm_data_generator.ir.assert_structural_equal(
         test_case.with_attr("global_symbol", "main"), func_ref.with_attr("global_symbol", "main")
     )
 
@@ -89,4 +89,4 @@ def test_tir_buffer_region_extent_correct_dtype():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

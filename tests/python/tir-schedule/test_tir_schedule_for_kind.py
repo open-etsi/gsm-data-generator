@@ -18,11 +18,11 @@
 import sys
 
 import pytest
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import tir
-from gsmDataGen.script import tir as T
-from gsmDataGen.tir.schedule.testing import (
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import tir
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.tir.schedule.testing import (
     verify_trace_roundtrip,
     assert_structural_equal_ignore_global_symbol,
 )
@@ -497,21 +497,21 @@ def test_parallel_predicate():
 def test_parallel_reduction_block_iter():
     s = tir.Schedule(matmul, debug_mask="all")
     _, _, k = s.get_loops(s.get_block("C"))
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         s.parallel(k)
 
 
 def test_parallel_not_quasi_affine():
     s = tir.Schedule(rowsum_not_quasi_affine, debug_mask="all")
     i, _ = s.get_loops(s.get_block("B"))
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         s.parallel(i)
 
 
 def test_parallel_not_compact_data_flow():
     s = tir.Schedule(rowsum_not_compact_data_flow, debug_mask="all")
     i, _ = s.get_loops(s.get_block("B"))
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         s.parallel(i)
 
 
@@ -538,7 +538,7 @@ def test_vectorize_predicate():
 def test_vectorize_opaque_block():
     s = tir.Schedule(opaque_block, debug_mask="all")
     (i,) = s.get_loops(s.get_block("opaque"))
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         s.vectorize(i)
 
 
@@ -590,7 +590,7 @@ def test_bind_cross_thread_reduction():
 def test_bind_not_cross_thread_reduction():
     s = tir.Schedule(rowsum, debug_mask="all")
     _, k = s.get_loops(s.get_block("B"))
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         s.bind(k, "blockIdx.x")
 
 
@@ -698,4 +698,4 @@ def test_bind_thread_iter_var_dtype():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

@@ -16,15 +16,15 @@
 # under the License.
 import pytest
 
-import gsmDataGen
-import gsmDataGen.testing
+import gsm_data_generator
+import gsm_data_generator.testing
 
-from gsmDataGen import relax, TVMError
-from gsmDataGen.ir.base import assert_structural_equal
-from gsmDataGen.relax.training import SetupTrainer
-from gsmDataGen.relax.training.optimizer import SGD, MomentumSGD
-from gsmDataGen.relax.training.loss import MSELoss
-from gsmDataGen.script import ir as I, relax as R
+from gsm_data_generator import relax, TVMError
+from gsm_data_generator.ir.base import assert_structural_equal
+from gsm_data_generator.relax.training import SetupTrainer
+from gsm_data_generator.relax.training.optimizer import SGD, MomentumSGD
+from gsm_data_generator.relax.training.loss import MSELoss
+from gsm_data_generator.script import ir as I, relax as R
 
 
 def test_simple():
@@ -229,4 +229,4 @@ def test_invalid_mod():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

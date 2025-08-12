@@ -16,12 +16,12 @@
 # under the License.
 # pylint: disable=invalid-name, missing-docstring
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import relax
-from gsmDataGen.script import ir as I
-from gsmDataGen.script import relax as R
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import relax
+from gsm_data_generator.script import ir as I
+from gsm_data_generator.script import relax as R
+from gsm_data_generator.script import tir as T
 import numpy as np
 
 
@@ -70,13 +70,13 @@ def test_transform_fuse_transpose_matmul():
                 R.output(gv)
             return gv
 
-    after = gsmDataGen.ir.transform.Sequential(
+    after = gsm_data_generator.ir.transform.Sequential(
         [
             relax.transform.FuseTransposeMatmul(),
             relax.transform.FuseTIR(),  # Only used for remove unused primitive function
         ]
     )(Before)
-    gsmDataGen.ir.assert_structural_equal(after, Expected)
+    gsm_data_generator.ir.assert_structural_equal(after, Expected)
 
 
 def test_transform_fuse_transpose_matmul_const():
@@ -123,14 +123,14 @@ def test_transform_fuse_transpose_matmul_const():
                 R.output(gv)
             return gv
 
-    after = gsmDataGen.ir.transform.Sequential(
+    after = gsm_data_generator.ir.transform.Sequential(
         [
             relax.transform.FuseTransposeMatmul(),
             relax.transform.FuseTIR(),  # Only used for remove unused primitive function
         ]
     )(Before)
-    gsmDataGen.ir.assert_structural_equal(after, Expected)
+    gsm_data_generator.ir.assert_structural_equal(after, Expected)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

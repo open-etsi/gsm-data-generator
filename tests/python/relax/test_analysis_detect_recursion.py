@@ -15,12 +15,12 @@
 # specific language governing permissions and limitations
 # under the License.
 from typing import List
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import relax as rx
-from gsmDataGen.script import relax as R, tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import relax as rx
+from gsm_data_generator.script import relax as R, tir as T
 
-from gsmDataGen.relax.analysis import detect_recursion
+from gsm_data_generator.relax.analysis import detect_recursion
 
 
 def assert_groups(groups: List[List[rx.GlobalVar]], expected: List[List[str]]) -> None:
@@ -35,7 +35,7 @@ def assert_groups(groups: List[List[rx.GlobalVar]], expected: List[List[str]]) -
 
 
 def test_no_recursion():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class NoRecursion:
         @R.function
         def a(x: R.Object) -> R.Object:
@@ -50,7 +50,7 @@ def test_no_recursion():
 
 
 def test_simple_recursion():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class SimpleRecursion:
         @R.function
         def c(x: R.Object) -> R.Object:
@@ -62,7 +62,7 @@ def test_simple_recursion():
 
 def test_tree():
     # no cycle!
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Tree:
         @R.function
         def a(x: R.Object) -> R.Object:
@@ -90,7 +90,7 @@ def test_tree():
 
 
 def test_two_function_case():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class TwoFunctionCase:
         @R.function
         def a(x: R.Object) -> R.Object:
@@ -110,7 +110,7 @@ def test_two_function_case():
 
 
 def test_two_groups_of_two():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class TwoGroupsOfTwo:
         @R.function
         def a(x: R.Object) -> R.Object:
@@ -138,7 +138,7 @@ def test_two_groups_of_two():
 
 
 def test_mutual_recursion_and_simple_recursion():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class MutualAndSimple:
         @R.function
         def a(x: R.Object) -> R.Object:
@@ -160,7 +160,7 @@ def test_mutual_recursion_and_simple_recursion():
 def test_simultaneous_mutual_and_simple_recursion():
     # even though both call themselves and each other,
     # it should still form only one group
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class SimultaneousMutualAndSimple:
         @R.function
         def a(x: R.Object) -> R.Object:
@@ -177,7 +177,7 @@ def test_simultaneous_mutual_and_simple_recursion():
 
 
 def test_three_function_case():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class ThreeFunctionCase:
         @R.function
         def a(x: R.Object) -> R.Object:
@@ -196,7 +196,7 @@ def test_three_function_case():
 
 
 def test_call_from_outside_of_group():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class CallFromOutOfGroup:
         # A calls into a group of mutually recursive functions,
         # but is not part of the cycle
@@ -226,7 +226,7 @@ def test_call_from_outside_of_group():
 
 
 def test_call_from_group_to_outside():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class CallFromGroupToOutside:
         # A calls into a group of mutually recursive functions,
         # but is not part of the cycle
@@ -264,7 +264,7 @@ def test_group_with_two_cycles():
     B -> C -> D -> A -> B -> C -> E -> F -> B
     """
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class GroupWithTwoCycles:
         @R.function
         def a(x: R.Object) -> R.Object:
@@ -307,7 +307,7 @@ def test_multicycle_example():
     E <-> F <-> G
     """
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class MulticycleExample:
         @R.function
         def a(x: R.Object) -> R.Object:
@@ -356,7 +356,7 @@ def test_multicycle_example():
 
 
 def test_control_flow():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class ControlFlowExample:
         @R.function
         def a(x: R.Object) -> R.Object:
@@ -383,7 +383,7 @@ def test_control_flow():
 
 
 def test_returning_self():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class ReturnsSelf:
         @R.function
         def a() -> R.Object:
@@ -395,7 +395,7 @@ def test_returning_self():
 
 
 def test_mutual_recursion_via_references():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class GatherReferences:
         @R.function
         def a(x: R.Object) -> R.Object:
@@ -417,7 +417,7 @@ def test_mutual_recursion_via_references():
 
 
 def test_disregard_primfuncs():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class CallPrimFunc:
         # copied from test_analysis.py
         @T.prim_func
@@ -450,4 +450,4 @@ def test_disregard_primfuncs():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

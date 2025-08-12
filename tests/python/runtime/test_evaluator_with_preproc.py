@@ -18,9 +18,9 @@
 import numpy as np
 import pytest
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator.script import tir as T
 
 
 @T.prim_func
@@ -36,22 +36,22 @@ def matmul(a: T.handle, b: T.handle, c: T.handle) -> None:
             C[vi, vj] = C[vi, vj] + A[vi, vk] * B[vk, vj]
 
 
-@gsmDataGen.testing.requires_cuda
+@gsm_data_generator.testing.requires_cuda
 @pytest.mark.parametrize("f_preproc", ["", "l2_cache_flush_cuda"])
 def test_time_evalutor_with_preproc(f_preproc: str):
-    mod = gsmDataGen.IRModule.from_expr(matmul.with_attr("global_symbol", "main"))
-    sch = gsmDataGen.tir.Schedule(mod)
+    mod = gsm_data_generator.IRModule.from_expr(matmul.with_attr("global_symbol", "main"))
+    sch = gsm_data_generator.tir.Schedule(mod)
     blk = sch.get_block("matmul")
     i, j, k = sch.get_loops(blk)
     sch.bind(i, "blockIdx.x")
     sch.bind(j, "threadIdx.x")
-    f = gsmDataGen.tir.build(sch.mod["main"], target="cuda")
-    dev = gsmDataGen.cuda(0)
+    f = gsm_data_generator.tir.build(sch.mod["main"], target="cuda")
+    dev = gsm_data_generator.cuda(0)
     evaluator = f.time_evaluator(f.entry_name, dev, repeat=1000, number=1, f_preproc=f_preproc)
 
-    a = gsmDataGen.nd.array(np.random.rand(128, 128).astype("float32"), device=dev)
-    b = gsmDataGen.nd.array(np.random.rand(128, 128).astype("float32"), device=dev)
-    c = gsmDataGen.nd.array(np.zeros((128, 128)).astype("float32"), device=dev)
+    a = gsm_data_generator.nd.array(np.random.rand(128, 128).astype("float32"), device=dev)
+    b = gsm_data_generator.nd.array(np.random.rand(128, 128).astype("float32"), device=dev)
+    c = gsm_data_generator.nd.array(np.zeros((128, 128)).astype("float32"), device=dev)
     args = [a, b, c]
     print("Evaluator (f_preproc={}):\t{:.5f}ms".format(f_preproc, evaluator(*args).mean * 1000))
 

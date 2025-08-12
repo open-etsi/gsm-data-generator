@@ -14,13 +14,13 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-import gsmDataGen.testing
+import gsm_data_generator.testing
 
-from gsmDataGen import relax, tir
-from gsmDataGen.script import relax as R, tir as T
-from gsmDataGen.relax.transform import CombineParallelMatmul
-from gsmDataGen.script.ir_builder import IRBuilder
-from gsmDataGen.script.ir_builder import relax as relax_builder
+from gsm_data_generator import relax, tir
+from gsm_data_generator.script import relax as R, tir as T
+from gsm_data_generator.relax.transform import CombineParallelMatmul
+from gsm_data_generator.script.ir_builder import IRBuilder
+from gsm_data_generator.script.ir_builder import relax as relax_builder
 
 
 def get_parallel_matmul(
@@ -67,14 +67,14 @@ def get_parallel_matmul(
             R.func_ret_value(frame.output_vars[0])
 
     func = builder.get()
-    return gsmDataGen.IRModule({"main": func})
+    return gsm_data_generator.IRModule({"main": func})
 
 
 def test_simple():
     mod_orig = get_parallel_matmul(1)
     mod = CombineParallelMatmul()(mod_orig)
 
-    gsmDataGen.ir.assert_structural_equal(mod, mod_orig)
+    gsm_data_generator.ir.assert_structural_equal(mod, mod_orig)
 
     mod = get_parallel_matmul(3)
     mod = CombineParallelMatmul()(mod)
@@ -97,7 +97,7 @@ def test_simple():
             R.output(lv3)
         return lv3
 
-    gsmDataGen.ir.assert_structural_equal(mod["main"], expected1.with_attr("global_symbol", "main"))
+    gsm_data_generator.ir.assert_structural_equal(mod["main"], expected1.with_attr("global_symbol", "main"))
 
     # Test a batched LHS case, slicing is done on the axis 2
     mod = get_parallel_matmul(3, lhs_shape=(2, 1024, 640))
@@ -121,7 +121,7 @@ def test_simple():
             R.output(lv3)
         return lv3
 
-    gsmDataGen.ir.assert_structural_equal(mod["main"], expected2.with_attr("global_symbol", "main"))
+    gsm_data_generator.ir.assert_structural_equal(mod["main"], expected2.with_attr("global_symbol", "main"))
 
 
 def test_bias():
@@ -151,7 +151,7 @@ def test_bias():
             R.output(lv6)
         return lv6
 
-    gsmDataGen.ir.assert_structural_equal(mod["main"], expected1.with_attr("global_symbol", "main"))
+    gsm_data_generator.ir.assert_structural_equal(mod["main"], expected1.with_attr("global_symbol", "main"))
 
     mod = get_parallel_matmul(3, with_bias=[True, False, True])
     mod = CombineParallelMatmul()(mod)
@@ -178,7 +178,7 @@ def test_bias():
             R.output(lv5)
         return lv5
 
-    gsmDataGen.ir.assert_structural_equal(mod["main"], expected2.with_attr("global_symbol", "main"))
+    gsm_data_generator.ir.assert_structural_equal(mod["main"], expected2.with_attr("global_symbol", "main"))
 
 
 def test_activation():
@@ -204,7 +204,7 @@ def test_activation():
             R.output(lv6)
         return lv6
 
-    gsmDataGen.ir.assert_structural_equal(mod["main"], expected1.with_attr("global_symbol", "main"))
+    gsm_data_generator.ir.assert_structural_equal(mod["main"], expected1.with_attr("global_symbol", "main"))
 
     mod = get_parallel_matmul(3, activation=["gelu", "relu", "relu"])
     mod = CombineParallelMatmul()(mod)
@@ -230,7 +230,7 @@ def test_activation():
             R.output(lv6)
         return lv6
 
-    gsmDataGen.ir.assert_structural_equal(mod["main"], expected2.with_attr("global_symbol", "main"))
+    gsm_data_generator.ir.assert_structural_equal(mod["main"], expected2.with_attr("global_symbol", "main"))
 
     mod = get_parallel_matmul(3, activation=["relu", None, None])
     mod = CombineParallelMatmul()(mod)
@@ -255,7 +255,7 @@ def test_activation():
             R.output(lv4)
         return lv4
 
-    gsmDataGen.ir.assert_structural_equal(mod["main"], expected3.with_attr("global_symbol", "main"))
+    gsm_data_generator.ir.assert_structural_equal(mod["main"], expected3.with_attr("global_symbol", "main"))
 
 
 def test_bias_activation():
@@ -286,7 +286,7 @@ def test_bias_activation():
             R.output(lv9)
         return lv9
 
-    gsmDataGen.ir.assert_structural_equal(mod["main"], expected1.with_attr("global_symbol", "main"))
+    gsm_data_generator.ir.assert_structural_equal(mod["main"], expected1.with_attr("global_symbol", "main"))
 
     mod = get_parallel_matmul(3, with_bias=[True, True, True], activation=["relu", None, "relu"])
     mod = CombineParallelMatmul()(mod)
@@ -316,7 +316,7 @@ def test_bias_activation():
             R.output(lv8)
         return lv8
 
-    gsmDataGen.ir.assert_structural_equal(mod["main"], expected2.with_attr("global_symbol", "main"))
+    gsm_data_generator.ir.assert_structural_equal(mod["main"], expected2.with_attr("global_symbol", "main"))
 
     mod = get_parallel_matmul(3, with_bias=[True, False, True], activation=["relu", None, "relu"])
     mod = CombineParallelMatmul()(mod)
@@ -345,7 +345,7 @@ def test_bias_activation():
             R.output(lv7)
         return lv7
 
-    gsmDataGen.ir.assert_structural_equal(mod["main"], expected3.with_attr("global_symbol", "main"))
+    gsm_data_generator.ir.assert_structural_equal(mod["main"], expected3.with_attr("global_symbol", "main"))
 
 
 def test_rhs_batched():
@@ -366,7 +366,7 @@ def test_rhs_batched():
             R.output(out)
         return out
 
-    after = CombineParallelMatmul()(gsmDataGen.IRModule.from_expr(before))["main"]
+    after = CombineParallelMatmul()(gsm_data_generator.IRModule.from_expr(before))["main"]
 
     @R.function(private=True)
     def expected(
@@ -388,9 +388,9 @@ def test_rhs_batched():
             R.output(out)
         return out
 
-    gsmDataGen.ir.assert_structural_equal(after, expected)
+    gsm_data_generator.ir.assert_structural_equal(after, expected)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class four_matmul_incompatible_batches:
         @R.function
         def main(
@@ -412,7 +412,7 @@ def test_rhs_batched():
     mod = CombineParallelMatmul()(four_matmul_incompatible_batches)
     # For now, when rhs matrices have the same rank but different batch sizes, we don't
     # combine any of them.
-    gsmDataGen.ir.assert_structural_equal(mod, four_matmul_incompatible_batches)
+    gsm_data_generator.ir.assert_structural_equal(mod, four_matmul_incompatible_batches)
 
 
 def test_multiple_combine():
@@ -440,7 +440,7 @@ def test_multiple_combine():
             R.output(out)
         return out
 
-    after = CombineParallelMatmul()(gsmDataGen.IRModule.from_expr(before))["main"]
+    after = CombineParallelMatmul()(gsm_data_generator.IRModule.from_expr(before))["main"]
 
     @R.function(private=True)
     def expected(
@@ -472,7 +472,7 @@ def test_multiple_combine():
             R.output(out)
         return out
 
-    gsmDataGen.ir.assert_structural_equal(after, expected)
+    gsm_data_generator.ir.assert_structural_equal(after, expected)
 
 
 def test_check():
@@ -497,7 +497,7 @@ def test_check():
         return out
 
     check = lambda *inp: len(inp[1]) > 2  # Ignore branches with two matmuls
-    after = CombineParallelMatmul(check)(gsmDataGen.IRModule.from_expr(before))["main"]
+    after = CombineParallelMatmul(check)(gsm_data_generator.IRModule.from_expr(before))["main"]
 
     @R.function(private=True)
     def expected(
@@ -522,7 +522,7 @@ def test_check():
             R.output(out)
         return out
 
-    gsmDataGen.ir.assert_structural_equal(after, expected)
+    gsm_data_generator.ir.assert_structural_equal(after, expected)
 
 
 def test_combine_matmul_of_static_and_dynamic_shapes():
@@ -576,9 +576,9 @@ def test_combine_matmul_of_static_and_dynamic_shapes():
             R.output(out)
         return out
 
-    after = CombineParallelMatmul()(gsmDataGen.IRModule.from_expr(before))["main"]
+    after = CombineParallelMatmul()(gsm_data_generator.IRModule.from_expr(before))["main"]
 
-    gsmDataGen.ir.assert_structural_equal(after, expected)
+    gsm_data_generator.ir.assert_structural_equal(after, expected)
 
 
 def test_combine_matmul_of_dynamic_and_static_shapes():
@@ -632,9 +632,9 @@ def test_combine_matmul_of_dynamic_and_static_shapes():
             R.output(out)
         return out
 
-    after = CombineParallelMatmul()(gsmDataGen.IRModule.from_expr(before))["main"]
+    after = CombineParallelMatmul()(gsm_data_generator.IRModule.from_expr(before))["main"]
 
-    gsmDataGen.ir.assert_structural_equal(after, expected)
+    gsm_data_generator.ir.assert_structural_equal(after, expected)
 
 
 def test_limit_one_dynamic_shape_in_combined_matmul():
@@ -688,10 +688,10 @@ def test_limit_one_dynamic_shape_in_combined_matmul():
             R.output(out)
         return out
 
-    after = CombineParallelMatmul()(gsmDataGen.IRModule.from_expr(before))["main"]
+    after = CombineParallelMatmul()(gsm_data_generator.IRModule.from_expr(before))["main"]
 
-    gsmDataGen.ir.assert_structural_equal(after, expected)
+    gsm_data_generator.ir.assert_structural_equal(after, expected)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

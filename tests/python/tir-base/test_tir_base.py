@@ -14,11 +14,11 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-import gsmDataGen
+import gsm_data_generator
 import pytest
-from gsmDataGen import tir
-from gsmDataGen.base import TVMError
-from gsmDataGen.ir.transform import PassContext
+from gsm_data_generator import tir
+from gsm_data_generator.base import TVMError
+from gsm_data_generator.ir.transform import PassContext
 import itertools
 import pytest
 
@@ -28,8 +28,8 @@ def build_tir_func(func):
     pass_ctx = PassContext.current()
     if pass_ctx.config.get("tir.noalias", True):
         func = func.with_attr("tir.noalias", True)
-    mod = gsmDataGen.IRModule({"main": func})
-    func = gsmDataGen.compile(mod)
+    mod = gsm_data_generator.IRModule({"main": func})
+    func = gsm_data_generator.compile(mod)
     return func
 
 
@@ -100,7 +100,7 @@ def test_ret_const():
 
 
 def test_control_flow_jump():
-    ib = gsmDataGen.tir.ir_builder.create()
+    ib = gsm_data_generator.tir.ir_builder.create()
     a = tir.Var("a", "float32")
     b = tir.Var("b", "float32")
     with ib.if_scope(True):

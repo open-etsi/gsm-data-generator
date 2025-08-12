@@ -19,11 +19,11 @@
 
 """capture gtest output and return over FFI"""
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen.contrib.hexagon.session import Session
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator.contrib.hexagon.session import Session
 
-unit_test_name = gsmDataGen.testing.parameter(
+unit_test_name = gsm_data_generator.testing.parameter(
     "HexagonUserDMATest.wait",
     "HexagonUserDMATest.poll",
     "HexagonUserDMATest.bad_copy",
@@ -146,7 +146,7 @@ unit_test_name = gsmDataGen.testing.parameter(
 # use --gtest_args to pass arguments to gtest
 # for example to run all "foo" tests twice and observe gtest output run
 # pytest -sv <this file> --gtests_args="--gtest_filter=*foo* --gtest_repeat=2"
-@gsmDataGen.testing.requires_hexagon
+@gsm_data_generator.testing.requires_hexagon
 def test_run_unit_tests(hexagon_session: Session, gtest_args, unit_test_name):
     """Try running gtest unit tests and capture output and error code"""
     try:
@@ -179,4 +179,4 @@ def test_run_unit_tests(hexagon_session: Session, gtest_args, unit_test_name):
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

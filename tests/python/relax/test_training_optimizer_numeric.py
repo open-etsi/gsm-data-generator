@@ -19,17 +19,17 @@ from typing import Callable, List
 
 import numpy as np
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import IRModule, relax
-from gsmDataGen.relax.training.optimizer import SGD, Adam, MomentumSGD
-from gsmDataGen.runtime.vm import VirtualMachine
-from gsmDataGen.script.parser import relax as R
-from gsmDataGen.testing import assert_allclose
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import IRModule, relax
+from gsm_data_generator.relax.training.optimizer import SGD, Adam, MomentumSGD
+from gsm_data_generator.runtime.vm import VirtualMachine
+from gsm_data_generator.script.parser import relax as R
+from gsm_data_generator.testing import assert_allclose
 
 
 def _legalize_and_build(mod: IRModule, target, dev):
-    ex = gsmDataGen.compile(mod, target)
+    ex = gsm_data_generator.compile(mod, target)
     vm = VirtualMachine(ex, dev)
     return vm
 
@@ -37,11 +37,11 @@ def _legalize_and_build(mod: IRModule, target, dev):
 def _numpy_to_tvm(data):
     if isinstance(data, (list, tuple)):
         return [_numpy_to_tvm(_data) for _data in data]
-    return gsmDataGen.nd.array(data)
+    return gsm_data_generator.nd.array(data)
 
 
 def _tvm_to_numpy(data):
-    if isinstance(data, (list, tuple, gsmDataGen.ir.Array)):
+    if isinstance(data, (list, tuple, gsm_data_generator.ir.Array)):
         return [_tvm_to_numpy(_data) for _data in data]
     return data.numpy()
 
@@ -62,7 +62,7 @@ def _assert_run_result_same(tvm_func: Callable, np_func: Callable, np_inputs: Li
     _assert_allclose_nested(result, expected)
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def _test_optimizer(target, dev, np_func, opt_type, *args, **kwargs):
     x = relax.Var("x", R.Tensor((3, 3), "float32"))
     y = relax.Var("y", R.Tensor((3,), "float32"))
@@ -77,13 +77,13 @@ def _test_optimizer(target, dev, np_func, opt_type, *args, **kwargs):
     _assert_run_result_same(tvm_func, np_func, [param_arr, grad_arr, state_arr])
 
 
-lr, weight_decay = gsmDataGen.testing.parameters(
+lr, weight_decay = gsm_data_generator.testing.parameters(
     (0.01, 0),
     (0.01, 0.02),
 )
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_sgd(target, dev, lr, weight_decay):
     def np_func(param_tuple, grad_tuple, state_tuple):
         num_steps = state_tuple[0]
@@ -98,14 +98,14 @@ def test_sgd(target, dev, lr, weight_decay):
     _test_optimizer(target, dev, np_func, SGD, lr, weight_decay)
 
 
-lr, momentum, dampening, weight_decay, nesterov = gsmDataGen.testing.parameters(
+lr, momentum, dampening, weight_decay, nesterov = gsm_data_generator.testing.parameters(
     (0.01, 0.9, 0, 0, False),
     (0.01, 0.9, 0.85, 0.02, False),
     (0.01, 0.9, 0.85, 0.02, True),
 )
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_momentum_sgd(target, dev, lr, momentum, dampening, weight_decay, nesterov):
     def np_func(param_tuple, grad_tuple, state_tuple):
         num_steps = state_tuple[0]
@@ -132,13 +132,13 @@ def test_momentum_sgd(target, dev, lr, momentum, dampening, weight_decay, nester
     )
 
 
-lr, betas, eps, weight_decay = gsmDataGen.testing.parameters(
+lr, betas, eps, weight_decay = gsm_data_generator.testing.parameters(
     (0.01, (0.9, 0.999), 1e-08, 0),
     (0.01, (0.8, 0.85), 1e-07, 0.1),
 )
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_adam(target, dev, lr, betas, eps, weight_decay):
     def np_func(param_tuple, grad_tuple, state_tuple):
         num_steps = state_tuple[0]
@@ -171,4 +171,4 @@ def test_adam(target, dev, lr, betas, eps, weight_decay):
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

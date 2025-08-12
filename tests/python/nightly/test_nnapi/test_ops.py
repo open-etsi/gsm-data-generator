@@ -23,20 +23,20 @@ import pytest
 from test_nnapi.conftest import remote
 from test_nnapi.infrastructure import build_and_run
 
-import gsmDataGen
-import gsmDataGen.script
-import gsmDataGen.script.relax as R
-import gsmDataGen.script.tir as T
+import gsm_data_generator
+import gsm_data_generator.script
+import gsm_data_generator.script.relax as R
+import gsm_data_generator.script.tir as T
 
 
 def _build_and_run_network(remote_obj, tracker, mod, input_data):
     """Helper function to build and run a network."""
 
     def execute_on_host(mod, inputs):
-        with gsmDataGen.transform.PassContext(opt_level=3):
-            ex = gsmDataGen.compile(mod, target="llvm")
-        dev = gsmDataGen.cpu(0)
-        vm = gsmDataGen.relax.VirtualMachine(ex, device=dev)
+        with gsm_data_generator.transform.PassContext(opt_level=3):
+            ex = gsm_data_generator.compile(mod, target="llvm")
+        dev = gsm_data_generator.cpu(0)
+        vm = gsm_data_generator.relax.VirtualMachine(ex, device=dev)
         output = vm["main"](*inputs)
         return output.numpy()
 
@@ -76,8 +76,8 @@ def _build_and_run_network(remote_obj, tracker, mod, input_data):
 def test_unary(op, input_shape=(1, 2, 8, 5)):
     remote_obj, tracker = remote()
 
-    def create_model() -> gsmDataGen.IRModule:
-        @gsmDataGen.script.ir_module
+    def create_model() -> gsm_data_generator.IRModule:
+        @gsm_data_generator.script.ir_module
         class Module:
             @R.function
             def main(i0: R.Tensor((1, 2, 8, 5), "float32")) -> R.Tensor((1, 2, 8, 5), "float32"):
@@ -117,8 +117,8 @@ def test_unary(op, input_shape=(1, 2, 8, 5)):
 def test_elementwise_binary(op, input_shape=(1, 2, 8, 5)):
     remote_obj, tracker = remote()
 
-    def create_model() -> gsmDataGen.IRModule:
-        @gsmDataGen.script.ir_module
+    def create_model() -> gsm_data_generator.IRModule:
+        @gsm_data_generator.script.ir_module
         class Module:
             @R.function
             def main(
@@ -147,8 +147,8 @@ def test_elementwise_binary(op, input_shape=(1, 2, 8, 5)):
 def test_divide(input_shape=(1, 2, 8, 5)):
     remote_obj, tracker = remote()
 
-    def create_model(input_shape) -> gsmDataGen.IRModule:
-        @gsmDataGen.script.ir_module
+    def create_model(input_shape) -> gsm_data_generator.IRModule:
+        @gsm_data_generator.script.ir_module
         class Module:
             @R.function
             def main(
@@ -177,8 +177,8 @@ def test_divide(input_shape=(1, 2, 8, 5)):
 def test_matmul():
     remote_obj, tracker = remote()
 
-    def create_model() -> gsmDataGen.IRModule:
-        @gsmDataGen.script.ir_module
+    def create_model() -> gsm_data_generator.IRModule:
+        @gsm_data_generator.script.ir_module
         class Module:
             @R.function
             def main(
@@ -207,8 +207,8 @@ def test_matmul():
 def test_permute_dims():
     remote_obj, tracker = remote()
 
-    def create_model() -> gsmDataGen.IRModule:
-        @gsmDataGen.script.ir_module
+    def create_model() -> gsm_data_generator.IRModule:
+        @gsm_data_generator.script.ir_module
         class Module:
             @R.function
             def main(
@@ -235,8 +235,8 @@ def test_permute_dims():
 def test_astype():
     remote_obj, tracker = remote()
 
-    def create_model() -> gsmDataGen.IRModule:
-        @gsmDataGen.script.ir_module
+    def create_model() -> gsm_data_generator.IRModule:
+        @gsm_data_generator.script.ir_module
         class Module:
             @R.function
             def main(
@@ -255,7 +255,7 @@ def test_astype():
         tracker,
         mod,
         inputs=[
-            gsmDataGen.nd.array(np.random.uniform(size=(8, 10, 15)).astype("float32")),
+            gsm_data_generator.nd.array(np.random.uniform(size=(8, 10, 15)).astype("float32")),
         ],
     )
 
@@ -263,8 +263,8 @@ def test_astype():
 def test_mean():
     remote_obj, tracker = remote()
 
-    def create_model() -> gsmDataGen.IRModule:
-        @gsmDataGen.script.ir_module
+    def create_model() -> gsm_data_generator.IRModule:
+        @gsm_data_generator.script.ir_module
         class Module:
             @R.function
             def main(
@@ -284,7 +284,7 @@ def test_mean():
         tracker,
         mod,
         inputs=[
-            gsmDataGen.nd.array(np.random.uniform(size=(1, 10, 15)).astype("float32")),
+            gsm_data_generator.nd.array(np.random.uniform(size=(1, 10, 15)).astype("float32")),
         ],
     )
 
@@ -292,8 +292,8 @@ def test_mean():
 def test_conv2d():
     remote_obj, tracker = remote()
 
-    def create_model() -> gsmDataGen.IRModule:
-        @gsmDataGen.script.ir_module
+    def create_model() -> gsm_data_generator.IRModule:
+        @gsm_data_generator.script.ir_module
         class Module:
             @R.function
             def main(
@@ -325,8 +325,8 @@ def test_conv2d():
 def test_max_pool2d():
     remote_obj, tracker = remote()
 
-    def create_model() -> gsmDataGen.IRModule:
-        @gsmDataGen.script.ir_module
+    def create_model() -> gsm_data_generator.IRModule:
+        @gsm_data_generator.script.ir_module
         class Module:
             @R.function
             def main(
@@ -351,12 +351,12 @@ def test_max_pool2d():
 
 
 def verify(remote_obj, tracker, mod, inputs):
-    inputs_tvm: List[gsmDataGen.nd.NDArray] = [gsmDataGen.nd.array(v) for v in inputs]
+    inputs_tvm: List[gsm_data_generator.nd.NDArray] = [gsm_data_generator.nd.array(v) for v in inputs]
     outputs = _build_and_run_network(remote_obj, tracker, mod, inputs_tvm)
     nnapi_out = outputs[0]
     expected_out = outputs[1]
-    gsmDataGen.testing.assert_allclose(nnapi_out, expected_out, rtol=1e-4, atol=1e-5)
+    gsm_data_generator.testing.assert_allclose(nnapi_out, expected_out, rtol=1e-4, atol=1e-5)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

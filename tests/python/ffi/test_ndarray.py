@@ -21,7 +21,7 @@ try:
 except ImportError:
     torch = None
 
-from gsmDataGen import ffi as tvm_ffi
+from gsm_data_generator import ffi as tvm_ffi
 import numpy as np
 
 

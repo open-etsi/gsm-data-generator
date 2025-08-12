@@ -15,11 +15,11 @@
 # specific language governing permissions and limitations
 # under the License.
 
-import gsmDataGen
-import gsmDataGen.testing
+import gsm_data_generator
+import gsm_data_generator.testing
 
-from gsmDataGen.script import tir as T, ir as I
-from gsmDataGen import te
+from gsm_data_generator.script import tir as T, ir as I
+from gsm_data_generator import te
 
 
 def test_double_buffer():
@@ -27,7 +27,7 @@ def test_double_buffer():
     n = 100
     m = 4
     tx = te.thread_axis("threadIdx.x")
-    ib = gsmDataGen.tir.ir_builder.create()
+    ib = gsm_data_generator.tir.ir_builder.create()
     A = ib.pointer("float32", name="A")
     C = ib.pointer("float32", name="C")
     ib.scope_attr(tx, "thread_extent", 1)
@@ -41,35 +41,35 @@ def test_double_buffer():
             C[j] = B[j] + 1
 
     stmt = ib.get()
-    mod = gsmDataGen.IRModule({"db": gsmDataGen.tir.PrimFunc([A.asobject(), C.asobject()], stmt)})
+    mod = gsm_data_generator.IRModule({"db": gsm_data_generator.tir.PrimFunc([A.asobject(), C.asobject()], stmt)})
 
-    opt = gsmDataGen.transform.Sequential(
-        [gsmDataGen.tir.transform.InjectDoubleBuffer(), gsmDataGen.tir.transform.Simplify()]
+    opt = gsm_data_generator.transform.Sequential(
+        [gsm_data_generator.tir.transform.InjectDoubleBuffer(), gsm_data_generator.tir.transform.Simplify()]
     )
 
-    with gsmDataGen.transform.PassContext(config={"tir.InjectDoubleBuffer": {"split_loop": 2}}):
+    with gsm_data_generator.transform.PassContext(config={"tir.InjectDoubleBuffer": {"split_loop": 2}}):
         mod = opt(mod)
     stmt = mod["db"].body
 
-    assert isinstance(stmt.body, gsmDataGen.tir.Allocate)
+    assert isinstance(stmt.body, gsm_data_generator.tir.Allocate)
     assert list(stmt.body.extents) == [m * 2]
 
-    f = gsmDataGen.tir.transform.ThreadSync("shared")(mod)["db"]
+    f = gsm_data_generator.tir.transform.ThreadSync("shared")(mod)["db"]
     count = [0]
 
     def count_sync(op):
-        if isinstance(op, gsmDataGen.tir.Call) and op.op.same_as(gsmDataGen.ir.Op.get("tir.tvm_storage_sync")):
+        if isinstance(op, gsm_data_generator.tir.Call) and op.op.same_as(gsm_data_generator.ir.Op.get("tir.tvm_storage_sync")):
             count[0] += 1
 
-    gsmDataGen.tir.stmt_functor.post_order_visit(f.body, count_sync)
+    gsm_data_generator.tir.stmt_functor.post_order_visit(f.body, count_sync)
     assert count[0] == 4
 
 
-class TestDoubleBuffer(gsmDataGen.testing.CompareBeforeAfter):
-    transform = gsmDataGen.ir.transform.Sequential(
+class TestDoubleBuffer(gsm_data_generator.testing.CompareBeforeAfter):
+    transform = gsm_data_generator.ir.transform.Sequential(
         [
-            gsmDataGen.tir.transform.InjectDoubleBuffer(),
-            gsmDataGen.tir.transform.Simplify(),
+            gsm_data_generator.tir.transform.InjectDoubleBuffer(),
+            gsm_data_generator.tir.transform.Simplify(),
         ]
     )
 
@@ -106,13 +106,13 @@ class TestDoubleBuffer(gsmDataGen.testing.CompareBeforeAfter):
                 B[i_outer + 1] = B[i_outer + 1] + cache[(i_outer + 1) % 2 * 32 + j]
 
 
-class TestDoubleBufferWithDeclBuffer(gsmDataGen.testing.CompareBeforeAfter):
+class TestDoubleBufferWithDeclBuffer(gsm_data_generator.testing.CompareBeforeAfter):
     """Like TestDoubleBuffer, but with a declared buffer object"""
 
-    transform = gsmDataGen.ir.transform.Sequential(
+    transform = gsm_data_generator.ir.transform.Sequential(
         [
-            gsmDataGen.tir.transform.InjectDoubleBuffer(),
-            gsmDataGen.tir.transform.Simplify(),
+            gsm_data_generator.tir.transform.InjectDoubleBuffer(),
+            gsm_data_generator.tir.transform.Simplify(),
         ]
     )
 
@@ -147,4 +147,4 @@ class TestDoubleBufferWithDeclBuffer(gsmDataGen.testing.CompareBeforeAfter):
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()
