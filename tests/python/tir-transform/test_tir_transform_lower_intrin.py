@@ -14,20 +14,20 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import te
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import te
 import numpy as np
 
 
 def lower_intrin(params, stmt):
     """wrapper to call transformation in stmt"""
-    lower_expr = isinstance(stmt, gsmDataGen.tir.PrimExpr)
-    stmt = gsmDataGen.tir.Evaluate(stmt) if lower_expr else stmt
-    mod = gsmDataGen.IRModule.from_expr(
-        gsmDataGen.tir.PrimFunc(params, stmt).with_attr("target", gsmDataGen.target.Target("llvm"))
+    lower_expr = isinstance(stmt, gsm_data_generator.tir.PrimExpr)
+    stmt = gsm_data_generator.tir.Evaluate(stmt) if lower_expr else stmt
+    mod = gsm_data_generator.IRModule.from_expr(
+        gsm_data_generator.tir.PrimFunc(params, stmt).with_attr("target", gsm_data_generator.target.Target("llvm"))
     )
-    mod = gsmDataGen.transform.Sequential([gsmDataGen.tir.transform.Simplify(), gsmDataGen.tir.transform.LowerIntrin()])(
+    mod = gsm_data_generator.transform.Sequential([gsm_data_generator.tir.transform.Simplify(), gsm_data_generator.tir.transform.LowerIntrin()])(
         mod
     )
     func = mod["main"]
@@ -42,15 +42,15 @@ def check_value(expr, vx, vy, data, fref):
 
     def make_binds(i):
         x = expr
-        x = gsmDataGen.tir.Let(vx, A[i], x)
-        x = gsmDataGen.tir.Let(vy, B[i], x)
+        x = gsm_data_generator.tir.Let(vx, A[i], x)
+        x = gsm_data_generator.tir.Let(vy, B[i], x)
         return x
 
     C = te.compute((n,), make_binds)
-    f = gsmDataGen.compile(te.create_prim_func([A, B, C]), "llvm")
-    a = gsmDataGen.nd.array(np.array([x for x, y in data], dtype=expr.dtype))
-    b = gsmDataGen.nd.array(np.array([y for x, y in data], dtype=expr.dtype))
-    c = gsmDataGen.nd.array(np.zeros(len(data), dtype=expr.dtype))
+    f = gsm_data_generator.compile(te.create_prim_func([A, B, C]), "llvm")
+    a = gsm_data_generator.nd.array(np.array([x for x, y in data], dtype=expr.dtype))
+    b = gsm_data_generator.nd.array(np.array([y for x, y in data], dtype=expr.dtype))
+    c = gsm_data_generator.nd.array(np.zeros(len(data), dtype=expr.dtype))
     f(a, b, c)
     cref = np.array([fref(x, y) for x, y in data])
     np.testing.assert_equal(c.numpy(), cref)
@@ -66,54 +66,54 @@ def get_ref_data():
     return list(itertools.product(x, y))
 
 
-@gsmDataGen.testing.requires_llvm
+@gsm_data_generator.testing.requires_llvm
 def test_lower_floordiv():
     data = get_ref_data()
     for dtype in ["int32", "int64", "int16"]:
         x = te.var("x", dtype=dtype)
         y = te.var("y", dtype=dtype)
-        zero = gsmDataGen.tir.const(0, dtype)
+        zero = gsm_data_generator.tir.const(0, dtype)
         # no constraints
-        res = lower_intrin([x, y], gsmDataGen.te.floordiv(x, y))
+        res = lower_intrin([x, y], gsm_data_generator.te.floordiv(x, y))
         check_value(res, x, y, data, lambda a, b: a // b)
         # rhs >= 0
-        res = lower_intrin([x, y], gsmDataGen.tir.Select(y >= 0, gsmDataGen.te.floordiv(x, y), zero))
+        res = lower_intrin([x, y], gsm_data_generator.tir.Select(y >= 0, gsm_data_generator.te.floordiv(x, y), zero))
         check_value(res, x, y, data, lambda a, b: a // b if b > 0 else 0)
         # involves max
         res = lower_intrin(
-            [x, y], gsmDataGen.tir.Select(y >= 0, gsmDataGen.te.max(gsmDataGen.te.floordiv(x, y), zero), zero)
+            [x, y], gsm_data_generator.tir.Select(y >= 0, gsm_data_generator.te.max(gsm_data_generator.te.floordiv(x, y), zero), zero)
         )
         check_value(res, x, y, data, lambda a, b: max(a // b, 0) if b > 0 else 0)
         # lhs >= 0
         res = lower_intrin(
-            [x, y], gsmDataGen.tir.Select(gsmDataGen.tir.all(y >= 0, x >= 0), gsmDataGen.te.floordiv(x, y), zero)
+            [x, y], gsm_data_generator.tir.Select(gsm_data_generator.tir.all(y >= 0, x >= 0), gsm_data_generator.te.floordiv(x, y), zero)
         )
         check_value(res, x, y, data, lambda a, b: a // b if b > 0 and a >= 0 else 0)
         # const power of two
-        res = lower_intrin([x, y], gsmDataGen.te.floordiv(x, gsmDataGen.tir.const(8, dtype=dtype)))
+        res = lower_intrin([x, y], gsm_data_generator.te.floordiv(x, gsm_data_generator.tir.const(8, dtype=dtype)))
         check_value(res, x, y, [(a, b) for a, b in data if b == 8], lambda a, b: a // b)
 
 
-@gsmDataGen.testing.requires_llvm
+@gsm_data_generator.testing.requires_llvm
 def test_lower_floormod():
     data = get_ref_data()
     for dtype in ["int32", "int64", "int16"]:
         x = te.var("x", dtype=dtype)
         y = te.var("y", dtype=dtype)
-        zero = gsmDataGen.tir.const(0, dtype)
+        zero = gsm_data_generator.tir.const(0, dtype)
         # no constraints
-        res = lower_intrin([x, y], gsmDataGen.te.floormod(x, y))
+        res = lower_intrin([x, y], gsm_data_generator.te.floormod(x, y))
         check_value(res, x, y, data, lambda a, b: a % b)
         # rhs >= 0
-        res = lower_intrin([x, y], gsmDataGen.tir.Select(y >= 0, gsmDataGen.te.floormod(x, y), zero))
+        res = lower_intrin([x, y], gsm_data_generator.tir.Select(y >= 0, gsm_data_generator.te.floormod(x, y), zero))
         check_value(res, x, y, data, lambda a, b: a % b if b > 0 else 0)
         # lhs >= 0
         res = lower_intrin(
-            [x, y], gsmDataGen.tir.Select(gsmDataGen.tir.all(y >= 0, x >= 0), gsmDataGen.te.floormod(x, y), zero)
+            [x, y], gsm_data_generator.tir.Select(gsm_data_generator.tir.all(y >= 0, x >= 0), gsm_data_generator.te.floormod(x, y), zero)
         )
         check_value(res, x, y, data, lambda a, b: a % b if b > 0 and a >= 0 else 0)
         # const power of two
-        res = lower_intrin([x, y], gsmDataGen.te.floormod(x, gsmDataGen.tir.const(8, dtype=dtype)))
+        res = lower_intrin([x, y], gsm_data_generator.te.floormod(x, gsm_data_generator.tir.const(8, dtype=dtype)))
         check_value(res, x, y, [(a, b) for a, b in data if b == 8], lambda a, b: a % b)
 
 

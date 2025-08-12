@@ -14,10 +14,10 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-import gsmDataGen
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+from gsm_data_generator.script import tir as T
 import numpy as np
-import gsmDataGen.testing
+import gsm_data_generator.testing
 
 
 @T.prim_func
@@ -47,18 +47,18 @@ def ptx_cp_async(A: T.Buffer((32, 128), "float16"), B: T.Buffer((32, 128), "floa
             B[tx, i] = A_shared[tx, i]
 
 
-@gsmDataGen.testing.requires_cuda_compute_version(8)
+@gsm_data_generator.testing.requires_cuda_compute_version(8)
 def test_ptx_cp_async():
     f = ptx_cp_async
 
-    mod = gsmDataGen.compile(f, target="cuda")
+    mod = gsm_data_generator.compile(f, target="cuda")
     A_np = np.random.rand(32, 128).astype("float16")
     B_np = np.zeros((32, 128)).astype("float16")
-    dev = gsmDataGen.cuda(0)
-    A_nd = gsmDataGen.nd.array(A_np, device=dev)
-    B_nd = gsmDataGen.nd.array(B_np, device=dev)
+    dev = gsm_data_generator.cuda(0)
+    A_nd = gsm_data_generator.nd.array(A_np, device=dev)
+    B_nd = gsm_data_generator.nd.array(B_np, device=dev)
     mod(A_nd, B_nd)
-    gsmDataGen.testing.assert_allclose(B_nd.numpy(), A_np)
+    gsm_data_generator.testing.assert_allclose(B_nd.numpy(), A_np)
 
 
 @T.prim_func
@@ -94,18 +94,18 @@ def ptx_cp_async_barrier(
             B[tx, i] = A_shared[tx, i]
 
 
-@gsmDataGen.testing.requires_cuda_compute_version(8)
+@gsm_data_generator.testing.requires_cuda_compute_version(8)
 def test_ptx_cp_async_barrier():
     f = ptx_cp_async_barrier
 
-    mod = gsmDataGen.compile(f, target="cuda")
+    mod = gsm_data_generator.compile(f, target="cuda")
     A_np = np.random.rand(32, 128).astype("float16")
     B_np = np.zeros((32, 128)).astype("float16")
-    dev = gsmDataGen.cuda(0)
-    A_nd = gsmDataGen.nd.array(A_np, device=dev)
-    B_nd = gsmDataGen.nd.array(B_np, device=dev)
+    dev = gsm_data_generator.cuda(0)
+    A_nd = gsm_data_generator.nd.array(A_np, device=dev)
+    B_nd = gsm_data_generator.nd.array(B_np, device=dev)
     mod(A_nd, B_nd)
-    gsmDataGen.testing.assert_allclose(B_nd.numpy(), A_np)
+    gsm_data_generator.testing.assert_allclose(B_nd.numpy(), A_np)
 
 
 @T.prim_func
@@ -135,18 +135,18 @@ def ptx_cp_async_bulk(A: T.Buffer((32, 128), "float16"), B: T.Buffer((32, 128), 
             B[tx, i] = A_shared[tx, i]
 
 
-@gsmDataGen.testing.requires_cuda_compute_version(9)
+@gsm_data_generator.testing.requires_cuda_compute_version(9)
 def test_ptx_cp_async_bulk():
     f = ptx_cp_async_bulk
 
-    mod = gsmDataGen.compile(f, target="cuda")
+    mod = gsm_data_generator.compile(f, target="cuda")
     A_np = np.random.rand(32, 128).astype("float16")
     B_np = np.zeros((32, 128)).astype("float16")
-    dev = gsmDataGen.cuda(0)
-    A_nd = gsmDataGen.nd.array(A_np, device=dev)
-    B_nd = gsmDataGen.nd.array(B_np, device=dev)
+    dev = gsm_data_generator.cuda(0)
+    A_nd = gsm_data_generator.nd.array(A_np, device=dev)
+    B_nd = gsm_data_generator.nd.array(B_np, device=dev)
     mod(A_nd, B_nd)
-    gsmDataGen.testing.assert_allclose(B_nd.numpy(), A_np)
+    gsm_data_generator.testing.assert_allclose(B_nd.numpy(), A_np)
 
 
 if __name__ == "__main__":

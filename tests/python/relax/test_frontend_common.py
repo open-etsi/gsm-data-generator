@@ -14,10 +14,10 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen.relax.frontend import detach_params
-from gsmDataGen.script.parser import relax as R
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator.relax.frontend import detach_params
+from gsm_data_generator.script.parser import relax as R
 
 
 def test_detach_params():
@@ -25,17 +25,17 @@ def test_detach_params():
     def func(x: R.Tensor((2, 3), "float32")):
         return x
 
-    param = gsmDataGen.nd.empty((3,), "float32")
-    mod = gsmDataGen.IRModule({"func": func.with_attr("params", [param])})
+    param = gsm_data_generator.nd.empty((3,), "float32")
+    mod = gsm_data_generator.IRModule({"func": func.with_attr("params", [param])})
     detached_mod, detached_params = detach_params(mod)
 
-    gsmDataGen.ir.assert_structural_equal(detached_mod, gsmDataGen.IRModule({"func": func}))
+    gsm_data_generator.ir.assert_structural_equal(detached_mod, gsm_data_generator.IRModule({"func": func}))
     assert len(detached_params) == 1
     assert "func" in detached_params
     assert isinstance(detached_params["func"], list)
     assert len(detached_params["func"]) == 1
-    gsmDataGen.testing.assert_allclose(detached_params["func"][0].numpy(), param.numpy())
+    gsm_data_generator.testing.assert_allclose(detached_params["func"][0].numpy(), param.numpy())
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

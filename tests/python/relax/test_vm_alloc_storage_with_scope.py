@@ -18,12 +18,12 @@
 
 import numpy as np
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import relax
-from gsmDataGen.script import ir as I
-from gsmDataGen.script import relax as R
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import relax
+from gsm_data_generator.script import ir as I
+from gsm_data_generator.script import relax as R
+from gsm_data_generator.script import tir as T
 
 
 @I.ir_module
@@ -61,18 +61,18 @@ def test_alloc_storage_with_scope_global():
     output_ref = arg0 + arg0
     mod = Module
     target = "llvm"
-    with gsmDataGen.transform.PassContext(opt_level=3):
-        lib = gsmDataGen.relax.build(mod, target=target, exec_mode="compiled")
+    with gsm_data_generator.transform.PassContext(opt_level=3):
+        lib = gsm_data_generator.relax.build(mod, target=target, exec_mode="compiled")
 
-    dev = gsmDataGen.cpu()
+    dev = gsm_data_generator.cpu()
     # This is the important line which tests nd allocator
     vm_rt = relax.VirtualMachine(lib, dev, memory_cfg="naive")
-    x = gsmDataGen.nd.array(arg0, dev)
+    x = gsm_data_generator.nd.array(arg0, dev)
     vm_rt.set_input("main", x)
     vm_rt.invoke_stateful("main")
     output = vm_rt.get_outputs("main").numpy()
-    gsmDataGen.testing.assert_allclose(output_ref, output)
+    gsm_data_generator.testing.assert_allclose(output_ref, output)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

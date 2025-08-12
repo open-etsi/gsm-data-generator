@@ -17,18 +17,18 @@
 """CLML integration operator tests."""
 import pytest
 import numpy as np
-import gsmDataGen
-import gsmDataGen.testing
+import gsm_data_generator
+import gsm_data_generator.testing
 import json
 
-from gsmDataGen import relax
-from gsmDataGen.script import relax as R
-from gsmDataGen.script import ir as I
-from gsmDataGen.script import tir as T
-from gsmDataGen.script.ir_builder import IRBuilder
-from gsmDataGen.script.ir_builder import relax as relax_builder
-from gsmDataGen.relax.backend.adreno import clml
-from gsmDataGen.relax.backend.adreno.clml import OpenCLMLOffLoad
+from gsm_data_generator import relax
+from gsm_data_generator.script import relax as R
+from gsm_data_generator.script import ir as I
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.script.ir_builder import IRBuilder
+from gsm_data_generator.script.ir_builder import relax as relax_builder
+from gsm_data_generator.relax.backend.adreno import clml
+from gsm_data_generator.relax.backend.adreno.clml import OpenCLMLOffLoad
 
 from mod_utils import (
     get_relax_conv2d_mod,
@@ -69,12 +69,12 @@ def compare_codegen(clml_mod, clml_codegen):
 
 
 def verify(mod, params_np, clml_codegen):
-    mod = gsmDataGen.relax.transform.BindParams("main", params_np)(mod)
+    mod = gsm_data_generator.relax.transform.BindParams("main", params_np)(mod)
     clml_mod = OpenCLMLOffLoad()(mod)
     compare_codegen(clml_mod, clml_codegen)
 
 
-@gsmDataGen.testing.requires_openclml
+@gsm_data_generator.testing.requires_openclml
 @pytest.mark.parametrize("dtype", ["float32"])
 @pytest.mark.parametrize(
     "kernel_h, kernel_w, padding, stride, dilation, out_channels, shape, has_bias, has_bn, has_activation, has_pad, is_depthwise",
@@ -164,7 +164,7 @@ def test_conv2d_offload(
     verify(mod, params_np, clml_codegen)
 
 
-@gsmDataGen.testing.requires_openclml
+@gsm_data_generator.testing.requires_openclml
 @pytest.mark.parametrize("dtype", ["float32"])
 @pytest.mark.parametrize(
     "dshape, kshape, channels, kernel_size, strides, padding, out_shape",
@@ -206,7 +206,7 @@ def test_conv2d_transpose(
     verify(mod, params_np, exp_codegen)
 
 
-@gsmDataGen.testing.requires_openclml
+@gsm_data_generator.testing.requires_openclml
 @pytest.mark.parametrize("dtype", ["float32"])
 @pytest.mark.parametrize(
     "trials",
@@ -275,7 +275,7 @@ def test_batchnorm(dtype, trials):
     verify(mod, params_np, exp_codegen)
 
 
-@gsmDataGen.testing.requires_openclml
+@gsm_data_generator.testing.requires_openclml
 @pytest.mark.parametrize("dtype", ["float32"])
 @pytest.mark.parametrize(
     "a_shape, b_shape, op",
@@ -294,7 +294,7 @@ def test_batchnorm(dtype, trials):
         ((1, 256), (1, 256), R.maximum),
     ],
 )
-@gsmDataGen.testing.requires_openclml
+@gsm_data_generator.testing.requires_openclml
 def test_binary_ops(a_shape, b_shape, op, dtype):
     def _verify(mod):
         expected_codegen_str = [
@@ -334,7 +334,7 @@ def test_binary_ops(a_shape, b_shape, op, dtype):
     _verify(mod)
 
 
-@gsmDataGen.testing.requires_openclml
+@gsm_data_generator.testing.requires_openclml
 @pytest.mark.parametrize(
     "dtype",
     [
@@ -350,7 +350,7 @@ def test_binary_ops(a_shape, b_shape, op, dtype):
         ((1, 14, 14, 256), R.nn.relu),
     ],
 )
-@gsmDataGen.testing.requires_openclml
+@gsm_data_generator.testing.requires_openclml
 def test_unary_ops(a_shape, op, dtype):
     def _verify(mod):
         expected_codegen_str = [
@@ -383,7 +383,7 @@ def test_unary_ops(a_shape, op, dtype):
     _verify(mod)
 
 
-@gsmDataGen.testing.requires_openclml
+@gsm_data_generator.testing.requires_openclml
 @pytest.mark.parametrize("dtype", ["float32"])
 @pytest.mark.parametrize(
     "trials",
@@ -409,7 +409,7 @@ def test_max_pool(dtype, trials):
     verify(mod, params_np, expected_codegen_str)
 
 
-@gsmDataGen.testing.requires_openclml
+@gsm_data_generator.testing.requires_openclml
 @pytest.mark.parametrize("dtype", ["float32"])
 @pytest.mark.parametrize(
     "trials",
@@ -434,7 +434,7 @@ def test_avg_pool(dtype, trials):
     verify(mod, params_np, exp_codegen_str)
 
 
-@gsmDataGen.testing.requires_openclml
+@gsm_data_generator.testing.requires_openclml
 @pytest.mark.parametrize("dtype", ["float32"])
 @pytest.mark.parametrize(
     "trials",
@@ -453,7 +453,7 @@ def test_reshape(dtype, trials):
     verify(mod, params_np, expected_codegen)
 
 
-@gsmDataGen.testing.requires_openclml
+@gsm_data_generator.testing.requires_openclml
 @pytest.mark.parametrize("dtype", ["float32"])
 @pytest.mark.parametrize(
     "trials",
@@ -474,7 +474,7 @@ def test_global_avg_pool(dtype, trials):
     verify(mod, params_np, exp_codegen_str)
 
 
-@gsmDataGen.testing.requires_openclml
+@gsm_data_generator.testing.requires_openclml
 @pytest.mark.parametrize("dtype", ["float32"])
 @pytest.mark.parametrize(
     "trials",
@@ -502,4 +502,4 @@ def test_global_max_pool(dtype, trials):
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

@@ -20,14 +20,14 @@ Restrictions: all shape lowered, explicit allocation.
 """
 import numpy as np
 import pytest
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import relax
-from gsmDataGen.relax.testing.runtime_builtin import MakeShapeCode, MatchShapeCode
-from gsmDataGen.relax.testing.vm import check_saved_func
-from gsmDataGen.script import ir as I
-from gsmDataGen.script import relax as R
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import relax
+from gsm_data_generator.relax.testing.runtime_builtin import MakeShapeCode, MatchShapeCode
+from gsm_data_generator.relax.testing.vm import check_saved_func
+from gsm_data_generator.script import ir as I
+from gsm_data_generator.script import relax as R
+from gsm_data_generator.script import tir as T
 
 EXEC_MODE = ["bytecode", "compiled"]
 
@@ -40,7 +40,7 @@ def codegen(mod, target, exec_mode="bytecode"):
 
 @pytest.mark.parametrize("exec_mode", EXEC_MODE)
 def test_vm_copy(exec_mode):
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class TestVMMove:
         @R.function(pure=False)
         def foo(x: R.Tensor((3, 4), "float32")):
@@ -49,17 +49,17 @@ def test_vm_copy(exec_mode):
             return z
 
     mod = TestVMMove
-    target = gsmDataGen.target.Target("llvm", host="llvm")
+    target = gsm_data_generator.target.Target("llvm", host="llvm")
     ex = codegen(mod, target, exec_mode)
-    inp = gsmDataGen.nd.array(np.random.rand(3, 4).astype(np.float32))
-    vm = relax.VirtualMachine(ex, gsmDataGen.cpu())
+    inp = gsm_data_generator.nd.array(np.random.rand(3, 4).astype(np.float32))
+    vm = relax.VirtualMachine(ex, gsm_data_generator.cpu())
     res = check_saved_func(vm, "foo", inp)
-    gsmDataGen.testing.assert_allclose(res.numpy(), inp.numpy(), rtol=1e-7, atol=1e-7)
+    gsm_data_generator.testing.assert_allclose(res.numpy(), inp.numpy(), rtol=1e-7, atol=1e-7)
 
 
 @pytest.mark.parametrize("exec_mode", EXEC_MODE)
 def test_vm_to_device(exec_mode):
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class TestVMToDevice:
         @R.function(pure=False)
         def foo(x: R.Tensor((3, 4), "float32")):
@@ -71,21 +71,21 @@ def test_vm_to_device(exec_mode):
             return z
 
     mod = TestVMToDevice
-    target = gsmDataGen.target.Target("llvm", host="llvm")
+    target = gsm_data_generator.target.Target("llvm", host="llvm")
     ex = codegen(mod, target, exec_mode)
-    inp = gsmDataGen.nd.array(np.random.rand(3, 4).astype(np.float32))
-    vm = relax.VirtualMachine(ex, gsmDataGen.cpu())
+    inp = gsm_data_generator.nd.array(np.random.rand(3, 4).astype(np.float32))
+    vm = relax.VirtualMachine(ex, gsm_data_generator.cpu())
     res = check_saved_func(vm, "foo", inp)
-    gsmDataGen.testing.assert_allclose(res.numpy(), inp.numpy(), rtol=1e-7, atol=1e-7)
+    gsm_data_generator.testing.assert_allclose(res.numpy(), inp.numpy(), rtol=1e-7, atol=1e-7)
     # check the resulting tensor is on cpu:0
-    assert res.device == gsmDataGen.cpu(0)
+    assert res.device == gsm_data_generator.cpu(0)
     assert res.device.device_type == 1
     assert res.device.device_id == 0
 
 
 @pytest.mark.parametrize("exec_mode", EXEC_MODE)
 def test_if_cond_const(exec_mode):
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class TestVMIfCondConst:
         @R.function
         def main(x: R.Tensor(ndim=2, dtype="float32")) -> R.Tensor(ndim=2, dtype="float32"):
@@ -97,17 +97,17 @@ def test_if_cond_const(exec_mode):
             return ret
 
     mod = TestVMIfCondConst
-    target = gsmDataGen.target.Target("llvm", host="llvm")
+    target = gsm_data_generator.target.Target("llvm", host="llvm")
     ex = codegen(mod, target, exec_mode)
-    vm = relax.VirtualMachine(ex, gsmDataGen.cpu())
-    inp = gsmDataGen.nd.array(np.random.rand(3, 4))
+    vm = relax.VirtualMachine(ex, gsm_data_generator.cpu())
+    inp = gsm_data_generator.nd.array(np.random.rand(3, 4))
     res = vm["main"](inp)
-    gsmDataGen.testing.assert_allclose(res.numpy(), inp.numpy())
+    gsm_data_generator.testing.assert_allclose(res.numpy(), inp.numpy())
 
 
 @pytest.mark.parametrize("exec_mode", EXEC_MODE)
 def test_vm_exec_serialize_export_library(exec_mode):
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class TestVMMove:
         @R.function(pure=False)
         def foo(x: R.Tensor((3, 4), "float32")):
@@ -116,21 +116,21 @@ def test_vm_exec_serialize_export_library(exec_mode):
             return z
 
     mod = TestVMMove
-    target = gsmDataGen.target.Target("llvm", host="llvm")
+    target = gsm_data_generator.target.Target("llvm", host="llvm")
     ex = codegen(mod, target)
-    from gsmDataGen.contrib import utils
+    from gsm_data_generator.contrib import utils
 
     temp_dir = utils.tempdir()
     path_exec = temp_dir.relpath("exec.so")
     ex.export_library(path_exec)
 
-    loaded_exec = gsmDataGen.runtime.load_module(path_exec)
+    loaded_exec = gsm_data_generator.runtime.load_module(path_exec)
     assert ex.as_text() == loaded_exec["as_text"]()
 
 
 @pytest.mark.parametrize("exec_mode", EXEC_MODE)
 def test_if_cond(exec_mode):
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class TestVMCompileIf:
         @R.function(pure=False)
         def ife(cond: R.Tensor((), "bool"), x: R.Tensor((3, 4), "float32")) -> R.Tensor:
@@ -142,23 +142,23 @@ def test_if_cond(exec_mode):
             return w
 
     mod = TestVMCompileIf
-    target = gsmDataGen.target.Target("llvm", host="llvm")
+    target = gsm_data_generator.target.Target("llvm", host="llvm")
     ex = codegen(mod, target, exec_mode)
-    vm = relax.VirtualMachine(ex, gsmDataGen.cpu())
-    inp = gsmDataGen.nd.array(np.random.rand(3, 4))
-    res = vm["ife"](gsmDataGen.nd.array(1), inp)
-    gsmDataGen.testing.assert_allclose(res.numpy(), inp.numpy() + inp.numpy(), rtol=1e-7, atol=1e-7)
-    res = vm["ife"](gsmDataGen.nd.array(True), inp)
-    gsmDataGen.testing.assert_allclose(res.numpy(), inp.numpy() + inp.numpy(), rtol=1e-7, atol=1e-7)
-    res = vm["ife"](gsmDataGen.nd.array(0), inp)
-    gsmDataGen.testing.assert_allclose(res.numpy(), inp.numpy() * inp.numpy(), rtol=1e-7, atol=1e-7)
-    res = vm["ife"](gsmDataGen.nd.array(False), inp)
-    gsmDataGen.testing.assert_allclose(res.numpy(), inp.numpy() * inp.numpy(), rtol=1e-7, atol=1e-7)
+    vm = relax.VirtualMachine(ex, gsm_data_generator.cpu())
+    inp = gsm_data_generator.nd.array(np.random.rand(3, 4))
+    res = vm["ife"](gsm_data_generator.nd.array(1), inp)
+    gsm_data_generator.testing.assert_allclose(res.numpy(), inp.numpy() + inp.numpy(), rtol=1e-7, atol=1e-7)
+    res = vm["ife"](gsm_data_generator.nd.array(True), inp)
+    gsm_data_generator.testing.assert_allclose(res.numpy(), inp.numpy() + inp.numpy(), rtol=1e-7, atol=1e-7)
+    res = vm["ife"](gsm_data_generator.nd.array(0), inp)
+    gsm_data_generator.testing.assert_allclose(res.numpy(), inp.numpy() * inp.numpy(), rtol=1e-7, atol=1e-7)
+    res = vm["ife"](gsm_data_generator.nd.array(False), inp)
+    gsm_data_generator.testing.assert_allclose(res.numpy(), inp.numpy() * inp.numpy(), rtol=1e-7, atol=1e-7)
 
 
 @pytest.mark.parametrize("exec_mode", EXEC_MODE)
 def test_vm_return_const_tuple(exec_mode):
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class ReturnConstTuple:
         @R.function
         def main(x: R.Tensor(ndim=2, dtype="float32")):
@@ -168,19 +168,19 @@ def test_vm_return_const_tuple(exec_mode):
             return z
 
     mod = ReturnConstTuple
-    target = gsmDataGen.target.Target("llvm", host="llvm")
+    target = gsm_data_generator.target.Target("llvm", host="llvm")
     ex = codegen(mod, target, exec_mode)
-    vm = relax.VirtualMachine(ex, gsmDataGen.cpu())
-    inp = gsmDataGen.nd.array(np.random.rand(2, 3))
+    vm = relax.VirtualMachine(ex, gsm_data_generator.cpu())
+    inp = gsm_data_generator.nd.array(np.random.rand(2, 3))
     res0, res1, res2 = vm["main"](inp)
-    gsmDataGen.testing.assert_allclose(res0.numpy(), np.array([1, 2]))
-    gsmDataGen.testing.assert_allclose(res1.numpy(), np.array([3, 4]))
-    gsmDataGen.testing.assert_allclose(res2.numpy(), inp.numpy())
+    gsm_data_generator.testing.assert_allclose(res0.numpy(), np.array([1, 2]))
+    gsm_data_generator.testing.assert_allclose(res1.numpy(), np.array([3, 4]))
+    gsm_data_generator.testing.assert_allclose(res2.numpy(), inp.numpy())
 
 
 @pytest.mark.parametrize("exec_mode", EXEC_MODE)
 def test_vm_const_as_call_arg(exec_mode):
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class TestVMConstAsCallArg:
         @R.function(pure=False)
         def main(x: R.Tensor(ndim=2, dtype="float32")):
@@ -200,12 +200,12 @@ def test_vm_const_as_call_arg(exec_mode):
             return b
 
     mod = TestVMConstAsCallArg
-    target = gsmDataGen.target.Target("llvm", host="llvm")
+    target = gsm_data_generator.target.Target("llvm", host="llvm")
     ex = codegen(mod, target, exec_mode)
-    vm = relax.VirtualMachine(ex, gsmDataGen.cpu())
-    inp = gsmDataGen.nd.array(np.random.rand(1, 2))
+    vm = relax.VirtualMachine(ex, gsm_data_generator.cpu())
+    inp = gsm_data_generator.nd.array(np.random.rand(1, 2))
     res = vm["main"](inp)
-    gsmDataGen.testing.assert_allclose(res.numpy(), np.array([4, 6]) + inp.numpy())
+    gsm_data_generator.testing.assert_allclose(res.numpy(), np.array([4, 6]) + inp.numpy())
 
 
 @pytest.mark.parametrize("exec_mode", EXEC_MODE)
@@ -216,7 +216,7 @@ def test_shape_check_builtin(exec_mode):
     # 0: n, 1: m
     sindex = {"n": 0, "m": 1}
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class TestVMShapeCheck:
         @R.function(pure=False)
         def main(x: R.Tensor(["n", "m"], "float32")) -> R.Shape(ndim=3):
@@ -259,12 +259,12 @@ def test_shape_check_builtin(exec_mode):
             return s
 
     mod = TestVMShapeCheck
-    target = gsmDataGen.target.Target("llvm", host="llvm")
+    target = gsm_data_generator.target.Target("llvm", host="llvm")
     ex = codegen(mod, target, exec_mode)
-    vm = relax.VirtualMachine(ex, gsmDataGen.cpu())
-    x = gsmDataGen.nd.array(np.zeros((1, 2)).astype("float32"))
+    vm = relax.VirtualMachine(ex, gsm_data_generator.cpu())
+    x = gsm_data_generator.nd.array(np.zeros((1, 2)).astype("float32"))
     res = vm["main"](x)
-    assert res == gsmDataGen.runtime.container.ShapeTuple([2, 1, 2])
+    assert res == gsm_data_generator.runtime.container.ShapeTuple([2, 1, 2])
 
     # wrong input type
     with pytest.raises(TypeError):
@@ -272,16 +272,16 @@ def test_shape_check_builtin(exec_mode):
 
     # wrong ndim
     with pytest.raises(ValueError, match=r".*ndim.*"):
-        vm["main"](gsmDataGen.nd.array(np.zeros(1).astype("float32")))
+        vm["main"](gsm_data_generator.nd.array(np.zeros(1).astype("float32")))
 
     # wrong dtype
     with pytest.raises(ValueError, match=r".*dtype.*"):
-        vm["main"](gsmDataGen.nd.array(np.zeros((1, 2)).astype("int32")))
+        vm["main"](gsm_data_generator.nd.array(np.zeros((1, 2)).astype("int32")))
 
 
 @pytest.mark.parametrize("exec_mode", EXEC_MODE)
 def test_prim_value(exec_mode):
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class TestVMPrimValue:
         @R.function
         def main():
@@ -290,16 +290,16 @@ def test_prim_value(exec_mode):
             return ret
 
     mod = TestVMPrimValue
-    target = gsmDataGen.target.Target("llvm", host="llvm")
+    target = gsm_data_generator.target.Target("llvm", host="llvm")
     ex = codegen(mod, target, exec_mode)
-    vm = relax.VirtualMachine(ex, gsmDataGen.cpu())
+    vm = relax.VirtualMachine(ex, gsm_data_generator.cpu())
     res = vm["main"]()
     assert res == 1
 
 
 @pytest.mark.parametrize("exec_mode", EXEC_MODE)
 def test_string_imm(exec_mode):
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class TestVMStringImm:
         @R.function
         def main():
@@ -308,16 +308,16 @@ def test_string_imm(exec_mode):
             return ret
 
     mod = TestVMStringImm
-    target = gsmDataGen.target.Target("llvm", host="llvm")
+    target = gsm_data_generator.target.Target("llvm", host="llvm")
     ex = codegen(mod, target, exec_mode)
-    vm = relax.VirtualMachine(ex, gsmDataGen.cpu())
+    vm = relax.VirtualMachine(ex, gsm_data_generator.cpu())
     res = vm["main"]()
     assert res == "hello"
 
 
 @pytest.mark.parametrize("exec_mode", EXEC_MODE)
 def test_datatype_imm(exec_mode):
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class TestDataTypeImm:
         @R.function
         def main():
@@ -326,16 +326,16 @@ def test_datatype_imm(exec_mode):
             return ret
 
     mod = TestDataTypeImm
-    target = gsmDataGen.target.Target("llvm", host="llvm")
+    target = gsm_data_generator.target.Target("llvm", host="llvm")
     ex = codegen(mod, target, exec_mode)
-    vm = relax.VirtualMachine(ex, gsmDataGen.cpu())
+    vm = relax.VirtualMachine(ex, gsm_data_generator.cpu())
     res = vm["main"]()
     assert res == "float32"
 
 
 @pytest.mark.parametrize("exec_mode", EXEC_MODE)
 def test_vm_builtin_reshape(exec_mode):
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class TestVMBuiltinReshape:
         @R.function(pure=False)
         def main(x: R.Tensor((3, 4), "float32")):
@@ -346,16 +346,16 @@ def test_vm_builtin_reshape(exec_mode):
             return y
 
     mod = TestVMBuiltinReshape
-    target = gsmDataGen.target.Target("llvm", host="llvm")
+    target = gsm_data_generator.target.Target("llvm", host="llvm")
     ex = codegen(mod, target, exec_mode)
-    dev = gsmDataGen.cpu()
+    dev = gsm_data_generator.cpu()
     vm = relax.VirtualMachine(ex, dev)
 
     input_np = np.random.rand(3, 4).astype("float32")
-    input = gsmDataGen.nd.array(input_np, dev)
+    input = gsm_data_generator.nd.array(input_np, dev)
     res = vm["main"](input)
     expected = input_np.reshape(6, 2)
-    gsmDataGen.testing.assert_allclose(res.numpy(), expected, rtol=1e-7, atol=1e-7)
+    gsm_data_generator.testing.assert_allclose(res.numpy(), expected, rtol=1e-7, atol=1e-7)
 
 
 @pytest.mark.parametrize("exec_mode", EXEC_MODE)
@@ -412,13 +412,13 @@ def test_vm_kill_object(exec_mode):
             return z
 
     mod = TestKillObject
-    target = gsmDataGen.target.Target("llvm", host="llvm")
+    target = gsm_data_generator.target.Target("llvm", host="llvm")
     ex = codegen(mod, target, exec_mode)
-    dev = gsmDataGen.cpu()
+    dev = gsm_data_generator.cpu()
     vm = relax.VirtualMachine(ex, dev)
 
     res = vm["main"]()
-    gsmDataGen.testing.assert_allclose(res.numpy(), np.ones((4,), "float32"))
+    gsm_data_generator.testing.assert_allclose(res.numpy(), np.ones((4,), "float32"))
 
 
 @pytest.mark.parametrize("exec_mode", EXEC_MODE)
@@ -458,9 +458,9 @@ def test_preserve_trivial_bindings(exec_mode):
                 alloc_alias_after,
             )
 
-    target = gsmDataGen.target.Target("llvm", host="llvm")
+    target = gsm_data_generator.target.Target("llvm", host="llvm")
     ex = codegen(mod, target, exec_mode)
-    dev = gsmDataGen.cpu()
+    dev = gsm_data_generator.cpu()
     vm = relax.VirtualMachine(ex, dev)
 
     result_list = vm["main"]()
@@ -488,4 +488,4 @@ def test_preserve_trivial_bindings(exec_mode):
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

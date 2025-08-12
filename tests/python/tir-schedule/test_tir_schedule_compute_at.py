@@ -16,11 +16,11 @@
 # under the License.
 # pylint: disable=missing-function-docstring,missing-module-docstring
 import pytest
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import te, tir
-from gsmDataGen.script import tir as T
-from gsmDataGen.tir.schedule.testing import (
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import te, tir
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.tir.schedule.testing import (
     verify_trace_roundtrip,
     assert_structural_equal_ignore_global_symbol,
 )
@@ -1097,7 +1097,7 @@ def static_bound_after_compute_at(A: T.Buffer((32, 1), "float32"), C: T.Buffer((
 # pylint: enable=no-member,invalid-name,unused-variable,line-too-long,redefined-outer-name,unexpected-keyword-arg,too-many-nested-blocks
 # fmt: on
 
-use_block_name = gsmDataGen.testing.parameter(by_dict={"block_obj": False, "block_name": True})
+use_block_name = gsm_data_generator.testing.parameter(by_dict={"block_obj": False, "block_name": True})
 
 
 def test_compute_at_two_elementwise(use_block_name):
@@ -1354,7 +1354,7 @@ def test_compute_at_simplify_static_bound(use_block_name):
 
 
 def test_compute_at_simplify_symbolic_predicate():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Before:
         @T.prim_func
         def main(x: T.handle, y: T.handle, n: T.int64):
@@ -1365,7 +1365,7 @@ def test_compute_at_simplify_symbolic_predicate():
                     vi, vk = T.axis.remap("SS", [i, k])
                     Y[vi, vk] = X[vi, vk]
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class After:
         @T.prim_func
         def main(x: T.handle, y: T.handle, n: T.int64):
@@ -1391,7 +1391,7 @@ def test_compute_at_simplify_symbolic_predicate():
     ko, ki = sch.split(k, [None, 32])
     XX = sch.cache_read(block, 0, "global")
     sch.compute_at(XX, ko)
-    gsmDataGen.ir.assert_structural_equal(sch.mod, After)
+    gsm_data_generator.ir.assert_structural_equal(sch.mod, After)
 
 
 def test_compute_at_non_perfect_channel_group(use_block_name):
@@ -1438,7 +1438,7 @@ def test_fail_subtree_complete_block(use_block_name):
     sch = tir.Schedule(fail_subtree_compact_dataflow, debug_mask="all")
     block = sch.get_block("B_0")
     loop, _ = sch.get_loops(sch.get_block("C"))
-    with pytest.raises(gsmDataGen.tir.ScheduleError, match="complete block"):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError, match="complete block"):
         sch.compute_at(block, loop)
 
 
@@ -1446,7 +1446,7 @@ def test_fail_not_in_same_scope(use_block_name):
     sch = tir.Schedule(blockized_1, debug_mask="all")
     block = "B" if use_block_name else sch.get_block("B")
     loop, _ = sch.get_loops(sch.get_block("C_inner"))
-    with pytest.raises(gsmDataGen.tir.ScheduleError, match="same block scope"):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError, match="same block scope"):
         sch.compute_at(block, loop)
 
 
@@ -1454,7 +1454,7 @@ def test_fail_loop_is_ancestor_of_block(use_block_name):
     sch = tir.Schedule(two_elementwise, debug_mask="all")
     block = "B" if use_block_name else sch.get_block("B")
     loop, _ = sch.get_loops(sch.get_block("B"))
-    with pytest.raises(gsmDataGen.tir.ScheduleError, match="ancestor of block"):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError, match="ancestor of block"):
         sch.compute_at(block, loop)
 
 
@@ -1462,7 +1462,7 @@ def test_fail_output_block(use_block_name):
     sch = tir.Schedule(tiled, debug_mask="all")
     block = "C" if use_block_name else sch.get_block("C")
     loop, _, _, _ = sch.get_loops(sch.get_block("B"))
-    with pytest.raises(gsmDataGen.tir.ScheduleError, match="output block"):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError, match="output block"):
         sch.compute_at(block, loop)
 
 
@@ -1470,7 +1470,7 @@ def test_fail_all_consumers_under_loop(use_block_name):
     sch = tir.Schedule(fail_all_consumers_under_loop, debug_mask="all")
     block = "B" if use_block_name else sch.get_block("B")
     loop, _ = sch.get_loops(sch.get_block("C"))
-    with pytest.raises(gsmDataGen.tir.ScheduleError, match="requires all the consumer"):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError, match="requires all the consumer"):
         sch.compute_at(block, loop)
 
 
@@ -1478,7 +1478,7 @@ def test_fail_all_producers_under_loop(use_block_name):
     sch = tir.Schedule(fail_all_producers_under_loop, debug_mask="all")
     block = "D" if use_block_name else sch.get_block("D")
     loop, _ = sch.get_loops(sch.get_block("C"))
-    with pytest.raises(gsmDataGen.tir.ScheduleError, match="requires all the producer"):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError, match="requires all the producer"):
         sch.reverse_compute_at(block, loop)
 
 
@@ -1910,7 +1910,7 @@ def test_shape_var_as_bound():
     block = sch.get_block("NT_matmul")
     loop, _, _ = sch.get_loops(sch.get_block("NT_matmul_rf"))
     sch.reverse_compute_at(block, loop, preserve_unit_loops=True)
-    gsmDataGen.ir.assert_structural_equal(
+    gsm_data_generator.ir.assert_structural_equal(
         sch.mod["main"], expected.with_attr("global_symbol", "main"), True
     )
 
@@ -1990,4 +1990,4 @@ def test_compute_at_sliced_concatenate():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

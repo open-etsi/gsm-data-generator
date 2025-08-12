@@ -15,10 +15,10 @@
 # specific language governing permissions and limitations
 # under the License.
 # pylint: disable=invalid-name,missing-docstring
-import gsmDataGen
-from gsmDataGen.relax.frontend import nn
-from gsmDataGen.script import ir as I
-from gsmDataGen.script import relax as R
+import gsm_data_generator
+from gsm_data_generator.relax.frontend import nn
+from gsm_data_generator.script import ir as I
+from gsm_data_generator.script import relax as R
 
 
 def _iter_binding_names(mod):
@@ -76,11 +76,11 @@ def test_nn_export_to_relax():
             }
         }
     )
-    gsmDataGen.ir.assert_structural_equal(mod, ExpectedModule)
+    gsm_data_generator.ir.assert_structural_equal(mod, ExpectedModule)
 
     for name, expected_name in zip(_iter_binding_names(mod), _iter_binding_names(ExpectedModule)):
         assert name == expected_name
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

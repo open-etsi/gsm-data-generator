@@ -16,12 +16,12 @@
 # under the License.
 from typing import Callable
 import pytest
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import relax, tir
-from gsmDataGen import TVMError
-from gsmDataGen.ir import Op, VDevice
-from gsmDataGen.script import relax as R
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import relax, tir
+from gsm_data_generator import TVMError
+from gsm_data_generator.ir import Op, VDevice
+from gsm_data_generator.script import relax as R
 
 
 def test_op_correctness():
@@ -58,10 +58,10 @@ def test_op_correctness():
 
 def _check_inference(bb: relax.BlockBuilder, call: relax.Call, expected_sinfo: relax.StructInfo):
     ret = bb.normalize(call)
-    gsmDataGen.ir.assert_structural_equal(ret.struct_info, expected_sinfo)
+    gsm_data_generator.ir.assert_structural_equal(ret.struct_info, expected_sinfo)
 
 
-(binary_arith_op, tir_arith_op) = gsmDataGen.testing.parameters(
+(binary_arith_op, tir_arith_op) = gsm_data_generator.testing.parameters(
     (relax.op.add, tir.Add),
     (relax.op.divide, tir.Div),
     (relax.op.floor_divide, tir.FloorDiv),
@@ -151,7 +151,7 @@ def test_infer_struct_info_binary_arith_known_prim_value_with_prim_value(
     _check_inference(bb, binary_arith_op(y, x), relax.PrimStructInfo(value=tir_y + tir_x))
 
 
-(binary_cmp_op, tir_cmp_op) = gsmDataGen.testing.parameters(
+(binary_cmp_op, tir_cmp_op) = gsm_data_generator.testing.parameters(
     (relax.op.equal, tir.EQ),
     (relax.op.greater, tir.GT),
     (relax.op.greater_equal, tir.GE),
@@ -320,4 +320,4 @@ def test_binary_infer_struct_info_wrong_input_type(binary_arith_op: Callable):
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

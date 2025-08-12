@@ -16,12 +16,12 @@
 # under the License.
 # pylint: disable=missing-function-docstring,missing-module-docstring
 import pytest
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import te, tir
-from gsmDataGen.script import tir as T
-from gsmDataGen.tir.expr import IntImm
-from gsmDataGen.tir.schedule.testing import (
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import te, tir
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.tir.expr import IntImm
+from gsm_data_generator.tir.schedule.testing import (
     assert_structural_equal_ignore_global_symbol,
     verify_trace_roundtrip,
 )
@@ -416,7 +416,7 @@ def test_partition_fail_symbolic():
     sch = tir.Schedule(elementwise_symbolic, debug_mask="all")
     block_b = sch.get_block("B")
     _, _, k = sch.get_loops(block_b)
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         sch.loop_partition(k, factors=[10, None])
 
 
@@ -424,7 +424,7 @@ def test_partition_fail_out_of_bound():
     sch = tir.Schedule(elementwise, debug_mask="all")
     block_b = sch.get_block("B")
     i, j, k = sch.get_loops(block_b)
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         sch.loop_partition(i, factors=[1000, 2, 3])
 
 
@@ -432,11 +432,11 @@ def test_partition_with_non_positive_factors():
     sch = tir.Schedule(elementwise, debug_mask="all")
     block_b = sch.get_block("B")
     i, j, k = sch.get_loops(block_b)
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         sch.loop_partition(i, factors=[-2, -64])
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         sch.loop_partition(j, factors=[0, None])
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         sch.loop_partition(k, factors=[None, -16])
 
 
@@ -444,7 +444,7 @@ def test_partition_fail_with_annotation():
     sch = tir.Schedule(elementwise_with_anno, debug_mask="all")
     block_b = sch.get_block("B")
     _, j, k = sch.get_loops(block_b)
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         sch.loop_partition(k, factors=[None, 10])
 
 
@@ -452,9 +452,9 @@ def test_partition_fail_with_thread_binding():
     sch = tir.Schedule(elementwise_with_thread_binding, debug_mask="all")
     block_b = sch.get_block("B")
     _, j, k = sch.get_loops(block_b)
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         sch.loop_partition(k, factors=[None, 10])
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

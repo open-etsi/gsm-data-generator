@@ -17,19 +17,19 @@
 # pylint: disable=missing-module-docstring,missing-function-docstring,missing-class-docstring
 import pytest
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import meta_schedule as ms
-from gsmDataGen.ir.base import assert_structural_equal
-from gsmDataGen.meta_schedule.testing.space_generation import generate_design_space
-from gsmDataGen.script import tir as T
-from gsmDataGen.target import Target
-from gsmDataGen.tir import Schedule
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import meta_schedule as ms
+from gsm_data_generator.ir.base import assert_structural_equal
+from gsm_data_generator.meta_schedule.testing.space_generation import generate_design_space
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.target import Target
+from gsm_data_generator.tir import Schedule
 
 # fmt: off
 # pylint: disable=no-member,invalid-name,unused-variable,no-self-argument,line-too-long,chained-comparison,not-callable,too-many-nested-blocks
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Conv2DBiasBnReLU:
     @T.prim_func
     def main(var_X: T.handle, var_W: T.handle, var_B: T.handle, var_bn_scale: T.handle, var_bn_offset: T.handle, var_compute: T.handle) -> None:
@@ -72,7 +72,7 @@ class Conv2DBiasBnReLU:
                 compute[i0_2, i1_2, i2_2, i3_2] = T.max(bn_add[i0_2, i1_2, i2_2, i3_2], T.float32(0))
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Conv2DBiasBnReLUInlined:
     @T.prim_func
     def main(var_X: T.handle, var_W: T.handle, var_B: T.handle, var_bn_scale: T.handle, var_bn_offset: T.handle, var_compute: T.handle) -> None:
@@ -100,7 +100,7 @@ class Conv2DBiasBnReLUInlined:
                 compute[i0_2, i1_2, i2_2, i3_2] = T.max((compute_1[i0_2, i1_2, i2_2, i3_2] + B[i1_2, 0, 0]) * bn_scale[i1_2, 0, 0] + bn_offset[i1_2, 0, 0], T.float32(0))
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class MultiLevelTiledConv2D:
     @T.prim_func
     def main(var_X: T.handle, var_W: T.handle, var_B: T.handle, var_bn_scale: T.handle, var_bn_offset: T.handle, var_compute: T.handle) -> None:
@@ -163,7 +163,7 @@ class MultiLevelTiledConv2D:
                 compute[i0_2, i1_2, i2_2, i3_2] = T.max((compute_1[i0_2, i1_2, i2_2, i3_2] + B[i1_2, 0, 0]) * bn_scale[i1_2, 0, 0] + bn_offset[i1_2, 0, 0], T.float32(0))
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class MultiLevelTiledConv2DAfterInline:
     @T.prim_func
     def main(X: T.Buffer((1, 512, 56, 56), "float32"), W: T.Buffer((512, 512, 3, 3), "float32"), B: T.Buffer((512, 1, 1), "float32"), bn_scale: T.Buffer((512, 1, 1), "float32"), bn_offset: T.Buffer((512, 1, 1), "float32"), compute: T.Buffer((1, 512, 56, 56), "float32")) -> None:
@@ -191,7 +191,7 @@ class MultiLevelTiledConv2DAfterInline:
                             compute[v0, v1, v2, v3] = T.max((compute_local[v0, v1, v2, v3] + B[v1, 0, 0]) * bn_scale[v1, 0, 0] + bn_offset[v1, 0, 0], T.float32(0))
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class SoftmaxBeforeInline:
     @T.prim_func
     def main(A: T.Buffer((256, 256), "float32"), T_softmax_norm: T.Buffer((256, 256), "float32")) -> None:
@@ -220,7 +220,7 @@ class SoftmaxBeforeInline:
                 T_softmax_norm[i0_6, i1_2] = T_softmax_exp[i0_6, i1_2] / T_softmax_expsum[i0_6]
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class SoftmaxAfterInline:
     @T.prim_func
     def main(A: T.Buffer((256, 256), "float32"), T_softmax_norm: T.Buffer((256, 256), "float32")) -> None:
@@ -244,7 +244,7 @@ class SoftmaxAfterInline:
                 T_softmax_norm[i0_4, i1_1] = T.exp(A[i0_4, i1_1] - T_softmax_maxelem[i0_4], dtype="float32") / T_softmax_expsum[i0_4]
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class BeforePureSpatial:
     @T.prim_func
     def main(
@@ -309,7 +309,7 @@ class BeforePureSpatial:
                 T_add[ax0, ax1, ax2] = T_take[ax0, ax1, ax2] + placeholder_2[ax0, ax1, ax2]
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class AfterPureSpatial:
     @T.prim_func
     def main(placeholder: T.Buffer((1, 384), "int64"), placeholder_1: T.Buffer((30522, 768), "float32"), placeholder_2: T.Buffer((1, 384, 768), "float32"), T_add: T.Buffer((1, 384, 768), "float32")) -> None:
@@ -324,7 +324,7 @@ class AfterPureSpatial:
                 T.writes(T_add[ax0, ax1, ax2])
                 T_add[ax0, ax1, ax2] = placeholder_1[T.min(T.max(T.int64(0), T.Select(T.cast(placeholder[ax0, ax1] < T.int64(0), "int32") != 0, placeholder[ax0, ax1] + T.int64(30522), placeholder[ax0, ax1])), T.int64(30521)), ax2] + placeholder_2[ax0, ax1, ax2]
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class ConstConsumer:
     @T.prim_func
     def main(T_full: T.Buffer((1, 12, 4096), "int64")) -> None:
@@ -340,7 +340,7 @@ class ConstConsumer:
                 T_full[ax0, ax1, ax2] = T.int64(0)
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Conv2dInt8:
     @T.prim_func
     def main(p0: T.Buffer((16, 14, 14, 256), "int8"), p1: T.Buffer((1024, 1, 1, 256), "int8"), p2: T.Buffer((1, 1, 1, 1024), "int32"), p3: T.Buffer((1, 1, 1, 1024), "int32"), p4: T.Buffer(1024, "int32"), p5: T.Buffer(1024, "int32"), p6: T.Buffer(1024, "int32"), p7: T.Buffer(1, "int32"), p8: T.Buffer((16, 14, 14, 1024), "int32"), compute: T.Buffer((16, 14, 14, 1024), "int32")) -> None:
@@ -447,7 +447,7 @@ def test_inline_consumer_chain():
         target=target,
         types=ms.schedule_rule.AutoInline,
     )
-    gsmDataGen.ir.assert_structural_equal(lhs=space.mod, rhs=Conv2DBiasBnReLUInlined)
+    gsm_data_generator.ir.assert_structural_equal(lhs=space.mod, rhs=Conv2DBiasBnReLUInlined)
 
 
 def test_inline_into_cache():
@@ -459,7 +459,7 @@ def test_inline_into_cache():
         target=target,
         types=ms.schedule_rule.AutoInline,
     )
-    gsmDataGen.ir.assert_structural_equal(lhs=space.mod, rhs=MultiLevelTiledConv2DAfterInline)
+    gsm_data_generator.ir.assert_structural_equal(lhs=space.mod, rhs=MultiLevelTiledConv2DAfterInline)
 
 
 def test_inline_into_multiple_consumers():
@@ -471,7 +471,7 @@ def test_inline_into_multiple_consumers():
         target=target,
         types=ms.schedule_rule.AutoInline,
     )
-    gsmDataGen.ir.assert_structural_equal(lhs=space.mod, rhs=SoftmaxAfterInline)
+    gsm_data_generator.ir.assert_structural_equal(lhs=space.mod, rhs=SoftmaxAfterInline)
 
 
 def test_inline_pure_spatial():
@@ -483,7 +483,7 @@ def test_inline_pure_spatial():
         target=target,
         types=ms.schedule_rule.AutoInline,
     )
-    gsmDataGen.ir.assert_structural_equal(lhs=space.mod, rhs=AfterPureSpatial)
+    gsm_data_generator.ir.assert_structural_equal(lhs=space.mod, rhs=AfterPureSpatial)
 
 
 def test_inline_constant_tensor():
@@ -495,7 +495,7 @@ def test_inline_constant_tensor():
         target=target,
         types=ms.schedule_rule.AutoInline,
     )
-    gsmDataGen.ir.assert_structural_equal(lhs=space.mod, rhs=ConstConsumer)
+    gsm_data_generator.ir.assert_structural_equal(lhs=space.mod, rhs=ConstConsumer)
 
 
 def test_conv2d_int8_inline_constant_scalars():
@@ -504,7 +504,7 @@ def test_conv2d_int8_inline_constant_scalars():
     conv2d = sch.get_block("conv2d_nhwc")
     sch.cache_write(conv2d, 0, "shared")
 
-    with pytest.raises(gsmDataGen.tir.ScheduleError) as e:
+    with pytest.raises(gsm_data_generator.tir.ScheduleError) as e:
         sch.reverse_compute_inline(sch.get_block("T_add_1"))
 
     err_msg = "The block is only allowed to read a single buffer region, but it reads 2 region(s)"
@@ -517,7 +517,7 @@ def test_conv2d_int8_inline_constant_scalars():
 def test_inline_constant_scalars_skip_output_block():
     # If the constant scalar block is an output block, it should not be inlined
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Full:
         @T.prim_func
         def main(T_full: T.Buffer((), "float32")):
@@ -533,4 +533,4 @@ def test_inline_constant_scalars_skip_output_block():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

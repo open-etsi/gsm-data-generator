@@ -19,14 +19,14 @@
 import tempfile
 import pytest
 
-from gsmDataGen import meta_schedule as ms
-from gsmDataGen.meta_schedule.testing.local_rpc import LocalRPC
-from gsmDataGen.script import ir as I
-from gsmDataGen.script import tir as T
-from gsmDataGen.script import relax as R
+from gsm_data_generator import meta_schedule as ms
+from gsm_data_generator.meta_schedule.testing.local_rpc import LocalRPC
+from gsm_data_generator.script import ir as I
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.script import relax as R
 
 
-from gsmDataGen.dlight.benchmark import (
+from gsm_data_generator.dlight.benchmark import (
     benchmark,
     benchmark_prim_func,
     benchmark_relax_func,
@@ -34,7 +34,7 @@ from gsmDataGen.dlight.benchmark import (
     extract_from_relax,
     extract_func_info_from_prim_func,
 )
-import gsmDataGen.testing
+import gsm_data_generator.testing
 
 # The test function uses an undefined symbolic var in Relax.
 # In principle, this should be attached to an argument.
@@ -221,7 +221,7 @@ def test_benchmark_prim_func_local():
 
 @pytest.mark.skip("requires CUDA")
 def test_benchmark_prim_func_full_local():
-    with gsmDataGen.target.Target("nvidia/geforce-rtx-3070"):
+    with gsm_data_generator.target.Target("nvidia/geforce-rtx-3070"):
         benchmark_prim_func(
             cuda_workload,
         )
@@ -251,7 +251,7 @@ def test_benchmark_prim_func_full_rpc():
 
 
 def test_benchmark_relax_func():
-    with gsmDataGen.target.Target("llvm -num-cores=4"):
+    with gsm_data_generator.target.Target("llvm -num-cores=4"):
         benchmark_relax_func(Module, "test")
 
 
@@ -286,7 +286,7 @@ def test_extract_prim_func_matmul1():
 
 
 def test_extract_from_relax():
-    with gsmDataGen.target.Target("llvm -num-cores=4"):
+    with gsm_data_generator.target.Target("llvm -num-cores=4"):
         with tempfile.TemporaryDirectory() as filepath:
             extract_from_relax(
                 Module,
@@ -315,4 +315,4 @@ def test_extract_func_info_from_prim_func():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

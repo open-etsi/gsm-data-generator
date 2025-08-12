@@ -17,21 +17,21 @@
 
 import tempfile
 
-import gsmDataGen
-import gsmDataGen.testing
-import gsmDataGen.meta_schedule as ms
-from gsmDataGen import relax
-from gsmDataGen.ir import transform
-from gsmDataGen.ir.module import IRModule
-from gsmDataGen.ir.transform import PassContext
+import gsm_data_generator
+import gsm_data_generator.testing
+import gsm_data_generator.meta_schedule as ms
+from gsm_data_generator import relax
+from gsm_data_generator.ir import transform
+from gsm_data_generator.ir.module import IRModule
+from gsm_data_generator.ir.transform import PassContext
 
-from gsmDataGen.script import relax as R
-from gsmDataGen.script import tir as T
+from gsm_data_generator.script import relax as R
+from gsm_data_generator.script import tir as T
 
-target = gsmDataGen.target.Target("llvm --num-cores=16")
+target = gsm_data_generator.target.Target("llvm --num-cores=16")
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class InputModule:
     @T.prim_func
     def tir_matmul(x: T.handle, y: T.handle, z: T.handle) -> None:
@@ -98,7 +98,7 @@ def test_ms_tuning_irmodule():
             application_pass = relax.transform.MetaScheduleApplyDatabase(work_dir)
 
             out_mod = application_pass(mod)
-            assert not gsmDataGen.ir.structural_equal(mod, out_mod)
+            assert not gsm_data_generator.ir.structural_equal(mod, out_mod)
 
 
 def test_ms_tuning_primfunc():
@@ -125,7 +125,7 @@ def test_ms_tuning_primfunc():
 
             application_pass = relax.transform.MetaScheduleApplyDatabase(work_dir)
             out_mod = application_pass(mod)
-            assert not gsmDataGen.ir.structural_equal(mod, out_mod)
+            assert not gsm_data_generator.ir.structural_equal(mod, out_mod)
 
     with tempfile.TemporaryDirectory() as work_dir:
         with target, PassContext(opt_level=0):
@@ -148,7 +148,7 @@ def test_ms_tuning_primfunc():
                 assert rec.workload.mod["main"].attrs["global_symbol"] == "tir_matmul"
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class DefaultScheduledModule:
     @T.prim_func
     def tir_matmul(
@@ -205,7 +205,7 @@ class DefaultScheduledModule:
 
 def test_ms_database_apply_fallback():
     mod = InputModule
-    target_cuda = gsmDataGen.target.Target("nvidia/geforce-rtx-3090-ti")
+    target_cuda = gsm_data_generator.target.Target("nvidia/geforce-rtx-3090-ti")
     assert isinstance(mod, IRModule)
     with tempfile.TemporaryDirectory() as work_dir:
         """
@@ -221,10 +221,10 @@ def test_ms_database_apply_fallback():
                 work_dir=work_dir, max_trials_global=0
             )
             out_mod = tuning_pass(mod)
-            default_pass = gsmDataGen.tir.transform.DefaultGPUSchedule()
+            default_pass = gsm_data_generator.tir.transform.DefaultGPUSchedule()
             out_mod = default_pass(mod)
-            gsmDataGen.ir.assert_structural_equal(out_mod, DefaultScheduledModule)
+            gsm_data_generator.ir.assert_structural_equal(out_mod, DefaultScheduledModule)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

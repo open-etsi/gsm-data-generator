@@ -15,12 +15,12 @@
 # specific language governing permissions and limitations
 # under the License.
 import json
-import gsmDataGen
-from gsmDataGen import te
-from gsmDataGen import te
+import gsm_data_generator
+from gsm_data_generator import te
+from gsm_data_generator import te
 
 
-@gsmDataGen.te.tag_scope(tag="conv")
+@gsm_data_generator.te.tag_scope(tag="conv")
 def compute_conv(data, weight):
     N, IC, H, W = data.shape
     OC, IC, KH, KW = weight.shape
@@ -46,7 +46,7 @@ def test_with():
 
     A = te.placeholder((n, l), name="A")
     B = te.placeholder((m, l), name="B")
-    with gsmDataGen.te.tag_scope(tag="gemm"):
+    with gsm_data_generator.te.tag_scope(tag="gemm"):
         k = te.reduce_axis((0, l), name="k")
         C = te.compute(
             (n, m),
@@ -58,7 +58,7 @@ def test_with():
     assert "hello" in C.op.attrs
     assert "xx" not in C.op.attrs
     assert C.op.attrs["hello"] == 1
-    CC = gsmDataGen.ir.load_json(gsmDataGen.ir.save_json(C))
+    CC = gsm_data_generator.ir.load_json(gsm_data_generator.ir.save_json(C))
     assert CC.op.attrs["hello"] == 1
     assert len(CC.op.attrs["arr"]) == 2
     assert CC.op.attrs["arr"][0] == 10

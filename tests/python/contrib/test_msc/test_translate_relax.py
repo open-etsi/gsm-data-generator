@@ -22,13 +22,13 @@ from torch.nn import Module
 
 import numpy as np
 
-import gsmDataGen.testing
-from gsmDataGen.contrib.msc.framework.torch.frontend import translate as torch_translate
+import gsm_data_generator.testing
+from gsm_data_generator.contrib.msc.framework.torch.frontend import translate as torch_translate
 
-from gsmDataGen.contrib.msc.framework.tvm import codegen as tvm_codegen
-from gsmDataGen.contrib.msc.core.frontend import translate as core_translate
-from gsmDataGen.contrib.msc.core.utils.namespace import MSCFramework
-from gsmDataGen.contrib.msc.core import utils as msc_utils
+from gsm_data_generator.contrib.msc.framework.tvm import codegen as tvm_codegen
+from gsm_data_generator.contrib.msc.core.frontend import translate as core_translate
+from gsm_data_generator.contrib.msc.core.utils.namespace import MSCFramework
+from gsm_data_generator.contrib.msc.core import utils as msc_utils
 
 
 def verify_model(torch_model, input_info, opt_config=None):
@@ -36,15 +36,15 @@ def verify_model(torch_model, input_info, opt_config=None):
 
     orig_mod, _ = torch_translate.from_torch(torch_model, input_info, as_msc=False)
     target = "llvm"
-    dev = gsmDataGen.cpu()
+    dev = gsm_data_generator.cpu()
     args = [msc_utils.random_data(i, MSCFramework.TVM) for i in input_info]
 
     def _tvm_runtime_to_np(obj):
-        if isinstance(obj, gsmDataGen.runtime.NDArray):
+        if isinstance(obj, gsm_data_generator.runtime.NDArray):
             return obj.numpy()
-        elif isinstance(obj, gsmDataGen.runtime.ShapeTuple):
+        elif isinstance(obj, gsm_data_generator.runtime.ShapeTuple):
             return np.array(obj, dtype="int64")
-        elif isinstance(obj, (list, gsmDataGen.ir.container.Array)):
+        elif isinstance(obj, (list, gsm_data_generator.ir.container.Array)):
             return [_tvm_runtime_to_np(item) for item in obj]
         elif isinstance(obj, tuple):
             return tuple(_tvm_runtime_to_np(item) for item in obj)
@@ -52,9 +52,9 @@ def verify_model(torch_model, input_info, opt_config=None):
             return obj
 
     def _run_relax(relax_mod):
-        relax_mod = gsmDataGen.relax.transform.LegalizeOps()(relax_mod)
-        relax_exec = gsmDataGen.compile(relax_mod, target)
-        vm_runner = gsmDataGen.relax.VirtualMachine(relax_exec, dev)
+        relax_mod = gsm_data_generator.relax.transform.LegalizeOps()(relax_mod)
+        relax_exec = gsm_data_generator.compile(relax_mod, target)
+        vm_runner = gsm_data_generator.relax.VirtualMachine(relax_exec, dev)
         res = vm_runner["main"](*args)
         return _tvm_runtime_to_np(res)
 
@@ -70,7 +70,7 @@ def verify_model(torch_model, input_info, opt_config=None):
     if not isinstance(rt_output, (list, tuple)):
         rt_output = [rt_output]
     for o_out, r_out in zip(orig_output, rt_output):
-        gsmDataGen.testing.assert_allclose(o_out, r_out)
+        gsm_data_generator.testing.assert_allclose(o_out, r_out)
 
 
 def test_conv1d():
@@ -1254,4 +1254,4 @@ def test_attention():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

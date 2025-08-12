@@ -14,10 +14,10 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen.tir import floordiv, floormod
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator.tir import floordiv, floormod
+from gsm_data_generator.script import tir as T
 
 
 def ifuse(inputs, pred_extent=None):
@@ -31,8 +31,8 @@ def ifuse(inputs, pred_extent=None):
 
 def isplit(axis, factor):
     """Split iterators"""
-    fld = gsmDataGen.tir.floordiv
-    flm = gsmDataGen.tir.floormod
+    fld = gsm_data_generator.tir.floordiv
+    flm = gsm_data_generator.tir.floormod
     return [
         (fld(axis[0], factor), fld(axis[1] + (factor - 1), factor)),
         (flm(axis[0], factor), factor),
@@ -41,18 +41,18 @@ def isplit(axis, factor):
 
 def var_dom(iters):
     """Get domains of iterators"""
-    return {var: gsmDataGen.ir.Range(0, ext) for var, ext in iters}
+    return {var: gsm_data_generator.ir.Range(0, ext) for var, ext in iters}
 
 
 def convert_iter_expr(expr):
-    return gsmDataGen.arith.normalize_iter_map_to_expr(expr)
+    return gsm_data_generator.arith.normalize_iter_map_to_expr(expr)
 
 
 def assert_iter_sum_pattern(
     expect_dict, dom_map, predicate=True, check_level="surjective", simplify_trivial_iterators=True
 ):
     keys = list(expect_dict.keys())
-    res = gsmDataGen.arith.detect_iter_map(
+    res = gsm_data_generator.arith.detect_iter_map(
         keys,
         dom_map,
         predicate=predicate,
@@ -70,32 +70,32 @@ def assert_iter_sum_pattern(
         scale = spec[2] if len(spec) > 2 else 1
         expect_iter = spec[3] if len(spec) > 3 else None
         sum_expr = indices[i]
-        assert isinstance(sum_expr, gsmDataGen.arith.IterSumExpr)
+        assert isinstance(sum_expr, gsm_data_generator.arith.IterSumExpr)
         if extent == 1:
             assert len(sum_expr.args) == 0
         else:
             assert len(sum_expr.args) == 1
-            gsmDataGen.testing.assert_prim_expr_equal(sum_expr.args[0].extent, extent)
-            gsmDataGen.testing.assert_prim_expr_equal(sum_expr.args[0].scale, scale)
-        gsmDataGen.testing.assert_prim_expr_equal(sum_expr.base, base)
+            gsm_data_generator.testing.assert_prim_expr_equal(sum_expr.args[0].extent, extent)
+            gsm_data_generator.testing.assert_prim_expr_equal(sum_expr.args[0].scale, scale)
+        gsm_data_generator.testing.assert_prim_expr_equal(sum_expr.base, base)
         if expect_iter is not None:
-            if not isinstance(expect_iter, gsmDataGen.arith.IterMapExpr):
+            if not isinstance(expect_iter, gsm_data_generator.arith.IterMapExpr):
                 sum_expr = convert_iter_expr(sum_expr)
-            gsmDataGen.ir.assert_structural_equal(sum_expr, expect_iter)
+            gsm_data_generator.ir.assert_structural_equal(sum_expr, expect_iter)
 
 
 def assert_iter_map_simplify(
     expect_dict, dom_map, predicate=True, check_level="surjective", simplify_trivial_iterators=True
 ):
     keys = list(expect_dict.keys())
-    imap = gsmDataGen.arith.detect_iter_map(
+    imap = gsm_data_generator.arith.detect_iter_map(
         keys,
         dom_map,
         predicate=predicate,
         check_level=check_level,
         simplify_trivial_iterators=simplify_trivial_iterators,
     )
-    res = gsmDataGen.arith.iter_map_simplify(
+    res = gsm_data_generator.arith.iter_map_simplify(
         keys,
         dom_map,
         predicate=predicate,
@@ -104,20 +104,20 @@ def assert_iter_map_simplify(
     )
     for i, input_expr in enumerate(keys):
         expected_expr = expect_dict[input_expr]
-        gsmDataGen.ir.assert_structural_equal(res[i], expected_expr)
+        gsm_data_generator.ir.assert_structural_equal(res[i], expected_expr)
 
 
 def assert_iter_sum_failure(iters, dom_map, predicate=True, check_level="surjective"):
-    res = gsmDataGen.arith.detect_iter_map(
+    res = gsm_data_generator.arith.detect_iter_map(
         list(iters), dom_map, predicate=predicate, check_level=check_level
     ).indices
     assert len(res) == 0
 
 
 def test_trivial():
-    x = gsmDataGen.tir.Var("x", "int32")
-    y = gsmDataGen.tir.Var("y", "int32")
-    z = gsmDataGen.tir.Var("z", "int32")
+    x = gsm_data_generator.tir.Var("x", "int32")
+    y = gsm_data_generator.tir.Var("y", "int32")
+    z = gsm_data_generator.tir.Var("z", "int32")
     dom_map = var_dom([(x, 3), (y, 4), (z, 1)])
 
     assert_iter_sum_pattern({x: (3, 0), y: (4, 0), 3: (1, 3)}, dom_map)
@@ -136,10 +136,10 @@ def test_trivial():
 
 
 def test_fuse():
-    x = gsmDataGen.tir.Var("x", "int32")
-    y = gsmDataGen.tir.Var("y", "int32")
-    c = gsmDataGen.tir.SizeVar("c", "int32")
-    c0 = gsmDataGen.tir.SizeVar("c0", "int32")
+    x = gsm_data_generator.tir.Var("x", "int32")
+    y = gsm_data_generator.tir.Var("y", "int32")
+    c = gsm_data_generator.tir.SizeVar("c", "int32")
+    c0 = gsm_data_generator.tir.SizeVar("c0", "int32")
 
     assert_iter_sum_pattern({y * 3 + 1 + c + x: (12, 1 + c)}, var_dom([(x, 3), (y, 4)]))
 
@@ -165,12 +165,12 @@ def test_fuse():
 
 
 def test_split():
-    x = gsmDataGen.tir.Var("x", "int32")
-    y = gsmDataGen.tir.Var("y", "int32")
-    c0 = gsmDataGen.tir.SizeVar("c0", "int32")
-    c1 = gsmDataGen.tir.SizeVar("c1", "int32")
-    fld = gsmDataGen.tir.floordiv
-    flm = gsmDataGen.tir.floormod
+    x = gsm_data_generator.tir.Var("x", "int32")
+    y = gsm_data_generator.tir.Var("y", "int32")
+    c0 = gsm_data_generator.tir.SizeVar("c0", "int32")
+    c1 = gsm_data_generator.tir.SizeVar("c1", "int32")
+    fld = gsm_data_generator.tir.floordiv
+    flm = gsm_data_generator.tir.floormod
 
     assert_iter_sum_pattern({fld(x, 3): (8, 0), flm(x, 3) * 2 + c1: (3, c1, 2)}, var_dom([(x, 24)]))
 
@@ -201,31 +201,31 @@ def test_split():
 
 
 def test_compound():
-    x = gsmDataGen.tir.Var("x", "int32")
-    y = gsmDataGen.tir.Var("y", "int32")
+    x = gsm_data_generator.tir.Var("x", "int32")
+    y = gsm_data_generator.tir.Var("y", "int32")
 
     xo, xi = isplit((x, 10), 5)
     yo, yi = isplit((y, 9), 3)
     z = ifuse([yo, xo, yi])
 
     # reconstruct the pattern manually
-    mx = gsmDataGen.arith.IterMark(x, 10)
-    my = gsmDataGen.arith.IterMark(y, 9)
+    mx = gsm_data_generator.arith.IterMark(x, 10)
+    my = gsm_data_generator.arith.IterMark(y, 9)
     xoscale = 3
     yoscale = 6
     yiscale = 1
-    mxo = gsmDataGen.arith.IterSplitExpr(mx, 5, 2, xoscale)
-    myo = gsmDataGen.arith.IterSplitExpr(my, 3, 3, yoscale)
-    myi = gsmDataGen.arith.IterSplitExpr(my, 1, 3, yiscale)
-    mz = gsmDataGen.arith.IterMark(gsmDataGen.arith.IterSumExpr([myo, mxo, myi], 0), 18)
-    sz = gsmDataGen.arith.IterSumExpr([gsmDataGen.arith.IterSplitExpr(mz, 1, 18, 1)], 0)
+    mxo = gsm_data_generator.arith.IterSplitExpr(mx, 5, 2, xoscale)
+    myo = gsm_data_generator.arith.IterSplitExpr(my, 3, 3, yoscale)
+    myi = gsm_data_generator.arith.IterSplitExpr(my, 1, 3, yiscale)
+    mz = gsm_data_generator.arith.IterMark(gsm_data_generator.arith.IterSumExpr([myo, mxo, myi], 0), 18)
+    sz = gsm_data_generator.arith.IterSumExpr([gsm_data_generator.arith.IterSplitExpr(mz, 1, 18, 1)], 0)
     assert_iter_sum_pattern({z[0]: (18, 0, 1, sz), xi[0]: (5, 0)}, var_dom([(x, 10), (y, 9)]))
 
 
 def test_compound_floormod_two_regression():
-    x = gsmDataGen.tir.Var("x", "int32")
-    fld = gsmDataGen.tir.floordiv
-    flm = gsmDataGen.tir.floormod
+    x = gsm_data_generator.tir.Var("x", "int32")
+    fld = gsm_data_generator.tir.floordiv
+    flm = gsm_data_generator.tir.floormod
     # regression
     # extent of 2 of negative scale cannot be normalized
     assert_iter_sum_failure(
@@ -235,9 +235,9 @@ def test_compound_floormod_two_regression():
 
 
 def test_predicate():
-    x = gsmDataGen.tir.Var("x", "int32")
-    y = gsmDataGen.tir.Var("y", "int32")
-    z = gsmDataGen.tir.Var("z", "int32")
+    x = gsm_data_generator.tir.Var("x", "int32")
+    y = gsm_data_generator.tir.Var("y", "int32")
+    z = gsm_data_generator.tir.Var("z", "int32")
 
     # available contraints
     # upper bound only
@@ -262,29 +262,29 @@ def test_predicate():
     assert_iter_sum_pattern(
         {x * 10 + y: (122, 6)},
         var_dom([(x, 13), (y, 10)]),
-        predicate=gsmDataGen.tir.And(x * 10 + y > 5, x * 10 + y < 128),
+        predicate=gsm_data_generator.tir.And(x * 10 + y > 5, x * 10 + y < 128),
     )
 
     assert_iter_sum_pattern(
         {x * 10 + y: (122, 6)},
         var_dom([(x, 13), (y, 10)]),
-        predicate=gsmDataGen.tir.And(x * 10 + y >= 6, x * 10 + y <= 127),
+        predicate=gsm_data_generator.tir.And(x * 10 + y >= 6, x * 10 + y <= 127),
     )
 
     assert_iter_sum_pattern(
         {x * 64 + y * 4 + z: (16, 16)},
         var_dom([(x, 16), (y, 16), (z, 4)]),
-        predicate=gsmDataGen.tir.And(x * 64 + y * 4 + z < 32, 4 <= x * 16 + y),
+        predicate=gsm_data_generator.tir.And(x * 64 + y * 4 + z < 32, 4 <= x * 16 + y),
     )
 
     # constraint on one fused iter
-    i = gsmDataGen.tir.Var("i", "int32")
-    j = gsmDataGen.tir.Var("j", "int32")
-    k = gsmDataGen.tir.Var("k", "int32")
+    i = gsm_data_generator.tir.Var("i", "int32")
+    j = gsm_data_generator.tir.Var("j", "int32")
+    k = gsm_data_generator.tir.Var("k", "int32")
     assert_iter_sum_pattern(
         {i * 8 + j * 2 + k: (88, 1)},
         var_dom([(i, 11), (j, 5), (k, 2)]),
-        predicate=gsmDataGen.tir.all(1 <= j * 2 + k, j * 2 + k < 9),
+        predicate=gsm_data_generator.tir.all(1 <= j * 2 + k, j * 2 + k < 9),
     )
 
     # constraint on single var
@@ -294,7 +294,7 @@ def test_predicate():
     assert_iter_sum_failure(
         [i, j, k],
         var_dom([(i, 128), (j, 128), (k, 128)]),
-        predicate=gsmDataGen.tir.all(i * 16384 + j * 128 + k < 100),
+        predicate=gsm_data_generator.tir.all(i * 16384 + j * 128 + k < 100),
     )
 
     # iterations are subparts of constraint, invalid case 2
@@ -311,7 +311,7 @@ def test_predicate():
     assert_iter_sum_pattern(
         {i * 8 + j * 2 + k: (22, 3)},
         var_dom([(i, 11), (j, 5), (k, 2)]),
-        predicate=gsmDataGen.tir.all(
+        predicate=gsm_data_generator.tir.all(
             1 <= j * 2 + k, j * 2 + k < 9, 3 <= i * 8 + j * 2 + k, i * 8 + j * 2 + k < 25
         ),
     )
@@ -320,14 +320,14 @@ def test_predicate():
     assert_iter_sum_pattern(
         {i * 6 + j * 2 + k: (66, 2)},
         var_dom([(i, 11), (j, 5), (k, 2)]),
-        predicate=gsmDataGen.tir.all(1 <= j * 2 + k, 2 <= j * 2 + k, j * 2 + k < 8, j * 2 + k < 9),
+        predicate=gsm_data_generator.tir.all(1 <= j * 2 + k, 2 <= j * 2 + k, j * 2 + k < 8, j * 2 + k < 9),
     )
 
     # duplicate constraint on nested fused iters
     assert_iter_sum_pattern(
         {i * 6 + j * 2 + k: (15, 3)},
         var_dom([(i, 11), (j, 5), (k, 2)]),
-        predicate=gsmDataGen.tir.all(
+        predicate=gsm_data_generator.tir.all(
             1 <= j * 2 + k,
             2 <= j * 2 + k,
             j * 2 + k < 8,
@@ -343,7 +343,7 @@ def test_predicate():
     assert_iter_sum_failure(
         [i * 8 + j * 2 + k],
         var_dom([(i, 11), (j, 5), (k, 2)]),
-        predicate=gsmDataGen.tir.all(2 <= j * 2 + k, 0 <= i * 4 + j),
+        predicate=gsm_data_generator.tir.all(2 <= j * 2 + k, 0 <= i * 4 + j),
     )
 
     # constraint with differnent lower bound
@@ -355,15 +355,15 @@ def test_predicate():
                 64,
                 0,
                 1,
-                (i * 16 + j) // 23 * 8 + ((i * 16 + j) % 23 + gsmDataGen.tir.IntImm("int32", -15)),
+                (i * 16 + j) // 23 * 8 + ((i * 16 + j) % 23 + gsm_data_generator.tir.IntImm("int32", -15)),
             )
         },
         var_dom([(i, 12), (j, 16)]),
-        predicate=gsmDataGen.tir.And(
-            gsmDataGen.tir.And(
-                i * 16 + j < 184, gsmDataGen.tir.LE(gsmDataGen.tir.IntImm("int32", 8), (i * 16 + j) % 23)
+        predicate=gsm_data_generator.tir.And(
+            gsm_data_generator.tir.And(
+                i * 16 + j < 184, gsm_data_generator.tir.LE(gsm_data_generator.tir.IntImm("int32", 8), (i * 16 + j) % 23)
             ),
-            gsmDataGen.tir.LE(gsmDataGen.tir.IntImm("int32", 15), (i * 16 + j) % 23),
+            gsm_data_generator.tir.LE(gsm_data_generator.tir.IntImm("int32", 15), (i * 16 + j) % 23),
         ),
     )
 
@@ -371,23 +371,23 @@ def test_predicate():
     # i4 * 6 + i5 in [3, 9), extent=6 (= scale of i2)
     # i2 * 30 + i3 * 15 in [30, 90), extent=60 (= scale of i1)
     # i1 * 60 in [60, 240), extent=180 (= scale of i0)
-    i0 = gsmDataGen.tir.Var("i0", "int32")
-    i1 = gsmDataGen.tir.Var("i1", "int32")
-    i2 = gsmDataGen.tir.Var("i2", "int32")
-    i3 = gsmDataGen.tir.Var("i3", "int32")
-    i4 = gsmDataGen.tir.Var("i4", "int32")
-    i5 = gsmDataGen.tir.Var("i5", "int32")
+    i0 = gsm_data_generator.tir.Var("i0", "int32")
+    i1 = gsm_data_generator.tir.Var("i1", "int32")
+    i2 = gsm_data_generator.tir.Var("i2", "int32")
+    i3 = gsm_data_generator.tir.Var("i3", "int32")
+    i4 = gsm_data_generator.tir.Var("i4", "int32")
+    i5 = gsm_data_generator.tir.Var("i5", "int32")
     assert_iter_sum_pattern(
         {i0 * 180 + i1 * 60 + i2 * 30 + i3 * 15 + i4 * 6 + i5: (540, 93)},
         var_dom([(i0, 3), (i1, 4), (i2, 3), (i3, 2), (i4, 3), (i5, 6)]),
-        predicate=gsmDataGen.tir.all(1 <= i1, 2 <= i2 * 2 + i3, 3 <= i4 * 6 + i5),
+        predicate=gsm_data_generator.tir.all(1 <= i1, 2 <= i2 * 2 + i3, 3 <= i4 * 6 + i5),
     )
 
     # constraint on many disjoint fused iters, case 2
     assert_iter_sum_pattern(
         {i0 * 45 + i1 * 45 + i2 * 9 + i3 * 4 + i4: (135, 28)},
         var_dom([(i0, 3), (i1, 2), (i2, 5), (i3, 3), (i4, 4)]),
-        predicate=gsmDataGen.tir.all(
+        predicate=gsm_data_generator.tir.all(
             3 <= i1 * 5 + i2, i1 * 5 + i2 < 8, 1 <= i3 * 4 + i4, i3 * 4 + i4 < 10
         ),
     )
@@ -396,7 +396,7 @@ def test_predicate():
     assert_iter_sum_pattern(
         {i % 16: (7, 3), i // 16: (8, 4)},
         var_dom([(i, 1024)]),
-        predicate=gsmDataGen.tir.all(3 <= i % 16, i % 16 < 10, 4 <= i // 16, i // 16 < 12),
+        predicate=gsm_data_generator.tir.all(3 <= i % 16, i % 16 < 10, 4 <= i // 16, i // 16 < 12),
         check_level="bijective",
     )
 
@@ -404,7 +404,7 @@ def test_predicate():
     assert_iter_sum_pattern(
         {(i * 32 + j) % 16: (7, 3)},
         var_dom([(i, 5), (j, 32)]),
-        predicate=gsmDataGen.tir.all(3 <= (i * 32 + j) % 16, (i * 32 + j) % 16 < 10),
+        predicate=gsm_data_generator.tir.all(3 <= (i * 32 + j) % 16, (i * 32 + j) % 16 < 10),
     )
 
     # constraint on split iters, nested case 2
@@ -413,18 +413,18 @@ def test_predicate():
             (i * 32 + j) % 16,
         ],
         var_dom([(i, 5), (j, 32)]),
-        predicate=gsmDataGen.tir.all(1 <= i * 32 + j, i * 32 + j <= 32),
+        predicate=gsm_data_generator.tir.all(1 <= i * 32 + j, i * 32 + j <= 32),
         check_level="bijective",
     )
     assert_iter_sum_pattern(
         {(i * 32 + j) % 16: (16, 0)},
         var_dom([(i, 5), (j, 32)]),
-        predicate=gsmDataGen.tir.all(1 <= i * 32 + j, i * 32 + j <= 32),
+        predicate=gsm_data_generator.tir.all(1 <= i * 32 + j, i * 32 + j <= 32),
     )
     assert_iter_sum_pattern(
         {(i * 32 + j - 1) % 16: (16, 0), (i * 32 + j - 1) // 16: (4, 0)},
         var_dom([(i, 5), (j, 32)]),
-        predicate=gsmDataGen.tir.all(1 <= i * 32 + j, i * 32 + j <= 64),
+        predicate=gsm_data_generator.tir.all(1 <= i * 32 + j, i * 32 + j <= 64),
     )
 
     # non-standard form of predicate
@@ -436,7 +436,7 @@ def test_predicate():
     assert_iter_sum_pattern(
         {x * 10 + y: (64, 0)},
         var_dom([(x, 13), (y, 10)]),
-        predicate=gsmDataGen.tir.all(x * 10 + y < 128, x * 10 + y < 64),
+        predicate=gsm_data_generator.tir.all(x * 10 + y < 128, x * 10 + y < 64),
     )
 
     # useless constraint
@@ -444,15 +444,15 @@ def test_predicate():
         {x * 10 + y: (130, 0)}, var_dom([(x, 13), (y, 10)]), predicate=x * 10 + y < 140
     )
 
-    i1 = gsmDataGen.tir.Var("i1", "int32")
-    i2 = gsmDataGen.tir.Var("i2", "int32")
-    i3 = gsmDataGen.tir.Var("i3", "int32")
-    i4 = gsmDataGen.tir.Var("i4", "int32")
+    i1 = gsm_data_generator.tir.Var("i1", "int32")
+    i2 = gsm_data_generator.tir.Var("i2", "int32")
+    i3 = gsm_data_generator.tir.Var("i3", "int32")
+    i4 = gsm_data_generator.tir.Var("i4", "int32")
     assert_iter_sum_pattern(
         {i1 * 20 + i2 * 10 + i3 * 3 + i4: (128, 0)},
         var_dom([(i1, 7), (i2, 2), (i3, 4), (i4, 3)]),
         predicate=(
-            gsmDataGen.tir.all(
+            gsm_data_generator.tir.all(
                 i1 * 2 + i2 < 13,
                 i1 * 20 + i2 * 10 + i3 * 3 + i4 < 128,
                 i3 * 3 + i4 < 10,
@@ -465,7 +465,7 @@ def test_predicate():
         [i1 * 20 + i2 * 10 + i3 * 3 + i4],
         var_dom([(i1, 7), (i2, 2), (i3, 4), (i4, 3)]),
         predicate=(
-            gsmDataGen.tir.all(
+            gsm_data_generator.tir.all(
                 i1 * 2 + i2 < 13,
                 i1 * 20 + i2 * 10 + i3 * 3 + i4 < 128,
                 i3 * 3 + i4 < 7,
@@ -478,7 +478,7 @@ def test_predicate():
         [i1 * 20 + i2 * 10 + i3 * 3 + i4],
         var_dom([(i1, 7), (i2, 2), (i3, 4), (i4, 3)]),
         predicate=(
-            gsmDataGen.tir.all(
+            gsm_data_generator.tir.all(
                 i1 * 2 + i2 < 13,
                 i1 * 20 + i2 * 10 + i3 * 3 + i4 < 128,
                 i3 * 3 + i4 < 10,
@@ -490,7 +490,7 @@ def test_predicate():
         [i1 * 20 + i2 * 10 + i3 * 3 + i4],
         var_dom([(i1, 7), (i2, 2), (i3, 4), (i4, 3)]),
         predicate=(
-            gsmDataGen.tir.all(
+            gsm_data_generator.tir.all(
                 i1 * 2 + i2 < 13,
                 i1 * 20 + i2 * 10 + i3 * 3 + i4 < 128,
                 i1 * 4 + i3 < 20,
@@ -499,9 +499,9 @@ def test_predicate():
     )
 
     # zero iter
-    xo = gsmDataGen.tir.Var("xo", "int32")
-    xi = gsmDataGen.tir.Var("xi", "int32")
-    y = gsmDataGen.tir.Var("y", "int32")
+    xo = gsm_data_generator.tir.Var("xo", "int32")
+    xi = gsm_data_generator.tir.Var("xi", "int32")
+    y = gsm_data_generator.tir.Var("y", "int32")
     assert_iter_sum_pattern(
         {xo * 129 + xi: (128, 0), y: (128, 0)},
         var_dom([(xo, 1), (xi, 129), (y, 128)]),
@@ -523,8 +523,8 @@ def convert_division(divisions):
     for division in divisions[:-1]:
         res.append(
             [
-                gsmDataGen.arith.normalize_iter_map_to_expr(division[0].source),
-                gsmDataGen.arith.normalize_iter_map_to_expr(division[1].source),
+                gsm_data_generator.arith.normalize_iter_map_to_expr(division[0].source),
+                gsm_data_generator.arith.normalize_iter_map_to_expr(division[1].source),
             ]
         )
     res.append([divisions[-1][0].extent, divisions[-1][1].extent])
@@ -532,34 +532,34 @@ def convert_division(divisions):
 
 
 def create_iter(name, extent):
-    return gsmDataGen.tir.Var(name, "int32"), extent
+    return gsm_data_generator.tir.Var(name, "int32"), extent
 
 
 def test_subspace_division():
-    x = gsmDataGen.tir.Var("x", "int32")
-    y = gsmDataGen.tir.Var("y", "int32")
-    z = gsmDataGen.tir.Var("z", "int32")
-    c = gsmDataGen.tir.SizeVar("c", "int32")
+    x = gsm_data_generator.tir.Var("x", "int32")
+    y = gsm_data_generator.tir.Var("y", "int32")
+    z = gsm_data_generator.tir.Var("z", "int32")
+    c = gsm_data_generator.tir.SizeVar("c", "int32")
 
     # simple 1.1
-    res = gsmDataGen.arith.subspace_divide(
+    res = gsm_data_generator.arith.subspace_divide(
         [z * 12 + y * 3 + x + c], var_dom([(x, 3), (y, 4), (z, 5)]), [x]
     )
     res = convert_division(res)
     assert len(res) == 2
-    gsmDataGen.ir.assert_structural_equal(res[0][0], z * 4 + y)
-    gsmDataGen.ir.assert_structural_equal(res[0][1], x + c)
+    gsm_data_generator.ir.assert_structural_equal(res[0][0], z * 4 + y)
+    gsm_data_generator.ir.assert_structural_equal(res[0][1], x + c)
 
     # simple 1.2
-    res = gsmDataGen.arith.subspace_divide(
+    res = gsm_data_generator.arith.subspace_divide(
         [z * 12 + y * 3 + x + c], var_dom([(x, 3), (y, 4), (z, 5)]), [x], z * 4 + y < 18
     )
     res = convert_division(res)
     assert len(res) == 2
-    gsmDataGen.ir.assert_structural_equal(res[0][0], z * 4 + y)
-    gsmDataGen.ir.assert_structural_equal(res[0][1], x + c)
-    gsmDataGen.ir.assert_structural_equal(res[1][0], z * 4 + y < 18)
-    gsmDataGen.ir.assert_structural_equal(res[1][1], T.bool(True))
+    gsm_data_generator.ir.assert_structural_equal(res[0][0], z * 4 + y)
+    gsm_data_generator.ir.assert_structural_equal(res[0][1], x + c)
+    gsm_data_generator.ir.assert_structural_equal(res[1][0], z * 4 + y < 18)
+    gsm_data_generator.ir.assert_structural_equal(res[1][1], T.bool(True))
 
     # compound 1
     i0 = create_iter("i0", 4)
@@ -571,76 +571,76 @@ def test_subspace_division():
     k1 = ifuse([i2, i3])
 
     # compound 1.1
-    res = gsmDataGen.arith.subspace_divide([k0[0], k1[0]], var_dom([i0, j0, i3]), [i3[0]])
+    res = gsm_data_generator.arith.subspace_divide([k0[0], k1[0]], var_dom([i0, j0, i3]), [i3[0]])
     res = convert_division(res)
     assert len(res) == 3
-    gsmDataGen.ir.assert_structural_equal(res[0][0], (i0[0] * 2) + floordiv(j0[0], 4))
-    gsmDataGen.ir.assert_structural_equal(res[0][1], T.int32(0))
-    gsmDataGen.ir.assert_structural_equal(res[1][0], floormod(j0[0], 4))
-    gsmDataGen.ir.assert_structural_equal(res[1][1], i3[0])
+    gsm_data_generator.ir.assert_structural_equal(res[0][0], (i0[0] * 2) + floordiv(j0[0], 4))
+    gsm_data_generator.ir.assert_structural_equal(res[0][1], T.int32(0))
+    gsm_data_generator.ir.assert_structural_equal(res[1][0], floormod(j0[0], 4))
+    gsm_data_generator.ir.assert_structural_equal(res[1][1], i3[0])
 
     assert_iter_sum_pattern
-    res1 = gsmDataGen.arith.detect_iter_map([res[0][1], res[1][1]], var_dom([i3])).indices
+    res1 = gsm_data_generator.arith.detect_iter_map([res[0][1], res[1][1]], var_dom([i3])).indices
     assert len(res1) == 2
-    res2 = gsmDataGen.arith.detect_iter_map([res[0][0], res[1][0]], var_dom([i0, j0])).indices
+    res2 = gsm_data_generator.arith.detect_iter_map([res[0][0], res[1][0]], var_dom([i0, j0])).indices
     assert len(res2) == 2
 
     # compound 1.2
-    res = gsmDataGen.arith.subspace_divide([k0[0], k1[0]], var_dom([i0, j0, i3]), [j0[0], i3[0]])
+    res = gsm_data_generator.arith.subspace_divide([k0[0], k1[0]], var_dom([i0, j0, i3]), [j0[0], i3[0]])
     res = convert_division(res)
     assert len(res) == 3
-    gsmDataGen.ir.assert_structural_equal(res[0][0], i0[0])
-    gsmDataGen.ir.assert_structural_equal(res[0][1], floordiv(j0[0], 4))
-    gsmDataGen.ir.assert_structural_equal(res[1][0], T.int32(0))
-    gsmDataGen.ir.assert_structural_equal(res[1][1], (floormod(j0[0], 4) * 2) + i3[0])
+    gsm_data_generator.ir.assert_structural_equal(res[0][0], i0[0])
+    gsm_data_generator.ir.assert_structural_equal(res[0][1], floordiv(j0[0], 4))
+    gsm_data_generator.ir.assert_structural_equal(res[1][0], T.int32(0))
+    gsm_data_generator.ir.assert_structural_equal(res[1][1], (floormod(j0[0], 4) * 2) + i3[0])
 
-    res1 = gsmDataGen.arith.detect_iter_map([res[0][1], res[1][1]], var_dom([j0, i3])).indices
+    res1 = gsm_data_generator.arith.detect_iter_map([res[0][1], res[1][1]], var_dom([j0, i3])).indices
     assert len(res1) == 2
-    res2 = gsmDataGen.arith.detect_iter_map([res[0][0], res[1][0]], var_dom([i0])).indices
+    res2 = gsm_data_generator.arith.detect_iter_map([res[0][0], res[1][0]], var_dom([i0])).indices
     assert len(res2) == 2
 
     # compound 1.3
-    res = gsmDataGen.arith.subspace_divide([k0[0], k1[0]], var_dom([i0, j0, i3]), [i0[0], i3[0]])
+    res = gsm_data_generator.arith.subspace_divide([k0[0], k1[0]], var_dom([i0, j0, i3]), [i0[0], i3[0]])
     res = convert_division(res)
     assert len(res) == 0
 
     # compound 1.4
-    res = gsmDataGen.arith.subspace_divide([k0[0], k1[0]], var_dom([i0, j0, i3]), [i3[0]], k0[0] < 7)
+    res = gsm_data_generator.arith.subspace_divide([k0[0], k1[0]], var_dom([i0, j0, i3]), [i3[0]], k0[0] < 7)
     res = convert_division(res)
     assert len(res) == 3
-    gsmDataGen.ir.assert_structural_equal(res[0][0], (i0[0] * 2) + floordiv(j0[0], 4))
-    gsmDataGen.ir.assert_structural_equal(res[0][1], T.int32(0))
-    gsmDataGen.ir.assert_structural_equal(res[1][0], floormod(j0[0], 4))
-    gsmDataGen.ir.assert_structural_equal(res[1][1], i3[0])
-    gsmDataGen.ir.assert_structural_equal(res[2][0], (i0[0] * 2) + floordiv(j0[0], 4) < 7)
-    gsmDataGen.ir.assert_structural_equal(res[2][1], T.bool(True))
+    gsm_data_generator.ir.assert_structural_equal(res[0][0], (i0[0] * 2) + floordiv(j0[0], 4))
+    gsm_data_generator.ir.assert_structural_equal(res[0][1], T.int32(0))
+    gsm_data_generator.ir.assert_structural_equal(res[1][0], floormod(j0[0], 4))
+    gsm_data_generator.ir.assert_structural_equal(res[1][1], i3[0])
+    gsm_data_generator.ir.assert_structural_equal(res[2][0], (i0[0] * 2) + floordiv(j0[0], 4) < 7)
+    gsm_data_generator.ir.assert_structural_equal(res[2][1], T.bool(True))
 
-    res1 = gsmDataGen.arith.detect_iter_map([res[0][1], res[1][1]], var_dom([i3])).indices
+    res1 = gsm_data_generator.arith.detect_iter_map([res[0][1], res[1][1]], var_dom([i3])).indices
     assert len(res1) == 2
-    res2 = gsmDataGen.arith.detect_iter_map([res[0][0], res[1][0]], var_dom([i0, j0])).indices
+    res2 = gsm_data_generator.arith.detect_iter_map([res[0][0], res[1][0]], var_dom([i0, j0])).indices
     assert len(res2) == 2
 
     # compound 1.5
-    res = gsmDataGen.arith.subspace_divide(
+    res = gsm_data_generator.arith.subspace_divide(
         [k0[0], k1[0]], var_dom([i0, j0, i3]), [j0[0], i3[0]], k1[0] < 7
     )
     res = convert_division(res)
     assert len(res) == 3
-    gsmDataGen.ir.assert_structural_equal(res[0][0], i0[0])
-    gsmDataGen.ir.assert_structural_equal(res[0][1], floordiv(j0[0], 4))
-    gsmDataGen.ir.assert_structural_equal(res[1][0], T.int32(0))
-    gsmDataGen.ir.assert_structural_equal(res[1][1], (floormod(j0[0], 4) * 2) + i3[0])
-    gsmDataGen.ir.assert_structural_equal(res[2][0], T.bool(True))
-    gsmDataGen.ir.assert_structural_equal(res[2][1], (floormod(j0[0], 4) * 2) + i3[0] < 7)
+    gsm_data_generator.ir.assert_structural_equal(res[0][0], i0[0])
+    gsm_data_generator.ir.assert_structural_equal(res[0][1], floordiv(j0[0], 4))
+    gsm_data_generator.ir.assert_structural_equal(res[1][0], T.int32(0))
+    gsm_data_generator.ir.assert_structural_equal(res[1][1], (floormod(j0[0], 4) * 2) + i3[0])
+    gsm_data_generator.ir.assert_structural_equal(res[2][0], T.bool(True))
+    gsm_data_generator.ir.assert_structural_equal(res[2][1], (floormod(j0[0], 4) * 2) + i3[0] < 7)
 
-    res1 = gsmDataGen.arith.detect_iter_map([res[0][1], res[1][1]], var_dom([j0, i3])).indices
+    res1 = gsm_data_generator.arith.detect_iter_map([res[0][1], res[1][1]], var_dom([j0, i3])).indices
     assert len(res1) == 2
-    res2 = gsmDataGen.arith.detect_iter_map([res[0][0], res[1][0]], var_dom([i0])).indices
+    res2 = gsm_data_generator.arith.detect_iter_map([res[0][0], res[1][0]], var_dom([i0])).indices
     assert len(res2) == 2
 
     # compound 1.6
-    res = gsmDataGen.arith.subspace_divide(
-        [k0[0], k1[0]], var_dom([i0, j0, i3]), [i3[0]], gsmDataGen.tir.all(k0[0] < 7, k1[0] < 7)
+    res = gsm_data_generator.arith.subspace_divide(
+        [k0[0], k1[0]], var_dom([i0, j0, i3]), [i3[0]], gsm_data_generator.tir.all(k0[0] < 7, k1[0] < 7)
     )
     res = convert_division(res)
     assert len(res) == 0
@@ -658,75 +658,75 @@ def test_subspace_division():
     i2 = ifuse([j2, j3])
 
     # compound 2.1
-    res = gsmDataGen.arith.subspace_divide(
+    res = gsm_data_generator.arith.subspace_divide(
         [i0[0], i1[0], i2[0]], var_dom([j0, l0, l1, j3]), [l1[0], j3[0]]
     )
     res = convert_division(res)
     assert len(res) == 4
-    gsmDataGen.ir.assert_structural_equal(res[0][0], (j0[0] * 2) + l0[0])
-    gsmDataGen.ir.assert_structural_equal(res[0][1], T.int32(0))
-    gsmDataGen.ir.assert_structural_equal(res[1][0], T.int32(0))
-    gsmDataGen.ir.assert_structural_equal(res[1][1], floordiv(l1[0], 3))
-    gsmDataGen.ir.assert_structural_equal(res[2][0], T.int32(0))
-    gsmDataGen.ir.assert_structural_equal(res[2][1], (floormod(l1[0], 3) * 3) + j3[0])
+    gsm_data_generator.ir.assert_structural_equal(res[0][0], (j0[0] * 2) + l0[0])
+    gsm_data_generator.ir.assert_structural_equal(res[0][1], T.int32(0))
+    gsm_data_generator.ir.assert_structural_equal(res[1][0], T.int32(0))
+    gsm_data_generator.ir.assert_structural_equal(res[1][1], floordiv(l1[0], 3))
+    gsm_data_generator.ir.assert_structural_equal(res[2][0], T.int32(0))
+    gsm_data_generator.ir.assert_structural_equal(res[2][1], (floormod(l1[0], 3) * 3) + j3[0])
 
-    res1 = gsmDataGen.arith.detect_iter_map([res[0][1], res[1][1], res[2][1]], var_dom([l1, j3])).indices
+    res1 = gsm_data_generator.arith.detect_iter_map([res[0][1], res[1][1], res[2][1]], var_dom([l1, j3])).indices
     assert len(res1) == 3
-    res2 = gsmDataGen.arith.detect_iter_map([res[0][0], res[1][0], res[2][0]], var_dom([j0, l0])).indices
+    res2 = gsm_data_generator.arith.detect_iter_map([res[0][0], res[1][0], res[2][0]], var_dom([j0, l0])).indices
     assert len(res2) == 3
 
     # compound 2.2
-    res = gsmDataGen.arith.subspace_divide(
+    res = gsm_data_generator.arith.subspace_divide(
         [i0[0], i1[0], i2[0]], var_dom([j0, l0, l1, j3]), [l0[0], l1[0], j3[0]]
     )
     res = convert_division(res)
     assert len(res) == 4
-    gsmDataGen.ir.assert_structural_equal(res[0][0], j0[0])
-    gsmDataGen.ir.assert_structural_equal(res[0][1], floordiv(l0[0] * 6 + l1[0], 6))
-    gsmDataGen.ir.assert_structural_equal(res[1][0], T.int32(0))
-    gsmDataGen.ir.assert_structural_equal(res[1][1], floordiv(floormod(l0[0] * 6 + l1[0], 6), 3))
-    gsmDataGen.ir.assert_structural_equal(res[2][0], T.int32(0))
-    gsmDataGen.ir.assert_structural_equal(res[2][1], (floormod(l0[0] * 6 + l1[0], 3) * 3) + j3[0])
+    gsm_data_generator.ir.assert_structural_equal(res[0][0], j0[0])
+    gsm_data_generator.ir.assert_structural_equal(res[0][1], floordiv(l0[0] * 6 + l1[0], 6))
+    gsm_data_generator.ir.assert_structural_equal(res[1][0], T.int32(0))
+    gsm_data_generator.ir.assert_structural_equal(res[1][1], floordiv(floormod(l0[0] * 6 + l1[0], 6), 3))
+    gsm_data_generator.ir.assert_structural_equal(res[2][0], T.int32(0))
+    gsm_data_generator.ir.assert_structural_equal(res[2][1], (floormod(l0[0] * 6 + l1[0], 3) * 3) + j3[0])
 
-    res1 = gsmDataGen.arith.detect_iter_map(
+    res1 = gsm_data_generator.arith.detect_iter_map(
         [res[0][1], res[1][1], res[2][1]], var_dom([l0, l1, j3])
     ).indices
     assert len(res1) == 3
-    res2 = gsmDataGen.arith.detect_iter_map([res[0][0], res[1][0], res[2][0]], var_dom([j0])).indices
+    res2 = gsm_data_generator.arith.detect_iter_map([res[0][0], res[1][0], res[2][0]], var_dom([j0])).indices
     assert len(res2) == 3
 
     # compound 2.3
-    res = gsmDataGen.arith.subspace_divide(
+    res = gsm_data_generator.arith.subspace_divide(
         [i0[0], i1[0], i2[0]], var_dom([j0, l0, l1, j3]), [l0[0], j3[0]]
     )
     res = convert_division(res)
     assert len(res) == 0
 
     # compound 2.4
-    res = gsmDataGen.arith.subspace_divide(
+    res = gsm_data_generator.arith.subspace_divide(
         [i0[0], i1[0], i2[0]],
         var_dom([j0, l0, l1, j3]),
         [l1[0], j3[0]],
-        gsmDataGen.tir.all(i0[0] < 7, i2[0] < 8),
+        gsm_data_generator.tir.all(i0[0] < 7, i2[0] < 8),
     )
     res = convert_division(res)
     assert len(res) == 4
-    gsmDataGen.ir.assert_structural_equal(res[0][0], (j0[0] * 2) + l0[0])
-    gsmDataGen.ir.assert_structural_equal(res[0][1], T.int32(0))
-    gsmDataGen.ir.assert_structural_equal(res[1][0], T.int32(0))
-    gsmDataGen.ir.assert_structural_equal(res[1][1], floordiv(l1[0], 3))
-    gsmDataGen.ir.assert_structural_equal(res[2][0], T.int32(0))
-    gsmDataGen.ir.assert_structural_equal(res[2][1], (floormod(l1[0], 3) * 3) + j3[0])
-    gsmDataGen.ir.assert_structural_equal(res[3][0], (j0[0] * 2) + l0[0] < 7)
-    gsmDataGen.ir.assert_structural_equal(res[3][1], (floormod(l1[0], 3) * 3) + j3[0] < 8)
+    gsm_data_generator.ir.assert_structural_equal(res[0][0], (j0[0] * 2) + l0[0])
+    gsm_data_generator.ir.assert_structural_equal(res[0][1], T.int32(0))
+    gsm_data_generator.ir.assert_structural_equal(res[1][0], T.int32(0))
+    gsm_data_generator.ir.assert_structural_equal(res[1][1], floordiv(l1[0], 3))
+    gsm_data_generator.ir.assert_structural_equal(res[2][0], T.int32(0))
+    gsm_data_generator.ir.assert_structural_equal(res[2][1], (floormod(l1[0], 3) * 3) + j3[0])
+    gsm_data_generator.ir.assert_structural_equal(res[3][0], (j0[0] * 2) + l0[0] < 7)
+    gsm_data_generator.ir.assert_structural_equal(res[3][1], (floormod(l1[0], 3) * 3) + j3[0] < 8)
 
-    res1 = gsmDataGen.arith.detect_iter_map([res[0][1], res[1][1], res[2][1]], var_dom([l1, j3])).indices
+    res1 = gsm_data_generator.arith.detect_iter_map([res[0][1], res[1][1], res[2][1]], var_dom([l1, j3])).indices
     assert len(res1) == 3
-    res2 = gsmDataGen.arith.detect_iter_map([res[0][0], res[1][0], res[2][0]], var_dom([j0, l0])).indices
+    res2 = gsm_data_generator.arith.detect_iter_map([res[0][0], res[1][0], res[2][0]], var_dom([j0, l0])).indices
     assert len(res2) == 3
 
     # compound 2.5
-    res = gsmDataGen.arith.subspace_divide(
+    res = gsm_data_generator.arith.subspace_divide(
         [i0[0], i1[0], i2[0]], var_dom([j0, l0, l1, j3]), [j3[0]], i2[0] < 8
     )
     res = convert_division(res)
@@ -734,21 +734,21 @@ def test_subspace_division():
 
 
 def test_subspace_divide_trivial_iters():
-    x = gsmDataGen.tir.Var("x", "int32")
-    y = gsmDataGen.tir.Var("y", "int32")
-    z = gsmDataGen.tir.Var("z", "int32")
+    x = gsm_data_generator.tir.Var("x", "int32")
+    y = gsm_data_generator.tir.Var("y", "int32")
+    z = gsm_data_generator.tir.Var("z", "int32")
 
     # trivial 1.1
-    res = gsmDataGen.arith.subspace_divide(
+    res = gsm_data_generator.arith.subspace_divide(
         [x * 16 + y], var_dom([(x, 1), (y, 16)]), [y], simplify_trivial_iterators=False
     )
     res = convert_division(res)
     assert len(res) == 2
-    gsmDataGen.ir.assert_structural_equal(res[0][0], x)
-    gsmDataGen.ir.assert_structural_equal(res[0][1], y)
+    gsm_data_generator.ir.assert_structural_equal(res[0][0], x)
+    gsm_data_generator.ir.assert_structural_equal(res[0][1], y)
 
     # trivial 1.2
-    res = gsmDataGen.arith.subspace_divide(
+    res = gsm_data_generator.arith.subspace_divide(
         [x, y],
         var_dom([(x, 1), (y, 1)]),
         [y],
@@ -756,10 +756,10 @@ def test_subspace_divide_trivial_iters():
     )
     res = convert_division(res)
     assert len(res) == 3
-    gsmDataGen.ir.assert_structural_equal(res[0][0], x)
-    gsmDataGen.ir.assert_structural_equal(res[0][1], T.int32(0))
-    gsmDataGen.ir.assert_structural_equal(res[1][0], T.int32(0))
-    gsmDataGen.ir.assert_structural_equal(res[1][1], y)
+    gsm_data_generator.ir.assert_structural_equal(res[0][0], x)
+    gsm_data_generator.ir.assert_structural_equal(res[0][1], T.int32(0))
+    gsm_data_generator.ir.assert_structural_equal(res[1][0], T.int32(0))
+    gsm_data_generator.ir.assert_structural_equal(res[1][1], y)
 
 
 def test_complex():
@@ -787,57 +787,57 @@ def test_complex():
     i0 = ifuse([j0, j1], 200)
     i1 = ifuse([j2, j3], 50)
 
-    n0_mark = gsmDataGen.arith.IterMark(n0[0], n0[1])
-    n1_mark = gsmDataGen.arith.IterMark(n1[0], n1[1])
-    l0_mark = gsmDataGen.arith.IterMark(l0[0], l0[1])
-    l1_mark = gsmDataGen.arith.IterMark(l1[0], l1[1])
-    m1_mark = gsmDataGen.arith.IterMark(m1[0], m1[1])
-    l3_mark = gsmDataGen.arith.IterMark(l3[0], l3[1])
+    n0_mark = gsm_data_generator.arith.IterMark(n0[0], n0[1])
+    n1_mark = gsm_data_generator.arith.IterMark(n1[0], n1[1])
+    l0_mark = gsm_data_generator.arith.IterMark(l0[0], l0[1])
+    l1_mark = gsm_data_generator.arith.IterMark(l1[0], l1[1])
+    m1_mark = gsm_data_generator.arith.IterMark(m1[0], m1[1])
+    l3_mark = gsm_data_generator.arith.IterMark(l3[0], l3[1])
 
-    m0_expr = gsmDataGen.arith.IterSumExpr(
+    m0_expr = gsm_data_generator.arith.IterSumExpr(
         [
-            gsmDataGen.arith.IterSplitExpr(n0_mark, 1, n0[1], 4),
-            gsmDataGen.arith.IterSplitExpr(n1_mark, 1, n1[1], 1),
+            gsm_data_generator.arith.IterSplitExpr(n0_mark, 1, n0[1], 4),
+            gsm_data_generator.arith.IterSplitExpr(n1_mark, 1, n1[1], 1),
         ],
         0,
     )
-    m0_mark = gsmDataGen.arith.IterMark(m0_expr, 6)
-    l2_expr = gsmDataGen.arith.IterSumExpr(
-        [gsmDataGen.arith.IterSplitExpr(m0_mark, 1, 6, 3), gsmDataGen.arith.IterSplitExpr(m1_mark, 1, m1[1], 1)],
+    m0_mark = gsm_data_generator.arith.IterMark(m0_expr, 6)
+    l2_expr = gsm_data_generator.arith.IterSumExpr(
+        [gsm_data_generator.arith.IterSplitExpr(m0_mark, 1, 6, 3), gsm_data_generator.arith.IterSplitExpr(m1_mark, 1, m1[1], 1)],
         0,
     )
-    l2_mark = gsmDataGen.arith.IterMark(l2_expr, 16)
-    k0_expr = gsmDataGen.arith.IterSplitExpr(l0_mark, 2, 2, 4)
-    k1_expr = gsmDataGen.arith.IterSplitExpr(l1_mark, 2, 4, 1)
-    k2_expr = gsmDataGen.arith.IterSplitExpr(l2_mark, 4, 4, 8)
-    k3_expr = gsmDataGen.arith.IterSplitExpr(l3_mark, 4, 8, 1)
-    k4_expr = gsmDataGen.arith.IterSplitExpr(l0_mark, 1, 2, 30)
-    k5_expr = gsmDataGen.arith.IterSplitExpr(l1_mark, 1, 2, 15)
-    k6_expr = gsmDataGen.arith.IterSplitExpr(l2_mark, 1, 4, 4)
-    k7_expr = gsmDataGen.arith.IterSplitExpr(l3_mark, 1, 4, 1)
+    l2_mark = gsm_data_generator.arith.IterMark(l2_expr, 16)
+    k0_expr = gsm_data_generator.arith.IterSplitExpr(l0_mark, 2, 2, 4)
+    k1_expr = gsm_data_generator.arith.IterSplitExpr(l1_mark, 2, 4, 1)
+    k2_expr = gsm_data_generator.arith.IterSplitExpr(l2_mark, 4, 4, 8)
+    k3_expr = gsm_data_generator.arith.IterSplitExpr(l3_mark, 4, 8, 1)
+    k4_expr = gsm_data_generator.arith.IterSplitExpr(l0_mark, 1, 2, 30)
+    k5_expr = gsm_data_generator.arith.IterSplitExpr(l1_mark, 1, 2, 15)
+    k6_expr = gsm_data_generator.arith.IterSplitExpr(l2_mark, 1, 4, 4)
+    k7_expr = gsm_data_generator.arith.IterSplitExpr(l3_mark, 1, 4, 1)
 
-    j0_expr = gsmDataGen.arith.IterSumExpr([k0_expr, k1_expr], 0)
-    j0_mark = gsmDataGen.arith.IterMark(j0_expr, 7)
-    i0_expr = gsmDataGen.arith.IterSumExpr(
-        [gsmDataGen.arith.IterSplitExpr(j0_mark, 1, 7, 32), k2_expr, k3_expr], 0
+    j0_expr = gsm_data_generator.arith.IterSumExpr([k0_expr, k1_expr], 0)
+    j0_mark = gsm_data_generator.arith.IterMark(j0_expr, 7)
+    i0_expr = gsm_data_generator.arith.IterSumExpr(
+        [gsm_data_generator.arith.IterSplitExpr(j0_mark, 1, 7, 32), k2_expr, k3_expr], 0
     )
 
-    j3_expr = gsmDataGen.arith.IterSumExpr([k6_expr, k7_expr], 0)
-    j3_mark = gsmDataGen.arith.IterMark(j3_expr, 15)
-    i1_expr = gsmDataGen.arith.IterSumExpr(
-        [k4_expr, k5_expr, gsmDataGen.arith.IterSplitExpr(j3_mark, 1, 15, 1)], 0
+    j3_expr = gsm_data_generator.arith.IterSumExpr([k6_expr, k7_expr], 0)
+    j3_mark = gsm_data_generator.arith.IterMark(j3_expr, 15)
+    i1_expr = gsm_data_generator.arith.IterSumExpr(
+        [k4_expr, k5_expr, gsm_data_generator.arith.IterSplitExpr(j3_mark, 1, 15, 1)], 0
     )
 
-    i0_mark = gsmDataGen.arith.IterMark(i0_expr, i0[1])
-    i1_mark = gsmDataGen.arith.IterMark(i1_expr, i1[1])
+    i0_mark = gsm_data_generator.arith.IterMark(i0_expr, i0[1])
+    i1_mark = gsm_data_generator.arith.IterMark(i1_expr, i1[1])
 
-    i0_final = gsmDataGen.arith.IterSumExpr([gsmDataGen.arith.IterSplitExpr(i0_mark, 1, i0[1], 1)], 0)
-    i1_final = gsmDataGen.arith.IterSumExpr([gsmDataGen.arith.IterSplitExpr(i1_mark, 1, i1[1], 1)], 0)
+    i0_final = gsm_data_generator.arith.IterSumExpr([gsm_data_generator.arith.IterSplitExpr(i0_mark, 1, i0[1], 1)], 0)
+    i1_final = gsm_data_generator.arith.IterSumExpr([gsm_data_generator.arith.IterSplitExpr(i1_mark, 1, i1[1], 1)], 0)
 
     assert_iter_sum_pattern(
         {i0[0]: (200, 0, 1, i0_final), i1[0]: (50, 0, 1, i1_final)},
         var_dom([l0, l1, n0, n1, m1, l3]),
-        predicate=gsmDataGen.tir.all(
+        predicate=gsm_data_generator.tir.all(
             i0[0] < 200, i1[0] < 50, m0[0] < 6, l2[0] < 16, j0[0] < 7, j3[0] < 15
         ),
     )
@@ -846,30 +846,30 @@ def test_complex():
     assert_iter_sum_failure(
         [i0[0], i1[0]],
         var_dom([l0, l1, n0, n1, m1, l3]),
-        gsmDataGen.tir.all(i0[0] < 200, i1[0] < 50, m0[0] < 9, l2[0] < 16, j0[0] < 7, j3[0] < 14),
+        gsm_data_generator.tir.all(i0[0] < 200, i1[0] < 50, m0[0] < 9, l2[0] < 16, j0[0] < 7, j3[0] < 14),
     )
 
     # subspace_division
-    res = gsmDataGen.arith.subspace_divide(
+    res = gsm_data_generator.arith.subspace_divide(
         [i0[0], i1[0]],
         var_dom([l0, l1, n0, n1, m1, l3]),
         [n0[0], n1[0], m1[0], l3[0]],
-        gsmDataGen.tir.all(m0[0] < 6, l2[0] < 16, j0[0] < 7, j3[0] < 15),
+        gsm_data_generator.tir.all(m0[0] < 6, l2[0] < 16, j0[0] < 7, j3[0] < 15),
     )
     res = convert_division(res)
     assert len(res) == 3
-    gsmDataGen.ir.assert_structural_equal(res[0][0], floordiv(l0[0], 2) * 4 + floordiv(l1[0], 2))
-    gsmDataGen.ir.assert_structural_equal(
+    gsm_data_generator.ir.assert_structural_equal(res[0][0], floordiv(l0[0], 2) * 4 + floordiv(l1[0], 2))
+    gsm_data_generator.ir.assert_structural_equal(
         res[0][1], (floordiv((n0[0] * 4 + n1[0]) * 3 + m1[0], 4) * 8) + floordiv(l3[0], 4)
     )
-    gsmDataGen.ir.assert_structural_equal(res[1][0], ((floormod(l0[0], 2) * 2) + floormod(l1[0], 2)))
-    gsmDataGen.ir.assert_structural_equal(
+    gsm_data_generator.ir.assert_structural_equal(res[1][0], ((floormod(l0[0], 2) * 2) + floormod(l1[0], 2)))
+    gsm_data_generator.ir.assert_structural_equal(
         res[1][1], ((floormod(((n0[0] * 4 + n1[0]) * 3 + m1[0]), 4) * 4) + floormod(l3[0], 4))
     )
-    gsmDataGen.ir.assert_structural_equal(res[2][0], (floordiv(l0[0], 2) * 4) + floordiv(l1[0], 2) < 7)
-    gsmDataGen.ir.assert_structural_equal(
+    gsm_data_generator.ir.assert_structural_equal(res[2][0], (floordiv(l0[0], 2) * 4) + floordiv(l1[0], 2) < 7)
+    gsm_data_generator.ir.assert_structural_equal(
         res[2][1],
-        gsmDataGen.tir.all(
+        gsm_data_generator.tir.all(
             n0[0] * 4 + n1[0] < 6,
             (n0[0] * 4 + n1[0]) * 3 + m1[0] < 16,
             floormod(((n0[0] * 4 + n1[0]) * 3 + m1[0]), 4) * 4 + floormod(l3[0], 4) < 15,
@@ -883,30 +883,30 @@ def test_complex():
 
 
 def test_normalize_iter_map_to_expr():
-    fld = gsmDataGen.tir.floordiv
-    flm = gsmDataGen.tir.floormod
+    fld = gsm_data_generator.tir.floordiv
+    flm = gsm_data_generator.tir.floormod
 
-    x = gsmDataGen.tir.Var("x", "int32")
-    y = gsmDataGen.tir.Var("y", "int32")
+    x = gsm_data_generator.tir.Var("x", "int32")
+    y = gsm_data_generator.tir.Var("y", "int32")
 
     xo, xi = isplit((x, 10), 5)
     yo, yi = isplit((y, 9), 3)
     z = ifuse([yo, xo, yi])
-    res = gsmDataGen.arith.detect_iter_map([z[0], xi[0]], var_dom([(x, 10), (y, 9)]))
+    res = gsm_data_generator.arith.detect_iter_map([z[0], xi[0]], var_dom([(x, 10), (y, 9)]))
 
-    gsmDataGen.ir.assert_structural_equal(
-        gsmDataGen.arith.normalize_iter_map_to_expr(res.indices[0]),
+    gsm_data_generator.ir.assert_structural_equal(
+        gsm_data_generator.arith.normalize_iter_map_to_expr(res.indices[0]),
         fld(y, 3) * 6 + fld(x, 5) * 3 + flm(y, 3),
     )
-    gsmDataGen.ir.assert_structural_equal(gsmDataGen.arith.normalize_iter_map_to_expr(res.indices[1]), flm(x, 5))
+    gsm_data_generator.ir.assert_structural_equal(gsm_data_generator.arith.normalize_iter_map_to_expr(res.indices[1]), flm(x, 5))
 
     # iter mark wrap a complex expr
-    split = gsmDataGen.arith.IterSplitExpr(gsmDataGen.arith.IterMark(x * y + 1, 1024), 1, 1024, 1)
-    gsmDataGen.ir.assert_structural_equal(gsmDataGen.arith.normalize_iter_map_to_expr(split), x * y + 1)
+    split = gsm_data_generator.arith.IterSplitExpr(gsm_data_generator.arith.IterMark(x * y + 1, 1024), 1, 1024, 1)
+    gsm_data_generator.ir.assert_structural_equal(gsm_data_generator.arith.normalize_iter_map_to_expr(split), x * y + 1)
 
 
 def test_inverse_affine_iter_map():
-    analyzer = gsmDataGen.arith.Analyzer()
+    analyzer = gsm_data_generator.arith.Analyzer()
     l0 = create_iter("l0", 64)
     l1 = create_iter("l1", 64)
     l2 = create_iter("l2", 64)
@@ -916,11 +916,11 @@ def test_inverse_affine_iter_map():
     l1_0, l1_1 = isplit(l1, 4)
     l0_1_l1_1_fused = ifuse([l0_1, l1_1])
 
-    iter_map = gsmDataGen.arith.detect_iter_map(
+    iter_map = gsm_data_generator.arith.detect_iter_map(
         [l0_1_l1_1_fused[0], l0_0[0], l1_0[0]], var_dom([l0, l1])
     ).indices
-    outputs = [gsmDataGen.tir.Var("output_{}".format(i), "int32") for i in range(len(iter_map))]
-    res = gsmDataGen.arith.inverse_affine_iter_map(iter_map, outputs)
+    outputs = [gsm_data_generator.tir.Var("output_{}".format(i), "int32") for i in range(len(iter_map))]
+    res = gsm_data_generator.arith.inverse_affine_iter_map(iter_map, outputs)
     assert len(res) == 2
     l0_inverse = floordiv(outputs[0], 4) + outputs[1] * 16
     l1_inverse = floormod(outputs[0], 4) + outputs[2] * 4
@@ -935,11 +935,11 @@ def test_inverse_affine_iter_map():
 
     l0_1_l2_1_l1_1_l2_0_fused = ifuse([l0_1, l2_1, l1_1, l2_0])
 
-    iter_map = gsmDataGen.arith.detect_iter_map(
+    iter_map = gsm_data_generator.arith.detect_iter_map(
         [l0_1_l2_1_l1_1_l2_0_fused[0], l0_0[0], l2_2[0], l1_0[0]], var_dom([l0, l1, l2])
     ).indices
-    outputs = [gsmDataGen.tir.Var("output_{}".format(i), "int32") for i in range(len(iter_map))]
-    res = gsmDataGen.arith.inverse_affine_iter_map(iter_map, outputs)
+    outputs = [gsm_data_generator.tir.Var("output_{}".format(i), "int32") for i in range(len(iter_map))]
+    res = gsm_data_generator.arith.inverse_affine_iter_map(iter_map, outputs)
     assert len(res) == 3
     l0_inverse = floordiv(outputs[0], 64) + outputs[1] * 16
     l1_inverse = floormod(floordiv(outputs[0], 4), 4) + outputs[3] * 4
@@ -957,9 +957,9 @@ def test_inverse_affine_iter_map():
     l1_0, l1_1 = isplit(l1, 8)
     l2 = ifuse([l1_1, l1_0])
 
-    iter_map = gsmDataGen.arith.detect_iter_map([l2[0]], var_dom([l0])).indices
-    outputs = [gsmDataGen.tir.Var("output_{}".format(i), "int32") for i in range(len(iter_map))]
-    res = gsmDataGen.arith.inverse_affine_iter_map(iter_map, outputs)
+    iter_map = gsm_data_generator.arith.detect_iter_map([l2[0]], var_dom([l0])).indices
+    outputs = [gsm_data_generator.tir.Var("output_{}".format(i), "int32") for i in range(len(iter_map))]
+    res = gsm_data_generator.arith.inverse_affine_iter_map(iter_map, outputs)
     assert len(res) == 1
     l1_inverse = floormod(outputs[0], 8) * 8 + floordiv(outputs[0], 8)
     l0_inverse = floormod(l1_inverse, 4) * 16 + floordiv(l1_inverse, 4)
@@ -968,12 +968,12 @@ def test_inverse_affine_iter_map():
 
 
 def test_inverse_affine_map_trivial_iter():
-    analyzer = gsmDataGen.arith.Analyzer()
+    analyzer = gsm_data_generator.arith.Analyzer()
     l0 = create_iter("l0", 64)
     l1 = create_iter("l1", 64)
-    iter_map = gsmDataGen.arith.detect_iter_map([0, l0[0], l1[0]], var_dom([l0, l1])).indices
-    outputs = [gsmDataGen.tir.Var("output_{}".format(i), "int32") for i in range(len(iter_map))]
-    res = gsmDataGen.arith.inverse_affine_iter_map(iter_map, outputs)
+    iter_map = gsm_data_generator.arith.detect_iter_map([0, l0[0], l1[0]], var_dom([l0, l1])).indices
+    outputs = [gsm_data_generator.tir.Var("output_{}".format(i), "int32") for i in range(len(iter_map))]
+    res = gsm_data_generator.arith.inverse_affine_iter_map(iter_map, outputs)
     # output_0 is expected to be constant and it is not included in the inverse map
     assert len(res) == 2
     assert analyzer.can_prove_equal(res[l0[0]], outputs[1])
@@ -981,9 +981,9 @@ def test_inverse_affine_map_trivial_iter():
 
 
 def test_free_variables():
-    x = gsmDataGen.tir.Var("x", "int32")
-    y = gsmDataGen.tir.Var("y", "int32")
-    z = gsmDataGen.tir.Var("z", "int32")
+    x = gsm_data_generator.tir.Var("x", "int32")
+    y = gsm_data_generator.tir.Var("y", "int32")
+    z = gsm_data_generator.tir.Var("z", "int32")
 
     # illegal iter if z is within dom
     assert_iter_sum_failure([z * 19 + y * 3 + x], var_dom([(x, 3), (y, 3), (z, 3)]))
@@ -1010,12 +1010,12 @@ def test_free_variables():
 
 
 class TestPadding:
-    x = gsmDataGen.tir.Var("x", "int32")
-    y = gsmDataGen.tir.Var("y", "int32")
-    fld = gsmDataGen.tir.floordiv
-    flm = gsmDataGen.tir.floormod
+    x = gsm_data_generator.tir.Var("x", "int32")
+    y = gsm_data_generator.tir.Var("y", "int32")
+    fld = gsm_data_generator.tir.floordiv
+    flm = gsm_data_generator.tir.floormod
 
-    positive_test_case = gsmDataGen.testing.parameter(
+    positive_test_case = gsm_data_generator.testing.parameter(
         # left padding only, offset divisible
         ({y: 192}, {fld(64 + y, 32): (6, 2, 1), flm(64 + y, 32): (32, 0, 1)}, "bijective"),
         # left padding only, offset non-divisible
@@ -1053,7 +1053,7 @@ class TestPadding:
         ),
     )
 
-    negative_test_case = gsmDataGen.testing.parameter(
+    negative_test_case = gsm_data_generator.testing.parameter(
         # left padding only, offset non-divisible
         ({y: 176}, {fld(80 + y, 32), flm(80 + y, 32)}),
         ({y: 176}, {fld(80 + y, 32), fld(80 + y, 4)}),
@@ -1080,22 +1080,22 @@ class TestPadding:
     def test_padding(self, positive_test_case):
         iter_extent, mapped_iterators, *args = positive_test_case
         check_level = args[0] if args else "surjective"
-        dom_map = {var: gsmDataGen.ir.Range(0, ext) for var, ext in iter_extent.items()}
+        dom_map = {var: gsm_data_generator.ir.Range(0, ext) for var, ext in iter_extent.items()}
         assert_iter_sum_pattern(mapped_iterators, dom_map, check_level=check_level)
 
     def test_padding_error(self, negative_test_case):
         iter_extent, mapped_iterators, *args = negative_test_case
         check_level = args[0] if args else "surjective"
-        dom_map = {var: gsmDataGen.ir.Range(0, ext) for var, ext in iter_extent.items()}
+        dom_map = {var: gsm_data_generator.ir.Range(0, ext) for var, ext in iter_extent.items()}
         assert_iter_sum_failure(mapped_iterators, dom_map, check_level=check_level)
 
 
 def test_overlapped_fuse():
-    x = gsmDataGen.tir.Var("x", "int32")
-    y = gsmDataGen.tir.Var("y", "int32")
-    z = gsmDataGen.tir.Var("z", "int32")
-    a = gsmDataGen.tir.Var("x", "int32")
-    b = gsmDataGen.tir.Var("y", "int32")
+    x = gsm_data_generator.tir.Var("x", "int32")
+    y = gsm_data_generator.tir.Var("y", "int32")
+    z = gsm_data_generator.tir.Var("z", "int32")
+    a = gsm_data_generator.tir.Var("x", "int32")
+    b = gsm_data_generator.tir.Var("y", "int32")
 
     # non-bijective fuse of two
     assert_iter_sum_pattern(
@@ -1127,7 +1127,7 @@ def test_overlapped_fuse():
             a * 40 + b * 20 + x * 18 + y * 3 + z: (125, 6, 1),
         },
         var_dom([(a, 3), (b, 2), (x, 2), (y, 6), (z, 8)]),
-        predicate=gsmDataGen.tir.all(z < 4, 1 < x * 6 + y, x * 6 + y < 10),
+        predicate=gsm_data_generator.tir.all(z < 4, 1 < x * 6 + y, x * 6 + y < 10),
         check_level="surjective",
     )
 
@@ -1142,11 +1142,11 @@ def test_overlapped_fuse():
 
 def test_iter_map_simplify_symbolic_case():
     """Test itermap simplify"""
-    x = gsmDataGen.tir.Var("x", "int64")
-    y = gsmDataGen.tir.Var("y", "int64")
+    x = gsm_data_generator.tir.Var("x", "int64")
+    y = gsm_data_generator.tir.Var("y", "int64")
     z = x * 32 + y
 
-    n = gsmDataGen.tir.SizeVar("n", "int64")
+    n = gsm_data_generator.tir.SizeVar("n", "int64")
 
     def simple_fuse0(x):
         return (x // n) * n + x % n
@@ -1177,10 +1177,10 @@ def test_iter_map_simplify_symbolic_case():
 
 def test_iter_map_simplify_symbolic_predicate():
     """Test itermap simplify"""
-    x = gsmDataGen.tir.Var("x", "int64")
-    y = gsmDataGen.tir.Var("y", "int64")
+    x = gsm_data_generator.tir.Var("x", "int64")
+    y = gsm_data_generator.tir.Var("y", "int64")
 
-    n = gsmDataGen.tir.SizeVar("n", "int64")
+    n = gsm_data_generator.tir.SizeVar("n", "int64")
 
     def simple_fuse0(x):
         return (x // n) * n + x % n
@@ -1202,8 +1202,8 @@ def test_iter_map_simplify_symbolic_predicate():
 
 
 def test_iter_map_simplify_symbolic_reshape():
-    n = gsmDataGen.tir.Var("n", "int64")
-    fused = gsmDataGen.tir.Var("fused", "int64")
+    n = gsm_data_generator.tir.Var("n", "int64")
+    fused = gsm_data_generator.tir.Var("fused", "int64")
 
     ax0 = (fused // 4096) // n
     ax1 = (fused // 4096) % n
@@ -1216,9 +1216,9 @@ def test_iter_map_simplify_symbolic_reshape():
 
 def test_iter_map_simplify_unit_loop_order():
     """Test itermap simplify"""
-    x = gsmDataGen.tir.Var("x", "int64")
-    y = gsmDataGen.tir.Var("y", "int64")
-    z = gsmDataGen.tir.Var("z", "int64")
+    x = gsm_data_generator.tir.Var("x", "int64")
+    y = gsm_data_generator.tir.Var("y", "int64")
+    z = gsm_data_generator.tir.Var("z", "int64")
 
     # trivial iterators can be found at any when comparing via scale
     # ensure order unchange
@@ -1264,28 +1264,28 @@ def assert_normalize_to_iter_sum(index, input_iters, args, base):
     base : tvm.tir.PrimExpr
         The expected base
     """
-    res = gsmDataGen.arith.normalize_to_iter_sum(index, input_iters)
+    res = gsm_data_generator.arith.normalize_to_iter_sum(index, input_iters)
 
-    assert isinstance(res, gsmDataGen.arith.IterSumExpr)
+    assert isinstance(res, gsm_data_generator.arith.IterSumExpr)
     assert len(res.args) == len(args)
     for split, item in zip(res.args, args):
-        if isinstance(item, gsmDataGen.arith.IterSplitExpr):
-            gsmDataGen.ir.assert_structural_equal(split, item)
+        if isinstance(item, gsm_data_generator.arith.IterSplitExpr):
+            gsm_data_generator.ir.assert_structural_equal(split, item)
             continue
-        gsmDataGen.testing.assert_prim_expr_equal(split.scale, item[1])
-        gsmDataGen.testing.assert_prim_expr_equal(
-            gsmDataGen.arith.normalize_iter_map_to_expr(split), item[0] * item[1]
+        gsm_data_generator.testing.assert_prim_expr_equal(split.scale, item[1])
+        gsm_data_generator.testing.assert_prim_expr_equal(
+            gsm_data_generator.arith.normalize_iter_map_to_expr(split), item[0] * item[1]
         )
-    gsmDataGen.testing.assert_prim_expr_equal(res.base, base)
+    gsm_data_generator.testing.assert_prim_expr_equal(res.base, base)
 
 
 def test_normalize_to_iter_sum():
-    x = gsmDataGen.tir.Var("x", "int64")
-    y = gsmDataGen.tir.Var("y", "int64")
-    z = gsmDataGen.tir.Var("z", "int64")
-    a = gsmDataGen.tir.Var("a", "int64")
-    n = gsmDataGen.tir.Var("n", "int64")
-    flm = gsmDataGen.tir.floormod
+    x = gsm_data_generator.tir.Var("x", "int64")
+    y = gsm_data_generator.tir.Var("y", "int64")
+    z = gsm_data_generator.tir.Var("z", "int64")
+    a = gsm_data_generator.tir.Var("a", "int64")
+    n = gsm_data_generator.tir.Var("n", "int64")
+    flm = gsm_data_generator.tir.floormod
 
     assert_normalize_to_iter_sum(
         z + ((y + x * 4 + 2) * n) + 3,
@@ -1296,10 +1296,10 @@ def test_normalize_to_iter_sum():
 
     # max cannot detected so it goes into base
     assert_normalize_to_iter_sum(
-        gsmDataGen.tir.max(z, a) + ((y + x * 4 + 2) * n) + 3,
+        gsm_data_generator.tir.max(z, a) + ((y + x * 4 + 2) * n) + 3,
         var_dom([(x, 9), (y, 4), (z, 3)]),
         [(x, n * 4), (y, n)],
-        gsmDataGen.tir.max(z, a) + 2 * n + 3,
+        gsm_data_generator.tir.max(z, a) + 2 * n + 3,
     )
 
     # order by symbolc prod
@@ -1331,11 +1331,11 @@ def test_normalize_to_iter_sum():
         x // 5,
         var_dom([(x, 4096)]),
         [
-            gsmDataGen.arith.IterSplitExpr(
-                gsmDataGen.arith.IterMark(x, 4096),
-                lower_factor=gsmDataGen.tir.const(5, "int64"),
-                extent=gsmDataGen.tir.const(820, "int64"),
-                scale=gsmDataGen.tir.const(1, "int64"),
+            gsm_data_generator.arith.IterSplitExpr(
+                gsm_data_generator.arith.IterMark(x, 4096),
+                lower_factor=gsm_data_generator.tir.const(5, "int64"),
+                extent=gsm_data_generator.tir.const(820, "int64"),
+                scale=gsm_data_generator.tir.const(1, "int64"),
             )
         ],
         0,
@@ -1351,24 +1351,24 @@ def test_normalize_to_iter_sum():
 
 
 def test_detect_iter_map_with_bufferload_recursion():
-    n = gsmDataGen.tir.Var("n", "int32")
-    m = gsmDataGen.tir.Var("m", "int32")
-    divisor = gsmDataGen.tir.Var("divisor", "int32")
+    n = gsm_data_generator.tir.Var("n", "int32")
+    m = gsm_data_generator.tir.Var("m", "int32")
+    divisor = gsm_data_generator.tir.Var("divisor", "int32")
 
-    i = gsmDataGen.tir.Var("i", "int32")
-    j = gsmDataGen.tir.Var("j", "int32")
+    i = gsm_data_generator.tir.Var("i", "int32")
+    j = gsm_data_generator.tir.Var("j", "int32")
 
-    buffer = gsmDataGen.tir.decl_buffer((n,), "int32", name="seqlen")
+    buffer = gsm_data_generator.tir.decl_buffer((n,), "int32", name="seqlen")
 
     indices = [(buffer[i] + j) // divisor]
     iter_vars = {
-        i: gsmDataGen.ir.Range(gsmDataGen.tir.const(0, "int32"), n),
-        j: gsmDataGen.ir.Range(gsmDataGen.tir.const(0, "int32"), m),
+        i: gsm_data_generator.ir.Range(gsm_data_generator.tir.const(0, "int32"), n),
+        j: gsm_data_generator.ir.Range(gsm_data_generator.tir.const(0, "int32"), m),
     }
 
-    result = gsmDataGen.arith.detect_iter_map(indices, iter_vars)
+    result = gsm_data_generator.arith.detect_iter_map(indices, iter_vars)
     assert len(result.indices) == 0
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

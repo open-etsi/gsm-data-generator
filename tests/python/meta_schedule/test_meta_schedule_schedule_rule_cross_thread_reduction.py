@@ -16,19 +16,19 @@
 # under the License.
 # pylint: disable=missing-module-docstring,missing-function-docstring,missing-class-docstring
 
-import gsmDataGen
-from gsmDataGen import meta_schedule as ms
-from gsmDataGen.meta_schedule.testing import te_workload
-from gsmDataGen.meta_schedule.testing.space_generation import (
+import gsm_data_generator
+from gsm_data_generator import meta_schedule as ms
+from gsm_data_generator.meta_schedule.testing import te_workload
+from gsm_data_generator.meta_schedule.testing.space_generation import (
     check_sketches,
     generate_design_space,
 )
-from gsmDataGen.script import tir as T
-from gsmDataGen.target import Target
-from gsmDataGen.te import create_prim_func
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.target import Target
+from gsm_data_generator.te import create_prim_func
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Softmax_mn_after_inline:
     @T.prim_func
     def main(

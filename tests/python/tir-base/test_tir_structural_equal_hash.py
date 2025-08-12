@@ -14,20 +14,20 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-import gsmDataGen
+import gsm_data_generator
 import numpy as np
 import pytest
-from gsmDataGen import te
-from gsmDataGen.ffi.access_path import AccessPath
-from gsmDataGen.script import tir as T, ir as I
+from gsm_data_generator import te
+from gsm_data_generator.ffi.access_path import AccessPath
+from gsm_data_generator.script import tir as T, ir as I
 
 
 def consistent_equal(x, y, map_free_vars=False):
-    struct_equal0 = gsmDataGen.ir.structural_equal(x, y, map_free_vars)
-    struct_equal1 = gsmDataGen.ir.structural_equal(y, x, map_free_vars)
+    struct_equal0 = gsm_data_generator.ir.structural_equal(x, y, map_free_vars)
+    struct_equal1 = gsm_data_generator.ir.structural_equal(y, x, map_free_vars)
 
-    xhash = gsmDataGen.ir.structural_hash(x, map_free_vars)
-    yhash = gsmDataGen.ir.structural_hash(y, map_free_vars)
+    xhash = gsm_data_generator.ir.structural_hash(x, map_free_vars)
+    yhash = gsm_data_generator.ir.structural_hash(y, map_free_vars)
 
     if struct_equal0 != struct_equal1:
         raise ValueError(
@@ -48,8 +48,8 @@ def consistent_equal(x, y, map_free_vars=False):
 
 
 def get_sequal_mismatch(x, y, map_free_vars=False):
-    mismatch_0 = gsmDataGen.ir.base.get_first_structural_mismatch(x, y, map_free_vars)
-    mismatch_1 = gsmDataGen.ir.base.get_first_structural_mismatch(y, x, map_free_vars)
+    mismatch_0 = gsm_data_generator.ir.base.get_first_structural_mismatch(x, y, map_free_vars)
+    mismatch_1 = gsm_data_generator.ir.base.get_first_structural_mismatch(y, x, map_free_vars)
 
     if mismatch_0 is None and mismatch_1 is None:
         return None
@@ -71,8 +71,8 @@ def get_sequal_mismatch(x, y, map_free_vars=False):
 
 def test_exprs():
     # save load json
-    x = gsmDataGen.tir.const(1, "int32")
-    y = gsmDataGen.tir.const(10, "int32")
+    x = gsm_data_generator.tir.const(1, "int32")
+    y = gsm_data_generator.tir.const(10, "int32")
     vx = te.var("x")
     vy = te.var("y")
     vz = te.var("z")
@@ -83,7 +83,7 @@ def test_exprs():
 
     # test assert trigger.
     with pytest.raises(ValueError):
-        gsmDataGen.ir.assert_structural_equal(x, y)
+        gsm_data_generator.ir.assert_structural_equal(x, y)
 
     assert not consistent_equal(vx, vy)
     assert consistent_equal(vx, vy, map_free_vars=True)
@@ -95,9 +95,9 @@ def test_exprs():
     assert consistent_equal(vx + vy + vz, vy + vz + vx, map_free_vars=True)
     assert not consistent_equal(vx + 1, vy + 1, map_free_vars=False)
     # Defintition remap
-    assert consistent_equal(gsmDataGen.tir.Let(vx, 1, vx - 1), gsmDataGen.tir.Let(vy, 1, vy - 1))
+    assert consistent_equal(gsm_data_generator.tir.Let(vx, 1, vx - 1), gsm_data_generator.tir.Let(vy, 1, vy - 1))
     # Default same address free var remap
-    assert consistent_equal(gsmDataGen.tir.Let(vx, 1, vx // vz), gsmDataGen.tir.Let(vy, 1, vy // vz))
+    assert consistent_equal(gsm_data_generator.tir.Let(vx, 1, vx // vz), gsm_data_generator.tir.Let(vy, 1, vy // vz))
 
     assert consistent_equal(zx * zx, zx * zx)
     assert consistent_equal(zx * zx, zy * zy, map_free_vars=True)
@@ -108,27 +108,27 @@ def test_prim_func():
     x = te.var("x")
     y = te.var("y")
     # counter example of same equality
-    func0 = gsmDataGen.tir.PrimFunc([x, y], gsmDataGen.tir.Evaluate(x + y))
-    func1 = gsmDataGen.tir.PrimFunc([x, y], gsmDataGen.tir.Evaluate(y + x))
+    func0 = gsm_data_generator.tir.PrimFunc([x, y], gsm_data_generator.tir.Evaluate(x + y))
+    func1 = gsm_data_generator.tir.PrimFunc([x, y], gsm_data_generator.tir.Evaluate(y + x))
     assert not consistent_equal(func0, func1)
 
     # new cases
-    b = gsmDataGen.tir.decl_buffer((x,), "float32")
-    stmt = gsmDataGen.tir.LetStmt(x, 10, gsmDataGen.tir.Evaluate(x + 1))
-    func0 = gsmDataGen.tir.PrimFunc([x, y, b], stmt)
+    b = gsm_data_generator.tir.decl_buffer((x,), "float32")
+    stmt = gsm_data_generator.tir.LetStmt(x, 10, gsm_data_generator.tir.Evaluate(x + 1))
+    func0 = gsm_data_generator.tir.PrimFunc([x, y, b], stmt)
     # easiest way to deep copy is via save/load
-    func1 = gsmDataGen.ir.load_json(gsmDataGen.ir.save_json(func0))
-    gsmDataGen.ir.assert_structural_equal(func0, func1)
+    func1 = gsm_data_generator.ir.load_json(gsm_data_generator.ir.save_json(func0))
+    gsm_data_generator.ir.assert_structural_equal(func0, func1)
 
-    data0 = gsmDataGen.nd.array([1, 2, 3])
-    data1 = gsmDataGen.nd.array([1, 2, 3])
+    data0 = gsm_data_generator.nd.array([1, 2, 3])
+    data1 = gsm_data_generator.nd.array([1, 2, 3])
     # attributes and ndarrays
     func0 = func0.with_attr("data", data0)
     func1 = func1.with_attr("data", data1)
     # IRModules
-    mod0 = gsmDataGen.IRModule.from_expr(func0)
-    mod1 = gsmDataGen.IRModule.from_expr(func1)
-    gsmDataGen.ir.assert_structural_equal(mod0, mod1)
+    mod0 = gsm_data_generator.IRModule.from_expr(func0)
+    mod1 = gsm_data_generator.IRModule.from_expr(func1)
+    gsm_data_generator.ir.assert_structural_equal(mod0, mod1)
 
 
 def test_prim_func_param_count_mismatch():
@@ -136,8 +136,8 @@ def test_prim_func_param_count_mismatch():
     y = te.var("y")
     z = te.var("z")
     # counter example of same equality
-    func0 = gsmDataGen.tir.PrimFunc([x, y], gsmDataGen.tir.Evaluate(x))
-    func1 = gsmDataGen.tir.PrimFunc([x, y, z], gsmDataGen.tir.Evaluate(x))
+    func0 = gsm_data_generator.tir.PrimFunc([x, y], gsm_data_generator.tir.Evaluate(x))
+    func1 = gsm_data_generator.tir.PrimFunc([x, y, z], gsm_data_generator.tir.Evaluate(x))
     lhs_path, rhs_path = get_sequal_mismatch(func0, func1)
     expected_lhs_path = AccessPath.root().attr("params").array_item_missing(2)
     expected_rhs_path = AccessPath.root().attr("params").array_item(2)
@@ -150,8 +150,8 @@ def test_prim_func_param_dtype_mismatch():
     y_0 = te.var("y", dtype="int32")
     y_1 = te.var("z", dtype="float32")
     # counter example of same equality
-    func0 = gsmDataGen.tir.PrimFunc([x, y_0], gsmDataGen.tir.Evaluate(x))
-    func1 = gsmDataGen.tir.PrimFunc([x, y_1], gsmDataGen.tir.Evaluate(x))
+    func0 = gsm_data_generator.tir.PrimFunc([x, y_0], gsm_data_generator.tir.Evaluate(x))
+    func1 = gsm_data_generator.tir.PrimFunc([x, y_1], gsm_data_generator.tir.Evaluate(x))
     lhs_path, rhs_path = get_sequal_mismatch(func0, func1)
     expected_path = AccessPath.root().attr("params").array_item(1).attr("dtype")
     assert lhs_path == expected_path
@@ -164,8 +164,8 @@ def test_prim_func_body_mismatch():
     x_1 = te.var("x")
     y_1 = te.var("y")
     # counter example of same equality
-    func0 = gsmDataGen.tir.PrimFunc([x_0, y_0], gsmDataGen.tir.Evaluate(x_0 + x_0))
-    func1 = gsmDataGen.tir.PrimFunc([x_1, y_1], gsmDataGen.tir.Evaluate(x_1 + y_1))
+    func0 = gsm_data_generator.tir.PrimFunc([x_0, y_0], gsm_data_generator.tir.Evaluate(x_0 + x_0))
+    func1 = gsm_data_generator.tir.PrimFunc([x_1, y_1], gsm_data_generator.tir.Evaluate(x_1 + y_1))
     lhs_path, rhs_path = get_sequal_mismatch(func0, func1)
     expected_path = AccessPath.root().attr("body").attr("value").attr("b")
     assert lhs_path == expected_path
@@ -174,33 +174,33 @@ def test_prim_func_body_mismatch():
 
 def test_array():
     x = np.arange(10)
-    nx = gsmDataGen.nd.array(x)
-    ny = gsmDataGen.nd.array(x)
-    nz = gsmDataGen.nd.array(x.reshape(2, 5))
+    nx = gsm_data_generator.nd.array(x)
+    ny = gsm_data_generator.nd.array(x)
+    nz = gsm_data_generator.nd.array(x.reshape(2, 5))
     assert consistent_equal(nx, ny)
     assert not consistent_equal(nx, nz)
 
 
 def test_env_func():
-    @gsmDataGen.register_func("test.sequal.env_func")
+    @gsm_data_generator.register_func("test.sequal.env_func")
     def test(x):
         return x + 1
 
-    x = gsmDataGen.ir.EnvFunc.get("test.sequal.env_func")
-    y = gsmDataGen.ir.EnvFunc.get("test.sequal.env_func")
+    x = gsm_data_generator.ir.EnvFunc.get("test.sequal.env_func")
+    y = gsm_data_generator.ir.EnvFunc.get("test.sequal.env_func")
     assert consistent_equal(y, x)
 
 
 def test_attrs():
-    x = gsmDataGen.ir.make_node("attrs.TestAttrs", axis=1, name="xx")
-    y = gsmDataGen.ir.make_node("attrs.TestAttrs", axis=1, name="xx")
-    z = gsmDataGen.ir.make_node("attrs.TestAttrs", axis=2, name="xx")
-    gsmDataGen.ir.assert_structural_equal(y, x)
+    x = gsm_data_generator.ir.make_node("attrs.TestAttrs", axis=1, name="xx")
+    y = gsm_data_generator.ir.make_node("attrs.TestAttrs", axis=1, name="xx")
+    z = gsm_data_generator.ir.make_node("attrs.TestAttrs", axis=2, name="xx")
+    gsm_data_generator.ir.assert_structural_equal(y, x)
     assert not consistent_equal(y, z)
 
-    x = gsmDataGen.runtime.convert({"x": [1, 2, 3], "y": 2})
-    y = gsmDataGen.runtime.convert({"y": 2, "x": [1, 2, 3]})
-    z = gsmDataGen.runtime.convert({"y": 2, "x": [1, 2, 3, 4]})
+    x = gsm_data_generator.runtime.convert({"x": [1, 2, 3], "y": 2})
+    y = gsm_data_generator.runtime.convert({"y": 2, "x": [1, 2, 3]})
+    z = gsm_data_generator.runtime.convert({"y": 2, "x": [1, 2, 3, 4]})
     assert consistent_equal(y, x)
     assert not consistent_equal(y, z)
 
@@ -214,11 +214,11 @@ def test_stmt():
     ii = te.var("i")
     jj = te.var("j")
 
-    Ab = gsmDataGen.tir.decl_buffer((n,), name="A")
+    Ab = gsm_data_generator.tir.decl_buffer((n,), name="A")
     n = te.var("n")
 
     def func2():
-        ib = gsmDataGen.tir.ir_builder.create()
+        ib = gsm_data_generator.tir.ir_builder.create()
         A = ib.buffer_ptr(Ab)
         with ib.for_range(0, n, name="i") as i:
             A[i] = A[i] + 1
@@ -233,15 +233,15 @@ def test_stmt():
 def test_buffer_storage_scope():
     x = te.var("x", dtype="handle")
 
-    buffer_local_0 = gsmDataGen.tir.decl_buffer((10, 10), "float32", scope="local")
-    buffer_local_1 = gsmDataGen.tir.decl_buffer((10, 10), "float32", scope="local")
-    buffer_global = gsmDataGen.tir.decl_buffer((10, 10), "float32")
-    buffer_empty = gsmDataGen.tir.decl_buffer((10, 10), "float32", scope="")
+    buffer_local_0 = gsm_data_generator.tir.decl_buffer((10, 10), "float32", scope="local")
+    buffer_local_1 = gsm_data_generator.tir.decl_buffer((10, 10), "float32", scope="local")
+    buffer_global = gsm_data_generator.tir.decl_buffer((10, 10), "float32")
+    buffer_empty = gsm_data_generator.tir.decl_buffer((10, 10), "float32", scope="")
 
-    func0 = gsmDataGen.tir.PrimFunc([x], gsmDataGen.tir.Evaluate(x), buffer_map={x: buffer_local_0})
-    func1 = gsmDataGen.tir.PrimFunc([x], gsmDataGen.tir.Evaluate(x), buffer_map={x: buffer_local_1})
-    func2 = gsmDataGen.tir.PrimFunc([x], gsmDataGen.tir.Evaluate(x), buffer_map={x: buffer_global})
-    func3 = gsmDataGen.tir.PrimFunc([x], gsmDataGen.tir.Evaluate(x), buffer_map={x: buffer_empty})
+    func0 = gsm_data_generator.tir.PrimFunc([x], gsm_data_generator.tir.Evaluate(x), buffer_map={x: buffer_local_0})
+    func1 = gsm_data_generator.tir.PrimFunc([x], gsm_data_generator.tir.Evaluate(x), buffer_map={x: buffer_local_1})
+    func2 = gsm_data_generator.tir.PrimFunc([x], gsm_data_generator.tir.Evaluate(x), buffer_map={x: buffer_global})
+    func3 = gsm_data_generator.tir.PrimFunc([x], gsm_data_generator.tir.Evaluate(x), buffer_map={x: buffer_empty})
 
     assert consistent_equal(func0, func1)
     assert consistent_equal(func2, func3)
@@ -250,13 +250,13 @@ def test_buffer_storage_scope():
 
 def test_buffer_map_mismatch():
     x = te.var("x")
-    buffer_0 = gsmDataGen.tir.decl_buffer((10, 10))
-    buffer_0_clone = gsmDataGen.tir.decl_buffer((10, 10))
-    buffer_1 = gsmDataGen.tir.decl_buffer((10, 20))
+    buffer_0 = gsm_data_generator.tir.decl_buffer((10, 10))
+    buffer_0_clone = gsm_data_generator.tir.decl_buffer((10, 10))
+    buffer_1 = gsm_data_generator.tir.decl_buffer((10, 20))
 
-    func_0 = gsmDataGen.tir.PrimFunc([x], gsmDataGen.tir.Evaluate(x), buffer_map={x: buffer_0})
-    func_0_clone = gsmDataGen.tir.PrimFunc([x], gsmDataGen.tir.Evaluate(x), buffer_map={x: buffer_0_clone})
-    func_1 = gsmDataGen.tir.PrimFunc([x], gsmDataGen.tir.Evaluate(x), buffer_map={x: buffer_1})
+    func_0 = gsm_data_generator.tir.PrimFunc([x], gsm_data_generator.tir.Evaluate(x), buffer_map={x: buffer_0})
+    func_0_clone = gsm_data_generator.tir.PrimFunc([x], gsm_data_generator.tir.Evaluate(x), buffer_map={x: buffer_0_clone})
+    func_1 = gsm_data_generator.tir.PrimFunc([x], gsm_data_generator.tir.Evaluate(x), buffer_map={x: buffer_1})
 
     lhs_path, rhs_path = get_sequal_mismatch(func_0, func_1)
     expected_path = (
@@ -272,11 +272,11 @@ def test_buffer_map_length_mismatch():
     x = te.var("x")
     y = te.var("x")
 
-    buffer_0 = gsmDataGen.tir.decl_buffer((10, 10))
-    buffer_1 = gsmDataGen.tir.decl_buffer((10, 20))
+    buffer_0 = gsm_data_generator.tir.decl_buffer((10, 10))
+    buffer_1 = gsm_data_generator.tir.decl_buffer((10, 20))
 
-    func_0 = gsmDataGen.tir.PrimFunc([x], gsmDataGen.tir.Evaluate(x), buffer_map={x: buffer_0})
-    func_1 = gsmDataGen.tir.PrimFunc([x], gsmDataGen.tir.Evaluate(x), buffer_map={x: buffer_0, y: buffer_1})
+    func_0 = gsm_data_generator.tir.PrimFunc([x], gsm_data_generator.tir.Evaluate(x), buffer_map={x: buffer_0})
+    func_1 = gsm_data_generator.tir.PrimFunc([x], gsm_data_generator.tir.Evaluate(x), buffer_map={x: buffer_0, y: buffer_1})
 
     lhs_path, rhs_path = get_sequal_mismatch(func_0, func_1)
 
@@ -287,34 +287,34 @@ def test_buffer_map_length_mismatch():
 
 
 def test_buffer_load_store():
-    b = gsmDataGen.tir.decl_buffer((10, 10), "float32")
-    x = gsmDataGen.tir.BufferLoad(b, [0, 1])
-    y = gsmDataGen.tir.BufferLoad(b, [0, 1])
-    z = gsmDataGen.tir.BufferLoad(b, [1, 2])
+    b = gsm_data_generator.tir.decl_buffer((10, 10), "float32")
+    x = gsm_data_generator.tir.BufferLoad(b, [0, 1])
+    y = gsm_data_generator.tir.BufferLoad(b, [0, 1])
+    z = gsm_data_generator.tir.BufferLoad(b, [1, 2])
     assert consistent_equal(y, x)
     assert not consistent_equal(y, z)
 
-    i = gsmDataGen.tir.Var("x", "int32")
-    sx = gsmDataGen.tir.BufferStore(b, 0.1, [0, i])
-    sy = gsmDataGen.tir.BufferStore(b, 0.1, [0, i])
-    sz = gsmDataGen.tir.BufferStore(b, 0.1, [1, i])
+    i = gsm_data_generator.tir.Var("x", "int32")
+    sx = gsm_data_generator.tir.BufferStore(b, 0.1, [0, i])
+    sy = gsm_data_generator.tir.BufferStore(b, 0.1, [0, i])
+    sz = gsm_data_generator.tir.BufferStore(b, 0.1, [1, i])
     assert consistent_equal(sy, sx)
     assert not consistent_equal(sy, sz)
 
 
 def test_while():
-    x = gsmDataGen.tir.Var("x", "int32")
-    y = gsmDataGen.tir.Var("y", "int32")
-    wx = gsmDataGen.tir.While(x > 0, gsmDataGen.tir.Evaluate(x))
-    wy = gsmDataGen.tir.While(y > 0, gsmDataGen.tir.Evaluate(y))
+    x = gsm_data_generator.tir.Var("x", "int32")
+    y = gsm_data_generator.tir.Var("y", "int32")
+    wx = gsm_data_generator.tir.While(x > 0, gsm_data_generator.tir.Evaluate(x))
+    wy = gsm_data_generator.tir.While(y > 0, gsm_data_generator.tir.Evaluate(y))
     assert not consistent_equal(wx, wy)
     assert consistent_equal(wx, wy, map_free_vars=True)
 
 
 def test_while_condition_mismatch():
-    x = gsmDataGen.tir.Var("x", "int32")
-    w_0 = gsmDataGen.tir.While(x > 0, gsmDataGen.tir.Evaluate(x))
-    w_1 = gsmDataGen.tir.While(x < 0, gsmDataGen.tir.Evaluate(x))
+    x = gsm_data_generator.tir.Var("x", "int32")
+    w_0 = gsm_data_generator.tir.While(x > 0, gsm_data_generator.tir.Evaluate(x))
+    w_1 = gsm_data_generator.tir.While(x < 0, gsm_data_generator.tir.Evaluate(x))
     lhs_path, rhs_path = get_sequal_mismatch(w_0, w_1)
     expected_path = AccessPath.root().attr("condition")
     assert lhs_path == expected_path
@@ -322,9 +322,9 @@ def test_while_condition_mismatch():
 
 
 def test_while_body_mismatch():
-    x = gsmDataGen.tir.Var("x", "int32")
-    w_0 = gsmDataGen.tir.While(x > 0, gsmDataGen.tir.Evaluate(x))
-    w_1 = gsmDataGen.tir.While(x > 0, gsmDataGen.tir.Evaluate(x + 1))
+    x = gsm_data_generator.tir.Var("x", "int32")
+    w_0 = gsm_data_generator.tir.While(x > 0, gsm_data_generator.tir.Evaluate(x))
+    w_1 = gsm_data_generator.tir.While(x > 0, gsm_data_generator.tir.Evaluate(x + 1))
     lhs_path, rhs_path = get_sequal_mismatch(w_0, w_1)
     expected_path = AccessPath.root().attr("body").attr("value")
     assert lhs_path == expected_path
@@ -332,21 +332,21 @@ def test_while_body_mismatch():
 
 
 def test_seq_mismatch():
-    x = gsmDataGen.tir.Var("x", "int32")
-    seq_0 = gsmDataGen.tir.SeqStmt(
+    x = gsm_data_generator.tir.Var("x", "int32")
+    seq_0 = gsm_data_generator.tir.SeqStmt(
         [
-            gsmDataGen.tir.Evaluate(x),
-            gsmDataGen.tir.Evaluate(x + 1),
-            gsmDataGen.tir.Evaluate(x + 2),
-            gsmDataGen.tir.Evaluate(x + 3),
+            gsm_data_generator.tir.Evaluate(x),
+            gsm_data_generator.tir.Evaluate(x + 1),
+            gsm_data_generator.tir.Evaluate(x + 2),
+            gsm_data_generator.tir.Evaluate(x + 3),
         ]
     )
-    seq_1 = gsmDataGen.tir.SeqStmt(
+    seq_1 = gsm_data_generator.tir.SeqStmt(
         [
-            gsmDataGen.tir.Evaluate(x),
-            gsmDataGen.tir.Evaluate(x + 1),
-            gsmDataGen.tir.Evaluate(x + 99),
-            gsmDataGen.tir.Evaluate(x + 3),
+            gsm_data_generator.tir.Evaluate(x),
+            gsm_data_generator.tir.Evaluate(x + 1),
+            gsm_data_generator.tir.Evaluate(x + 99),
+            gsm_data_generator.tir.Evaluate(x + 3),
         ]
     )
     lhs_path, rhs_path = get_sequal_mismatch(seq_0, seq_1)
@@ -359,16 +359,16 @@ def test_seq_mismatch():
 
 def test_seq_mismatch_different_lengths():
     # Make sure we report a difference inside the array first, rather than the difference in length
-    x = gsmDataGen.tir.Var("x", "int32")
-    seq_0 = gsmDataGen.tir.SeqStmt(
+    x = gsm_data_generator.tir.Var("x", "int32")
+    seq_0 = gsm_data_generator.tir.SeqStmt(
         [
-            gsmDataGen.tir.Evaluate(x),
-            gsmDataGen.tir.Evaluate(x + 1),
-            gsmDataGen.tir.Evaluate(x + 2),
-            gsmDataGen.tir.Evaluate(x + 3),
+            gsm_data_generator.tir.Evaluate(x),
+            gsm_data_generator.tir.Evaluate(x + 1),
+            gsm_data_generator.tir.Evaluate(x + 2),
+            gsm_data_generator.tir.Evaluate(x + 3),
         ]
     )
-    seq_1 = gsmDataGen.tir.SeqStmt([gsmDataGen.tir.Evaluate(x), gsmDataGen.tir.Evaluate(x + 1), gsmDataGen.tir.Evaluate(x + 3)])
+    seq_1 = gsm_data_generator.tir.SeqStmt([gsm_data_generator.tir.Evaluate(x), gsm_data_generator.tir.Evaluate(x + 1), gsm_data_generator.tir.Evaluate(x + 3)])
     lhs_path, rhs_path = get_sequal_mismatch(seq_0, seq_1)
     expected_path = (
         AccessPath.root().attr("seq").array_item(2).attr("value").attr("b").attr("value")
@@ -378,16 +378,16 @@ def test_seq_mismatch_different_lengths():
 
 
 def test_seq_length_mismatch():
-    x = gsmDataGen.tir.Var("x", "int32")
-    seq_0 = gsmDataGen.tir.SeqStmt(
+    x = gsm_data_generator.tir.Var("x", "int32")
+    seq_0 = gsm_data_generator.tir.SeqStmt(
         [
-            gsmDataGen.tir.Evaluate(x),
-            gsmDataGen.tir.Evaluate(x + 1),
-            gsmDataGen.tir.Evaluate(x + 2),
-            gsmDataGen.tir.Evaluate(x + 3),
+            gsm_data_generator.tir.Evaluate(x),
+            gsm_data_generator.tir.Evaluate(x + 1),
+            gsm_data_generator.tir.Evaluate(x + 2),
+            gsm_data_generator.tir.Evaluate(x + 3),
         ]
     )
-    seq_1 = gsmDataGen.tir.SeqStmt([gsmDataGen.tir.Evaluate(x), gsmDataGen.tir.Evaluate(x + 1), gsmDataGen.tir.Evaluate(x + 2)])
+    seq_1 = gsm_data_generator.tir.SeqStmt([gsm_data_generator.tir.Evaluate(x), gsm_data_generator.tir.Evaluate(x + 1), gsm_data_generator.tir.Evaluate(x + 2)])
     lhs_path, rhs_path = get_sequal_mismatch(seq_0, seq_1)
     expected_lhs_path = AccessPath.root().attr("seq").array_item(3)
     expected_rhs_path = AccessPath.root().attr("seq").array_item_missing(3)
@@ -409,12 +409,12 @@ def test_ir_module_equal():
     # Equivalent IRModules should compare as equivalent, even though
     # they have distinct GlobalVars, and GlobalVars usually compare by
     # reference equality.
-    gsmDataGen.ir.assert_structural_equal(generate(16), generate(16))
+    gsm_data_generator.ir.assert_structural_equal(generate(16), generate(16))
 
     # When there is a difference, the location should include the
     # function name that caused the failure.
     with pytest.raises(ValueError) as err:
-        gsmDataGen.ir.assert_structural_equal(generate(16), generate(32))
+        gsm_data_generator.ir.assert_structural_equal(generate(16), generate(32))
 
     assert '<root>.functions[I.GlobalVar("func")].body.extent.value' in err.value.args[0]
 
@@ -436,8 +436,8 @@ def test_nan_values_are_equivalent():
     def func_2():
         return T.float32("nan")
 
-    gsmDataGen.ir.assert_structural_equal(func_1, func_2)
-    assert gsmDataGen.ir.structural_hash(func_1) == gsmDataGen.ir.structural_hash(func_2)
+    gsm_data_generator.ir.assert_structural_equal(func_1, func_2)
+    assert gsm_data_generator.ir.structural_hash(func_1) == gsm_data_generator.ir.structural_hash(func_2)
 
 
 def test_all_nan_values_are_equivalent():
@@ -458,9 +458,9 @@ def test_all_nan_values_are_equivalent():
     float_1 = T.float32(nan_all_zeros)
     float_2 = T.float32(nan_with_payload)
 
-    gsmDataGen.ir.assert_structural_equal(float_1, float_2)
-    assert gsmDataGen.ir.structural_hash(float_1) == gsmDataGen.ir.structural_hash(float_2)
+    gsm_data_generator.ir.assert_structural_equal(float_1, float_2)
+    assert gsm_data_generator.ir.structural_hash(float_1) == gsm_data_generator.ir.structural_hash(float_2)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

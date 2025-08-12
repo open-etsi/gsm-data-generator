@@ -17,11 +17,11 @@
 # pylint: disable=missing-function-docstring,missing-module-docstring
 import pytest
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import te, tir, topi
-from gsmDataGen.script import tir as T
-from gsmDataGen.tir.schedule.testing import (
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import te, tir, topi
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.tir.schedule.testing import (
     assert_structural_equal_ignore_global_symbol,
     verify_trace_roundtrip,
 )
@@ -1308,58 +1308,58 @@ def test_reduction_rfactor_square_sum_square_root():
 def test_reduction_rfactor_loop_multiple_children():
     s = tir.Schedule(matmul_loop_multiple_children, debug_mask="all")
     k, _, _ = s.get_loops(s.get_block("C"))
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         s.rfactor(k, 0)
 
 
 def test_reduction_rfactor_not_stage_pipeline():
     s = tir.Schedule(matmul_not_stage_pipeline, debug_mask="all")
     _, _, k = s.get_loops(s.get_block("C"))
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         s.rfactor(k, 0)
 
 
 def test_reduction_rfactor_not_reduction_block1():
     s = tir.Schedule(element_wise, debug_mask="all")
     i, _ = s.get_loops(s.get_block("B"))
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         s.rfactor(i, 0)
 
 
 def test_reduction_rfactor_not_reduction_block2():
     s = tir.Schedule(rowsum_not_quasi_affine, debug_mask="all")
     _, k = s.get_loops(s.get_block("B"))
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         s.rfactor(k, 0)
 
 
 def test_reduction_rfactor_not_reduction_block3():
     s = tir.Schedule(rowsum_not_dominant, debug_mask="all")
     _, k = s.get_loops(s.get_block("B"))
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         s.rfactor(k, 0)
 
 
 def test_reduction_rfactor_not_serial_loop():
     s = tir.Schedule(rowsum_not_serial, debug_mask="all")
     _, k = s.get_loops(s.get_block("B"))
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         s.rfactor(k, 0)
 
 
 def test_reduction_rfactor_not_same_buffer_access():
     s = tir.Schedule(matmul_not_same_buffer_access, debug_mask="all")
     _, _, k = s.get_loops(s.get_block("C"))
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         s.rfactor(k, 0)
 
 
 def test_reduction_rfactor_factor_axis_range_fail():
     s = tir.Schedule(transformed_matmul, debug_mask="all")
     _, _, _, _, kii = s.get_loops(s.get_block("update"))
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         s.rfactor(kii, 3)
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         s.rfactor(kii, -4)
 
 
@@ -1377,35 +1377,35 @@ def test_reduction_rfactor_factor_axis_range():
 def test_reduction_rfactor_wrong_reduce_pattern1():
     s = tir.Schedule(rowsum_wrong_reduce_pattern1, debug_mask="all")
     _, k = s.get_loops(s.get_block("B"))
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         s.rfactor(k, 0)
 
 
 def test_reduction_rfactor_wrong_reduce_pattern2():
     s = tir.Schedule(rowsum_wrong_reduce_pattern2, debug_mask="all")
     _, k = s.get_loops(s.get_block("B"))
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         s.rfactor(k, 0)
 
 
 def test_reduction_rfactor_init_not_bufferstore():
     s = tir.Schedule(rowsum_init_not_bufferstore, debug_mask="all")
     _, k = s.get_loops(s.get_block("B"))
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         s.rfactor(k, 0)
 
 
 def test_reduction_rfactor_wrong_loops1():
     s = tir.Schedule(rowsum, debug_mask="all")
     i, _ = s.get_loops(s.get_block("B"))
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         s.rfactor(i, 0)
 
 
 def test_reduction_rfactor_wrong_loops2():
     s = tir.Schedule(rowsum_transformed, debug_mask="all")
     _, _, k_i = s.get_loops(s.get_block("B"))
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         s.rfactor(k_i, 0)
 
 
@@ -1425,17 +1425,17 @@ def test_reduction_rfactor_outermost_loop_multiple_children_fail():  # pylint: d
     _, _, k2o, k2i = s.get_loops(s.get_block("D"))
     _, _, k3o, k3i = s.get_loops(s.get_block("E"))
     _, _, k4o, k4i = s.get_loops(s.get_block("F"))
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         s.rfactor(k2o, 0)
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         s.rfactor(k2i, 0)
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         s.rfactor(k3o, 0)
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         s.rfactor(k3i, 0)
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         s.rfactor(k4o, 0)
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         s.rfactor(k4i, 0)
 
 
@@ -1455,7 +1455,7 @@ def test_reduction_rfactor_predicate():  # pylint: disable=invalid-name
     B = s.get_block("B")
     _, ko, _ = s.get_loops(B)
     # TODO: should be a tvm.tir.ScheduleError
-    with pytest.raises(gsmDataGen.TVMError):
+    with pytest.raises(gsm_data_generator.TVMError):
         rf_block = s.rfactor(ko, 1)
 
 
@@ -1507,7 +1507,7 @@ def test_reduction_rfactor_argmax_reduction_buffer_different_shape():
     s = tir.Schedule(argmax_split_different_shape, debug_mask="all")
     argmax = s.get_block("argmax")
     _, _, ki = s.get_loops(argmax)
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         s.rfactor(ki, 1)
 
 
@@ -1515,7 +1515,7 @@ def test_reduction_rfactor_argmax_different_access_indices():
     s = tir.Schedule(argmax_split_different_indices, debug_mask="all")
     argmax = s.get_block("argmax")
     _, _, ki = s.get_loops(argmax)
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         s.rfactor(ki, 1)
 
 
@@ -1523,7 +1523,7 @@ def test_reduction_rfactor_argmax_init_not_bufferstore():
     s = tir.Schedule(argmax_split_init_not_bufferstore, debug_mask="all")
     argmax = s.get_block("argmax")
     _, _, ki = s.get_loops(argmax)
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         s.rfactor(ki, 1)
 
 
@@ -1531,7 +1531,7 @@ def test_reduction_rfactor_argmax_init_buffer_duplicate():
     s = tir.Schedule(argmax_split_init_buffer_duplicate, debug_mask="all")
     argmax = s.get_block("argmax")
     _, _, ki = s.get_loops(argmax)
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         s.rfactor(ki, 1)
 
 
@@ -1539,7 +1539,7 @@ def test_reduction_rfactor_argmax_letstmt_fewer_than_init():
     s = tir.Schedule(argmax_split_letstmt_fewer_than_init, debug_mask="all")
     argmax = s.get_block("argmax")
     _, _, ki = s.get_loops(argmax)
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         s.rfactor(ki, 1)
 
 
@@ -1547,7 +1547,7 @@ def test_reduction_rfactor_argmax_letstmt_more_than_init():
     s = tir.Schedule(argmax_split_letstmt_more_than_init, debug_mask="all")
     argmax = s.get_block("argmax")
     _, _, ki = s.get_loops(argmax)
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         s.rfactor(ki, 1)
 
 
@@ -1555,7 +1555,7 @@ def test_reduction_rfactor_argmax_let_body_neither_seqstmt_nor_bufferstore():
     s = tir.Schedule(argmax_split_let_body_neither_seqstmt_nor_bufferstore, debug_mask="all")
     argmax = s.get_block("argmax")
     _, _, ki = s.get_loops(argmax)
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         s.rfactor(ki, 1)
 
 
@@ -1563,7 +1563,7 @@ def test_reduction_rfactor_argmax_init_update_inconsistent_bufferstore_number():
     s = tir.Schedule(argmax_split_init_update_inconsistent_bufferstore_number, debug_mask="all")
     argmax = s.get_block("argmax")
     _, _, ki = s.get_loops(argmax)
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         s.rfactor(ki, 1)
 
 
@@ -1571,7 +1571,7 @@ def test_reduction_rfactor_argmax_body_seq_not_bufferstore():
     s = tir.Schedule(argmax_split_body_seq_not_bufferstore, debug_mask="all")
     argmax = s.get_block("argmax")
     _, _, ki = s.get_loops(argmax)
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         s.rfactor(ki, 1)
 
 
@@ -1579,7 +1579,7 @@ def test_reduction_rfactor_argmax_body_bufferstore_value_not_var():
     s = tir.Schedule(argmax_split_body_bufferstore_value_not_var, debug_mask="all")
     argmax = s.get_block("argmax")
     _, _, ki = s.get_loops(argmax)
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         s.rfactor(ki, 1)
 
 
@@ -1588,7 +1588,7 @@ def test_reduction_rfactor_argmax_body_bufferstore_value_unbound_var():
     s = tir.Schedule(argmax_split_body_bufferstore_value_unbound_var, debug_mask="all")
     argmax = s.get_block("argmax")
     _, _, ki = s.get_loops(argmax)
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         s.rfactor(ki, 1)
 
 
@@ -1596,7 +1596,7 @@ def test_reduction_rfactor_argmax_one_let_var_used_multi_times():
     s = tir.Schedule(argmax_split_one_let_var_used_multi_times, debug_mask="all")
     argmax = s.get_block("argmax")
     _, _, ki = s.get_loops(argmax)
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         s.rfactor(ki, 1)
 
 
@@ -1604,7 +1604,7 @@ def test_reduction_rfactor_argmax_body_one_buffer_updated_multi_times():
     s = tir.Schedule(argmax_split_body_one_buffer_updated_multi_times, debug_mask="all")
     argmax = s.get_block("argmax")
     _, _, ki = s.get_loops(argmax)
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         s.rfactor(ki, 1)
 
 
@@ -1612,7 +1612,7 @@ def test_reduction_rfactor_argmax_init_buffer_not_match():
     s = tir.Schedule(argmax_split_init_buffer_not_match, debug_mask="all")
     argmax = s.get_block("argmax")
     _, _, ki = s.get_loops(argmax)
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         s.rfactor(ki, 1)
 
 
@@ -1703,4 +1703,4 @@ def test_reduction_rfactor_int64():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

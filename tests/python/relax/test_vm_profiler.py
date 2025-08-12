@@ -15,13 +15,13 @@
 # specific language governing permissions and limitations
 # under the License.
 import numpy as np
-import gsmDataGen
-import gsmDataGen.testing
+import gsm_data_generator
+import gsm_data_generator.testing
 
-from gsmDataGen import relax, rpc
-from gsmDataGen.contrib import utils
-from gsmDataGen.relax.testing import nn
-from gsmDataGen.script import relax as R
+from gsm_data_generator import relax, rpc
+from gsm_data_generator.contrib import utils
+from gsm_data_generator.relax.testing import nn
+from gsm_data_generator.script import relax as R
 
 
 def get_exec(data_shape):
@@ -47,15 +47,15 @@ def get_exec(data_shape):
     mod = relax.transform.BindParams("main", params)(mod)
 
     target = "llvm"
-    return gsmDataGen.compile(mod, target)
+    return gsm_data_generator.compile(mod, target)
 
 
 def test_conv2d_cpu():
     data_np = np.random.randn(1, 64).astype("float32")
     ex = get_exec(data_np.shape)
 
-    vm = relax.VirtualMachine(ex, gsmDataGen.cpu(), profile=True)
-    report = vm.profile("main", gsmDataGen.nd.array(data_np))
+    vm = relax.VirtualMachine(ex, gsm_data_generator.cpu(), profile=True)
+    report = vm.profile("main", gsm_data_generator.nd.array(data_np))
     print(report)
 
     assert "Duration" in str(report)
@@ -76,7 +76,7 @@ def with_rpc(ex, f, data_np):
     device = remote.cpu()
 
     vm = relax.VirtualMachine(rexec, device=device, profile=True)
-    data = gsmDataGen.nd.array(data_np, device)
+    data = gsm_data_generator.nd.array(data_np, device)
 
     f(vm, data)
 
@@ -98,7 +98,7 @@ def test_rpc():
 
 
 def test_tuple():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class NestedTuple:
         @R.function
         def main(
@@ -115,7 +115,7 @@ def test_tuple():
             return ((x, (x,)), x)
 
     target = "llvm"
-    ex = gsmDataGen.compile(NestedTuple, target)
+    ex = gsm_data_generator.compile(NestedTuple, target)
 
     data_np = np.random.randn(16).astype("float32")
 
@@ -127,4 +127,4 @@ def test_tuple():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

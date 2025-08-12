@@ -19,11 +19,11 @@
 """ Android testing infrastructure """
 
 import os
-import gsmDataGen
-from gsmDataGen.meta_schedule.runner import RPCRunner, RPCConfig, EvaluatorConfig
+import gsm_data_generator
+from gsm_data_generator.meta_schedule.runner import RPCRunner, RPCConfig, EvaluatorConfig
 
 
-def get_rpc_runner() -> gsmDataGen.meta_schedule.runner.RPCRunner:
+def get_rpc_runner() -> gsm_data_generator.meta_schedule.runner.RPCRunner:
     if (
         "TVM_TRACKER_HOST" in os.environ
         and "TVM_TRACKER_PORT" in os.environ
@@ -50,8 +50,8 @@ def get_rpc_runner() -> gsmDataGen.meta_schedule.runner.RPCRunner:
     return RPCRunner(rpc_config, evaluator_config)
 
 
-def get_android_gpu_target() -> gsmDataGen.target.Target:
+def get_android_gpu_target() -> gsm_data_generator.target.Target:
     """Creates a Android GPU target"""
     target_c = "opencl"
     target_h = "llvm -mtriple=arm64-linux-android"
-    return gsmDataGen.target.Target(target_c, host=target_h)
+    return gsm_data_generator.target.Target(target_c, host=target_h)

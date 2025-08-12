@@ -17,11 +17,11 @@
 import numpy as np
 import pytest
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import relax
-from gsmDataGen.relax.frontend.nn import Module, Tensor, spec
-from gsmDataGen.script import relax as R
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import relax
+from gsm_data_generator.relax.frontend.nn import Module, Tensor, spec
+from gsm_data_generator.script import relax as R
 
 
 def test_tensor_from_numpy():
@@ -73,7 +73,7 @@ def test_tensor_op_binary_tensor_tensor():
         debug=True,
     )
 
-    gsmDataGen.ir.assert_structural_equal(irmodule["test"], test)
+    gsm_data_generator.ir.assert_structural_equal(irmodule["test"], test)
 
 
 def test_tensor_op_binary_tensor_scalar():
@@ -107,7 +107,7 @@ def test_tensor_op_binary_tensor_scalar():
     m = Model()
     irmodule, _ = m.export_tvm(spec={"test": {"x": spec.Tensor([1, 10], "float32")}}, debug=True)
 
-    gsmDataGen.ir.assert_structural_equal(irmodule["test"], test)
+    gsm_data_generator.ir.assert_structural_equal(irmodule["test"], test)
 
 
 def test_tensor_op_datatype():
@@ -130,7 +130,7 @@ def test_tensor_op_datatype():
     m = Model()
     irmodule, _ = m.export_tvm(spec={"test": {"x": spec.Tensor([1, 10], "float32")}}, debug=True)
 
-    gsmDataGen.ir.assert_structural_equal(irmodule["test"], test)
+    gsm_data_generator.ir.assert_structural_equal(irmodule["test"], test)
 
 
 def test_tensor_op_manipulate():
@@ -157,8 +157,8 @@ def test_tensor_op_manipulate():
     m = Model()
     irmodule, _ = m.export_tvm(spec={"test": {"x": spec.Tensor([2, 1, 10], "float32")}}, debug=True)
 
-    gsmDataGen.ir.assert_structural_equal(irmodule["test"], test)
+    gsm_data_generator.ir.assert_structural_equal(irmodule["test"], test)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

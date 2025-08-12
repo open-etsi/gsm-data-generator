@@ -20,15 +20,15 @@ import tempfile
 from typing import List
 
 import pytest
-import gsmDataGen
-from gsmDataGen import meta_schedule as ms
-from gsmDataGen.script import tir as T
-from gsmDataGen.tir.schedule import Schedule
+import gsm_data_generator
+from gsm_data_generator import meta_schedule as ms
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.tir.schedule import Schedule
 
 # pylint: disable=invalid-name,no-member,line-too-long,too-many-nested-blocks,no-self-argument,
 # fmt: off
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Matmul:
     @T.prim_func
     def main(a: T.handle, b: T.handle, c: T.handle) -> None:
@@ -59,7 +59,7 @@ def test_meta_schedule_measure_callback():
             runner_results: List[ms.runner.RunnerResult],
         ) -> None:
             assert len(measure_candidates) == 1
-            gsmDataGen.ir.assert_structural_equal(measure_candidates[0].sch.mod, Matmul)
+            gsm_data_generator.ir.assert_structural_equal(measure_candidates[0].sch.mod, Matmul)
             assert (
                 len(builder_results) == 1
                 and builder_results[0].error_msg is None

@@ -16,10 +16,10 @@
 # under the License.
 import numpy as np
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import te
-from gsmDataGen.contrib import hipblas
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import te
+from gsm_data_generator.contrib import hipblas
 
 
 def verify_matmul_add(in_dtype, out_dtype, rtol=1e-5):
@@ -31,16 +31,16 @@ def verify_matmul_add(in_dtype, out_dtype, rtol=1e-5):
     C = hipblas.matmul(A, B, dtype=out_dtype)
 
     def verify(target="rocm"):
-        if not gsmDataGen.get_global_func("tvm.contrib.hipblas.matmul", True):
+        if not gsm_data_generator.get_global_func("tvm.contrib.hipblas.matmul", True):
             print("skip because extern function is not available")
             return
-        dev = gsmDataGen.rocm(0)
-        f = gsmDataGen.compile(te.create_prim_func([A, B, C]), target=target)
-        a = gsmDataGen.nd.array(np.random.uniform(0, 128, size=(n, l)).astype(A.dtype), dev)
-        b = gsmDataGen.nd.array(np.random.uniform(0, 128, size=(l, m)).astype(B.dtype), dev)
-        c = gsmDataGen.nd.array(np.zeros((n, m), dtype=C.dtype), dev)
+        dev = gsm_data_generator.rocm(0)
+        f = gsm_data_generator.compile(te.create_prim_func([A, B, C]), target=target)
+        a = gsm_data_generator.nd.array(np.random.uniform(0, 128, size=(n, l)).astype(A.dtype), dev)
+        b = gsm_data_generator.nd.array(np.random.uniform(0, 128, size=(l, m)).astype(B.dtype), dev)
+        c = gsm_data_generator.nd.array(np.zeros((n, m), dtype=C.dtype), dev)
         f(a, b, c)
-        gsmDataGen.testing.assert_allclose(
+        gsm_data_generator.testing.assert_allclose(
             c.numpy(), np.dot(a.numpy().astype(C.dtype), b.numpy().astype(C.dtype)), rtol=rtol
         )
 
@@ -56,26 +56,26 @@ def verify_batch_matmul(Ashape, Bshape, Cshape, in_dtype, out_dtype, rtol=1e-5):
     B = te.placeholder(Bshape, name="B", dtype=in_dtype)
     C = hipblas.batch_matmul(A, B, dtype=out_dtype)
 
-    dev = gsmDataGen.rocm(0)
-    f = gsmDataGen.compile(te.create_prim_func([A, B, C]), target="rocm")
+    dev = gsm_data_generator.rocm(0)
+    f = gsm_data_generator.compile(te.create_prim_func([A, B, C]), target="rocm")
 
     if "int" in in_dtype:
-        a = gsmDataGen.nd.array(np.random.uniform(1, 10, size=Ashape).astype(in_dtype), dev)
-        b = gsmDataGen.nd.array(np.random.uniform(1, 10, size=Bshape).astype(in_dtype), dev)
+        a = gsm_data_generator.nd.array(np.random.uniform(1, 10, size=Ashape).astype(in_dtype), dev)
+        b = gsm_data_generator.nd.array(np.random.uniform(1, 10, size=Bshape).astype(in_dtype), dev)
     else:
-        a = gsmDataGen.nd.array(np.random.uniform(size=Ashape).astype(A.dtype), dev)
-        b = gsmDataGen.nd.array(np.random.uniform(size=Bshape).astype(B.dtype), dev)
+        a = gsm_data_generator.nd.array(np.random.uniform(size=Ashape).astype(A.dtype), dev)
+        b = gsm_data_generator.nd.array(np.random.uniform(size=Bshape).astype(B.dtype), dev)
 
-    c = gsmDataGen.nd.array(np.zeros(Cshape, dtype=C.dtype), dev)
+    c = gsm_data_generator.nd.array(np.zeros(Cshape, dtype=C.dtype), dev)
     f(a, b, c)
-    gsmDataGen.testing.assert_allclose(
+    gsm_data_generator.testing.assert_allclose(
         c.numpy(),
         np.matmul(a.numpy().astype(C.dtype), b.numpy().astype(C.dtype)).astype(C.dtype),
         rtol=rtol,
     )
 
 
-@gsmDataGen.testing.requires_rocm
+@gsm_data_generator.testing.requires_rocm
 def test_matmul_add():
     verify_matmul_add("float", "float", rtol=1e-3)
     verify_matmul_add("float16", "float")
@@ -83,9 +83,9 @@ def test_matmul_add():
     verify_matmul_add("int8", "int32")
 
 
-@gsmDataGen.testing.requires_rocm
+@gsm_data_generator.testing.requires_rocm
 def test_batch_matmul():
-    if not gsmDataGen.get_global_func("tvm.contrib.hipblas.batch_matmul", True):
+    if not gsm_data_generator.get_global_func("tvm.contrib.hipblas.batch_matmul", True):
         print("skip because extern function is not available")
         return
 
@@ -104,4 +104,4 @@ def test_batch_matmul():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

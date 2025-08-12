@@ -20,11 +20,11 @@ import tempfile
 
 import numpy as np
 import pytest
-import gsmDataGen.testing
-import gsmDataGen.topi.testing
-from gsmDataGen import meta_schedule as ms
-from gsmDataGen.meta_schedule.builder import LocalBuilder
-from gsmDataGen.script import tir as T
+import gsm_data_generator.testing
+import gsm_data_generator.topi.testing
+from gsm_data_generator import meta_schedule as ms
+from gsm_data_generator.meta_schedule.builder import LocalBuilder
+from gsm_data_generator.script import tir as T
 
 from .infrastructure import get_android_gpu_target, get_rpc_runner
 
@@ -68,4 +68,4 @@ def test_tune_tir_on_android():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

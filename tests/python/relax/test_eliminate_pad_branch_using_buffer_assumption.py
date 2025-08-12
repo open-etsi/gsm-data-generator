@@ -19,14 +19,14 @@
 # The test attempts to eliminate redundant pad branch and overcompute the value for elementwise ops.
 # This helps to expose more opportunities to vectorize the code.
 
-import gsmDataGen
-import gsmDataGen.testing
+import gsm_data_generator
+import gsm_data_generator.testing
 
-import gsmDataGen.script
-from gsmDataGen.script import tir as T, relax as R
+import gsm_data_generator.script
+from gsm_data_generator.script import tir as T, relax as R
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class AddBefore:
     @T.prim_func(private=True)
     def add(
@@ -129,7 +129,7 @@ class AddBefore:
         return out
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class AddExpected:
     @T.prim_func(private=True)
     def add(
@@ -227,7 +227,7 @@ class AddExpected:
         return out
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class SubBefore:
     @T.prim_func(private=True)
     def sub(
@@ -330,7 +330,7 @@ class SubBefore:
         return out
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class SubExpected:
     @T.prim_func(private=True)
     def sub(
@@ -428,7 +428,7 @@ class SubExpected:
         return out
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class MulBefore:
     @T.prim_func(private=True)
     def mul(
@@ -531,7 +531,7 @@ class MulBefore:
         return out
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class MulExpected:
     @T.prim_func(private=True)
     def mul(
@@ -630,19 +630,19 @@ class MulExpected:
 
 
 def test_add_primfunc_overcompute():
-    add_after = gsmDataGen.tir.transform.UseAssumeToReduceBranches()(AddBefore)
-    gsmDataGen.ir.structural_equal(add_after["add"], AddExpected["add"], map_free_vars=True)
+    add_after = gsm_data_generator.tir.transform.UseAssumeToReduceBranches()(AddBefore)
+    gsm_data_generator.ir.structural_equal(add_after["add"], AddExpected["add"], map_free_vars=True)
 
 
 def test_sub_primfunc_overcompute():
-    sub_after = gsmDataGen.tir.transform.UseAssumeToReduceBranches()(SubBefore)
-    gsmDataGen.ir.structural_equal(sub_after["sub"], SubExpected["sub"], map_free_vars=True)
+    sub_after = gsm_data_generator.tir.transform.UseAssumeToReduceBranches()(SubBefore)
+    gsm_data_generator.ir.structural_equal(sub_after["sub"], SubExpected["sub"], map_free_vars=True)
 
 
 def test_mul_primfunc_overcompute():
-    mul_after = gsmDataGen.tir.transform.UseAssumeToReduceBranches()(MulBefore)
-    gsmDataGen.ir.structural_equal(mul_after["mul"], MulExpected["mul"], map_free_vars=True)
+    mul_after = gsm_data_generator.tir.transform.UseAssumeToReduceBranches()(MulBefore)
+    gsm_data_generator.ir.structural_equal(mul_after["mul"], MulExpected["mul"], map_free_vars=True)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

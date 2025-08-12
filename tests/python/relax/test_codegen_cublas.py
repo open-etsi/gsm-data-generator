@@ -17,15 +17,15 @@
 import numpy as np
 import pytest
 
-import gsmDataGen
-import gsmDataGen.testing
-import gsmDataGen.topi.testing
-from gsmDataGen import relax
-from gsmDataGen.relax.backend.cuda.cublas import partition_for_cublas
-from gsmDataGen.relax.testing import get_relax_matmul_module
-from gsmDataGen.script import relax as R
-from gsmDataGen.script.ir_builder import IRBuilder
-from gsmDataGen.script.ir_builder import relax as relax_builder
+import gsm_data_generator
+import gsm_data_generator.testing
+import gsm_data_generator.topi.testing
+from gsm_data_generator import relax
+from gsm_data_generator.relax.backend.cuda.cublas import partition_for_cublas
+from gsm_data_generator.relax.testing import get_relax_matmul_module
+from gsm_data_generator.script import relax as R
+from gsm_data_generator.script.ir_builder import IRBuilder
+from gsm_data_generator.script.ir_builder import relax as relax_builder
 
 try:
     import ml_dtypes
@@ -38,21 +38,21 @@ def reset_seed():
     np.random.seed(0)
 
 
-pytestmark = gsmDataGen.testing.requires_cublas.marks()
+pytestmark = gsm_data_generator.testing.requires_cublas.marks()
 
 
 def build_and_run(mod, inputs_np, target, legalize=False, cuda_graph=False):
-    dev = gsmDataGen.device(target, 0)
-    with gsmDataGen.transform.PassContext(
+    dev = gsm_data_generator.device(target, 0)
+    with gsm_data_generator.transform.PassContext(
         config={
             "relax.backend.use_cuda_graph": cuda_graph,
             "relax.transform.apply_legalize_ops": legalize,
         }
     ):
-        ex = gsmDataGen.compile(mod, target)
+        ex = gsm_data_generator.compile(mod, target)
     vm = relax.VirtualMachine(ex, dev)
     f = vm["main"]
-    inputs = [gsmDataGen.nd.array(inp, dev) for inp in inputs_np]
+    inputs = [gsm_data_generator.nd.array(inp, dev) for inp in inputs_np]
 
     # For cuda graph, run the compiled function twice to make sure that we can launch the cached
     # graph on the second run.
@@ -72,7 +72,7 @@ def get_result_with_relax_cublas_offload(mod, np_inputs, cuda_graph=False, bind_
 def _to_concrete_shape(symbolic_shape, var_table):
     result = []
     for dim in symbolic_shape:
-        if not isinstance(dim, gsmDataGen.tir.expr.Var):
+        if not isinstance(dim, gsm_data_generator.tir.expr.Var):
             result.append(dim)
             continue
 
@@ -84,8 +84,8 @@ def _to_concrete_shape(symbolic_shape, var_table):
 
 
 _vars = {
-    "a": gsmDataGen.tir.expr.Var("a", "int64"),
-    "b": gsmDataGen.tir.expr.Var("b", "int64"),
+    "a": gsm_data_generator.tir.expr.Var("a", "int64"),
+    "b": gsm_data_generator.tir.expr.Var("b", "int64"),
 }
 
 
@@ -131,7 +131,7 @@ def get_relax_matmul_dequantize_module(
             R.func_ret_value(frame.output_vars[0])
 
     func = builder.get()
-    return gsmDataGen.IRModule({"main": func})
+    return gsm_data_generator.IRModule({"main": func})
 
 
 def get_relax_matmul_multiply_module(
@@ -165,7 +165,7 @@ def get_relax_matmul_multiply_module(
             R.func_ret_value(frame.output_vars[0])
 
     func = builder.get()
-    return gsmDataGen.IRModule({"main": func})
+    return gsm_data_generator.IRModule({"main": func})
 
 
 @pytest.mark.parametrize(
@@ -235,7 +235,7 @@ def test_matmul_offload(
     out = get_result_with_relax_cublas_offload(mod, args)
     ref = build_and_run(mod, args, "llvm", legalize=True)
 
-    gsmDataGen.testing.assert_allclose(out, ref, rtol=1e-2, atol=1e-2)
+    gsm_data_generator.testing.assert_allclose(out, ref, rtol=1e-2, atol=1e-2)
 
 
 @pytest.mark.parametrize(
@@ -296,10 +296,10 @@ def test_matmul_igemm_offload(
     out = get_result_with_relax_cublas_offload(mod, args)
     ref = build_and_run(mod, args, "llvm", legalize=True)
 
-    gsmDataGen.testing.assert_allclose(out, ref, rtol=1e-2, atol=1e-2)
+    gsm_data_generator.testing.assert_allclose(out, ref, rtol=1e-2, atol=1e-2)
 
 
-@gsmDataGen.testing.requires_cuda_compute_version(9)
+@gsm_data_generator.testing.requires_cuda_compute_version(9)
 @pytest.mark.skipif(ml_dtypes is None, reason="requires ml_dtypes to be installed")
 @pytest.mark.parametrize(
     "x_shape, y_shape, transpose_y, out_dtype",
@@ -334,10 +334,10 @@ def test_matmul_fp8_offload(
     out = get_result_with_relax_cublas_offload(mod, args)
     ref_out = np.matmul(x, z).astype(out_dtype)
 
-    gsmDataGen.testing.assert_allclose(out, ref_out, rtol=1e-3, atol=1e-3)
+    gsm_data_generator.testing.assert_allclose(out, ref_out, rtol=1e-3, atol=1e-3)
 
 
-@gsmDataGen.testing.requires_cuda_compute_version(9)
+@gsm_data_generator.testing.requires_cuda_compute_version(9)
 @pytest.mark.skipif(ml_dtypes is None, reason="requires ml_dtypes to be installed")
 def test_matmul_fp8_dequantize_offload():
     x_shape = (10, 32)
@@ -360,10 +360,10 @@ def test_matmul_fp8_dequantize_offload():
 
     out = get_result_with_relax_cublas_offload(mod, args, bind_constants=True)
     ref = build_and_run(mod, args, "llvm", legalize=True)
-    gsmDataGen.testing.assert_allclose(out, ref, rtol=1e-3, atol=1e-3)
+    gsm_data_generator.testing.assert_allclose(out, ref, rtol=1e-3, atol=1e-3)
 
 
-@gsmDataGen.testing.requires_cuda_compute_version(9)
+@gsm_data_generator.testing.requires_cuda_compute_version(9)
 @pytest.mark.skipif(ml_dtypes is None, reason="requires ml_dtypes to be installed")
 def test_matmul_fp8_multiply_offload():
     x_shape = (10, 32)
@@ -390,7 +390,7 @@ def test_matmul_fp8_multiply_offload():
 
     out = get_result_with_relax_cublas_offload(mod, args)
     ref = build_and_run(mod, args, "llvm", legalize=True)
-    gsmDataGen.testing.assert_allclose(out, ref, rtol=1e-3, atol=1e-3)
+    gsm_data_generator.testing.assert_allclose(out, ref, rtol=1e-3, atol=1e-3)
 
 
 @pytest.mark.skipif(ml_dtypes is None, reason="requires ml_dtypes to be installed")
@@ -431,7 +431,7 @@ def test_matmul_bfloat16_offload(
     out = get_result_with_relax_cublas_offload(mod, args)
     ref_out = np.matmul(x_float32, z).astype(out_dtype)
 
-    gsmDataGen.testing.assert_allclose(out, ref_out, rtol=1e-2, atol=1e-2)
+    gsm_data_generator.testing.assert_allclose(out, ref_out, rtol=1e-2, atol=1e-2)
 
 
 @pytest.mark.parametrize(
@@ -520,7 +520,7 @@ def test_cublas_partition_igemm_with_bias():
 
 
 def test_cublas_matmul_cuda_graph():
-    @gsmDataGen.script.ir.ir_module
+    @gsm_data_generator.script.ir.ir_module
     class Mod:
         @R.function
         def main(
@@ -547,11 +547,11 @@ def test_cublas_matmul_cuda_graph():
 
     out = get_result_with_relax_cublas_offload(Mod, inputs, cuda_graph=True)
 
-    with gsmDataGen.target.Target("cuda"):
-        mod = gsmDataGen.tir.transform.DefaultGPUSchedule()(mod)
+    with gsm_data_generator.target.Target("cuda"):
+        mod = gsm_data_generator.tir.transform.DefaultGPUSchedule()(mod)
     ref = build_and_run(mod, inputs, "llvm", legalize=True)
-    gsmDataGen.testing.assert_allclose(out, ref, rtol=1e-2, atol=1e-2)
+    gsm_data_generator.testing.assert_allclose(out, ref, rtol=1e-2, atol=1e-2)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

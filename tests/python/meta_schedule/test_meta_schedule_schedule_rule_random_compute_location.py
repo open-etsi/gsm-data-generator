@@ -15,19 +15,19 @@
 # specific language governing permissions and limitations
 # under the License.
 # pylint: disable=missing-module-docstring,missing-function-docstring,missing-class-docstring
-import gsmDataGen
-from gsmDataGen import meta_schedule as ms
-from gsmDataGen.meta_schedule.testing.space_generation import (
+import gsm_data_generator
+from gsm_data_generator import meta_schedule as ms
+from gsm_data_generator.meta_schedule.testing.space_generation import (
     check_sketches,
     generate_design_space,
 )
-from gsmDataGen.script import tir as T
-from gsmDataGen.target import Target
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.target import Target
 
 # fmt: off
 # pylint: disable=no-member,invalid-name,unused-variable,no-self-argument,line-too-long,chained-comparison,not-callable,too-many-nested-blocks
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Add:
     @T.prim_func
     def main(a: T.handle, b: T.handle) -> None:

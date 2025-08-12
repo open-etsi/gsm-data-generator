@@ -17,27 +17,27 @@
 """Test eliminate common subexpr pass"""
 
 from typing import List
-import gsmDataGen
-from gsmDataGen import relax
-import gsmDataGen.testing
-from gsmDataGen.ir.module import IRModule
-from gsmDataGen.script.parser import ir as I, relax as R
-from gsmDataGen.runtime import Device
+import gsm_data_generator
+from gsm_data_generator import relax
+import gsm_data_generator.testing
+from gsm_data_generator.ir.module import IRModule
+from gsm_data_generator.script.parser import ir as I, relax as R
+from gsm_data_generator.runtime import Device
 import numpy as np
 
 
 def compile(
     mod: IRModule,
     device: List[Device] = [
-        gsmDataGen.cpu(),
+        gsm_data_generator.cpu(),
     ],
 ) -> relax.VirtualMachine:
     # compile the model
     mod = relax.transform.RealizeVDevice()(mod)
     mod = relax.transform.LegalizeOps()(mod)
-    mod = gsmDataGen.tir.transform.DefaultGPUSchedule()(mod)
+    mod = gsm_data_generator.tir.transform.DefaultGPUSchedule()(mod)
     # no need to feed target argument for mult-target compilation
-    ex = gsmDataGen.compile(mod)
+    ex = gsm_data_generator.compile(mod)
 
     return relax.VirtualMachine(ex, device)
 
@@ -63,7 +63,7 @@ def test_multi_cpu():
         ) -> R.Tensor((2, 5), "float32"):
             with R.dataflow():
                 lv0 = R.matmul(x, y)
-                lv0 = R.hint_on_device(lv0, gsmDataGen.cpu(0))
+                lv0 = R.hint_on_device(lv0, gsm_data_generator.cpu(0))
                 lv1: R.Tensor((2, 4), "float32", "llvm:1") = R.to_vdevice(  # noqa: F722
                     lv0, "llvm:1"
                 )
@@ -71,7 +71,7 @@ def test_multi_cpu():
                 R.output(gv)
             return gv
 
-    devices = [gsmDataGen.cpu(0), gsmDataGen.cpu(1)]
+    devices = [gsm_data_generator.cpu(0), gsm_data_generator.cpu(1)]
     vm = compile(Example, devices)
 
     np_ipt0 = np.random.rand(2, 3).astype(np.float32)
@@ -79,14 +79,14 @@ def test_multi_cpu():
     np_ipt2 = np.random.rand(4, 5).astype(np.float32)
     np_res = np.matmul(np.matmul(np_ipt0, np_ipt1), np_ipt2)
 
-    ipt0 = gsmDataGen.nd.array(np_ipt0, devices[0])
-    ipt1 = gsmDataGen.nd.array(np_ipt1, devices[0])
-    ipt2 = gsmDataGen.nd.array(np_ipt2, devices[1])
+    ipt0 = gsm_data_generator.nd.array(np_ipt0, devices[0])
+    ipt1 = gsm_data_generator.nd.array(np_ipt1, devices[0])
+    ipt2 = gsm_data_generator.nd.array(np_ipt2, devices[1])
     res = vm["foo"](ipt0, ipt1, ipt2)
-    gsmDataGen.testing.assert_allclose(res.numpy(), np_res)
+    gsm_data_generator.testing.assert_allclose(res.numpy(), np_res)
 
 
-@gsmDataGen.testing.requires_multi_gpu
+@gsm_data_generator.testing.requires_multi_gpu
 def test_multi_gpu():
     @I.ir_module
     class Example:
@@ -125,7 +125,7 @@ def test_multi_gpu():
 
     # The number and ordering of devices should be identical with the vdevice list
     # defined in global_infos of ir_module
-    devices = [gsmDataGen.cuda(1), gsmDataGen.cuda(0), gsmDataGen.cuda(2)]
+    devices = [gsm_data_generator.cuda(1), gsm_data_generator.cuda(0), gsm_data_generator.cuda(2)]
     vm = compile(Example, devices)
 
     np_ipt0 = np.random.rand(2, 3).astype(np.float32)
@@ -134,15 +134,15 @@ def test_multi_gpu():
     np_ipt3 = np.random.rand(5, 6).astype(np.float32)
     np_res = np.matmul(np.matmul(np.matmul(np_ipt0, np_ipt1), np_ipt2), np_ipt3)
 
-    ipt0 = gsmDataGen.nd.array(np_ipt0, devices[0])
-    ipt1 = gsmDataGen.nd.array(np_ipt1, devices[0])
-    ipt2 = gsmDataGen.nd.array(np_ipt2, devices[1])
-    ipt3 = gsmDataGen.nd.array(np_ipt3, devices[2])
+    ipt0 = gsm_data_generator.nd.array(np_ipt0, devices[0])
+    ipt1 = gsm_data_generator.nd.array(np_ipt1, devices[0])
+    ipt2 = gsm_data_generator.nd.array(np_ipt2, devices[1])
+    ipt3 = gsm_data_generator.nd.array(np_ipt3, devices[2])
     res = vm["foo"](ipt0, ipt1, ipt2, ipt3)
-    gsmDataGen.testing.assert_allclose(res.numpy(), np_res)
+    gsm_data_generator.testing.assert_allclose(res.numpy(), np_res)
 
 
-@gsmDataGen.testing.requires_gpu
+@gsm_data_generator.testing.requires_gpu
 def test_multi_device():
     @I.ir_module
     class Example:
@@ -171,7 +171,7 @@ def test_multi_device():
 
     # The number and ordering of devices should be identical with the vdevice list
     # defined in global_infos of ir_module
-    devices = [gsmDataGen.cuda(0), gsmDataGen.cpu(0)]
+    devices = [gsm_data_generator.cuda(0), gsm_data_generator.cpu(0)]
     vm = compile(Example, devices)
 
     np_ipt0 = np.random.rand(2, 3).astype(np.float32)
@@ -179,12 +179,12 @@ def test_multi_device():
     np_ipt2 = np.random.rand(4, 5).astype(np.float32)
     np_res = np.matmul(np.matmul(np_ipt0, np_ipt1), np_ipt2)
 
-    ipt0 = gsmDataGen.nd.array(np_ipt0, devices[1])
-    ipt1 = gsmDataGen.nd.array(np_ipt1, devices[1])
-    ipt2 = gsmDataGen.nd.array(np_ipt2, devices[0])
+    ipt0 = gsm_data_generator.nd.array(np_ipt0, devices[1])
+    ipt1 = gsm_data_generator.nd.array(np_ipt1, devices[1])
+    ipt2 = gsm_data_generator.nd.array(np_ipt2, devices[0])
     res = vm["foo"](ipt0, ipt1, ipt2)
-    gsmDataGen.testing.assert_allclose(res.numpy(), np_res, rtol=1e-4, atol=1e-4)
+    gsm_data_generator.testing.assert_allclose(res.numpy(), np_res, rtol=1e-4, atol=1e-4)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

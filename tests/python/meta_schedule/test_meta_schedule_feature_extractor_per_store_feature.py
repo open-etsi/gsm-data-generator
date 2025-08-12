@@ -19,12 +19,12 @@ import sys
 from typing import Callable, List
 
 import pytest
-import gsmDataGen
-import gsmDataGen.testing
+import gsm_data_generator
+import gsm_data_generator.testing
 from numpy.testing import assert_allclose
-from gsmDataGen import meta_schedule as ms
-from gsmDataGen import te, tir
-from gsmDataGen.script import tir as T
+from gsm_data_generator import meta_schedule as ms
+from gsm_data_generator import te, tir
+from gsm_data_generator.script import tir as T
 
 N_FEATURES = 164
 
@@ -53,7 +53,7 @@ def matmul(
 # fmt: off
 
 # from tvm.script import tir as T
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class LayoutTransform:
     @T.prim_func
     def main(placeholder: T.Buffer((1, 16, 7, 7, 32), "float32"), placeholder_1: T.Buffer((25088,), "float32"), T_layout_trans: T.Buffer((1, 1, 7, 7, 512), "float32")) -> None:
@@ -222,7 +222,7 @@ def test_cpu_matmul():
 
     extractor = ms.feature_extractor.PerStoreFeature()
     (feature,) = extractor.extract_from(
-        _make_context(gsmDataGen.target.Target("llvm")),
+        _make_context(gsm_data_generator.target.Target("llvm")),
         candidates=[_make_candidate(_create_schedule)],
     )
     feature = feature.numpy()
@@ -429,7 +429,7 @@ def test_cpu_fusion():
 
     extractor = ms.feature_extractor.PerStoreFeature()
     (feature,) = extractor.extract_from(
-        _make_context(gsmDataGen.target.Target("llvm")),
+        _make_context(gsm_data_generator.target.Target("llvm")),
         candidates=[_make_candidate(_create_schedule)],
     )
     feature = feature.numpy()
@@ -719,7 +719,7 @@ def test_empty_feature():
 
     extractor = ms.feature_extractor.PerStoreFeature()
     (feature,) = extractor.extract_from(
-        _make_context(gsmDataGen.target.Target("llvm")),
+        _make_context(gsm_data_generator.target.Target("llvm")),
         candidates=[_make_candidate(_create_schedule)],
     )
     feature = feature.numpy()
@@ -780,7 +780,7 @@ def test_gpu():
 
     extractor = ms.feature_extractor.PerStoreFeature()
     (feature,) = extractor.extract_from(
-        _make_context(gsmDataGen.target.Target("cuda")),
+        _make_context(gsm_data_generator.target.Target("cuda")),
         candidates=[_make_candidate(_create_schedule)],
     )
     feature = feature.numpy()
@@ -1611,7 +1611,7 @@ def test_gpu():
 def test_cpu_layout_transform():
     extractor = ms.feature_extractor.PerStoreFeature()
     (feature,) = extractor.extract_from(
-        _make_context(gsmDataGen.target.Target("llvm")),
+        _make_context(gsm_data_generator.target.Target("llvm")),
         candidates=[_make_candidate(lambda: tir.Schedule(LayoutTransform))],
     )
 
@@ -1625,7 +1625,7 @@ def negative_extent(A: T.Buffer((1,), "float32")):
 def test_negative_extent():
     extractor = ms.feature_extractor.PerStoreFeature()
     (features,) = extractor.extract_from(
-        _make_context(gsmDataGen.target.Target("llvm")),
+        _make_context(gsm_data_generator.target.Target("llvm")),
         candidates=[_make_candidate(lambda: tir.Schedule(negative_extent))],
     )
     named_features = dict(zip(_feature_names(), list(features.numpy()[0, :])))
@@ -1633,4 +1633,4 @@ def test_negative_extent():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

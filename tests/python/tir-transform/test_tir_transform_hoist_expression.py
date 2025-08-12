@@ -14,20 +14,20 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import tir
-from gsmDataGen.script import tir as T
-from gsmDataGen.tir.transform import HoistedConditionals, HoistedLetBindings, HoistExpression
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import tir
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.tir.transform import HoistedConditionals, HoistedLetBindings, HoistExpression
 
 
 class BaseBeforeAfter:
-    hoisted_conditionals = gsmDataGen.testing.parameter(HoistedConditionals.All)
-    hoisted_let_bindings = gsmDataGen.testing.parameter(HoistedLetBindings.All)
+    hoisted_conditionals = gsm_data_generator.testing.parameter(HoistedConditionals.All)
+    hoisted_let_bindings = gsm_data_generator.testing.parameter(HoistedLetBindings.All)
 
     def test_hoist(self, hoisted_conditionals, hoisted_let_bindings):
         before = self.before
-        before_mod = gsmDataGen.IRModule.from_expr(before.with_attr("global_symbol", "main"))
+        before_mod = gsm_data_generator.IRModule.from_expr(before.with_attr("global_symbol", "main"))
 
         config = {
             "tir.HoistExpression": {
@@ -36,23 +36,23 @@ class BaseBeforeAfter:
             }
         }
 
-        with gsmDataGen.transform.PassContext(config=config):
-            after_mod = gsmDataGen.tir.transform.HoistExpression()(before_mod)
+        with gsm_data_generator.transform.PassContext(config=config):
+            after_mod = gsm_data_generator.tir.transform.HoistExpression()(before_mod)
 
         after = after_mod["main"]
         expected = self.expected.with_attr("global_symbol", "main")
 
         try:
-            gsmDataGen.ir.assert_structural_equal(after, expected)
+            gsm_data_generator.ir.assert_structural_equal(after, expected)
         except ValueError as err:
-            script = gsmDataGen.IRModule({"expected": expected, "after": after, "before": before}).script()
+            script = gsm_data_generator.IRModule({"expected": expected, "after": after, "before": before}).script()
             raise ValueError(
                 f"Function after simplification did not match expected:\n{script}"
             ) from err
 
 
 class TestHoistToTop(BaseBeforeAfter):
-    hoisted_conditionals = gsmDataGen.testing.parameter(
+    hoisted_conditionals = gsm_data_generator.testing.parameter(
         HoistedConditionals.IfElseStmt,
         HoistedConditionals.All,
     )
@@ -71,7 +71,7 @@ class TestHoistToTop(BaseBeforeAfter):
 
 
 class TestSuppressHoistIfElse(BaseBeforeAfter):
-    hoisted_conditionals = gsmDataGen.testing.parameter(
+    hoisted_conditionals = gsm_data_generator.testing.parameter(
         HoistedConditionals.Never,
         HoistedConditionals.IfElseExpr,
     )
@@ -106,7 +106,7 @@ class TestHoistBlockVar(BaseBeforeAfter):
 
 
 class TestSuppressHoistBlockVar(BaseBeforeAfter):
-    hoisted_conditionals = gsmDataGen.testing.parameter(
+    hoisted_conditionals = gsm_data_generator.testing.parameter(
         HoistedConditionals.All & ~HoistedConditionals.UsingBlockVar
     )
 
@@ -146,7 +146,7 @@ class TestHoistAcrossBlockVar(BaseBeforeAfter):
 
 
 class TestSuppressHoistAcrossBlockVar(BaseBeforeAfter):
-    hoisted_conditionals = gsmDataGen.testing.parameter(
+    hoisted_conditionals = gsm_data_generator.testing.parameter(
         HoistedConditionals.All & ~HoistedConditionals.UsingBlockVar
     )
 
@@ -212,7 +212,7 @@ class TestHoistDisableLet(BaseBeforeAfter):
     longer be hoisted.
     """
 
-    hoisted_let_bindings = gsmDataGen.testing.parameter(HoistedLetBindings.Never)
+    hoisted_let_bindings = gsm_data_generator.testing.parameter(HoistedLetBindings.Never)
 
     @T.prim_func
     def before(A: T.Buffer((4, 4), "float32")):
@@ -309,7 +309,7 @@ class TestHoistComplexConditional(BaseBeforeAfter):
 
 
 class TestSuppressSplittingConditional(BaseBeforeAfter):
-    hoisted_conditionals = gsmDataGen.testing.parameter(
+    hoisted_conditionals = gsm_data_generator.testing.parameter(
         HoistedConditionals.All & ~HoistedConditionals.BooleanExpression
     )
 
@@ -430,7 +430,7 @@ class TestHoistIfElseExpr(BaseBeforeAfter):
 
 
 class TestSuppressHoistIfElseExpr(TestHoistIfElseExpr):
-    hoisted_conditionals = gsmDataGen.testing.parameter(
+    hoisted_conditionals = gsm_data_generator.testing.parameter(
         HoistedConditionals.All & ~HoistedConditionals.IfElseExpr
     )
 
@@ -458,7 +458,7 @@ class TestHoistLetExpr(BaseBeforeAfter):
 
 
 class TestSuppressHoistLetExpr(BaseBeforeAfter):
-    hoisted_let_bindings = gsmDataGen.testing.parameter(
+    hoisted_let_bindings = gsm_data_generator.testing.parameter(
         HoistedLetBindings.All & ~HoistedLetBindings.LetExpr
     )
 
@@ -472,4 +472,4 @@ class TestSuppressHoistLetExpr(BaseBeforeAfter):
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

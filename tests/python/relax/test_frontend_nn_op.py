@@ -16,13 +16,13 @@
 # under the License.
 # pylint: disable=missing-docstring, invalid-name
 import numpy as np
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import relax, tir
-from gsmDataGen.relax.frontend.nn import Module, Tensor, op, spec
-from gsmDataGen.script import ir as I
-from gsmDataGen.script import relax as R
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import relax, tir
+from gsm_data_generator.relax.frontend.nn import Module, Tensor, op, spec
+from gsm_data_generator.script import ir as I
+from gsm_data_generator.script import relax as R
+from gsm_data_generator.script import tir as T
 
 # mypy: disable-error-code="attr-defined,valid-type,name-defined"
 
@@ -51,7 +51,7 @@ def test_unary():
         spec={"test": {"x": spec.Tensor([1, 10], "float32")}},
         debug=True,
     )
-    gsmDataGen.ir.assert_structural_equal(irmodule["test"], test)
+    gsm_data_generator.ir.assert_structural_equal(irmodule["test"], test)
 
 
 def test_binary():
@@ -101,7 +101,7 @@ def test_binary():
         spec={"test": {"x": spec.Tensor([1, 10], "float32"), "y": spec.Tensor([10, 1], "float32")}},
         debug=True,
     )
-    gsmDataGen.ir.assert_structural_equal(irmodule["test"], test)
+    gsm_data_generator.ir.assert_structural_equal(irmodule["test"], test)
 
 
 def test_sum():
@@ -125,7 +125,7 @@ def test_sum():
     irmodule, _ = m.export_tvm(
         spec={"test": {"x": spec.Tensor([3, 5, 2, 4], "float32")}}, debug=True
     )
-    gsmDataGen.ir.assert_structural_equal(irmodule["test"], test)
+    gsm_data_generator.ir.assert_structural_equal(irmodule["test"], test)
 
 
 def test_max():
@@ -149,7 +149,7 @@ def test_max():
     irmodule, _ = m.export_tvm(
         spec={"test": {"x": spec.Tensor([3, 5, 2, 4], "float32")}}, debug=True
     )
-    gsmDataGen.ir.assert_structural_equal(irmodule["test"], test)
+    gsm_data_generator.ir.assert_structural_equal(irmodule["test"], test)
 
 
 def test_min():
@@ -173,7 +173,7 @@ def test_min():
     irmodule, _ = m.export_tvm(
         spec={"test": {"x": spec.Tensor([3, 5, 2, 4], "float32")}}, debug=True
     )
-    gsmDataGen.ir.assert_structural_equal(irmodule["test"], test)
+    gsm_data_generator.ir.assert_structural_equal(irmodule["test"], test)
 
 
 def test_manipulate():
@@ -208,7 +208,7 @@ def test_manipulate():
     m = Model()
     irmodule, _ = m.export_tvm(spec={"test": {"x": spec.Tensor([1, 5, 2], "float32")}}, debug=True)
 
-    gsmDataGen.ir.assert_structural_equal(irmodule["test"], test)
+    gsm_data_generator.ir.assert_structural_equal(irmodule["test"], test)
 
 
 def test_index():
@@ -234,7 +234,7 @@ def test_index():
         debug=True,
     )
 
-    gsmDataGen.ir.assert_structural_equal(irmodule["test"], test)
+    gsm_data_generator.ir.assert_structural_equal(irmodule["test"], test)
 
 
 def test_datatype():
@@ -257,7 +257,7 @@ def test_datatype():
     m = Model()
     irmodule, _ = m.export_tvm(spec={"test": {"x": spec.Tensor([2, 1, 10], "float32")}}, debug=True)
 
-    gsmDataGen.ir.assert_structural_equal(irmodule["test"], test)
+    gsm_data_generator.ir.assert_structural_equal(irmodule["test"], test)
 
 
 def test_image():
@@ -331,7 +331,7 @@ def test_image():
         },
         debug=True,
     )
-    gsmDataGen.ir.assert_structural_equal(irmodule["test"], test)
+    gsm_data_generator.ir.assert_structural_equal(irmodule["test"], test)
 
 
 def test_chunk():
@@ -378,7 +378,7 @@ def test_chunk():
 
     m = Model()
     irmodule, _ = m.export_tvm(spec={"test": {"x": spec.Tensor([8], "float32")}}, debug=True)
-    gsmDataGen.ir.assert_structural_equal(irmodule["test"], test)
+    gsm_data_generator.ir.assert_structural_equal(irmodule["test"], test)
 
 
 def test_nn():
@@ -447,7 +447,7 @@ def test_nn():
         debug=True,
     )
 
-    gsmDataGen.ir.assert_structural_equal(irmodule["test"], test)
+    gsm_data_generator.ir.assert_structural_equal(irmodule["test"], test)
 
 
 def test_create():
@@ -486,7 +486,7 @@ def test_create():
         spec={"test": {"x": spec.Tensor([10, 10], "float32")}}, debug=True
     )
 
-    gsmDataGen.ir.assert_structural_equal(irmodule["test"], test)
+    gsm_data_generator.ir.assert_structural_equal(irmodule["test"], test)
 
 
 def test_timestep_embedding():
@@ -528,7 +528,7 @@ def test_timestep_embedding():
 
     m = Model()
     irmodule, _ = m.export_tvm(spec={"test": {"x": spec.Tensor([3], "float32")}}, debug=True)
-    gsmDataGen.ir.assert_structural_equal(irmodule["test"], test)
+    gsm_data_generator.ir.assert_structural_equal(irmodule["test"], test)
 
 
 def test_scaled_dot_product_attention():
@@ -567,7 +567,7 @@ def test_scaled_dot_product_attention():
         },
         debug=True,
     )
-    gsmDataGen.ir.assert_structural_equal(irmodule["test"], test)
+    gsm_data_generator.ir.assert_structural_equal(irmodule["test"], test)
 
 
 def test_tensor_expr_op():
@@ -615,7 +615,7 @@ def test_tensor_expr_op():
     m = Model()
     irmodule, _ = m.export_tvm(spec={"test": {"x": spec.Tensor([10, 10], "float32")}}, debug=True)
 
-    gsmDataGen.ir.assert_structural_equal(irmodule, Expected)
+    gsm_data_generator.ir.assert_structural_equal(irmodule, Expected)
 
 
 def test_tensor_ir_op():
@@ -704,7 +704,7 @@ def test_tensor_ir_op():
         },
         debug=True,
     )
-    gsmDataGen.ir.assert_structural_equal(irmodule, Expected)
+    gsm_data_generator.ir.assert_structural_equal(irmodule, Expected)
 
 
 def test_tensor_ir_inplace_op():
@@ -811,7 +811,7 @@ def test_tensor_ir_inplace_op():
         },
         debug=True,
     )
-    gsmDataGen.ir.assert_structural_equal(irmodule, Expected)
+    gsm_data_generator.ir.assert_structural_equal(irmodule, Expected)
 
 
 def test_tensor_ir_op_no_tir_var():
@@ -847,7 +847,7 @@ def test_tensor_ir_op_no_tir_var():
 
     m = Model()
     irmodule, _ = m.export_tvm(spec={"test": {"A": spec.Tensor([16, 16], "float32")}})
-    gsmDataGen.ir.assert_structural_equal(irmodule, Expected)
+    gsm_data_generator.ir.assert_structural_equal(irmodule, Expected)
 
 
 def test_extern():
@@ -895,11 +895,11 @@ def test_extern():
         },
         debug=True,
     )
-    gsmDataGen.ir.assert_structural_equal(irmodule, Expected)
+    gsm_data_generator.ir.assert_structural_equal(irmodule, Expected)
 
 
 def test_empty():
-    @gsmDataGen.register_func("test_empty_assert", override=True)
+    @gsm_data_generator.register_func("test_empty_assert", override=True)
     def test_empty_assert(_lineo, x):
         assert x.shape == (10, 10)
         assert x.dtype == "float32"
@@ -911,13 +911,13 @@ def test_empty():
             return result
 
     irmodule, _ = Model().export_tvm(spec={"test": {}}, debug=True)
-    ex = gsmDataGen.compile(irmodule, "llvm")
-    vm = relax.VirtualMachine(ex, gsmDataGen.cpu())
+    ex = gsm_data_generator.compile(irmodule, "llvm")
+    vm = relax.VirtualMachine(ex, gsm_data_generator.cpu())
     effects = vm["_initialize_effect"]()
     vm["test"](*effects)
 
 
-@gsmDataGen.testing.requires_cuda
+@gsm_data_generator.testing.requires_cuda
 def test_multinomial_from_uniform():
     prob_shape = (3, 5)
     sample_shape = (6, 1)
@@ -961,14 +961,14 @@ def test_multinomial_from_uniform():
         debug=True,
     )
 
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
-    target = gsmDataGen.target.Target("cuda", host="llvm")
+    target = gsm_data_generator.target.Target("cuda", host="llvm")
     with target:
         mod = relax.backend.DispatchSampling()(mod)
         mod = tir.transform.DefaultGPUSchedule()(mod)
-    ex = gsmDataGen.compile(mod, target)
-    dev = gsmDataGen.device(str(target), 0)
+    ex = gsm_data_generator.compile(mod, target)
+    dev = gsm_data_generator.device(str(target), 0)
     vm = relax.VirtualMachine(ex, dev)
 
     effects = vm["_initialize_effect"]()
@@ -976,18 +976,18 @@ def test_multinomial_from_uniform():
     np_rand = np.random.rand(*prob_shape).astype(np.float32)
     # normalize it to get the random prob
     np_prob = np_rand / np_rand.sum(axis=1, keepdims=True)
-    nd_prob = gsmDataGen.nd.array(np_prob, dev)
+    nd_prob = gsm_data_generator.nd.array(np_prob, dev)
     # special sample to get deterministic results
-    nd_sample = gsmDataGen.nd.array(np.array([[1], [0], [1], [1], [0], [1]]).astype(np.float32), dev)
-    nd_sample_indices = gsmDataGen.nd.array(np.array([[0], [1], [1], [2], [2], [2]]).astype(np.int64), dev)
+    nd_sample = gsm_data_generator.nd.array(np.array([[1], [0], [1], [1], [0], [1]]).astype(np.float32), dev)
+    nd_sample_indices = gsm_data_generator.nd.array(np.array([[0], [1], [1], [2], [2], [2]]).astype(np.int64), dev)
     inputs = [nd_prob, nd_sample, nd_sample_indices, effects]
     res = vm["foo"](*inputs)
-    gsmDataGen.testing.assert_allclose(
+    gsm_data_generator.testing.assert_allclose(
         res[0].numpy(), np.array([[4], [0], [4], [4], [0], [4]]).astype(np.int64)
     )
 
 
-@gsmDataGen.testing.requires_gpu
+@gsm_data_generator.testing.requires_gpu
 def test_sample_top_p_top_k_from_sorted_prob():
     prob_shape = (2, 3)
     sample_shape = (3, 1)
@@ -1093,31 +1093,31 @@ def test_sample_top_p_top_k_from_sorted_prob():
         debug=True,
     )
 
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
-    target = gsmDataGen.target.Target("cuda -libs=thrust", host="llvm")
+    target = gsm_data_generator.target.Target("cuda -libs=thrust", host="llvm")
     with target:
         mod = tir.transform.DefaultGPUSchedule()(mod)
 
-    ex = gsmDataGen.compile(mod, target)
-    dev = gsmDataGen.cuda(0)
+    ex = gsm_data_generator.compile(mod, target)
+    dev = gsm_data_generator.cuda(0)
     vm = relax.VirtualMachine(ex, dev)
 
     effects = vm["_initialize_effect"]()
-    sorted_prob = gsmDataGen.nd.array(np.array([[0.5, 0.4, 0.1], [0.4, 0.3, 0.3]]).astype(np.float32), dev)
-    indices = gsmDataGen.nd.array(np.array([[2, 1, 0], [2, 0, 1]]).astype(np.int64), dev)
-    top_p = gsmDataGen.nd.array(np.array([[0.6], [0.9]]).astype(np.float32), dev)
-    top_k = gsmDataGen.nd.array(np.array([[3], [2]]).astype(np.int64), dev)
-    usample = gsmDataGen.nd.array(np.array([[0.5], [0.6], [0.7]]).astype(np.float32), dev)
-    sample_indices = gsmDataGen.nd.array(np.array([[0], [1], [1]]).astype(np.int64), dev)
+    sorted_prob = gsm_data_generator.nd.array(np.array([[0.5, 0.4, 0.1], [0.4, 0.3, 0.3]]).astype(np.float32), dev)
+    indices = gsm_data_generator.nd.array(np.array([[2, 1, 0], [2, 0, 1]]).astype(np.int64), dev)
+    top_p = gsm_data_generator.nd.array(np.array([[0.6], [0.9]]).astype(np.float32), dev)
+    top_k = gsm_data_generator.nd.array(np.array([[3], [2]]).astype(np.int64), dev)
+    usample = gsm_data_generator.nd.array(np.array([[0.5], [0.6], [0.7]]).astype(np.float32), dev)
+    sample_indices = gsm_data_generator.nd.array(np.array([[0], [1], [1]]).astype(np.int64), dev)
 
     inputs = [sorted_prob, indices, top_p, top_k, usample, sample_indices, effects]
 
     res = vm["foo"](*inputs)
-    gsmDataGen.testing.assert_allclose(res[0].numpy(), np.array([[2], [0], [0]]).astype(np.int64))
+    gsm_data_generator.testing.assert_allclose(res[0].numpy(), np.array([[2], [0], [0]]).astype(np.int64))
 
 
-@gsmDataGen.testing.requires_gpu
+@gsm_data_generator.testing.requires_gpu
 def test_renormalize_top_p_top_k_prob():
     prob_shape = (2, 3)
     sample_shape = (2, 1)
@@ -1208,27 +1208,27 @@ def test_renormalize_top_p_top_k_prob():
         debug=True,
     )
 
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
-    target = gsmDataGen.target.Target("cuda -libs=thrust", host="llvm")
+    target = gsm_data_generator.target.Target("cuda -libs=thrust", host="llvm")
     with target:
         mod = relax.transform.LegalizeOps()(mod)
         mod = tir.transform.DefaultGPUSchedule()(mod)
 
-    ex = gsmDataGen.compile(mod, target)
-    dev = gsmDataGen.cuda(0)
+    ex = gsm_data_generator.compile(mod, target)
+    dev = gsm_data_generator.cuda(0)
     vm = relax.VirtualMachine(ex, dev)
 
     effects = vm["_initialize_effect"]()
-    prob = gsmDataGen.nd.array(np.array([[0.2, 0.3, 0.5], [0.3, 0.3, 0.4]]).astype(np.float32), dev)
-    sorted_prob = gsmDataGen.nd.array(np.array([[0.5, 0.3, 0.2], [0.4, 0.3, 0.3]]).astype(np.float32), dev)
-    top_p = gsmDataGen.nd.array(np.array([[0.6], [0.9]]).astype(np.float32), dev)
-    top_k = gsmDataGen.nd.array(np.array([[3], [2]]).astype(np.int64), dev)
+    prob = gsm_data_generator.nd.array(np.array([[0.2, 0.3, 0.5], [0.3, 0.3, 0.4]]).astype(np.float32), dev)
+    sorted_prob = gsm_data_generator.nd.array(np.array([[0.5, 0.3, 0.2], [0.4, 0.3, 0.3]]).astype(np.float32), dev)
+    top_p = gsm_data_generator.nd.array(np.array([[0.6], [0.9]]).astype(np.float32), dev)
+    top_k = gsm_data_generator.nd.array(np.array([[3], [2]]).astype(np.int64), dev)
 
     inputs = [prob, sorted_prob, top_p, top_k, effects]
 
     res = vm["foo"](*inputs)
-    gsmDataGen.testing.assert_allclose(
+    gsm_data_generator.testing.assert_allclose(
         res[0].numpy(), np.array([[0, 0.375, 0.625], [0.3, 0.3, 0.4]]).astype(np.float32)
     )
 
@@ -1259,8 +1259,8 @@ def test_sort_argsort_topk():
     m = Model()
     mod, _ = m.export_tvm({"foo": {"x": spec.Tensor(("seq_len", 64), "float16")}})
 
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

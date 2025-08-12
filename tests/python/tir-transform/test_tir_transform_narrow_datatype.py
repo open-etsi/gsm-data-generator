@@ -14,26 +14,26 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-import gsmDataGen
-from gsmDataGen import te
-from gsmDataGen.script import tir as T
-from gsmDataGen.tir import const
-import gsmDataGen.testing
+import gsm_data_generator
+from gsm_data_generator import te
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.tir import const
+import gsm_data_generator.testing
 
 
 def lower_stmt(params, stmt, target_bits):
-    func = gsmDataGen.tir.PrimFunc(params, stmt)
-    func = gsmDataGen.tir.transform.NarrowDataType(target_bits)(gsmDataGen.IRModule.from_expr(func))["main"]
+    func = gsm_data_generator.tir.PrimFunc(params, stmt)
+    func = gsm_data_generator.tir.transform.NarrowDataType(target_bits)(gsm_data_generator.IRModule.from_expr(func))["main"]
     stmt = func.body
     return stmt
 
 
 def test_basic():
     def check(m, n, target_bits, target_dtype):
-        ib = gsmDataGen.tir.ir_builder.create()
-        Ab = gsmDataGen.tir.decl_buffer([m * n], name="A")
+        ib = gsm_data_generator.tir.ir_builder.create()
+        Ab = gsm_data_generator.tir.decl_buffer([m * n], name="A")
         A = ib.buffer_ptr(Ab)
-        Bb = gsmDataGen.tir.decl_buffer([m * n], name="B")
+        Bb = gsm_data_generator.tir.decl_buffer([m * n], name="B")
         B = ib.buffer_ptr(Bb)
         with ib.for_range(0, m, name="i") as i:
             with ib.for_range(0, n, name="j") as j:
@@ -60,10 +60,10 @@ def test_basic():
 
 def test_thread_axis():
     def check(m, n, target_bits, target_dtype):
-        ib = gsmDataGen.tir.ir_builder.create()
-        Ab = gsmDataGen.tir.decl_buffer([m * n], name="A")
+        ib = gsm_data_generator.tir.ir_builder.create()
+        Ab = gsm_data_generator.tir.decl_buffer([m * n], name="A")
         A = ib.buffer_ptr(Ab)
-        Bb = gsmDataGen.tir.decl_buffer([m * n], name="B")
+        Bb = gsm_data_generator.tir.decl_buffer([m * n], name="B")
         B = ib.buffer_ptr(Bb)
         bx = te.thread_axis("blockIdx.x")
         tx = te.thread_axis("threadIdx.x")
@@ -92,10 +92,10 @@ def test_thread_axis():
 
 def test_multilanes():
     def check(m, lanes, target_bits, target_dtype):
-        ib = gsmDataGen.tir.ir_builder.create()
-        Ab = gsmDataGen.tir.decl_buffer((m,), dtype="float32x{}".format(lanes), name="A")
+        ib = gsm_data_generator.tir.ir_builder.create()
+        Ab = gsm_data_generator.tir.decl_buffer((m,), dtype="float32x{}".format(lanes), name="A")
         A = ib.buffer_ptr(Ab)
-        Bb = gsmDataGen.tir.decl_buffer((m,), dtype="float32x{}".format(lanes), name="B")
+        Bb = gsm_data_generator.tir.decl_buffer((m,), dtype="float32x{}".format(lanes), name="B")
         B = ib.buffer_ptr(Bb)
         with ib.for_range(0, m, name="i", dtype=m.dtype) as i:
             B[i] = A[i] + 1
@@ -117,10 +117,10 @@ def test_multilanes():
 def test_slice():
     def check(m, n, target_bits, target_dtype):
         # The index may overflow in B, while not in A
-        ib = gsmDataGen.tir.ir_builder.create()
-        Ab = gsmDataGen.tir.decl_buffer([m * n], name="A")
+        ib = gsm_data_generator.tir.ir_builder.create()
+        Ab = gsm_data_generator.tir.decl_buffer([m * n], name="A")
         A = ib.buffer_ptr(Ab)
-        Bb = gsmDataGen.tir.decl_buffer([m * n * 2], name="B")
+        Bb = gsm_data_generator.tir.decl_buffer([m * n * 2], name="B")
         B = ib.buffer_ptr(Bb)
         with ib.for_range(0, m, name="i") as i:
             with ib.for_range(0, n, name="j") as j:
@@ -162,10 +162,10 @@ def test_condition():
                 i * 65 + j >= 0 and i * 65 + j < 128, A[i * 65 + j], T.float32(0), dtype="float32"
             )
 
-    after = gsmDataGen.tir.transform.NarrowDataType(32)(
-        gsmDataGen.IRModule.from_expr(before.with_attr("global_symbol", "main"))
+    after = gsm_data_generator.tir.transform.NarrowDataType(32)(
+        gsm_data_generator.IRModule.from_expr(before.with_attr("global_symbol", "main"))
     )["main"]
-    gsmDataGen.ir.assert_structural_equal(after, expected_after.with_attr("global_symbol", "main"))
+    gsm_data_generator.ir.assert_structural_equal(after, expected_after.with_attr("global_symbol", "main"))
 
 
 def test_block():
@@ -185,10 +185,10 @@ def test_block():
                     vi = T.axis.spatial(T.int32(128), i * T.int32(8) + j)
                     B[vi] = A[vi] + T.float32(1)
 
-    after = gsmDataGen.tir.transform.NarrowDataType(32)(
-        gsmDataGen.IRModule.from_expr(before.with_attr("global_symbol", "main"))
+    after = gsm_data_generator.tir.transform.NarrowDataType(32)(
+        gsm_data_generator.IRModule.from_expr(before.with_attr("global_symbol", "main"))
     )["main"]
-    gsmDataGen.ir.assert_structural_equal(after, expected_after.with_attr("global_symbol", "main"))
+    gsm_data_generator.ir.assert_structural_equal(after, expected_after.with_attr("global_symbol", "main"))
 
 
 def test_avg_pool2d():
@@ -247,11 +247,11 @@ def test_avg_pool2d():
                         ),
                     )
 
-    after = gsmDataGen.tir.transform.NarrowDataType(32)(
-        gsmDataGen.IRModule.from_expr(before.with_attr("global_symbol", "main"))
+    after = gsm_data_generator.tir.transform.NarrowDataType(32)(
+        gsm_data_generator.IRModule.from_expr(before.with_attr("global_symbol", "main"))
     )
-    after = gsmDataGen.tir.transform.Simplify()(after)
-    gsmDataGen.ir.assert_structural_equal(after["main"], expected_after.with_attr("global_symbol", "main"))
+    after = gsm_data_generator.tir.transform.Simplify()(after)
+    gsm_data_generator.ir.assert_structural_equal(after["main"], expected_after.with_attr("global_symbol", "main"))
 
 
 def test_narrow_i64_valued_bufferload_index_to_i32():
@@ -265,11 +265,11 @@ def test_narrow_i64_valued_bufferload_index_to_i32():
         for i in range(15):
             A[i + 1] = A[i] + T.int64(1)
 
-    after = gsmDataGen.tir.transform.NarrowDataType(32)(
-        gsmDataGen.IRModule.from_expr(before.with_attr("global_symbol", "main"))
+    after = gsm_data_generator.tir.transform.NarrowDataType(32)(
+        gsm_data_generator.IRModule.from_expr(before.with_attr("global_symbol", "main"))
     )["main"]
-    gsmDataGen.ir.assert_structural_equal(after, expect.with_attr("global_symbol", "main"))
+    gsm_data_generator.ir.assert_structural_equal(after, expect.with_attr("global_symbol", "main"))
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

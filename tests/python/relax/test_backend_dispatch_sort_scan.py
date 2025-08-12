@@ -18,16 +18,16 @@
 import numpy as np
 import pytest
 
-import gsmDataGen
-import gsmDataGen.script
-import gsmDataGen.testing
-from gsmDataGen import dlight, relax, tir, topi
-from gsmDataGen.contrib.thrust import can_use_thrust
-from gsmDataGen.ir.base import assert_structural_equal
-from gsmDataGen.relax.backend import DispatchSortScan
-from gsmDataGen.script import ir as I
-from gsmDataGen.script import relax as R
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.script
+import gsm_data_generator.testing
+from gsm_data_generator import dlight, relax, tir, topi
+from gsm_data_generator.contrib.thrust import can_use_thrust
+from gsm_data_generator.ir.base import assert_structural_equal
+from gsm_data_generator.relax.backend import DispatchSortScan
+from gsm_data_generator.script import ir as I
+from gsm_data_generator.script import relax as R
+from gsm_data_generator.script import tir as T
 
 
 def test_dispatch_scanop():
@@ -83,7 +83,7 @@ def test_dispatch_scanop_cuda():
                 R.output(gv)
             return gv
 
-    target = gsmDataGen.target.Target("cuda", host="llvm")
+    target = gsm_data_generator.target.Target("cuda", host="llvm")
 
     vdevices = [I.vdevice("cuda", 0)]
     m = tir.Var("m", "int64")
@@ -168,7 +168,7 @@ def test_dispatch_sort_cuda():
                 R.output(gv)
             return gv
 
-    target = gsmDataGen.target.Target("cuda -libs=thrust", host="llvm")
+    target = gsm_data_generator.target.Target("cuda -libs=thrust", host="llvm")
 
     vdevices = [I.vdevice("cuda", 0)]
     x = relax.Var("x", R.Tensor((2, 3), "float32", vdevices[0]))
@@ -264,7 +264,7 @@ def test_dispatch_argsort_cuda():
                 R.output(gv)
             return gv
 
-    target = gsmDataGen.target.Target("cuda -libs=thrust", host="llvm")
+    target = gsm_data_generator.target.Target("cuda -libs=thrust", host="llvm")
 
     vdevices = [I.vdevice("cuda", 0)]
     x = relax.Var("x", R.Tensor((2, 3), "float32", vdevices[0]))
@@ -349,7 +349,7 @@ def test_dispatch_topk_cuda():
                 R.output(gv)
             return gv
 
-    target = gsmDataGen.target.Target("cuda -libs=thrust", host="llvm")
+    target = gsm_data_generator.target.Target("cuda -libs=thrust", host="llvm")
 
     vdevices = [I.vdevice("cuda", 0)]
     x = relax.Var("x", R.Tensor((2, 3), "float32", vdevices[0]))
@@ -385,7 +385,7 @@ def test_dispatch_topk_gpu():
                 R.output(gv)
             return gv
 
-    target = gsmDataGen.target.Target("vulkan", host="llvm")
+    target = gsm_data_generator.target.Target("vulkan", host="llvm")
 
     vdevices = [I.vdevice("vulkan", 0)]
     x = relax.Var("x", R.Tensor((2, 3), "float32", vdevices[0]))
@@ -408,7 +408,7 @@ def test_dispatch_topk_gpu():
     assert_structural_equal(mod, expected_mod)
 
 
-@gsmDataGen.testing.parametrize_targets("cuda", "vulkan -supports_int64=1")
+@gsm_data_generator.testing.parametrize_targets("cuda", "vulkan -supports_int64=1")
 def test_dispatch_cumsum_gpu(target, dev):
     """Test cumsum kernel dispatch and numerical correctness"""
 
@@ -424,14 +424,14 @@ def test_dispatch_cumsum_gpu(target, dev):
     size = (8, 2000)
     np_data = np.random.randint(0, 10, size).astype("int32")
     np_cumsum = np.cumsum(np_data, axis=-1)
-    with gsmDataGen.target.Target(target):
+    with gsm_data_generator.target.Target(target):
         mod = DispatchSortScan()(Module)
-        ex = gsmDataGen.compile(mod, target)
-        vm = gsmDataGen.relax.VirtualMachine(ex, dev)
-        tvm_data = gsmDataGen.nd.array(np_data, dev)
+        ex = gsm_data_generator.compile(mod, target)
+        vm = gsm_data_generator.relax.VirtualMachine(ex, dev)
+        tvm_data = gsm_data_generator.nd.array(np_data, dev)
         cumsum = vm["main"](tvm_data)
-        gsmDataGen.testing.assert_allclose(cumsum.numpy(), np_cumsum)
+        gsm_data_generator.testing.assert_allclose(cumsum.numpy(), np_cumsum)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

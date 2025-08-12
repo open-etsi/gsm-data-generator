@@ -15,10 +15,10 @@
 # specific language governing permissions and limitations
 # under the License.
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import tir
-from gsmDataGen.tir import (
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import tir
+from gsm_data_generator.tir import (
     EQ,
     LT,
     Add,
@@ -433,4 +433,4 @@ def test_simple_mutations():
 
 if __name__ == "__main__":
     test_basic_visitor()
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

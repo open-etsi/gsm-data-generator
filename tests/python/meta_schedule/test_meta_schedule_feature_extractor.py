@@ -19,11 +19,11 @@ import re
 from typing import List
 
 import numpy as np
-from gsmDataGen.meta_schedule import TuneContext
-from gsmDataGen.meta_schedule.feature_extractor import PyFeatureExtractor
-from gsmDataGen.meta_schedule.search_strategy import MeasureCandidate
-from gsmDataGen.meta_schedule.utils import derived_object
-from gsmDataGen.runtime.ndarray import array
+from gsm_data_generator.meta_schedule import TuneContext
+from gsm_data_generator.meta_schedule.feature_extractor import PyFeatureExtractor
+from gsm_data_generator.meta_schedule.search_strategy import MeasureCandidate
+from gsm_data_generator.meta_schedule.utils import derived_object
+from gsm_data_generator.runtime.ndarray import array
 
 
 def test_meta_schedule_feature_extractor():

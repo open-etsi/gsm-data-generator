@@ -18,10 +18,10 @@
 
 import pytest
 
-from gsmDataGen import IRModule, TVMError
-from gsmDataGen.script.ir_builder import IRBuilder
-from gsmDataGen.script.ir_builder import ir as I
-from gsmDataGen.script.ir_builder import tir as T
+from gsm_data_generator import IRModule, TVMError
+from gsm_data_generator.script.ir_builder import IRBuilder
+from gsm_data_generator.script.ir_builder import ir as I
+from gsm_data_generator.script.ir_builder import tir as T
 
 
 def _assert_print(obj, expected):

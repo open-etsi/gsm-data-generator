@@ -19,8 +19,8 @@ import pytest
 import os
 import psutil
 import time
-from gsmDataGen.contrib.popen_pool import PopenWorker, PopenPoolExecutor
-from gsmDataGen.testing import (
+from gsm_data_generator.contrib.popen_pool import PopenWorker, PopenPoolExecutor
+from gsm_data_generator.testing import (
     identity_after,
     terminate_self,
     initializer,
@@ -80,13 +80,13 @@ def test_popen_worker_recycles():
 
 
 def test_popen_pool_executor():
-    import gsmDataGen
+    import gsm_data_generator
 
     pool = PopenPoolExecutor(max_workers=2, timeout=0.01)
     value1 = pool.submit(identity_after, 1, 100)
     value2 = pool.submit(terminate_self)
     value3 = pool.submit(identity_after, 3, 0)
-    value4 = pool.submit(gsmDataGen.runtime.String, "xyz")
+    value4 = pool.submit(gsm_data_generator.runtime.String, "xyz")
 
     with pytest.raises(TimeoutError):
         value1.result()

@@ -16,14 +16,14 @@
 # under the License.
 import numpy as np
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import te
-from gsmDataGen.topi.math import cast
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import te
+from gsm_data_generator.topi.math import cast
+from gsm_data_generator.script import tir as T
 
 
-class TestMatmul(gsmDataGen.testing.CompareBeforeAfter):
+class TestMatmul(gsm_data_generator.testing.CompareBeforeAfter):
     """Shared allocations should be merged, preserving DeclBuffer if present
 
     This test uses a matmul PrimFunc adapted from
@@ -32,18 +32,18 @@ class TestMatmul(gsmDataGen.testing.CompareBeforeAfter):
     for the replaced allocations.
     """
 
-    transform = gsmDataGen.tir.transform.MergeSharedMemoryAllocations()
+    transform = gsm_data_generator.tir.transform.MergeSharedMemoryAllocations()
 
-    use_decl_buffer = gsmDataGen.testing.parameter(by_dict={"t_buffer": False, "decl_buffer": True})
+    use_decl_buffer = gsm_data_generator.testing.parameter(by_dict={"t_buffer": False, "decl_buffer": True})
 
-    @gsmDataGen.testing.fixture
+    @gsm_data_generator.testing.fixture
     def buffer_func(self, use_decl_buffer):
         if use_decl_buffer:
             return T.decl_buffer
         else:
             return T.Buffer
 
-    @gsmDataGen.testing.fixture
+    @gsm_data_generator.testing.fixture
     def before(self, buffer_func):
         @T.prim_func
         def func(
@@ -96,7 +96,7 @@ class TestMatmul(gsmDataGen.testing.CompareBeforeAfter):
 
         return func
 
-    @gsmDataGen.testing.fixture
+    @gsm_data_generator.testing.fixture
     def expected(self, buffer_func):
         @T.prim_func
         def func(
@@ -149,10 +149,10 @@ class TestMatmul(gsmDataGen.testing.CompareBeforeAfter):
         return func
 
 
-class TestSimpleAllocNoReuse(gsmDataGen.testing.CompareBeforeAfter):
+class TestSimpleAllocNoReuse(gsm_data_generator.testing.CompareBeforeAfter):
     """Test alloc and free within the same scope."""
 
-    transform = gsmDataGen.tir.transform.MergeSharedMemoryAllocations()
+    transform = gsm_data_generator.tir.transform.MergeSharedMemoryAllocations()
 
     def before(self):
         @T.prim_func
@@ -178,10 +178,10 @@ class TestSimpleAllocNoReuse(gsmDataGen.testing.CompareBeforeAfter):
         return func
 
 
-class TestSimpleAllocReuse(gsmDataGen.testing.CompareBeforeAfter):
+class TestSimpleAllocReuse(gsm_data_generator.testing.CompareBeforeAfter):
     """Test alloc and free within the same scope with a reuse chance."""
 
-    transform = gsmDataGen.tir.transform.MergeSharedMemoryAllocations()
+    transform = gsm_data_generator.tir.transform.MergeSharedMemoryAllocations()
 
     def before(self):
         @T.prim_func
@@ -209,10 +209,10 @@ class TestSimpleAllocReuse(gsmDataGen.testing.CompareBeforeAfter):
         return func
 
 
-class TestAsyncCopy(gsmDataGen.testing.CompareBeforeAfter):
+class TestAsyncCopy(gsm_data_generator.testing.CompareBeforeAfter):
     """Test async copy in shared memory."""
 
-    transform = gsmDataGen.tir.transform.MergeSharedMemoryAllocations()
+    transform = gsm_data_generator.tir.transform.MergeSharedMemoryAllocations()
 
     def before(self):
         @T.prim_func
@@ -241,4 +241,4 @@ class TestAsyncCopy(gsmDataGen.testing.CompareBeforeAfter):
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

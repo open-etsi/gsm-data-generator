@@ -14,15 +14,15 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-import gsmDataGen
-from gsmDataGen.relax.transform import LegalizeOps
-from gsmDataGen.script import relax as R, tir as T, ir as I
-import gsmDataGen.testing
+import gsm_data_generator
+from gsm_data_generator.relax.transform import LegalizeOps
+from gsm_data_generator.script import relax as R, tir as T, ir as I
+import gsm_data_generator.testing
 
 
 def test_nll_loss_backward():
     # fmt: off
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class NLLLossBackward:
         @R.function
         def main(output_grad: R.Tensor((), "float32"), predictions: R.Tensor((2, 3, 4, 5), "float32"), targets: R.Tensor((2, 4, 5), "int64"), weights: R.Tensor((4,), "float32")) -> R.Tensor((2, 3, 4, 5), "float32"):
@@ -80,7 +80,7 @@ def test_nll_loss_backward():
     # fmt: on
 
     mod = LegalizeOps()(NLLLossBackward)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_nll_loss_backward_no_weight():
@@ -150,12 +150,12 @@ def test_nll_loss_backward_no_weight():
     # fmt: on
 
     mod = LegalizeOps()(NLLLossBackward)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_nll_loss_backward_no_batch():
     # fmt: off
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class NLLLossBackward:
         @R.function
         def main(output_grad: R.Tensor((), "float32"), predictions: R.Tensor((4,), "float32"), targets: R.Tensor((), "int64"), weights: R.Tensor((4,), "float32")) -> R.Tensor((4,), "float32"):
@@ -201,12 +201,12 @@ def test_nll_loss_backward_no_batch():
     # fmt: on
 
     mod = LegalizeOps()(NLLLossBackward)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_max_pool2d_backward():
     # fmt: off
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class MaxPool2DBackward:
         @R.function
         def main(output_grad: R.Tensor((3, 2, 6, 5), "float32"), data: R.Tensor((3, 2, 10, 10), "float32")):
@@ -257,12 +257,12 @@ def test_max_pool2d_backward():
     # fmt: on
 
     mod = LegalizeOps()(MaxPool2DBackward)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_avg_pool2d_backward():
     # fmt: off
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class AvgPool2DBackward:
         @R.function
         def main(output_grad: R.Tensor((3, 2, 6, 5), "float32"), data: R.Tensor((3, 2, 10, 10), "float32")):
@@ -292,12 +292,12 @@ def test_avg_pool2d_backward():
     # fmt: on
 
     mod = LegalizeOps()(AvgPool2DBackward)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_take_backward():
     # fmt: off
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class TakeBackward:
         @R.function
         def main(output_grad: R.Tensor((3, 2, 5), "float32"), x: R.Tensor((3, 4, 5), "float32"), indices: R.Tensor((2,), "int32")):
@@ -326,12 +326,12 @@ def test_take_backward():
     # fmt: on
 
     mod = LegalizeOps()(TakeBackward)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_take_backward_symbolic():
     # fmt: off
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class TakeBackward:
         @R.function
         def main(output_grad: R.Tensor(("m", "i"), "float32"), x: R.Tensor(("m", "n"), "float32"), indices: R.Tensor(("i",), "int32")):
@@ -368,8 +368,8 @@ def test_take_backward_symbolic():
     # fmt: on
 
     mod = LegalizeOps()(TakeBackward)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

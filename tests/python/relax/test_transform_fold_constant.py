@@ -14,13 +14,13 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import relax
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import relax
 import numpy as np
 
-import gsmDataGen.script
-from gsmDataGen.script import ir as I, tir as T, relax as R
+import gsm_data_generator.script
+from gsm_data_generator.script import ir as I, tir as T, relax as R
 
 
 def gen_mod(mod, name, binding):
@@ -38,25 +38,25 @@ def gen_mod(mod, name, binding):
         The const parameter bindings
     """
     funcs = {}
-    binding = {k: gsmDataGen.nd.array(v) for k, v in binding.items()}
+    binding = {k: gsm_data_generator.nd.array(v) for k, v in binding.items()}
 
     for k, v in mod.functions.items():
-        if isinstance(v, gsmDataGen.relax.Function):
+        if isinstance(v, gsm_data_generator.relax.Function):
             if k.name_hint == name:
                 # rename to main
-                gv = gsmDataGen.ir.GlobalVar("main")
-                funcs[gv] = gsmDataGen.relax.Function(v.params, v.body, v.ret_struct_info).with_attr(
+                gv = gsm_data_generator.ir.GlobalVar("main")
+                funcs[gv] = gsm_data_generator.relax.Function(v.params, v.body, v.ret_struct_info).with_attr(
                     "global_symbol", "main"
                 )
         else:
             funcs[k] = v
-    mod = gsmDataGen.IRModule(funcs)
+    mod = gsm_data_generator.IRModule(funcs)
     return relax.transform.BindParams("main", binding)(mod)
 
 
 def test_one_fold_addone():
     # put before after in a single module
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Module:
         @T.prim_func
         def addone(A: T.Buffer((16, 16), "float32"), B: T.Buffer((16, 16), "float32")) -> None:
@@ -81,12 +81,12 @@ def test_one_fold_addone():
     expected = gen_mod(Module, "expected", {"c1": c1_np})
 
     after = relax.transform.FoldConstant()(before)
-    gsmDataGen.ir.assert_structural_equal(after, expected)
+    gsm_data_generator.ir.assert_structural_equal(after, expected)
 
 
 def test_one_fold_transpose():
     # put before after in a single module
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Module:
         @T.prim_func
         def func(A: T.Buffer((2, 3), "float32"), B: T.Buffer((3, 2), "float32")) -> None:
@@ -111,11 +111,11 @@ def test_one_fold_transpose():
     expected = gen_mod(Module, "expected", {"c1": c1_np})
 
     after = relax.transform.FoldConstant()(before)
-    gsmDataGen.ir.assert_structural_equal(after, expected)
+    gsm_data_generator.ir.assert_structural_equal(after, expected)
 
 
 def test_two_hop_addone():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Module:
         @T.prim_func
         def addone(A: T.Buffer((2, 2), "float32"), B: T.Buffer((2, 2), "float32")) -> None:
@@ -142,11 +142,11 @@ def test_two_hop_addone():
     expected = gen_mod(Module, "expected", {"c1": c1_np, "c2": c2_np})
 
     after = relax.transform.FoldConstant()(before)
-    gsmDataGen.ir.assert_structural_equal(after, expected)
+    gsm_data_generator.ir.assert_structural_equal(after, expected)
 
 
 def test_dataflow_fold():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Module:
         @T.prim_func
         def identity(A: T.Buffer((16, 16), "float32"), B: T.Buffer((16, 16), "float32")) -> None:
@@ -172,11 +172,11 @@ def test_dataflow_fold():
     before = gen_mod(Module, "before", {"c0": c0_np})
     expected = gen_mod(Module, "expected", {"c1": c1_np})
     after = relax.transform.FoldConstant()(before)
-    gsmDataGen.ir.assert_structural_equal(after, expected)
+    gsm_data_generator.ir.assert_structural_equal(after, expected)
 
 
 def test_fold_mixed_case():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Module:
         # TIR function can handle different cases.
         @T.prim_func
@@ -239,11 +239,11 @@ def test_fold_mixed_case():
     before = gen_mod(Module, "before", {"c0": c0_np})
     expected = gen_mod(Module, "expected", {"c0": c0_np, "c1": c1_np, "c2": c2_np})
     after = relax.transform.FoldConstant()(before)
-    gsmDataGen.ir.assert_structural_equal(after, expected)
+    gsm_data_generator.ir.assert_structural_equal(after, expected)
 
 
 def test_int32_fold():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Module:
         @T.prim_func
         def addone(A: T.Buffer((16, 16), "int32"), B: T.Buffer((16, 16), "int32")) -> None:
@@ -268,12 +268,12 @@ def test_int32_fold():
     expected = gen_mod(Module, "expected", {"c1": c1_np})
 
     after = relax.transform.FoldConstant()(before)
-    gsmDataGen.ir.assert_structural_equal(after, expected)
+    gsm_data_generator.ir.assert_structural_equal(after, expected)
 
 
 def test_fold_single_relax_op():
     # put before after in a single module
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Module:
         @R.function
         def before(c0: R.Tensor((16, 16), "float32")):
@@ -292,12 +292,12 @@ def test_fold_single_relax_op():
     expected = gen_mod(Module, "expected", {"c1": c1_np})
 
     after = relax.transform.FoldConstant()(before)
-    gsmDataGen.ir.assert_structural_equal(after, expected)
+    gsm_data_generator.ir.assert_structural_equal(after, expected)
 
 
 def test_fold_multiple_relax_ops():
     # put before after in a single module
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Module:
         @R.function
         def before(c0: R.Tensor((16, 16), "float32"), c1: R.Tensor((16, 16), "float32")):
@@ -321,12 +321,12 @@ def test_fold_multiple_relax_ops():
     expected = gen_mod(Module, "expected", {"c4": c4_np})
 
     after = relax.transform.FoldConstant()(before)
-    gsmDataGen.ir.assert_structural_equal(after, expected)
+    gsm_data_generator.ir.assert_structural_equal(after, expected)
 
 
 def test_do_not_fold_ops_outside_dataflow():
     # put before after in a single module
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Module:
         @R.function
         def before(c0: R.Tensor((16, 16), "float32")):
@@ -337,11 +337,11 @@ def test_do_not_fold_ops_outside_dataflow():
     before = gen_mod(Module, "before", {"c0": c0_np})
 
     after = relax.transform.FoldConstant()(before)
-    gsmDataGen.ir.assert_structural_equal(after, before)
+    gsm_data_generator.ir.assert_structural_equal(after, before)
 
 
 def test_fold_multiple_relax_ops_with_data_dependent_reshape():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Module:
         @R.function
         def before(
@@ -372,11 +372,11 @@ def test_fold_multiple_relax_ops_with_data_dependent_reshape():
     expected = gen_mod(Module, "expected", {})
 
     after = relax.transform.FoldConstant()(before)
-    gsmDataGen.ir.assert_structural_equal(after, expected)
+    gsm_data_generator.ir.assert_structural_equal(after, expected)
 
 
 def test_unsupported_fold_ops_legalized_to_multiple_calls():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Module:
         @R.function
         def before(c0: R.Tensor((16, 16), "float32")):
@@ -388,24 +388,24 @@ def test_unsupported_fold_ops_legalized_to_multiple_calls():
     c0_np = np.arange((16 * 16)).astype("float32").reshape(16, 16)
     before = gen_mod(Module, "before", {"c0": c0_np})
 
-    from gsmDataGen.relax.transform.legalize_ops.common import register_legalize
+    from gsm_data_generator.relax.transform.legalize_ops.common import register_legalize
 
     def customized_legalize_relu(bb: relax.BlockBuilder, call: relax.Call):
-        from gsmDataGen import topi  # pylint: disable=import-outside-toplevel
+        from gsm_data_generator import topi  # pylint: disable=import-outside-toplevel
 
         x = bb.emit_te(topi.nn.relu, *call.args)
         return bb.call_te(topi.identity, x)
 
     # register custom legalization for relu that emits multiple bindings for testing
-    relu_legalize = gsmDataGen.ir.Op.get("relax.nn.relu").get_attr("FLegalize")
-    gsmDataGen.ir.Op.get("relax.nn.relu").reset_attr("FLegalize")
+    relu_legalize = gsm_data_generator.ir.Op.get("relax.nn.relu").get_attr("FLegalize")
+    gsm_data_generator.ir.Op.get("relax.nn.relu").reset_attr("FLegalize")
     register_legalize("relax.nn.relu", customized_legalize_relu)
 
     after = relax.transform.FoldConstant()(before)
-    gsmDataGen.ir.assert_structural_equal(after, before)
+    gsm_data_generator.ir.assert_structural_equal(after, before)
 
     # revert to correct legalization of relu
-    gsmDataGen.ir.Op.get("relax.nn.relu").reset_attr("FLegalize")
+    gsm_data_generator.ir.Op.get("relax.nn.relu").reset_attr("FLegalize")
     register_legalize("relax.nn.relu", relu_legalize)
 
 
@@ -431,14 +431,14 @@ def test_fold_shape_computation():
         ) -> R.Tensor((1, 1), dtype="int64"):
             return new_shape
 
-    before = gen_mod(Module, "before", {"indices": gsmDataGen.nd.array(np.array([0]).astype("int64"))})
+    before = gen_mod(Module, "before", {"indices": gsm_data_generator.nd.array(np.array([0]).astype("int64"))})
     after = relax.transform.FoldConstant()(before)
     np_take = np.take([5, 4, 3, 2], [0], axis=0)
     np_expand = np.expand_dims(np_take, axis=[0])
     np_concat = np.concatenate([np_expand], axis=0)
-    expected = gen_mod(Module, "expected", {"new_shape": gsmDataGen.nd.array(np_concat)})
-    gsmDataGen.ir.assert_structural_equal(after, expected)
+    expected = gen_mod(Module, "expected", {"new_shape": gsm_data_generator.nd.array(np_concat)})
+    gsm_data_generator.ir.assert_structural_equal(after, expected)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

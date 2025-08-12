@@ -15,17 +15,17 @@
 # specific language governing permissions and limitations
 # under the License.
 # pylint: disable=missing-module-docstring,missing-function-docstring,missing-class-docstring
-import gsmDataGen.testing
-from gsmDataGen import meta_schedule as ms
-from gsmDataGen import target, te
-from gsmDataGen.meta_schedule.testing import te_workload
-from gsmDataGen.meta_schedule.testing.space_generation import (
+import gsm_data_generator.testing
+from gsm_data_generator import meta_schedule as ms
+from gsm_data_generator import target, te
+from gsm_data_generator.meta_schedule.testing import te_workload
+from gsm_data_generator.meta_schedule.testing.space_generation import (
     check_sketches,
     generate_design_space,
     print_sketches,
 )
-from gsmDataGen.script import tir as T
-from gsmDataGen.target import Target
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.target import Target
 
 
 def test_cpu_matmul():
@@ -885,4 +885,4 @@ def test_max_pool_blocked():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

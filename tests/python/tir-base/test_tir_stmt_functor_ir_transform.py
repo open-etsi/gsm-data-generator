@@ -14,34 +14,34 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-import gsmDataGen
-from gsmDataGen import te
+import gsm_data_generator
+from gsm_data_generator import te
 
 
 def test_ir_transform():
-    ib = gsmDataGen.tir.ir_builder.create()
+    ib = gsm_data_generator.tir.ir_builder.create()
     n = te.var("n")
     with ib.for_range(0, n, name="i") as i:
         with ib.for_range(0, 10, name="j") as j:
-            x = gsmDataGen.tir.call_extern("int32", "TestA", i * 3 + j * 1)
-            ib.emit(gsmDataGen.tir.call_extern("int32", "TestB", x))
-            ib.emit(gsmDataGen.tir.call_extern("int32", "TestC", x))
+            x = gsm_data_generator.tir.call_extern("int32", "TestA", i * 3 + j * 1)
+            ib.emit(gsm_data_generator.tir.call_extern("int32", "TestB", x))
+            ib.emit(gsm_data_generator.tir.call_extern("int32", "TestC", x))
     body = ib.get()
-    builtin_call_extern = gsmDataGen.ir.Op.get("tir.call_extern")
+    builtin_call_extern = gsm_data_generator.ir.Op.get("tir.call_extern")
 
     def preorder(op):
         if op.op.same_as(builtin_call_extern) and op.args[0].value == "TestC":
-            return gsmDataGen.tir.const(42, "int32")
+            return gsm_data_generator.tir.const(42, "int32")
         return None
 
     def postorder(op):
-        assert isinstance(op, gsmDataGen.tir.Call)
+        assert isinstance(op, gsm_data_generator.tir.Call)
         if op.op.same_as(builtin_call_extern) and op.args[0].value == "TestA":
-            return gsmDataGen.tir.call_extern("int32", "TestB", op.args[1] + 1)
+            return gsm_data_generator.tir.call_extern("int32", "TestB", op.args[1] + 1)
         return op
 
-    body = gsmDataGen.tir.stmt_functor.ir_transform(body, preorder, postorder, ["tir.Call"])
-    stmt_list = gsmDataGen.tir.stmt_list(body.body.body)
+    body = gsm_data_generator.tir.stmt_functor.ir_transform(body, preorder, postorder, ["tir.Call"])
+    stmt_list = gsm_data_generator.tir.stmt_list(body.body.body)
     assert stmt_list[0].value.args[1].args[0].value == "TestB"
     assert stmt_list[1].value.value == 42
 

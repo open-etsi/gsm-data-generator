@@ -18,12 +18,12 @@
 import numpy as np
 from scipy import special
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import relax
-from gsmDataGen.script import tir as T, relax as R
-from gsmDataGen.contrib.hexagon import generate_take_op
-from gsmDataGen.contrib.hexagon import hexagon_unary_ops
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import relax
+from gsm_data_generator.script import tir as T, relax as R
+from gsm_data_generator.contrib.hexagon import generate_take_op
+from gsm_data_generator.contrib.hexagon import hexagon_unary_ops
 
 from .infrastructure import quantize_np
 
@@ -31,7 +31,7 @@ from .infrastructure import quantize_np
 # Testing the structural and value correctness on replacing unary op with take op.
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Module_tanh:
     @R.function
     def main(
@@ -62,7 +62,7 @@ class Module_tanh:
         T.func_attr({"tir.noalias": True, "op_attrs": {"op_name": "qnn.tanh"}})
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Module_sqrt:
     @R.function
     def main(
@@ -93,7 +93,7 @@ class Module_sqrt:
         T.func_attr({"tir.noalias": True, "op_attrs": {"op_name": "qnn.sqrt"}})
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Module_rsqrt:
     @R.function
     def main(
@@ -124,7 +124,7 @@ class Module_rsqrt:
         T.func_attr({"tir.noalias": True, "op_attrs": {"op_name": "qnn.rsqrt"}})
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Module_exp:
     @R.function
     def main(
@@ -155,7 +155,7 @@ class Module_exp:
         T.func_attr({"tir.noalias": True, "op_attrs": {"op_name": "qnn.exp"}})
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Module_erf:
     @R.function
     def main(
@@ -186,7 +186,7 @@ class Module_erf:
         T.func_attr({"tir.noalias": True, "op_attrs": {"op_name": "qnn.erf"}})
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Module_sigmoid:
     @R.function
     def main(
@@ -217,7 +217,7 @@ class Module_sigmoid:
         T.func_attr({"tir.noalias": True, "op_attrs": {"op_name": "qnn.sigmoid"}})
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Module_hardswish:
     @R.function
     def main(
@@ -248,7 +248,7 @@ class Module_hardswish:
         T.func_attr({"tir.noalias": True, "op_attrs": {"op_name": "qnn.hardswish"}})
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Module_log:
     @R.function
     def main(
@@ -279,7 +279,7 @@ class Module_log:
         T.func_attr({"tir.noalias": True, "op_attrs": {"op_name": "qnn.log"}})
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Module_abs:
     @R.function
     def main(
@@ -322,7 +322,7 @@ dtype = "uint8"
 
 # Quantizing input : scale is returned as float64 and zp is returned as int32
 inp_quant, inp_scale, inp_zero_point = quantize_np(data, dtype)
-inp_quant = gsmDataGen.nd.array(inp_quant.astype(np.uint8))
+inp_quant = gsm_data_generator.nd.array(inp_quant.astype(np.uint8))
 
 
 # Test the implementations value output with numpy data. First the IR is runn through pass
@@ -365,12 +365,12 @@ def test_value():
         out_quant, _, _ = quantize_np(op_val, dtype)
 
         after = generate_take_op.PassReplaceWithTakeOpPrimFuncs()(before)
-        target = gsmDataGen.target.Target("llvm", host="llvm")
-        ex = gsmDataGen.compile(after, target, exec_mode="compiled")
-        vm = relax.VirtualMachine(ex, gsmDataGen.cpu())
+        target = gsm_data_generator.target.Target("llvm", host="llvm")
+        ex = gsm_data_generator.compile(after, target, exec_mode="compiled")
+        vm = relax.VirtualMachine(ex, gsm_data_generator.cpu())
         res = vm["main"](inp_quant)
 
-        gsmDataGen.testing.assert_allclose(res.numpy(), out_quant, atol=atol_val)
+        gsm_data_generator.testing.assert_allclose(res.numpy(), out_quant, atol=atol_val)
         print("Passed Value : ", op_name)
 
 
@@ -389,5 +389,5 @@ def test_structural():
     ]
     for mod in Modules:
         after = generate_take_op.PassReplaceWithTakeOpPrimFuncs()(mod)
-        assert not gsmDataGen.ir.structural_equal(after["main"], mod["main"])
+        assert not gsm_data_generator.ir.structural_equal(after["main"], mod["main"])
     print("Passed Structural")

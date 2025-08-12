@@ -15,12 +15,12 @@
 # specific language governing permissions and limitations
 # under the License.
 
-import gsmDataGen
-import gsmDataGen.testing
+import gsm_data_generator
+import gsm_data_generator.testing
 
-from gsmDataGen import tir
-from gsmDataGen.runtime import convert
-from gsmDataGen.script import tir as T
+from gsm_data_generator import tir
+from gsm_data_generator.runtime import convert
+from gsm_data_generator.script import tir as T
 
 
 i = tir.Var("i", "int32")
@@ -33,7 +33,7 @@ buf = tir.decl_buffer(16, "int32", "buf")
 tir_false = tir.IntImm("bool", False)
 tir_true = tir.IntImm("bool", True)
 
-before, expected = gsmDataGen.testing.parameters(
+before, expected = gsm_data_generator.testing.parameters(
     # General arithmatic
     [tir_true, tir_true],
     [tir_false, tir_false],
@@ -75,14 +75,14 @@ before, expected = gsmDataGen.testing.parameters(
 
 
 def test_narrow_expression(before, expected):
-    ranges = {n: gsmDataGen.ir.Range(0, 8)}
-    after = gsmDataGen.arith._ffi_api.NarrowPredicateExpression(before, ranges)
+    ranges = {n: gsm_data_generator.ir.Range(0, 8)}
+    after = gsm_data_generator.arith._ffi_api.NarrowPredicateExpression(before, ranges)
 
     if expected is None:
         assert after is None
     else:
-        gsmDataGen.ir.assert_structural_equal(after, expected)
+        gsm_data_generator.ir.assert_structural_equal(after, expected)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

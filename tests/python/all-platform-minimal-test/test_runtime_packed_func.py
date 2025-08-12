@@ -19,24 +19,24 @@ import gc
 
 import numpy as np
 
-import gsmDataGen
-from gsmDataGen import te
-import gsmDataGen.testing
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+from gsm_data_generator import te
+import gsm_data_generator.testing
+from gsm_data_generator.script import tir as T
 
 
 def test_get_global():
     targs = (10, 10.0, "hello")
 
     # register into global function table
-    @gsmDataGen.register_func
+    @gsm_data_generator.register_func
     def my_packed_func(*args):
         assert tuple(args) == targs
         return 10
 
     # get it out from global function table
-    f = gsmDataGen.get_global_func("my_packed_func")
-    assert isinstance(f, gsmDataGen.runtime.PackedFunc)
+    f = gsm_data_generator.get_global_func("my_packed_func")
+    assert isinstance(f, gsm_data_generator.runtime.PackedFunc)
     y = f(*targs)
     assert y == 10
 
@@ -47,17 +47,17 @@ def test_get_callback_with_node():
     def test(y):
         return y
 
-    f2 = gsmDataGen.runtime.convert(test)
+    f2 = gsm_data_generator.runtime.convert(test)
 
     # register into global function table
-    @gsmDataGen.register_func
+    @gsm_data_generator.register_func
     def my_callback_with_node(y, f):
         assert y == x
         return f(y)
 
     # get it out from global function table
-    f = gsmDataGen.get_global_func("my_callback_with_node")
-    assert isinstance(f, gsmDataGen.runtime.PackedFunc)
+    f = gsm_data_generator.get_global_func("my_callback_with_node")
+    assert isinstance(f, gsm_data_generator.runtime.PackedFunc)
     y = f(x, f2)
     assert y.value == 10
 
@@ -65,11 +65,11 @@ def test_get_callback_with_node():
 def test_return_func():
     def addy(y):
         def add(x):
-            return gsmDataGen.runtime.convert(x + y)
+            return gsm_data_generator.runtime.convert(x + y)
 
         return add
 
-    myf = gsmDataGen.runtime.convert(addy)
+    myf = gsm_data_generator.runtime.convert(addy)
     f = myf(10)
     assert f(11) == 21
 
@@ -81,8 +81,8 @@ def test_convert():
     def myfunc(*args):
         assert tuple(args) == targs
 
-    f = gsmDataGen.runtime.convert(myfunc)
-    assert isinstance(f, gsmDataGen.runtime.PackedFunc)
+    f = gsm_data_generator.runtime.convert(myfunc)
+    assert isinstance(f, gsm_data_generator.runtime.PackedFunc)
 
 
 def test_byte_array():
@@ -92,7 +92,7 @@ def test_byte_array():
     def myfunc(ss):
         assert ss == a
 
-    f = gsmDataGen.runtime.convert(myfunc)
+    f = gsm_data_generator.runtime.convert(myfunc)
     f(a)
 
 
@@ -100,48 +100,48 @@ def test_empty_array():
     def myfunc(ss):
         assert tuple(ss) == ()
 
-    x = gsmDataGen.runtime.convert(())
-    gsmDataGen.runtime.convert(myfunc)(x)
+    x = gsm_data_generator.runtime.convert(())
+    gsm_data_generator.runtime.convert(myfunc)(x)
 
 
 def test_device():
     def test_device_func(dev):
-        assert gsmDataGen.cuda(7) == dev
-        return gsmDataGen.cpu(0)
+        assert gsm_data_generator.cuda(7) == dev
+        return gsm_data_generator.cpu(0)
 
-    x = test_device_func(gsmDataGen.cuda(7))
-    assert x == gsmDataGen.cpu(0)
-    x = gsmDataGen.opencl(10)
-    x = gsmDataGen.testing.device_test(x, x.device_type, x.device_id)
-    assert x == gsmDataGen.opencl(10)
+    x = test_device_func(gsm_data_generator.cuda(7))
+    assert x == gsm_data_generator.cpu(0)
+    x = gsm_data_generator.opencl(10)
+    x = gsm_data_generator.testing.device_test(x, x.device_type, x.device_id)
+    assert x == gsm_data_generator.opencl(10)
 
 
 def test_numpy_scalar():
     maxint = (1 << 63) - 1
-    assert gsmDataGen.testing.echo(np.int64(maxint)) == maxint
+    assert gsm_data_generator.testing.echo(np.int64(maxint)) == maxint
 
 
 def test_ndarray_args():
     def check(arr):
         assert not arr.is_view
-        assert gsmDataGen.testing.object_use_count(arr) == 2
+        assert gsm_data_generator.testing.object_use_count(arr) == 2
 
-    fcheck = gsmDataGen.runtime.convert(check)
-    x = gsmDataGen.nd.array([1, 2, 3])
+    fcheck = gsm_data_generator.runtime.convert(check)
+    x = gsm_data_generator.nd.array([1, 2, 3])
     fcheck(x)
-    assert gsmDataGen.testing.object_use_count(x) == 1
+    assert gsm_data_generator.testing.object_use_count(x) == 1
 
 
 def test_dict_function_value_type():
-    from gsmDataGen import tir  # pylint: disable=import-outside-toplevel
+    from gsm_data_generator import tir  # pylint: disable=import-outside-toplevel
 
     te_func_dict = {"add": lambda a, b: a + b}
 
-    converted_dict = gsmDataGen.runtime.convert(te_func_dict)
+    converted_dict = gsm_data_generator.runtime.convert(te_func_dict)
     f = converted_dict["add"]
     a = tir.Var("a", "float32")
     b = tir.Var("b", "float32")
-    gsmDataGen.ir.assert_structural_equal(f(a, b), tir.Add(a, b))
+    gsm_data_generator.ir.assert_structural_equal(f(a, b), tir.Add(a, b))
 
 
 if __name__ == "__main__":

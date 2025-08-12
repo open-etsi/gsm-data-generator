@@ -18,7 +18,7 @@
 import gc
 import ctypes
 import numpy as np
-from gsmDataGen import ffi as tvm_ffi
+from gsm_data_generator import ffi as tvm_ffi
 
 
 def test_echo():

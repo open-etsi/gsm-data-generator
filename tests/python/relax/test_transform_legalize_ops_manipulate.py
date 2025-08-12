@@ -14,11 +14,11 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-import gsmDataGen
-from gsmDataGen import relax
-from gsmDataGen.relax.transform import LegalizeOps
-from gsmDataGen.script import relax as R, tir as T, ir as I
-import gsmDataGen.testing
+import gsm_data_generator
+from gsm_data_generator import relax
+from gsm_data_generator.relax.transform import LegalizeOps
+from gsm_data_generator.script import relax as R, tir as T, ir as I
+import gsm_data_generator.testing
 
 
 ##################### Manipulation #####################
@@ -26,14 +26,14 @@ import gsmDataGen.testing
 
 def test_broadcast_to():
     # fmt: off
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class BroadcastTo:
         @R.function
         def main(x: R.Tensor((2, 1, 3), "float32")) -> R.Tensor((4, 2, 5, 3), "float32"):
             gv: R.Tensor((4, 2, 5, 3), "float32") = R.broadcast_to(x, (4, 2, 5, 3))
             return gv
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(x: R.Tensor((2, 1, 3), "float32")) -> R.Tensor((4, 2, 5, 3), "float32"):
@@ -52,12 +52,12 @@ def test_broadcast_to():
     # fmt: on
 
     mod = LegalizeOps()(BroadcastTo)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_broadcast_to_symbolic():
     # fmt: off
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class BroadcastTo:
         @R.function
         def main(dumb_param: R.Tensor(("a", "c")), x: R.Tensor(("b", 1, "d"), "float32")) -> R.Tensor(("a", "b", "c", "d"), "float32"):
@@ -68,7 +68,7 @@ def test_broadcast_to_symbolic():
             gv: R.Tensor((a, b, c, d), "float32") = R.broadcast_to(x, (a, b, c, d))
             return gv
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(dumb_param: R.Tensor(("a", "c")), x: R.Tensor(("b", 1, "d"), "float32")) -> R.Tensor(("a", "b", "c", "d"), "float32"):
@@ -97,19 +97,19 @@ def test_broadcast_to_symbolic():
     # fmt: on
 
     mod = LegalizeOps()(BroadcastTo)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_concat():
     # fmt: off
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Concat:
         @R.function
         def main(x1: R.Tensor((1, 2, 3), "float32"), x2: R.Tensor((1, 3, 3), "float32"), x3: R.Tensor((1, 4, 3), "float32")) -> R.Tensor((1, 9, 3), "float32"):
             gv: R.Tensor((1, 9, 3), "float32") = R.concat((x1, x2, x3), axis=1)
             return gv
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(x1: R.Tensor((1, 2, 3), "float32"), x2: R.Tensor((1, 3, 3), "float32"), x3: R.Tensor((1, 4, 3), "float32")) -> R.Tensor((1, 9, 3), "float32"):
@@ -128,19 +128,19 @@ def test_concat():
     # fmt: on
 
     mod = LegalizeOps()(Concat)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_concat_input_tuple_var():
     # fmt: off
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Concat:
         @R.function
         def main(t: R.Tuple(R.Tensor((3, 4), "float32"), R.Tensor((3, 5), "float32"))) -> R.Tensor((3, 9), "float32"):
             gv: R.Tensor((3, 9), "float32") = R.concat(t, axis=1)
             return gv
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(t: R.Tuple(R.Tensor((3, 4), "float32"), R.Tensor((3, 5), "float32"))) -> R.Tensor((3, 9), "float32"):
@@ -161,12 +161,12 @@ def test_concat_input_tuple_var():
     # fmt: on
 
     mod = LegalizeOps()(Concat)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_concat_input_tuple_var_symbolic():
     # fmt: off
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Concat:
         @R.function
         def main(t: R.Tuple(R.Tensor(("a", "b0"), "float32"), R.Tensor(("a", "b1"), "float32"), R.Tensor(("a", "b2"), "float32"))) -> R.Tensor(("a", "b0 + b1 + b2"), "float32"):
@@ -177,7 +177,7 @@ def test_concat_input_tuple_var_symbolic():
             gv: R.Tensor((a, b0 + b1 + b2), "float32") = R.concat(t, axis=1)
             return gv
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(t: R.Tuple(R.Tensor(("a", "b0"), "float32"), R.Tensor(("a", "b1"), "float32"), R.Tensor(("a", "b2"), "float32"))) -> R.Tensor(("a", "b0 + b1 + b2"), "float32"):
@@ -211,19 +211,19 @@ def test_concat_input_tuple_var_symbolic():
     # fmt: on
 
     mod = LegalizeOps()(Concat)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_expand_dims():
     # fmt: off
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class ExpandDims:
         @R.function
         def main(x: R.Tensor((2, 3, 4), "float32")) -> R.Tensor((2, 1, 1, 1, 3, 1, 4, 1), "float32"):
             gv: R.Tensor((2, 1, 1, 1, 3, 1, 4, 1), "float32") = R.expand_dims(x, axis=[-1, 1, -6, 3, 5])
             return gv
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(x: R.Tensor((2, 3, 4), "float32")) -> R.Tensor((2, 1, 1, 1, 3, 1, 4, 1), "float32"):
@@ -242,12 +242,12 @@ def test_expand_dims():
     # fmt: on
 
     mod = LegalizeOps()(ExpandDims)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_expand_dims_symbolic():
     # fmt: off
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class ExpandDims:
         @R.function
         def main(x: R.Tensor(("a", "b", "c"), "float32")) -> R.Tensor(("a", 1, "b", 1, "c", 1), "float32"):
@@ -257,7 +257,7 @@ def test_expand_dims_symbolic():
             gv: R.Tensor((a, 1, b, 1, c, 1), "float32") = R.expand_dims(x, axis=[1, 3, 5])
             return gv
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(x: R.Tensor(("a", "b", "c"), "float32")) -> R.Tensor(("a", 1, "b", 1, "c", 1), "float32"):
@@ -284,19 +284,19 @@ def test_expand_dims_symbolic():
     # fmt: on
 
     mod = LegalizeOps()(ExpandDims)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_flatten():
     # fmt: off
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Flatten:
         @R.function
         def main(x: R.Tensor((2, 3, 4), "float32")) -> R.Tensor((24,), "float32"):
             gv: R.Tensor((24,), "float32") = R.flatten(x)
             return gv
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(x: R.Tensor((2, 3, 4), "float32")) -> R.Tensor((24,), "float32"):
@@ -315,19 +315,19 @@ def test_flatten():
     # fmt: on
 
     mod = LegalizeOps()(Flatten)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_flatten_zero_rank():
     # fmt: off
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Flatten:
         @R.function
         def main(x: R.Tensor((), "float32")) -> R.Tensor((1,), "float32"):
             gv: R.Tensor((1,), "float32") = R.flatten(x)
             return gv
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(x: R.Tensor((), "float32")) -> R.Tensor((1,), "float32"):
@@ -346,12 +346,12 @@ def test_flatten_zero_rank():
     # fmt: on
 
     mod = LegalizeOps()(Flatten)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_flatten_symbolic():
     # fmt: off
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Flatten:
         @R.function
         def main(x: R.Tensor(("a", "b", "c"), "float32")) -> R.Tensor(("a * b * c",), "float32"):
@@ -361,7 +361,7 @@ def test_flatten_symbolic():
             gv: R.Tensor((a * b * c,), "float32") = R.flatten(x)
             return gv
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(x: R.Tensor(("a", "b", "c"), "float32")) -> R.Tensor(("a * b * c",), "float32"):
@@ -388,19 +388,19 @@ def test_flatten_symbolic():
     # fmt: on
 
     mod = LegalizeOps()(Flatten)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_permute_dims():
     # fmt: off
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class PermuteDims:
         @R.function
         def main(x: R.Tensor((1, 2, 3, 4), "float32")) -> R.Tensor((2, 4, 3, 1), "float32"):
             gv: R.Tensor((2, 4, 3, 1), "float32") = R.permute_dims(x, axes=[1, -1, 2, -4])
             return gv
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(x: R.Tensor((1, 2, 3, 4), "float32")) -> R.Tensor((2, 4, 3, 1), "float32"):
@@ -419,12 +419,12 @@ def test_permute_dims():
     # fmt: on
 
     mod = LegalizeOps()(PermuteDims)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_permute_dims_symbolic():
     # fmt: off
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class PermuteDims:
         @R.function
         def main(x: R.Tensor(("a", "b", "c", "d"), "float32")) -> R.Tensor(("b", "d", "c", "a"), "float32"):
@@ -435,7 +435,7 @@ def test_permute_dims_symbolic():
             gv: R.Tensor((b, d, c, a), "float32") = R.permute_dims(x, axes=[1, -1, 2, -4])
             return gv
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(x: R.Tensor(("a", "b", "c", "d"), dtype="float32")) -> R.Tensor(("b", "d", "c", "a"), dtype="float32"):
@@ -464,19 +464,19 @@ def test_permute_dims_symbolic():
     # fmt: on
 
     mod = LegalizeOps()(PermuteDims)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_reshape():
     # fmt: off
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Reshape:
         @R.function
         def main(x: R.Tensor((1, 2, 3, 4), "float32")) -> R.Tensor((8, 3), "float32"):
             gv: R.Tensor((8, 3), "float32") = R.reshape(x, (8, 3))
             return gv
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(x: R.Tensor((1, 2, 3, 4), "float32")) -> R.Tensor((8, 3), "float32"):
@@ -495,11 +495,11 @@ def test_reshape():
     # fmt: on
 
     mod = LegalizeOps()(Reshape)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
     # fmt: off
     # ShapeExpr might be produced by shape computation
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Reshape2:
         @R.function
         def main(x: R.Tensor((1, 2, 3, 4), "float32")) -> R.Tensor((8, 3), "float32"):
@@ -508,7 +508,7 @@ def test_reshape():
             return gv
 
     # After lowering, redundant var might be removed by later dead code elimination
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected2:
         @T.prim_func(private=True)
         def reshape(
@@ -544,12 +544,12 @@ def test_reshape():
     # fmt: on
 
     mod2 = LegalizeOps()(Reshape2)
-    gsmDataGen.ir.assert_structural_equal(mod2, Expected2)
+    gsm_data_generator.ir.assert_structural_equal(mod2, Expected2)
 
 
 def test_reshape_symbolic():
     # fmt: off
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Reshape:
         @R.function
         def main(x: R.Tensor(("a", "b"), "float32")) -> R.Tensor(("a // 2", "b * 2"), "float32"):
@@ -558,7 +558,7 @@ def test_reshape_symbolic():
             gv: R.Tensor((a // 2, b * 2), "float32") = R.reshape(x, (a // 2, b * 2))
             return gv
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(x: R.Tensor(("a", "b"), "float32")) -> R.Tensor(("a // 2", "b * 2"), "float32"):
@@ -583,10 +583,10 @@ def test_reshape_symbolic():
     # fmt: on
 
     mod = LegalizeOps()(Reshape)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
     # ShapeExpr might be produced by shape computation
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Reshape2:
         @R.function
         def main(x: R.Tensor(("a", "b"), "float32")) -> R.Tensor(("a // 2", "b * 2"), "float32"):
@@ -597,7 +597,7 @@ def test_reshape_symbolic():
             return gv
 
     # After lowering, redundant var might be removed by later dead code elimination
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected2:
         @R.function
         def main(x: R.Tensor(("a", "b"), "float32")) -> R.Tensor(("a // 2", "b * 2"), "float32"):
@@ -631,7 +631,7 @@ def test_reshape_symbolic():
                     ]
 
     mod2 = LegalizeOps()(Reshape2)
-    gsmDataGen.ir.assert_structural_equal(mod2, Expected2)
+    gsm_data_generator.ir.assert_structural_equal(mod2, Expected2)
 
     # ShapeExpr might be produced by shape computation
     @I.ir_module
@@ -681,12 +681,12 @@ def test_reshape_symbolic():
             return gv
 
     mod3 = LegalizeOps()(Reshape3)
-    gsmDataGen.ir.assert_structural_equal(mod3, Expected3)
+    gsm_data_generator.ir.assert_structural_equal(mod3, Expected3)
 
 
 def test_data_dependent_reshape():
     # fmt: off
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class DDReshape:
         @R.function
         def main(
@@ -735,19 +735,19 @@ def test_data_dependent_reshape():
                     T_reshape[vi,vj] = rxplaceholder[(vi*N + vj) % 16]
 
     # fmt: on
-    gsmDataGen.ir.assert_structural_equal(out_mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(out_mod, Expected)
 
 
 def test_split_by_indices():
     # fmt: off
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Split:
         @R.function
         def main(x: R.Tensor((2, 10, 4), "float32")) -> R.Tuple([R.Tensor((2, 3, 4), "float32"), R.Tensor((2, 4, 4), "float32"), R.Tensor((2, 3, 4), "float32")]):
             gv: R.Tuple([R.Tensor((2, 3, 4), "float32"), R.Tensor((2, 4, 4), "float32"), R.Tensor((2, 3, 4), "float32")]) = R.split(x, [3, 7], axis=1)
             return gv
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(x: R.Tensor((2, 10, 4), "float32")) -> R.Tuple([R.Tensor((2, 3, 4), "float32"), R.Tensor((2, 4, 4), "float32"), R.Tensor((2, 3, 4), "float32")]):
@@ -778,19 +778,19 @@ def test_split_by_indices():
     # fmt: on
 
     mod = LegalizeOps()(Split)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_split_by_indices_n_section_indivisible():
     # fmt: off
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Split:
         @R.function
         def main(x: R.Tensor((2, 10, 4), "float32")) -> R.Tuple([R.Tensor((2, 4, 4), "float32"), R.Tensor((2, 4, 4), "float32"), R.Tensor((2, 2, 4), "float32")]):
             gv: R.Tuple([R.Tensor((2, 4, 4), "float32"), R.Tensor((2, 4, 4), "float32"), R.Tensor((2, 2, 4), "float32")]) = R.split(x, indices_or_sections=3, axis=1)
             return gv
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(x: R.Tensor((2, 10, 4), "float32")) -> R.Tuple([R.Tensor((2, 4, 4), "float32"), R.Tensor((2, 4, 4), "float32"), R.Tensor((2, 2, 4), "float32")]):
@@ -822,19 +822,19 @@ def test_split_by_indices_n_section_indivisible():
     # fmt: on
 
     mod = LegalizeOps()(Split)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_split_by_indices_n_section_divisible():
     # fmt: off
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Split:
         @R.function
         def main(x: R.Tensor((2, 10, 4), "float32")) -> R.Tuple([R.Tensor((2, 5, 4), "float32"), R.Tensor((2, 5, 4), "float32")]):
             gv: R.Tuple([R.Tensor((2, 5, 4), "float32"), R.Tensor((2, 5, 4), "float32")]) = R.split(x, 2, axis=1)
             return gv
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(x: R.Tensor((2, 10, 4), "float32")) -> R.Tuple([R.Tensor((2, 5, 4), "float32"), R.Tensor((2, 5, 4), "float32")]):
@@ -859,12 +859,12 @@ def test_split_by_indices_n_section_divisible():
     # fmt: on
 
     mod = LegalizeOps()(Split)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_split_by_indices_n_section_divisible_symbolic():
     # fmt: off
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Split:
         @R.function
         def main(dumb_param: R.Tensor(("n",)), x: R.Tensor(("m", "n * 3"), "float32")) -> R.Tuple([R.Tensor(("m", "n"), "float32"), R.Tensor(("m", "n"), "float32"), R.Tensor(("m", "n"), "float32")]):
@@ -873,7 +873,7 @@ def test_split_by_indices_n_section_divisible_symbolic():
             gv: R.Tuple([R.Tensor((m, n), "float32"), R.Tensor((m, n), "float32"), R.Tensor((m, n), "float32")]) = R.split(x, 3, axis=1)
             return gv
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(dumb_param: R.Tensor(("n",)), x: R.Tensor(("m", "(n * 3)"), "float32")) -> R.Tuple(R.Tensor(("m", "((n * 3) // 3)"), "float32"), R.Tensor(("m", "((((n * 3) // 3) * 2) - ((n * 3) // 3))"), "float32"), R.Tensor(("m", "((n * 3) - (((n * 3) // 3) * 2))"), "float32")):
@@ -911,19 +911,19 @@ def test_split_by_indices_n_section_divisible_symbolic():
     # fmt: on
 
     mod = LegalizeOps()(Split)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_squeeze():
     # fmt: off
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Squeeze:
         @R.function
         def main(x: R.Tensor((2, 1, 3, 1, 1, 4), "float32")) -> R.Tensor((2, 3, 1, 4), "float32"):
             gv: R.Tensor((2, 3, 1, 4), "float32") = R.squeeze(x, [1, 4])
             return gv
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(x: R.Tensor((2, 1, 3, 1, 1, 4), "float32")) -> R.Tensor((2, 3, 1, 4), "float32"):
@@ -942,19 +942,19 @@ def test_squeeze():
     # fmt: on
 
     mod = LegalizeOps()(Squeeze)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_squeeze_no_axis():
     # fmt: off
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Squeeze:
         @R.function
         def main(x: R.Tensor((2, 1, 3, 1, 1, 4), "float32")) :
             gv: R.Tensor((2, 3, 4), "float32") = R.squeeze(x)
             return gv
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(x: R.Tensor((2, 1, 3, 1, 1, 4), "float32")) :
@@ -973,12 +973,12 @@ def test_squeeze_no_axis():
     # fmt: on
 
     mod = LegalizeOps()(Squeeze)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_squeeze_symbolic():
     # fmt: off
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Squeeze:
         @R.function
         def main(x: R.Tensor(("a", 1, "b", 1), "float32")) -> R.Tensor(("a", "b", 1), "float32"):
@@ -987,7 +987,7 @@ def test_squeeze_symbolic():
             gv: R.Tensor((a, b, 1), "float32") = R.squeeze(x, [1])
             return gv
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(x: R.Tensor(("a", 1, "b", 1), "float32")) -> R.Tensor(("a", "b", 1), "float32"):
@@ -1012,19 +1012,19 @@ def test_squeeze_symbolic():
     # fmt: on
 
     mod = LegalizeOps()(Squeeze)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_collapse_sum_like():
     # fmt: off
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class CollapseSumLike:
         @R.function
         def main(x: R.Tensor((2, 3), "float32"), y: R.Tensor((1, 3), "float32")) -> R.Tensor((1, 3), "float32"):
             gv: R.Tensor((1, 3), "float32") = R.collapse_sum_like(x, y)
             return gv
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(x: R.Tensor((2, 3), "float32"), y: R.Tensor((1, 3), "float32")) -> R.Tensor((1, 3), "float32"):
@@ -1045,19 +1045,19 @@ def test_collapse_sum_like():
     # fmt: on
 
     mod = LegalizeOps()(CollapseSumLike)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_collapse_sum_to():
     # fmt: off
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class CollapseSumTo:
         @R.function
         def main(x: R.Tensor((3, 2, 3), "float32")) -> R.Tensor((2, 1), "float32"):
             gv: R.Tensor((2, 1), "float32") = R.collapse_sum_to(x, (2, 1))
             return gv
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(
@@ -1081,7 +1081,7 @@ def test_collapse_sum_to():
     # fmt: on
 
     mod = LegalizeOps()(CollapseSumTo)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_repeat():
@@ -1113,7 +1113,7 @@ def test_repeat():
     # fmt: on
 
     mod = LegalizeOps()(Repeat)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_repeat_no_axis():
@@ -1167,7 +1167,7 @@ def test_repeat_no_axis():
     # fmt: on
 
     mod = LegalizeOps()(Repeat)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_repeat_symbolic():
@@ -1207,7 +1207,7 @@ def test_repeat_symbolic():
     # fmt: on
 
     mod = LegalizeOps()(Repeat)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_tile():
@@ -1239,7 +1239,7 @@ def test_tile():
     # fmt: on
 
     mod = LegalizeOps()(Tile)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_tile_symbolic():
@@ -1278,7 +1278,7 @@ def test_tile_symbolic():
             return gv
     # fmt: on
     mod = LegalizeOps()(Tile)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_flip():
@@ -1316,7 +1316,7 @@ def test_flip():
     # fmt: on
 
     mod = LegalizeOps()(Flip)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_flip_symbolic():
@@ -1358,7 +1358,7 @@ def test_flip_symbolic():
     # fmt: on
 
     mod = LegalizeOps()(Flip)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_scatter_elements():
@@ -1454,7 +1454,7 @@ def test_scatter_elements():
 
     # fmt: on
     mod = LegalizeOps()(ScatterElements)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_scatter_elements_symbolic():
@@ -1544,7 +1544,7 @@ def test_scatter_elements_symbolic():
     # fmt: on
 
     mod = LegalizeOps()(ScatterElements)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_layout_transform():
@@ -1581,7 +1581,7 @@ def test_layout_transform():
     # fmt: on
 
     mod = LegalizeOps()(LayoutTransform)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_layout_transform_with_pad():
@@ -1618,7 +1618,7 @@ def test_layout_transform_with_pad():
     # fmt: on
 
     mod = LegalizeOps()(LayoutTransform)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_layout_transform_symbolic():
@@ -1661,7 +1661,7 @@ def test_layout_transform_symbolic():
     # fmt: on
 
     mod = LegalizeOps()(LayoutTransform)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_layout_transform_with_pad_axis_sep():
@@ -1700,7 +1700,7 @@ def test_layout_transform_with_pad_axis_sep():
     # fmt: on
 
     mod = LegalizeOps()(LayoutTransform)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_func_struct_info_of_legalized_layout_transform():
@@ -1727,7 +1727,7 @@ def test_func_struct_info_of_legalized_layout_transform():
                 R.output(gv)
             return gv
 
-    After = gsmDataGen.ir.transform.Sequential(
+    After = gsm_data_generator.ir.transform.Sequential(
         [
             relax.transform.LegalizeOps(),
             relax.transform.ToNonDataflow(),
@@ -1764,7 +1764,7 @@ def test_func_struct_info_of_legalized_layout_transform():
                     vi = T.axis.spatial(T.int64(16), i)
                     te_layout_transform[vi // T.int64(4), vi % T.int64(4)] = A[vi]
 
-    gsmDataGen.ir.assert_structural_equal(Expected, After)
+    gsm_data_generator.ir.assert_structural_equal(Expected, After)
 
 
 def test_scatter_nd():
@@ -1824,8 +1824,8 @@ def test_scatter_nd():
                             out_buf[k + T_transpose[j // T.int64(4), j % T.int64(4)]] = updates[j + k]
 
     # fmt: on
-    gsmDataGen.ir.assert_structural_equal(After, Expected)
+    gsm_data_generator.ir.assert_structural_equal(After, Expected)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

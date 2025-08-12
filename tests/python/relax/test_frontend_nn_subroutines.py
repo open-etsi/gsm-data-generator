@@ -15,13 +15,13 @@
 # specific language governing permissions and limitations
 # under the License.
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import relax
-from gsmDataGen.ir import assert_structural_equal
-from gsmDataGen.relax.frontend import nn
-from gsmDataGen.script import ir as I
-from gsmDataGen.script import relax as R
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import relax
+from gsm_data_generator.ir import assert_structural_equal
+from gsm_data_generator.relax.frontend import nn
+from gsm_data_generator.script import ir as I
+from gsm_data_generator.script import relax as R
 
 
 def test_linear():
@@ -90,7 +90,7 @@ def test_linear():
             return dataflow_output
 
     mod = Layer(64, 32)
-    batch_size = gsmDataGen.tir.Var("batch_size", "int64")
+    batch_size = gsm_data_generator.tir.Var("batch_size", "int64")
     tvm_mod, _ = mod.export_tvm(
         spec={"forward": {"input": nn.spec.Tensor((batch_size, 64), "float32")}}, debug=True
     )
@@ -98,4 +98,4 @@ def test_linear():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

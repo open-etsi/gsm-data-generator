@@ -25,20 +25,20 @@ import time
 import pytest
 import numpy as np
 
-import gsmDataGen
-import gsmDataGen.testing
+import gsm_data_generator
+import gsm_data_generator.testing
 
-from gsmDataGen import te
-from gsmDataGen import rpc
-from gsmDataGen.contrib import utils, cc
-from gsmDataGen.rpc.tracker import Tracker
-from gsmDataGen.rpc.proxy import Proxy
-from gsmDataGen.script import ir as I, tir as T
+from gsm_data_generator import te
+from gsm_data_generator import rpc
+from gsm_data_generator.contrib import utils, cc
+from gsm_data_generator.rpc.tracker import Tracker
+from gsm_data_generator.rpc.proxy import Proxy
+from gsm_data_generator.script import ir as I, tir as T
 
 
 if __name__ == "__main__":
     # NOTE: must live here to avoid registering PackedFunc with libtvm.so twice.
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()
 
 
 # tkonolige: The issue as I understand it is this: multiprocessing's spawn
@@ -62,7 +62,7 @@ pytestmark = pytest.mark.skipif(
 # to ensure all the remote resources destructs before the server terminates
 
 
-@gsmDataGen.testing.requires_rpc
+@gsm_data_generator.testing.requires_rpc
 def test_bigendian_rpc():
     """Test big endian rpc when there is a PowerPC RPC server available"""
     host = os.environ.get("TVM_POWERPC_TEST_HOST", None)
@@ -72,19 +72,19 @@ def test_bigendian_rpc():
 
     def verify_rpc(remote, target, shape, dtype):
         A = te.placeholder(shape, dtype=dtype)
-        B = te.compute(A.shape, lambda i: A[i] + gsmDataGen.tir.const(1, A.dtype))
-        f = gsmDataGen.compile(te.create_prim_func([A, B]), target=target)
+        B = te.compute(A.shape, lambda i: A[i] + gsm_data_generator.tir.const(1, A.dtype))
+        f = gsm_data_generator.compile(te.create_prim_func([A, B]), target=target)
 
         dev = remote.cpu(0)
-        a = gsmDataGen.nd.array(np.random.randint(0, 256, size=shape).astype(A.dtype), device=dev)
-        b = gsmDataGen.nd.array(np.zeros(shape).astype(A.dtype), device=dev)
+        a = gsm_data_generator.nd.array(np.random.randint(0, 256, size=shape).astype(A.dtype), device=dev)
+        b = gsm_data_generator.nd.array(np.zeros(shape).astype(A.dtype), device=dev)
         temp = utils.tempdir()
         path_dso = temp.relpath("dev_lib.o")
         f.save(path_dso)
         remote.upload(path_dso)
         f = remote.load_module("dev_lib.o")
         f(a, b)
-        gsmDataGen.testing.assert_allclose(a.numpy() + 1, b.numpy())
+        gsm_data_generator.testing.assert_allclose(a.numpy() + 1, b.numpy())
 
     print("Test RPC connection to PowerPC...")
     remote = rpc.connect(host, port)
@@ -93,7 +93,7 @@ def test_bigendian_rpc():
         verify_rpc(remote, target, (10,), dtype)
 
 
-@gsmDataGen.testing.requires_rpc
+@gsm_data_generator.testing.requires_rpc
 def test_rpc_simple():
     server = rpc.Server(key="x1")
     client = rpc.connect("127.0.0.1", server.port, key="x1")
@@ -103,7 +103,7 @@ def test_rpc_simple():
         assert f1(10) == 11
         f3 = client.get_function("rpc.test.except")
 
-        with pytest.raises(gsmDataGen.base.TVMError):
+        with pytest.raises(gsm_data_generator.base.TVMError):
             f3("abc")
 
         f2 = client.get_function("rpc.test.strcat")
@@ -112,28 +112,28 @@ def test_rpc_simple():
     check_remote()
 
 
-@gsmDataGen.testing.requires_rpc
+@gsm_data_generator.testing.requires_rpc
 def test_rpc_runtime_string():
     server = rpc.Server(key="x1")
     client = rpc.connect("127.0.0.1", server.port, key="x1")
 
     def check_remote():
         func = client.get_function("rpc.test.runtime_str_concat")
-        x = gsmDataGen.runtime.container.String("abc")
-        y = gsmDataGen.runtime.container.String("def")
+        x = gsm_data_generator.runtime.container.String("abc")
+        y = gsm_data_generator.runtime.container.String("def")
         assert str(func(x, y)) == "abcdef"
 
     check_remote()
 
 
-@gsmDataGen.testing.requires_rpc
+@gsm_data_generator.testing.requires_rpc
 def test_rpc_array():
     server = rpc.Server()
     remote = rpc.connect("127.0.0.1", server.port)
 
     def check_remote():
         x = np.ones((3, 4))
-        r_cpu = gsmDataGen.nd.array(x, remote.cpu(0))
+        r_cpu = gsm_data_generator.nd.array(x, remote.cpu(0))
         assert str(r_cpu.device).startswith("remote")
         np.testing.assert_equal(r_cpu.numpy(), x)
         fremote = remote.get_function("rpc.test.remote_array_func")
@@ -142,7 +142,7 @@ def test_rpc_array():
     check_remote()
 
 
-@gsmDataGen.testing.requires_rpc
+@gsm_data_generator.testing.requires_rpc
 def test_rpc_large_array():
     # testcase of large array creation
     server = rpc.Server()
@@ -152,16 +152,16 @@ def test_rpc_large_array():
         dev = remote.cpu(0)
         a_np = np.ones((5041, 720)).astype("float32")
         b_np = np.ones((720, 192)).astype("float32")
-        a = gsmDataGen.nd.array(a_np, dev)
-        b = gsmDataGen.nd.array(b_np, dev)
+        a = gsm_data_generator.nd.array(a_np, dev)
+        b = gsm_data_generator.nd.array(b_np, dev)
         np.testing.assert_equal(a.numpy(), a_np)
         np.testing.assert_equal(b.numpy(), b_np)
 
     check_remote()
 
 
-@gsmDataGen.testing.skip_if_32bit(reason="skipping test for i386.")
-@gsmDataGen.testing.requires_rpc
+@gsm_data_generator.testing.skip_if_32bit(reason="skipping test for i386.")
+@gsm_data_generator.testing.requires_rpc
 def test_rpc_echo():
     def check(remote, local_session):
         fecho = remote.get_function("testing.echo")
@@ -190,12 +190,12 @@ def test_rpc_echo():
     check(client, False)
 
     def check_minrpc():
-        if gsmDataGen.get_global_func("rpc.CreatePipeClient", allow_missing=True) is None:
+        if gsm_data_generator.get_global_func("rpc.CreatePipeClient", allow_missing=True) is None:
             return
         # Test minrpc server.
         temp = utils.tempdir()
         minrpc_exec = temp.relpath("minrpc")
-        gsmDataGen.rpc.with_minrpc(cc.create_executable)(minrpc_exec, [])
+        gsm_data_generator.rpc.with_minrpc(cc.create_executable)(minrpc_exec, [])
         check(rpc.PopenSession(minrpc_exec), False)
         # minrpc on the remote
         server = rpc.Server()
@@ -210,7 +210,7 @@ def test_rpc_echo():
     # check_minrpc()
 
 
-@gsmDataGen.testing.requires_rpc
+@gsm_data_generator.testing.requires_rpc
 def test_rpc_file_exchange():
     server = rpc.Server()
     remote = rpc.connect("127.0.0.1", server.port)
@@ -224,14 +224,14 @@ def test_rpc_file_exchange():
     check_remote()
 
 
-@gsmDataGen.testing.requires_rpc
-@gsmDataGen.testing.requires_llvm
+@gsm_data_generator.testing.requires_rpc
+@gsm_data_generator.testing.requires_llvm
 def test_rpc_remote_module():
     # graph
-    n = gsmDataGen.runtime.convert(102)
+    n = gsm_data_generator.runtime.convert(102)
     A = te.placeholder((n,), name="A")
     B = te.compute(A.shape, lambda *i: A(*i) + 1.0, name="B")
-    mod = gsmDataGen.ir.IRModule.from_expr(te.create_prim_func([A, B]).with_attr("global_symbol", "myadd"))
+    mod = gsm_data_generator.ir.IRModule.from_expr(te.create_prim_func([A, B]).with_attr("global_symbol", "myadd"))
 
     server0 = rpc.Server(key="x0")
     server1 = rpc.Server(key="x1")
@@ -246,13 +246,13 @@ def test_rpc_remote_module():
     def check_remote(remote):
         temp = utils.tempdir()
         dev = remote.cpu(0)
-        f = gsmDataGen.compile(mod, "llvm")
+        f = gsm_data_generator.compile(mod, "llvm")
         path_dso = temp.relpath("dev_lib.so")
         f.export_library(path_dso)
         remote.upload(path_dso)
         f1 = remote.load_module("dev_lib.so")
-        a = gsmDataGen.nd.array(np.random.uniform(size=102).astype(A.dtype), dev)
-        b = gsmDataGen.nd.array(np.zeros(102, dtype=A.dtype), dev)
+        a = gsm_data_generator.nd.array(np.random.uniform(size=102).astype(A.dtype), dev)
+        b = gsm_data_generator.nd.array(np.zeros(102, dtype=A.dtype), dev)
         time_f = f1.time_evaluator(f1.entry_name, remote.cpu(0), number=10)
         cost = time_f(a, b).mean
         print("%g secs/op" % cost)
@@ -265,19 +265,19 @@ def test_rpc_remote_module():
         local_download_path = temp.relpath("dev_lib.download.so")
         with open(local_download_path, "wb") as fo:
             fo.write(remote.download_linked_module("dev_lib.tar"))
-        fupdated = gsmDataGen.runtime.load_module(local_download_path)
-        a = gsmDataGen.nd.array(np.random.uniform(size=102).astype(A.dtype), gsmDataGen.cpu(0))
-        b = gsmDataGen.nd.array(np.zeros(102, dtype=A.dtype), gsmDataGen.cpu(0))
+        fupdated = gsm_data_generator.runtime.load_module(local_download_path)
+        a = gsm_data_generator.nd.array(np.random.uniform(size=102).astype(A.dtype), gsm_data_generator.cpu(0))
+        b = gsm_data_generator.nd.array(np.zeros(102, dtype=A.dtype), gsm_data_generator.cpu(0))
         fupdated(a, b)
         np.testing.assert_equal(b.numpy(), a.numpy() + 1)
 
     def check_minrpc():
-        if gsmDataGen.get_global_func("rpc.CreatePipeClient", allow_missing=True) is None:
+        if gsm_data_generator.get_global_func("rpc.CreatePipeClient", allow_missing=True) is None:
             return
         # export to minrpc
         temp = utils.tempdir()
         # system lib prefix will trigger system lib build
-        f = gsmDataGen.compile(mod.with_attr("system_lib_prefix", ""), "llvm")
+        f = gsm_data_generator.compile(mod.with_attr("system_lib_prefix", ""), "llvm")
         path_minrpc = temp.relpath("dev_lib.minrpc")
         f.export_library(path_minrpc, fcompile=rpc.with_minrpc(cc.create_executable))
 
@@ -285,12 +285,12 @@ def test_rpc_remote_module():
             rpc.PopenSession("filenotexist")
 
         # statrt the minrpc session.
-        remote = gsmDataGen.rpc.PopenSession(path_minrpc)
+        remote = gsm_data_generator.rpc.PopenSession(path_minrpc)
         dev = remote.cpu(0)
         f1 = remote.system_lib()
 
-        a = gsmDataGen.nd.array(np.random.uniform(size=102).astype(A.dtype), dev)
-        b = gsmDataGen.nd.array(np.zeros(102, dtype=A.dtype), dev)
+        a = gsm_data_generator.nd.array(np.random.uniform(size=102).astype(A.dtype), dev)
+        b = gsm_data_generator.nd.array(np.zeros(102, dtype=A.dtype), dev)
         time_f = f1.time_evaluator("myadd", remote.cpu(0), number=1)
         cost = time_f(a, b).mean
         np.testing.assert_equal(b.numpy(), a.numpy() + 1)
@@ -308,25 +308,25 @@ def test_rpc_remote_module():
         runtime initializes. We leave it as an example
         on how to do rpc when we want to do linking on remote.
         """
-        if not gsmDataGen.testing.device_enabled("opencl"):
+        if not gsm_data_generator.testing.device_enabled("opencl"):
             print("Skip because opencl is not enabled")
             return
         temp = utils.tempdir()
         dev = remote.cl(0)
 
-        s = gsmDataGen.tir.Schedule(mod)
+        s = gsm_data_generator.tir.Schedule(mod)
 
         x = s.get_loops(s.get_block("B"))
         xo, xi = s.split(x, factors=[None, 32])
         s.bind(xo, "blockIdx.x")
         s.bind(xi, "threadIdx.x")
-        f = gsmDataGen.compile(s.mod, "opencl --host=llvm")
+        f = gsm_data_generator.compile(s.mod, "opencl --host=llvm")
         path_tar = temp.relpath("myadd.tar")
         f.export_library(path_tar)
         remote.upload(path_tar)
         fhost = remote.load_module("myadd.tar")
-        a = gsmDataGen.nd.array(np.random.uniform(size=102).astype(A.dtype), dev)
-        b = gsmDataGen.nd.array(np.zeros(102, dtype=A.dtype), dev)
+        a = gsm_data_generator.nd.array(np.random.uniform(size=102).astype(A.dtype), dev)
+        b = gsm_data_generator.nd.array(np.zeros(102, dtype=A.dtype), dev)
         fhost(a, b)
         np.testing.assert_equal(b.numpy(), a.numpy() + 1)
 
@@ -335,7 +335,7 @@ def test_rpc_remote_module():
     check_minrpc()
 
 
-@gsmDataGen.testing.requires_rpc
+@gsm_data_generator.testing.requires_rpc
 def test_rpc_return_func():
     server = rpc.Server(key="x1")
     client = rpc.connect("127.0.0.1", server.port, key="x1")
@@ -348,7 +348,7 @@ def test_rpc_return_func():
     check_remote()
 
 
-@gsmDataGen.testing.requires_rpc
+@gsm_data_generator.testing.requires_rpc
 def test_rpc_session_constructor_args():
     # start server
     server0 = rpc.Server(key="x0")
@@ -369,11 +369,11 @@ def test_rpc_session_constructor_args():
         assert fecho("xyz") == "xyz"
         assert bytes(fecho(bytearray(b"123"))) == b"123"
 
-        nd = gsmDataGen.nd.array([1, 2, 3], device=client.cpu(0))
+        nd = gsm_data_generator.nd.array([1, 2, 3], device=client.cpu(0))
         assert nd.numpy()[1] == 2
 
     def check_error_handling():
-        with pytest.raises(gsmDataGen.error.RPCError):
+        with pytest.raises(gsm_data_generator.error.RPCError):
             client = rpc.connect(
                 "127.0.0.1",
                 server0.port,
@@ -385,7 +385,7 @@ def test_rpc_session_constructor_args():
     check_error_handling()
 
 
-@gsmDataGen.testing.requires_rpc
+@gsm_data_generator.testing.requires_rpc
 def test_rpc_return_ndarray():
     # start server
     server = rpc.Server(key="x1")
@@ -406,7 +406,7 @@ def test_rpc_return_ndarray():
     run_arr_test()
 
 
-@gsmDataGen.testing.requires_rpc
+@gsm_data_generator.testing.requires_rpc
 def test_rpc_return_remote_object():
     def check(client, is_local):
         make_shape = client.get_function("ffi.Shape")
@@ -433,12 +433,12 @@ def test_rpc_return_remote_object():
     check_remote()
 
     def check_minrpc():
-        if gsmDataGen.get_global_func("rpc.CreatePipeClient", allow_missing=True) is None:
+        if gsm_data_generator.get_global_func("rpc.CreatePipeClient", allow_missing=True) is None:
             return
         # Test minrpc server.
         temp = utils.tempdir()
         minrpc_exec = temp.relpath("minrpc")
-        gsmDataGen.rpc.with_minrpc(cc.create_executable)(minrpc_exec, [])
+        gsm_data_generator.rpc.with_minrpc(cc.create_executable)(minrpc_exec, [])
         check(rpc.PopenSession(minrpc_exec), False)
         # minrpc on the remote
         server = rpc.Server()
@@ -452,7 +452,7 @@ def test_rpc_return_remote_object():
     check_minrpc()
 
 
-@gsmDataGen.testing.requires_rpc
+@gsm_data_generator.testing.requires_rpc
 def test_local_func():
     client = rpc.LocalSession()
 
@@ -469,7 +469,7 @@ def test_local_func():
     check_remote()
 
 
-@gsmDataGen.testing.requires_rpc
+@gsm_data_generator.testing.requires_rpc
 @pytest.mark.parametrize("device_key", ["test_device", "127.0.0.1:5555"])
 def test_rpc_tracker_register(device_key):
     # test registration
@@ -542,7 +542,7 @@ def _target(host, port, device_key, timeout):
     remote.cpu()
 
 
-@gsmDataGen.testing.requires_rpc
+@gsm_data_generator.testing.requires_rpc
 @pytest.mark.parametrize("device_key", ["test_device", "127.0.0.1:5555"])
 def test_rpc_tracker_request(device_key):
     # test concurrent request
@@ -583,7 +583,7 @@ def test_rpc_tracker_request(device_key):
     tracker.terminate()
 
 
-@gsmDataGen.testing.requires_rpc
+@gsm_data_generator.testing.requires_rpc
 @pytest.mark.parametrize("device_key", ["test_device", "127.0.0.1:5555"])
 def test_rpc_tracker_via_proxy(device_key):
     """
@@ -625,7 +625,7 @@ def test_rpc_tracker_via_proxy(device_key):
     tracker_server.terminate()
 
 
-@gsmDataGen.testing.requires_rpc
+@gsm_data_generator.testing.requires_rpc
 @pytest.mark.parametrize("with_proxy", (True, False))
 def test_rpc_session_timeout_error(with_proxy):
     port = 9000
@@ -645,7 +645,7 @@ def test_rpc_session_timeout_error(with_proxy):
 
     rpc_sess = rpc.connect_tracker(*tracker_addr).request(key="x1", session_timeout=1)
 
-    with pytest.raises(gsmDataGen.error.RPCSessionTimeoutError):
+    with pytest.raises(gsm_data_generator.error.RPCSessionTimeoutError):
         f1 = rpc_sess.get_function("rpc.test.addone")
         time.sleep(2)
         f1(10)
@@ -679,10 +679,10 @@ def test_compiled_function_with_zero_arguments(call_with_unused_argument):
         def func_with_arg(unused: T.int64) -> T.int64:
             return T.int64(42)
 
-    built = gsmDataGen.compile(Module, target="llvm")
+    built = gsm_data_generator.compile(Module, target="llvm")
 
-    server = gsmDataGen.rpc.Server(key="x1")
-    client = gsmDataGen.rpc.connect("127.0.0.1", server.port, key="x1")
+    server = gsm_data_generator.rpc.Server(key="x1")
+    client = gsm_data_generator.rpc.connect("127.0.0.1", server.port, key="x1")
 
     libname = "libbuilt.so"
     with tempfile.TemporaryDirectory(prefix="tvm_rpc_testing_") as temp_dir:

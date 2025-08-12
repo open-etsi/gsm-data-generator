@@ -20,15 +20,15 @@ import ctypes
 import numpy as np
 import pytest
 
-import gsmDataGen.testing
-from gsmDataGen import relax
-from gsmDataGen.ir import Op
-from gsmDataGen.script import ir as I
-from gsmDataGen.script import relax as R
+import gsm_data_generator.testing
+from gsm_data_generator import relax
+from gsm_data_generator.ir import Op
+from gsm_data_generator.script import ir as I
+from gsm_data_generator.script import relax as R
 
 # Parameterization for reading dtype of DLTensor.  Chosen to have
 # multiple distinct type codes, number of lanes, and widths.
-dtype = gsmDataGen.testing.parameter(
+dtype = gsm_data_generator.testing.parameter(
     "int32",
     "int64",
     "float32",
@@ -36,14 +36,14 @@ dtype = gsmDataGen.testing.parameter(
     "bfloat",
     "float8_e4m3fn",
 )
-shape = gsmDataGen.testing.parameter(
+shape = gsm_data_generator.testing.parameter(
     [],
     [16],
     [128, 256],
     [1] * 64,
 )
 
-elem_offset = gsmDataGen.testing.parameter(0, 64, 128)
+elem_offset = gsm_data_generator.testing.parameter(0, 64, 128)
 
 
 def test_tensor_dtype_code(dtype):
@@ -53,13 +53,13 @@ def test_tensor_dtype_code(dtype):
         def main(A: R.Tensor):
             return A.dtype.type_code
 
-    built = gsmDataGen.compile(mod)
-    vm = relax.VirtualMachine(built, gsmDataGen.cpu())
+    built = gsm_data_generator.compile(mod)
+    vm = relax.VirtualMachine(built, gsm_data_generator.cpu())
 
-    arg = gsmDataGen.nd.empty([16], dtype)
+    arg = gsm_data_generator.nd.empty([16], dtype)
     res = vm["main"](arg)
 
-    expected_type_code = gsmDataGen.runtime.DataType(dtype).type_code
+    expected_type_code = gsm_data_generator.runtime.DataType(dtype).type_code
     assert res == expected_type_code
 
 
@@ -70,13 +70,13 @@ def test_tensor_dtype_bits(dtype):
         def main(A: R.Tensor):
             return A.dtype.bits
 
-    built = gsmDataGen.compile(mod)
-    vm = relax.VirtualMachine(built, gsmDataGen.cpu())
+    built = gsm_data_generator.compile(mod)
+    vm = relax.VirtualMachine(built, gsm_data_generator.cpu())
 
-    arg = gsmDataGen.nd.empty([16], dtype)
+    arg = gsm_data_generator.nd.empty([16], dtype)
     res = vm["main"](arg)
 
-    expected_type_bits = gsmDataGen.runtime.DataType(dtype).bits
+    expected_type_bits = gsm_data_generator.runtime.DataType(dtype).bits
     assert res == expected_type_bits
 
 
@@ -87,13 +87,13 @@ def test_tensor_dtype_lanes(dtype):
         def main(A: R.Tensor):
             return A.dtype.lanes
 
-    built = gsmDataGen.compile(mod)
-    vm = relax.VirtualMachine(built, gsmDataGen.cpu())
+    built = gsm_data_generator.compile(mod)
+    vm = relax.VirtualMachine(built, gsm_data_generator.cpu())
 
-    arg = gsmDataGen.nd.empty([16], dtype)
+    arg = gsm_data_generator.nd.empty([16], dtype)
     res = vm["main"](arg)
 
-    expected_type_lanes = gsmDataGen.runtime.DataType(dtype).lanes
+    expected_type_lanes = gsm_data_generator.runtime.DataType(dtype).lanes
     assert res == expected_type_lanes
 
 
@@ -104,10 +104,10 @@ def test_tensor_ndim(shape):
         def main(A: R.Tensor):
             return A.ndim
 
-    built = gsmDataGen.compile(mod)
-    vm = relax.VirtualMachine(built, gsmDataGen.cpu())
+    built = gsm_data_generator.compile(mod)
+    vm = relax.VirtualMachine(built, gsm_data_generator.cpu())
 
-    arg = gsmDataGen.nd.empty(shape, "int32")
+    arg = gsm_data_generator.nd.empty(shape, "int32")
     res = vm["main"](arg)
 
     assert res == len(shape)
@@ -120,14 +120,14 @@ def test_tensor_shape(shape):
         def main(A: R.Tensor, axis: R.Prim("int64")):
             return A.shape[axis]
 
-    built = gsmDataGen.compile(mod)
-    vm = relax.VirtualMachine(built, gsmDataGen.cpu())
+    built = gsm_data_generator.compile(mod)
+    vm = relax.VirtualMachine(built, gsm_data_generator.cpu())
 
-    arg = gsmDataGen.nd.empty(shape, "int32")
+    arg = gsm_data_generator.nd.empty(shape, "int32")
 
     res = [vm["main"](arg, i) for i, _ in enumerate(shape)]
 
-    gsmDataGen.ir.assert_structural_equal(res, shape)
+    gsm_data_generator.ir.assert_structural_equal(res, shape)
 
 
 def _get_compact_striding(shape):
@@ -146,15 +146,15 @@ def test_strides_of_compact_tensor(shape):
         def main(A: R.Tensor, axis: R.Prim("int64")):
             return A.strides[axis]
 
-    built = gsmDataGen.compile(mod)
-    vm = relax.VirtualMachine(built, gsmDataGen.cpu())
+    built = gsm_data_generator.compile(mod)
+    vm = relax.VirtualMachine(built, gsm_data_generator.cpu())
 
-    arg = gsmDataGen.nd.empty(shape, "int32")
+    arg = gsm_data_generator.nd.empty(shape, "int32")
 
     res = [vm["main"](arg, i) for i, _ in enumerate(shape)]
     expected = _get_compact_striding(shape)
 
-    gsmDataGen.ir.assert_structural_equal(res, expected)
+    gsm_data_generator.ir.assert_structural_equal(res, expected)
 
 
 def test_strides_of_non_compact_tensor():
@@ -164,15 +164,15 @@ def test_strides_of_non_compact_tensor():
         def main(A: R.Tensor, axis: R.Prim("int64")):
             return A.strides[axis]
 
-    built = gsmDataGen.compile(mod)
-    vm = relax.VirtualMachine(built, gsmDataGen.cpu())
+    built = gsm_data_generator.compile(mod)
+    vm = relax.VirtualMachine(built, gsm_data_generator.cpu())
     view_shape = [4, 4]
     expected_strides = [1, 4]
     # use transpose to make strides non-compact
     x = np.zeros([4, 4], "int32").T
-    y = gsmDataGen.ffi.from_dlpack(x, required_alignment=4, required_contiguous=False)
+    y = gsm_data_generator.ffi.from_dlpack(x, required_alignment=4, required_contiguous=False)
     res = [vm["main"](y, i) for i, _ in enumerate(view_shape)]
-    gsmDataGen.ir.assert_structural_equal(res, expected_strides)
+    gsm_data_generator.ir.assert_structural_equal(res, expected_strides)
 
 
 def test_byte_offset(elem_offset):
@@ -186,17 +186,17 @@ def test_byte_offset(elem_offset):
         def main(A: R.Tensor):
             return A.byte_offset
 
-    built = gsmDataGen.compile(mod)
-    vm = relax.VirtualMachine(built, gsmDataGen.cpu())
+    built = gsm_data_generator.compile(mod)
+    vm = relax.VirtualMachine(built, gsm_data_generator.cpu())
     dtype = "int32"
-    backing_ndarray = gsmDataGen.nd.empty(backing_shape, dtype)
+    backing_ndarray = gsm_data_generator.nd.empty(backing_shape, dtype)
     view = backing_ndarray._create_view(view_shape, dtype, relative_byte_offset=byte_offset)
     res = vm["main"](view)
     assert res == byte_offset
 
 
 def test_elem_offset(elem_offset, dtype):
-    tvm_dtype = gsmDataGen.runtime.DataType(dtype)
+    tvm_dtype = gsm_data_generator.runtime.DataType(dtype)
 
     backing_shape = [64, 64]
     view_shape = [16, 16]
@@ -209,10 +209,10 @@ def test_elem_offset(elem_offset, dtype):
         def main(A: R.Tensor):
             return A.elem_offset
 
-    built = gsmDataGen.compile(mod)
-    vm = relax.VirtualMachine(built, gsmDataGen.cpu())
+    built = gsm_data_generator.compile(mod)
+    vm = relax.VirtualMachine(built, gsm_data_generator.cpu())
 
-    backing_ndarray = gsmDataGen.nd.empty(backing_shape, dtype)
+    backing_ndarray = gsm_data_generator.nd.empty(backing_shape, dtype)
     view = backing_ndarray._create_view(view_shape, dtype, relative_byte_offset=byte_offset)
     res = vm["main"](view)
 
@@ -220,4 +220,4 @@ def test_elem_offset(elem_offset, dtype):
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

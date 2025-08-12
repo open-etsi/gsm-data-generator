@@ -22,10 +22,10 @@ Codegen tests for AArch64
 import re
 import pytest
 
-import gsmDataGen
-from gsmDataGen import te
-from gsmDataGen.script import tir as T
-from gsmDataGen.target.codegen import llvm_version_major
+import gsm_data_generator
+from gsm_data_generator import te
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.target.codegen import llvm_version_major
 
 
 @pytest.mark.skipif(
@@ -44,8 +44,8 @@ def test_mul(dtype):
         B = te.placeholder(m, dtype=type, name="B")
         C = te.compute((m), lambda i: A[i] * B[i], name="C")
 
-        with gsmDataGen.target.Target(target):
-            f = gsmDataGen.tir.build(te.create_prim_func([A, B, C]))
+        with gsm_data_generator.target.Target(target):
+            f = gsm_data_generator.tir.build(te.create_prim_func([A, B, C]))
 
         # Verify we see SVE load instructions and mul instructions using z registers
         assembly = f.get_source("asm")
@@ -76,8 +76,8 @@ def test_add(dtype):
         B = te.placeholder(m, dtype=type, name="B")
         C = te.compute((m), lambda i: A[i] + B[i], name="C")
 
-        with gsmDataGen.target.Target(target):
-            f = gsmDataGen.tir.build(te.create_prim_func([A, B, C]))
+        with gsm_data_generator.target.Target(target):
+            f = gsm_data_generator.tir.build(te.create_prim_func([A, B, C]))
 
         # Verify we see SVE load instructions and add instructions using z registers
         assembly = f.get_source("asm")
@@ -108,8 +108,8 @@ def test_sub(dtype):
         B = te.placeholder(m, dtype=type, name="B")
         C = te.compute((m), lambda i: A[i] - B[i], name="C")
 
-        with gsmDataGen.target.Target(target):
-            f = gsmDataGen.tir.build(te.create_prim_func([A, B, C]))
+        with gsm_data_generator.target.Target(target):
+            f = gsm_data_generator.tir.build(te.create_prim_func([A, B, C]))
 
         # Verify we see SVE load instructions and sub instructions using z registers
         assembly = f.get_source("asm")
@@ -141,8 +141,8 @@ def test_muladd(dtype):
         C = te.placeholder(m, dtype=type, name="C")
         D = te.compute((m), lambda i: A[i] * B[i] + C[i], name="D")
 
-        with gsmDataGen.target.Target(target):
-            f = gsmDataGen.tir.build(te.create_prim_func([A, B, C, D]))
+        with gsm_data_generator.target.Target(target):
+            f = gsm_data_generator.tir.build(te.create_prim_func([A, B, C, D]))
 
         # Verify we see SVE load instructions and either mad or mla instructions using z registers
         assembly = f.get_source("asm")
@@ -171,10 +171,10 @@ def test_max(dtype):
         m = te.var("m")
         A = te.placeholder(m, dtype=type, name="A")
         B = te.placeholder(m, dtype=type, name="B")
-        C = te.compute((m), lambda i: gsmDataGen.te.max(A[i], B[i]))
+        C = te.compute((m), lambda i: gsm_data_generator.te.max(A[i], B[i]))
 
-        with gsmDataGen.target.Target(target):
-            f = gsmDataGen.tir.build(te.create_prim_func([A, B, C]))
+        with gsm_data_generator.target.Target(target):
+            f = gsm_data_generator.tir.build(te.create_prim_func([A, B, C]))
 
         # Verify we see SVE load instructions and cmgt + sel instructions or a max instruction, all using z registers
         assembly = f.get_source("asm")
@@ -207,10 +207,10 @@ def test_min(dtype):
         m = te.var("m")
         A = te.placeholder(m, dtype=type, name="A")
         B = te.placeholder(m, dtype=type, name="B")
-        C = te.compute((m), lambda i: gsmDataGen.te.min(A[i], B[i]))
+        C = te.compute((m), lambda i: gsm_data_generator.te.min(A[i], B[i]))
 
-        with gsmDataGen.target.Target(target):
-            f = gsmDataGen.tir.build(te.create_prim_func([A, B, C]))
+        with gsm_data_generator.target.Target(target):
+            f = gsm_data_generator.tir.build(te.create_prim_func([A, B, C]))
 
         # Verify we see SVE load instructions and cmgt + sel instructions or a min instruction, all using z registers
         assembly = f.get_source("asm")
@@ -243,10 +243,10 @@ def test_div(dtype):
         m = te.var("m")
         A = te.placeholder(m, dtype=type, name="A")
         B = te.placeholder(m, dtype=type, name="B")
-        C = te.compute((m), lambda i: gsmDataGen.te.div(A[i], B[i]))
+        C = te.compute((m), lambda i: gsm_data_generator.te.div(A[i], B[i]))
 
-        with gsmDataGen.target.Target(target):
-            f = gsmDataGen.tir.build(te.create_prim_func([A, B, C]))
+        with gsm_data_generator.target.Target(target):
+            f = gsm_data_generator.tir.build(te.create_prim_func([A, B, C]))
 
         # Verify we see SVE load instructions and div instructions using z registers
         assembly = f.get_source("asm")
@@ -274,10 +274,10 @@ def test_mod(dtype):
         m = te.var("m")
         A = te.placeholder(m, dtype=type, name="A")
         B = te.placeholder(m, dtype=type, name="B")
-        C = te.compute((m), lambda i: gsmDataGen.te.floormod(A[i], B[i]), name="C")
+        C = te.compute((m), lambda i: gsm_data_generator.te.floormod(A[i], B[i]), name="C")
 
-        with gsmDataGen.target.Target(target):
-            f = gsmDataGen.tir.build(te.create_prim_func([A, B, C]))
+        with gsm_data_generator.target.Target(target):
+            f = gsm_data_generator.tir.build(te.create_prim_func([A, B, C]))
 
         # Verify we see SVE load instructions and mls instructions using z registers
         assembly = f.get_source("asm")
@@ -308,8 +308,8 @@ def test_eq(dtype):
         B = te.placeholder(m, dtype=type, name="B")
         C = te.compute((m), lambda i: A[i] == B[i], name="C")
 
-        with gsmDataGen.target.Target(target):
-            f = gsmDataGen.tir.build(te.create_prim_func([A, B, C]))
+        with gsm_data_generator.target.Target(target):
+            f = gsm_data_generator.tir.build(te.create_prim_func([A, B, C]))
 
         # Verify we see SVE load instructions and cmpeq or cmeq instructions using z registers
         assembly = f.get_source("asm")
@@ -340,8 +340,8 @@ def test_neq(dtype):
         B = te.placeholder(m, dtype=type, name="B")
         C = te.compute((m), lambda i: A[i] != B[i], name="C")
 
-        with gsmDataGen.target.Target(target):
-            f = gsmDataGen.tir.build(te.create_prim_func([A, B, C]))
+        with gsm_data_generator.target.Target(target):
+            f = gsm_data_generator.tir.build(te.create_prim_func([A, B, C]))
 
         # Verify we see SVE load instructions and cmpgt, cmgt, cmpne or cmne instructions, all using z registers
         assembly = f.get_source("asm")
@@ -371,8 +371,8 @@ def test_or(dtype):
         B = te.placeholder(m, dtype=type, name="B")
         C = te.compute((m), lambda i: A[i] | B[i], name="C")
 
-        with gsmDataGen.target.Target(target):
-            f = gsmDataGen.tir.build(te.create_prim_func([A, B, C]))
+        with gsm_data_generator.target.Target(target):
+            f = gsm_data_generator.tir.build(te.create_prim_func([A, B, C]))
 
         # Verify we see SVE load instructions and orr instructions using z registers
         assembly = f.get_source("asm")
@@ -402,8 +402,8 @@ def test_and(dtype):
         B = te.placeholder(m, dtype=type, name="B")
         C = te.compute((m), lambda i: A[i] & B[i], name="C")
 
-        with gsmDataGen.target.Target(target):
-            f = gsmDataGen.tir.build(te.create_prim_func([A, B, C]))
+        with gsm_data_generator.target.Target(target):
+            f = gsm_data_generator.tir.build(te.create_prim_func([A, B, C]))
 
         # Verify we see SVE load instructions and and instructions using z registers
         assembly = f.get_source("asm")
@@ -432,8 +432,8 @@ def test_not(dtype):
         A = te.placeholder(m, dtype=type, name="A")
         C = te.compute((m), lambda i: ~A[i], name="C")
 
-        with gsmDataGen.target.Target(target):
-            f = gsmDataGen.tir.build(te.create_prim_func([A, C]))
+        with gsm_data_generator.target.Target(target):
+            f = gsm_data_generator.tir.build(te.create_prim_func([A, C]))
 
         # Verify we see SVE load instructions and eor instructions using z registers
         assembly = f.get_source("asm")
@@ -467,8 +467,8 @@ def test_memcpy(dtype):
         B = te.placeholder(m, dtype="int32", name="B")
         C = te.compute((m), lambda i: A[B[i]], name="C")
 
-        with gsmDataGen.target.Target(target):
-            f = gsmDataGen.tir.build(te.create_prim_func([A, B, C]))
+        with gsm_data_generator.target.Target(target):
+            f = gsm_data_generator.tir.build(te.create_prim_func([A, B, C]))
 
         # Verify we see gather instructions in the assembly
         assembly = f.get_source("asm")
@@ -499,8 +499,8 @@ def test_vscale_range_function_attribute(mattr, expect_attr):
     A = te.placeholder(m, dtype="float32", name="A")
     C = te.compute((m), lambda i: A[i] + 1, name="C")
 
-    with gsmDataGen.target.Target(target):
-        f = gsmDataGen.tir.build(te.create_prim_func([A, C]))
+    with gsm_data_generator.target.Target(target):
+        f = gsm_data_generator.tir.build(te.create_prim_func([A, C]))
 
     # Check if the vscale_range() attribute exists
     ll = f.get_source("ll")
@@ -517,4 +517,4 @@ def test_vscale_range_function_attribute(mattr, expect_attr):
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

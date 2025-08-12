@@ -15,7 +15,7 @@
 # specific language governing permissions and limitations
 # under the License.
 # pylint: disable=missing-function-docstring,missing-module-docstring,invalid-name,pointless-string-statement
-from gsmDataGen.script import tir as T
+from gsm_data_generator.script import tir as T
 
 """
 This prim func include necessary buffer types that need to be checked

@@ -14,10 +14,10 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-import gsmDataGen
-import gsmDataGen.testing
+import gsm_data_generator
+import gsm_data_generator.testing
 import numpy as np
-from gsmDataGen.script import tir as T
+from gsm_data_generator.script import tir as T
 
 import pytest
 
@@ -56,58 +56,58 @@ def generate_param_sets():
                     yield (d1, d2, d3)
 
 
-dims = gsmDataGen.testing.parameter(*generate_param_sets())
+dims = gsm_data_generator.testing.parameter(*generate_param_sets())
 
 
-@gsmDataGen.testing.parametrize_targets("cuda", "metal")
+@gsm_data_generator.testing.parametrize_targets("cuda", "metal")
 def test_allreduce_sum(dims, target, dev):
     d1, d2, d3 = dims
     _, _, _d1, _d2, _d3 = reduce.params
     mod = reduce.specialize({_d1: d1, _d2: d2, _d3: d3})
-    sch = gsmDataGen.tir.Schedule(mod)
+    sch = gsm_data_generator.tir.Schedule(mod)
     blk = sch.get_block("reduce")
     i, j, k, l = sch.get_loops(blk)
     sch.bind(i, "blockIdx.x")
     sch.bind(j, "threadIdx.z")
     sch.bind(k, "threadIdx.y")
     sch.bind(l, "threadIdx.x")
-    f = gsmDataGen.compile(sch.mod["main"], target=target)
+    f = gsm_data_generator.compile(sch.mod["main"], target=target)
 
     # prepare input and output array
     a_np = np.random.rand(1, d1, d2, d3).astype("float32")
     b_np = a_np.sum(axis=-1).astype("float32")
-    a = gsmDataGen.nd.array(a_np, dev)
-    b = gsmDataGen.nd.array(np.zeros_like(b_np), dev)
+    a = gsm_data_generator.nd.array(a_np, dev)
+    b = gsm_data_generator.nd.array(np.zeros_like(b_np), dev)
 
     # launch kernel
     f(a, b)
-    gsmDataGen.testing.assert_allclose(b.numpy(), b_np, rtol=1e-6, atol=1e-6)
+    gsm_data_generator.testing.assert_allclose(b.numpy(), b_np, rtol=1e-6, atol=1e-6)
 
 
-define_metal_compile_callback = gsmDataGen.testing.parameter(True, False)
+define_metal_compile_callback = gsm_data_generator.testing.parameter(True, False)
 
 
 @pytest.fixture
 def optional_metal_compile_callback(define_metal_compile_callback):
     name = "tvm_callback_metal_compile"
-    cached = gsmDataGen.get_global_func(name, allow_missing=True)
+    cached = gsm_data_generator.get_global_func(name, allow_missing=True)
 
     if define_metal_compile_callback:
 
-        @gsmDataGen.register_func(name, override=True)
+        @gsm_data_generator.register_func(name, override=True)
         def compile_metal(src, target):
-            return gsmDataGen.contrib.xcode.compile_metal(src, sdk="macosx")
+            return gsm_data_generator.contrib.xcode.compile_metal(src, sdk="macosx")
 
     yield
 
     if define_metal_compile_callback:
         if cached is None:
-            gsmDataGen.ffi.registry.remove_global_func(name)
+            gsm_data_generator.ffi.registry.remove_global_func(name)
         else:
-            gsmDataGen.register_func(name, cached, override=True)
+            gsm_data_generator.register_func(name, cached, override=True)
 
 
-@gsmDataGen.testing.requires_metal(support_required="compile-only")
+@gsm_data_generator.testing.requires_metal(support_required="compile-only")
 def test_allreduce_sum_compile(optional_metal_compile_callback):
     # Disable the parametrization over dims, at least for now
     dims = (1, 1, 2)
@@ -116,40 +116,40 @@ def test_allreduce_sum_compile(optional_metal_compile_callback):
     d1, d2, d3 = dims
     _, _, _d1, _d2, _d3 = reduce.params
     mod = reduce.specialize({_d1: d1, _d2: d2, _d3: d3})
-    sch = gsmDataGen.tir.Schedule(mod)
+    sch = gsm_data_generator.tir.Schedule(mod)
     blk = sch.get_block("reduce")
     i, j, k, l = sch.get_loops(blk)
     sch.bind(i, "blockIdx.x")
     sch.bind(j, "threadIdx.z")
     sch.bind(k, "threadIdx.y")
     sch.bind(l, "threadIdx.x")
-    gsmDataGen.compile(sch.mod["main"], target=target)
+    gsm_data_generator.compile(sch.mod["main"], target=target)
 
 
-@gsmDataGen.testing.parametrize_targets("cuda", "metal")
+@gsm_data_generator.testing.parametrize_targets("cuda", "metal")
 def test_allreduce_max(dims, target, dev):
     d1, d2, d3 = dims
     _, _, _d1, _d2, _d3 = reduce_max.params
     mod = reduce_max.specialize({_d1: d1, _d2: d2, _d3: d3})
-    sch = gsmDataGen.tir.Schedule(mod)
+    sch = gsm_data_generator.tir.Schedule(mod)
     blk = sch.get_block("reduce")
     i, j, k, l = sch.get_loops(blk)
     sch.bind(i, "blockIdx.x")
     sch.bind(j, "threadIdx.z")
     sch.bind(k, "threadIdx.y")
     sch.bind(l, "threadIdx.x")
-    f = gsmDataGen.compile(sch.mod["main"], target=target)
+    f = gsm_data_generator.compile(sch.mod["main"], target=target)
 
     # prepare input and output array
     a_np = -np.random.rand(1, d1, d2, d3).astype("float32")
     b_np = a_np.max(axis=-1).astype("float32")
-    a = gsmDataGen.nd.array(a_np, dev)
-    b = gsmDataGen.nd.array(np.zeros_like(b_np), dev)
+    a = gsm_data_generator.nd.array(a_np, dev)
+    b = gsm_data_generator.nd.array(np.zeros_like(b_np), dev)
 
     # launch kernel
     f(a, b)
-    gsmDataGen.testing.assert_allclose(b.numpy(), b_np, rtol=1e-6, atol=1e-6)
+    gsm_data_generator.testing.assert_allclose(b.numpy(), b_np, rtol=1e-6, atol=1e-6)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

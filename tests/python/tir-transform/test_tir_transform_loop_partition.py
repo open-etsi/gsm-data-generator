@@ -15,117 +15,117 @@
 # specific language governing permissions and limitations
 # under the License.
 import pytest
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import te
-from gsmDataGen.ir.module import IRModule
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import te
+from gsm_data_generator.ir.module import IRModule
+from gsm_data_generator.script import tir as T
 import numpy
 
 
 def collect_visit(stmt, f):
     ret = []
-    gsmDataGen.tir.stmt_functor.post_order_visit(stmt, lambda x: ret.append(f(x)))
+    gsm_data_generator.tir.stmt_functor.post_order_visit(stmt, lambda x: ret.append(f(x)))
     return ret
 
 
 def test_multi_loop():
-    ib = gsmDataGen.tir.ir_builder.create()
+    ib = gsm_data_generator.tir.ir_builder.create()
     m = te.size_var("m")
     n = te.size_var("n")
     with ib.for_range(0, 4, "i") as i:
         with ib.for_range(0, n, "j") as j:
             with ib.for_range(0, m, "k") as k:
                 with ib.if_scope(ib.likely(i * m + j + k < n)):
-                    ib.emit(gsmDataGen.tir.Evaluate(m))
+                    ib.emit(gsm_data_generator.tir.Evaluate(m))
                 with ib.else_scope():
-                    ib.emit(gsmDataGen.tir.Evaluate(n))
+                    ib.emit(gsm_data_generator.tir.Evaluate(n))
     stmt = ib.get()
 
-    mod = gsmDataGen.IRModule.from_expr(gsmDataGen.tir.PrimFunc([n, m], stmt).with_attr("global_symbol", "main"))
-    mod = gsmDataGen.tir.transform.LoopPartition()(mod)
-    stmt = gsmDataGen.tir.transform.Simplify()(mod)["main"].body
+    mod = gsm_data_generator.IRModule.from_expr(gsm_data_generator.tir.PrimFunc([n, m], stmt).with_attr("global_symbol", "main"))
+    mod = gsm_data_generator.tir.transform.LoopPartition()(mod)
+    stmt = gsm_data_generator.tir.transform.Simplify()(mod)["main"].body
 
-    assert not any(collect_visit(stmt.body[0], lambda x: isinstance(x, gsmDataGen.tir.IfThenElse)))
+    assert not any(collect_visit(stmt.body[0], lambda x: isinstance(x, gsm_data_generator.tir.IfThenElse)))
 
 
 def test_multi_if():
-    ib = gsmDataGen.tir.ir_builder.create()
+    ib = gsm_data_generator.tir.ir_builder.create()
     m = te.size_var("m")
     n = te.size_var("n")
     with ib.for_range(0, 4, "i") as i:
         with ib.for_range(0, n, "j") as j:
             with ib.for_range(0, m, "k") as k:
                 with ib.if_scope(ib.likely(i * m + j + k < n)):
-                    ib.emit(gsmDataGen.tir.Evaluate(m))
+                    ib.emit(gsm_data_generator.tir.Evaluate(m))
                 with ib.else_scope():
-                    ib.emit(gsmDataGen.tir.Evaluate(n))
+                    ib.emit(gsm_data_generator.tir.Evaluate(n))
                 with ib.if_scope(ib.likely(i * m + j - k < n)):
-                    ib.emit(gsmDataGen.tir.Evaluate(m))
+                    ib.emit(gsm_data_generator.tir.Evaluate(m))
                 with ib.else_scope():
-                    ib.emit(gsmDataGen.tir.Evaluate(n))
+                    ib.emit(gsm_data_generator.tir.Evaluate(n))
     stmt = ib.get()
 
-    mod = gsmDataGen.IRModule.from_expr(gsmDataGen.tir.PrimFunc([], stmt).with_attr("global_symbol", "main"))
-    mod = gsmDataGen.tir.transform.LoopPartition()(mod)
-    stmt = gsmDataGen.tir.transform.Simplify()(mod)["main"].body
+    mod = gsm_data_generator.IRModule.from_expr(gsm_data_generator.tir.PrimFunc([], stmt).with_attr("global_symbol", "main"))
+    mod = gsm_data_generator.tir.transform.LoopPartition()(mod)
+    stmt = gsm_data_generator.tir.transform.Simplify()(mod)["main"].body
 
-    assert not any(collect_visit(stmt.body[0], lambda x: isinstance(x, gsmDataGen.tir.IfThenElse)))
+    assert not any(collect_visit(stmt.body[0], lambda x: isinstance(x, gsm_data_generator.tir.IfThenElse)))
 
 
 def test_condition():
-    ib = gsmDataGen.tir.ir_builder.create()
+    ib = gsm_data_generator.tir.ir_builder.create()
     m = te.size_var("m")
     n = te.size_var("n")
-    with ib.for_range(0, gsmDataGen.tir.truncdiv(n + 3, 4), "i") as i:
+    with ib.for_range(0, gsm_data_generator.tir.truncdiv(n + 3, 4), "i") as i:
         with ib.for_range(0, 4, "j") as j:
-            ib.emit(gsmDataGen.tir.Evaluate(gsmDataGen.tir.Select(ib.likely(i * 4 + j < n), m, n)))
+            ib.emit(gsm_data_generator.tir.Evaluate(gsm_data_generator.tir.Select(ib.likely(i * 4 + j < n), m, n)))
     stmt = ib.get()
 
-    mod = gsmDataGen.IRModule.from_expr(gsmDataGen.tir.PrimFunc([m, n], stmt).with_attr("global_symbol", "main"))
-    mod = gsmDataGen.tir.transform.LoopPartition()(mod)
-    stmt = gsmDataGen.tir.transform.Simplify()(mod)["main"].body
+    mod = gsm_data_generator.IRModule.from_expr(gsm_data_generator.tir.PrimFunc([m, n], stmt).with_attr("global_symbol", "main"))
+    mod = gsm_data_generator.tir.transform.LoopPartition()(mod)
+    stmt = gsm_data_generator.tir.transform.Simplify()(mod)["main"].body
 
-    assert not any(collect_visit(stmt[0], lambda x: isinstance(x, gsmDataGen.tir.Select)))
+    assert not any(collect_visit(stmt[0], lambda x: isinstance(x, gsm_data_generator.tir.Select)))
 
 
 def test_condition_EQ():
-    ib = gsmDataGen.tir.ir_builder.create()
+    ib = gsm_data_generator.tir.ir_builder.create()
     m = te.size_var("m")
     n = te.size_var("n")
     with ib.for_range(0, 10, "i") as i:
-        ib.emit(gsmDataGen.tir.Evaluate(gsmDataGen.tir.Select(ib.likely(gsmDataGen.tir.EQ(i, 5)), m, n)))
+        ib.emit(gsm_data_generator.tir.Evaluate(gsm_data_generator.tir.Select(ib.likely(gsm_data_generator.tir.EQ(i, 5)), m, n)))
     stmt = ib.get()
 
-    mod = gsmDataGen.IRModule.from_expr(gsmDataGen.tir.PrimFunc([m, n], stmt).with_attr("global_symbol", "main"))
-    with gsmDataGen.transform.PassContext(config={"tir.LoopPartition": {"partition_const_loop": True}}):
-        mod = gsmDataGen.tir.transform.LoopPartition()(mod)
-        stmt = gsmDataGen.tir.transform.Simplify()(mod)["main"].body
+    mod = gsm_data_generator.IRModule.from_expr(gsm_data_generator.tir.PrimFunc([m, n], stmt).with_attr("global_symbol", "main"))
+    with gsm_data_generator.transform.PassContext(config={"tir.LoopPartition": {"partition_const_loop": True}}):
+        mod = gsm_data_generator.tir.transform.LoopPartition()(mod)
+        stmt = gsm_data_generator.tir.transform.Simplify()(mod)["main"].body
 
-    assert not any(collect_visit(stmt[0], lambda x: isinstance(x, gsmDataGen.tir.Select)))
+    assert not any(collect_visit(stmt[0], lambda x: isinstance(x, gsm_data_generator.tir.Select)))
 
 
 def test_everything_during_deduction():
     m = te.size_var("m")
     n = te.size_var("n")
-    ib = gsmDataGen.tir.ir_builder.create()
+    ib = gsm_data_generator.tir.ir_builder.create()
     with ib.for_range(0, n, "i") as i:
         with ib.for_range(0, 32, "j") as j:
-            with ib.if_scope(ib.likely(gsmDataGen.tir.truncdiv(i, j) < m)):
+            with ib.if_scope(ib.likely(gsm_data_generator.tir.truncdiv(i, j) < m)):
                 # this guard will produce everything during deduction
-                ib.emit(gsmDataGen.tir.Evaluate(m))
+                ib.emit(gsm_data_generator.tir.Evaluate(m))
     stmt = ib.get()
 
-    mod = gsmDataGen.IRModule.from_expr(gsmDataGen.tir.PrimFunc([m, n], stmt).with_attr("global_symbol", "main"))
-    mod = gsmDataGen.tir.transform.LoopPartition()(mod)
-    stmt = gsmDataGen.tir.transform.Simplify()(mod)["main"].body
+    mod = gsm_data_generator.IRModule.from_expr(gsm_data_generator.tir.PrimFunc([m, n], stmt).with_attr("global_symbol", "main"))
+    mod = gsm_data_generator.tir.transform.LoopPartition()(mod)
+    stmt = gsm_data_generator.tir.transform.Simplify()(mod)["main"].body
 
-    assert isinstance(stmt.body.body, gsmDataGen.tir.IfThenElse)
+    assert isinstance(stmt.body.body, gsm_data_generator.tir.IfThenElse)
 
 
 def test_oneD_pool():
     m = te.size_var("m")
-    ib = gsmDataGen.tir.ir_builder.create()
+    ib = gsm_data_generator.tir.ir_builder.create()
     # data = te.placeholder((16,), name = 'data')
     data = ib.pointer("float32", name="A")
     out = ib.pointer("float32", name="A")
@@ -133,41 +133,41 @@ def test_oneD_pool():
         with ib.for_range(0, 3, "kw") as kw:
             with ib.if_scope(ib.likely(ow > 0)):
                 with ib.if_scope(ib.likely(ow < 15)):
-                    out[ow] = gsmDataGen.te.max(out[ow], data[ow + kw - 1])
+                    out[ow] = gsm_data_generator.te.max(out[ow], data[ow + kw - 1])
     with ib.for_range(0, 16, "ow") as ow:
         with ib.for_range(0, 3, "kw") as kw:
             with ib.if_scope(ib.likely(ow < 1)):
                 with ib.if_scope(ib.likely(kw > 0)):
-                    out[ow] = gsmDataGen.te.max(out[ow], data[ow + kw - 1])
+                    out[ow] = gsm_data_generator.te.max(out[ow], data[ow + kw - 1])
     with ib.for_range(0, 16, "ow") as ow:
         with ib.for_range(0, 3, "kw") as kw:
             with ib.if_scope(ib.likely(ow > 14)):
                 with ib.if_scope(ib.likely(kw < 2)):
-                    out[ow] = gsmDataGen.te.max(out[ow], data[ow + kw - 1])
+                    out[ow] = gsm_data_generator.te.max(out[ow], data[ow + kw - 1])
 
     stmt = ib.get()
 
-    mod = gsmDataGen.IRModule.from_expr(
-        gsmDataGen.tir.PrimFunc([m, data, out], stmt).with_attr("global_symbol", "main")
+    mod = gsm_data_generator.IRModule.from_expr(
+        gsm_data_generator.tir.PrimFunc([m, data, out], stmt).with_attr("global_symbol", "main")
     )
 
-    with gsmDataGen.transform.PassContext(config={"tir.LoopPartition": {"partition_const_loop": True}}):
-        mod = gsmDataGen.tir.transform.LoopPartition()(mod)
-        stmt = gsmDataGen.tir.transform.Simplify()(mod)["main"].body
+    with gsm_data_generator.transform.PassContext(config={"tir.LoopPartition": {"partition_const_loop": True}}):
+        mod = gsm_data_generator.tir.transform.LoopPartition()(mod)
+        stmt = gsm_data_generator.tir.transform.Simplify()(mod)["main"].body
 
-    assert not any(collect_visit(stmt, lambda x: isinstance(x, gsmDataGen.tir.IfThenElse)))
+    assert not any(collect_visit(stmt, lambda x: isinstance(x, gsm_data_generator.tir.IfThenElse)))
 
 
 def test_cce_loop_1():
-    ib = gsmDataGen.tir.ir_builder.create()
+    ib = gsm_data_generator.tir.ir_builder.create()
     dtype = "float16"
     n = 514
     m = 514
     _A = te.placeholder((n * m,), name="A")
-    Ab = gsmDataGen.tir.decl_buffer((n * m,), dtype, name="A")
+    Ab = gsm_data_generator.tir.decl_buffer((n * m,), dtype, name="A")
     A = ib.buffer_ptr(Ab)
     _B = te.placeholder((n * m,), name="B")
-    Bb = gsmDataGen.tir.decl_buffer((n * m,), dtype, name="B")
+    Bb = gsm_data_generator.tir.decl_buffer((n * m,), dtype, name="B")
     B = ib.buffer_ptr(Bb)
     # for i in 0 to n-1:
     with ib.for_range(0, 11, name="i") as i:
@@ -178,18 +178,18 @@ def test_cce_loop_1():
                 )
     stmt = ib.get()
 
-    mod = gsmDataGen.IRModule.from_expr(
-        gsmDataGen.tir.PrimFunc([Ab, Bb], stmt).with_attr("global_symbol", "main")
+    mod = gsm_data_generator.IRModule.from_expr(
+        gsm_data_generator.tir.PrimFunc([Ab, Bb], stmt).with_attr("global_symbol", "main")
     )
-    with gsmDataGen.transform.PassContext(config={"tir.LoopPartition": {"partition_const_loop": True}}):
-        mod = gsmDataGen.tir.transform.LoopPartition()(mod)
-        stmt = gsmDataGen.tir.transform.Simplify()(mod)["main"].body
+    with gsm_data_generator.transform.PassContext(config={"tir.LoopPartition": {"partition_const_loop": True}}):
+        mod = gsm_data_generator.tir.transform.LoopPartition()(mod)
+        stmt = gsm_data_generator.tir.transform.Simplify()(mod)["main"].body
 
-    assert not any(collect_visit(stmt, lambda x: isinstance(x, gsmDataGen.tir.IfThenElse)))
+    assert not any(collect_visit(stmt, lambda x: isinstance(x, gsm_data_generator.tir.IfThenElse)))
 
 
 def test_cce_loop_2():
-    ib = gsmDataGen.tir.ir_builder.create()
+    ib = gsm_data_generator.tir.ir_builder.create()
     len = 112
     tile = 32
     loop = (len + tile - 1) // tile
@@ -197,23 +197,23 @@ def test_cce_loop_2():
         head = i * tile
         with ib.if_scope(ib.likely(head + tile > len)):
             tail = len
-            ib.emit(gsmDataGen.tir.call_extern("float32", "cce_intrisic", head, tail))
+            ib.emit(gsm_data_generator.tir.call_extern("float32", "cce_intrisic", head, tail))
         with ib.else_scope():
             tail = head + tile
-            ib.emit(gsmDataGen.tir.call_extern("float32", "cce_intrisic", head, tail))
+            ib.emit(gsm_data_generator.tir.call_extern("float32", "cce_intrisic", head, tail))
 
     stmt = ib.get()
 
-    mod = gsmDataGen.IRModule.from_expr(gsmDataGen.tir.PrimFunc([], stmt).with_attr("global_symbol", "main"))
-    with gsmDataGen.transform.PassContext(config={"tir.LoopPartition": {"partition_const_loop": True}}):
-        mod = gsmDataGen.tir.transform.LoopPartition()(mod)
-        stmt = gsmDataGen.tir.transform.Simplify()(mod)["main"].body
+    mod = gsm_data_generator.IRModule.from_expr(gsm_data_generator.tir.PrimFunc([], stmt).with_attr("global_symbol", "main"))
+    with gsm_data_generator.transform.PassContext(config={"tir.LoopPartition": {"partition_const_loop": True}}):
+        mod = gsm_data_generator.tir.transform.LoopPartition()(mod)
+        stmt = gsm_data_generator.tir.transform.Simplify()(mod)["main"].body
 
-    assert not any(collect_visit(stmt, lambda x: isinstance(x, gsmDataGen.tir.IfThenElse)))
+    assert not any(collect_visit(stmt, lambda x: isinstance(x, gsm_data_generator.tir.IfThenElse)))
 
 
 def test_cce_loop_3():
-    ib = gsmDataGen.tir.ir_builder.create()
+    ib = gsm_data_generator.tir.ir_builder.create()
     loop1 = 4
     loop2 = 9998
     tile = 39991
@@ -222,16 +222,16 @@ def test_cce_loop_3():
             head1 = i
             head2 = j
             with ib.if_scope(ib.likely(head1 * loop1 + head2 < tile)):
-                ib.emit(gsmDataGen.tir.call_extern("float16", "cce_intrisic", head1))
+                ib.emit(gsm_data_generator.tir.call_extern("float16", "cce_intrisic", head1))
 
     stmt = ib.get()
-    mod = gsmDataGen.IRModule.from_expr(gsmDataGen.tir.PrimFunc([], stmt).with_attr("global_symbol", "main"))
+    mod = gsm_data_generator.IRModule.from_expr(gsm_data_generator.tir.PrimFunc([], stmt).with_attr("global_symbol", "main"))
 
-    with gsmDataGen.transform.PassContext(config={"tir.LoopPartition": {"partition_const_loop": True}}):
-        mod = gsmDataGen.tir.transform.LoopPartition()(mod)
-        stmt = gsmDataGen.tir.transform.Simplify()(mod)["main"].body
+    with gsm_data_generator.transform.PassContext(config={"tir.LoopPartition": {"partition_const_loop": True}}):
+        mod = gsm_data_generator.tir.transform.LoopPartition()(mod)
+        stmt = gsm_data_generator.tir.transform.Simplify()(mod)["main"].body
 
-    assert not any(collect_visit(stmt, lambda x: isinstance(x, gsmDataGen.tir.IfThenElse)))
+    assert not any(collect_visit(stmt, lambda x: isinstance(x, gsm_data_generator.tir.IfThenElse)))
 
 
 @T.prim_func
@@ -246,14 +246,14 @@ def partitioned_concat(
 
 
 def partition_from_scheduled_tir(prim_func, pass_cfg, do_flatten=True):
-    with gsmDataGen.transform.PassContext(config=pass_cfg):
+    with gsm_data_generator.transform.PassContext(config=pass_cfg):
         mod = IRModule.from_expr(prim_func.with_attr("global_symbol", "main"))
-        mod = gsmDataGen.tir.transform.LowerOpaqueBlock()(mod)
+        mod = gsm_data_generator.tir.transform.LowerOpaqueBlock()(mod)
         if do_flatten:
-            mod = gsmDataGen.tir.transform.FlattenBuffer()(mod)
-        mod = gsmDataGen.tir.transform.LoopPartition()(mod)
-        mod = gsmDataGen.tir.transform.Simplify()(mod)
-        mod = gsmDataGen.tir.transform.RemoveNoOp()(mod)
+            mod = gsm_data_generator.tir.transform.FlattenBuffer()(mod)
+        mod = gsm_data_generator.tir.transform.LoopPartition()(mod)
+        mod = gsm_data_generator.tir.transform.Simplify()(mod)
+        mod = gsm_data_generator.tir.transform.RemoveNoOp()(mod)
         return mod
 
 
@@ -305,7 +305,7 @@ def test_condition_mutually_exclusive():
     mod = partition_from_scheduled_tir(
         concat_func_3, {"tir.LoopPartition": {"partition_const_loop": True}}
     )
-    gsmDataGen.ir.assert_structural_equal(
+    gsm_data_generator.ir.assert_structural_equal(
         mod["main"], partitioned_concat_3.with_attr("global_symbol", "main")
     )
 
@@ -354,10 +354,10 @@ def test_loop_partition_unroll_hint():
             }
         },
     )
-    mod = gsmDataGen.tir.transform.UnrollLoop()(mod)
-    mod = gsmDataGen.tir.transform.RemoveNoOp()(mod)
-    mod = gsmDataGen.tir.transform.Simplify()(mod)
-    gsmDataGen.ir.assert_structural_equal(mod["main"], partitioned_main.with_attr("global_symbol", "main"))
+    mod = gsm_data_generator.tir.transform.UnrollLoop()(mod)
+    mod = gsm_data_generator.tir.transform.RemoveNoOp()(mod)
+    mod = gsm_data_generator.tir.transform.Simplify()(mod)
+    gsm_data_generator.ir.assert_structural_equal(mod["main"], partitioned_main.with_attr("global_symbol", "main"))
 
 
 def test_loop_partition_recursive_unroll_hint():
@@ -426,7 +426,7 @@ def test_loop_partition_recursive_unroll_hint():
             }
         },
     )
-    gsmDataGen.ir.assert_structural_equal(mod["main"], partitioned_main.with_attr("global_symbol", "main"))
+    gsm_data_generator.ir.assert_structural_equal(mod["main"], partitioned_main.with_attr("global_symbol", "main"))
 
 
 def test_loop_partition_keep_loop_annotations():
@@ -460,7 +460,7 @@ def test_loop_partition_keep_loop_annotations():
             }
         },
     )
-    gsmDataGen.ir.assert_structural_equal(mod["main"], after.with_attr("global_symbol", "main"))
+    gsm_data_generator.ir.assert_structural_equal(mod["main"], after.with_attr("global_symbol", "main"))
 
 
 def test_loop_partition_with_unit_loop_in_condition():
@@ -508,7 +508,7 @@ def test_loop_partition_with_unit_loop_in_condition():
             }
         },
     )
-    gsmDataGen.ir.assert_structural_equal(mod["main"], after.with_attr("global_symbol", "main"))
+    gsm_data_generator.ir.assert_structural_equal(mod["main"], after.with_attr("global_symbol", "main"))
 
 
 @T.prim_func
@@ -759,7 +759,7 @@ def test_single_point_partition(origin, expected):
             }
         },
     )
-    gsmDataGen.ir.assert_structural_equal(mod["main"], expected)
+    gsm_data_generator.ir.assert_structural_equal(mod["main"], expected)
 
 
 def test_equation_on_floordiv():
@@ -780,7 +780,7 @@ def test_equation_on_floordiv():
     after = partition_from_scheduled_tir(
         before.with_attr("global_symbol", "main"), {}, do_flatten=False
     )
-    gsmDataGen.ir.assert_structural_equal(after["main"], expected)
+    gsm_data_generator.ir.assert_structural_equal(after["main"], expected)
 
 
 def test_ignore_loop_partition_hint():
@@ -817,8 +817,8 @@ def test_ignore_loop_partition_hint():
     after = partition_from_scheduled_tir(
         before.with_attr({"global_symbol": "main"}), {}, do_flatten=False
     )
-    gsmDataGen.ir.assert_structural_equal(after["main"], expected)
+    gsm_data_generator.ir.assert_structural_equal(after["main"], expected)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

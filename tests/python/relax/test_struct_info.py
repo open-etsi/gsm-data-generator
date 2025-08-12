@@ -15,25 +15,25 @@
 # specific language governing permissions and limitations
 # under the License.
 
-import gsmDataGen
-import gsmDataGen.testing
+import gsm_data_generator
+import gsm_data_generator.testing
 import pytest
 
-from gsmDataGen import relax as rx, TVMError, tir
+from gsm_data_generator import relax as rx, TVMError, tir
 
 
 def _check_equal(x, y, map_free_vars=False):
-    gsmDataGen.ir.assert_structural_equal(x, y, map_free_vars)
-    gsmDataGen.ir.assert_structural_equal(y, x, map_free_vars)
+    gsm_data_generator.ir.assert_structural_equal(x, y, map_free_vars)
+    gsm_data_generator.ir.assert_structural_equal(y, x, map_free_vars)
 
-    xhash = gsmDataGen.ir.structural_hash(x, map_free_vars)
-    yhash = gsmDataGen.ir.structural_hash(y, map_free_vars)
+    xhash = gsm_data_generator.ir.structural_hash(x, map_free_vars)
+    yhash = gsm_data_generator.ir.structural_hash(y, map_free_vars)
 
     assert xhash == yhash
 
 
 def _check_json_roundtrip(x):
-    xret = gsmDataGen.ir.load_json(gsmDataGen.ir.save_json(x))
+    xret = gsm_data_generator.ir.load_json(gsm_data_generator.ir.save_json(x))
     _check_equal(x, xret, map_free_vars=True)
     return xret
 
@@ -94,7 +94,7 @@ def test_prim_struct_info_with_expr():
     sinfo = rx.PrimStructInfo(value=n + 1)
 
     _check_equal(sinfo, rx.PrimStructInfo(value=n + 1))
-    assert not gsmDataGen.ir.structural_equal(sinfo, rx.PrimStructInfo(dtype=n.dtype))
+    assert not gsm_data_generator.ir.structural_equal(sinfo, rx.PrimStructInfo(dtype=n.dtype))
 
     # can turn into str
     str(sinfo)
@@ -254,4 +254,4 @@ def test_func_struct_info():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

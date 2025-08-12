@@ -18,12 +18,12 @@
 from typing import List
 
 import pytest
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen.meta_schedule.testing import te_workload
-from gsmDataGen.script import tir as T
-from gsmDataGen.te import create_prim_func
-from gsmDataGen.tir import (
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator.meta_schedule.testing import te_workload
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.te import create_prim_func
+from gsm_data_generator.tir import (
     Evaluate,
     For,
     ForKind,
@@ -34,21 +34,21 @@ from gsmDataGen.tir import (
     floordiv,
     floormod,
 )
-from gsmDataGen.tir.analysis import expr_deep_equal
-from gsmDataGen.tir.function import TensorIntrin
-from gsmDataGen.tir.schedule.analysis import (
+from gsm_data_generator.tir.analysis import expr_deep_equal
+from gsm_data_generator.tir.function import TensorIntrin
+from gsm_data_generator.tir.schedule.analysis import (
     TensorizeInfo,
     get_auto_tensorize_mapping_info,
     get_tensorize_loop_mapping,
     is_output_block,
     suggest_index_map,
 )
-from gsmDataGen.tir.stmt_functor import pre_order_visit
-from gsmDataGen.tir.tensor_intrin.cuda import (
+from gsm_data_generator.tir.stmt_functor import pre_order_visit
+from gsm_data_generator.tir.tensor_intrin.cuda import (
     WMMA_SYNC_16x16x16_f16f16f16_INTRIN,
     WMMA_SYNC_16x16x16_f16f16f32_INTRIN,
 )
-from gsmDataGen.tir.tensor_intrin.x86 import dot_product_16x4_u8i8i32_desc
+from gsm_data_generator.tir.tensor_intrin.x86 import dot_product_16x4_u8i8i32_desc
 
 
 def _make_vars(*args: str) -> List[Var]:
@@ -155,7 +155,7 @@ def test_suggest_index_map_winograd():
     assert inverse_index_map.is_equivalent_to(expected_inverse_index_map)
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class DenseTIRModule:
     @T.prim_func
     def main(
@@ -179,7 +179,7 @@ class DenseTIRModule:
                     )
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Conv2dNCHWcTIRModule:
     @T.prim_func
     def main(
@@ -224,7 +224,7 @@ def collect_loops(prim_func):
     loops = []
 
     def callback(node):
-        if isinstance(node, gsmDataGen.tir.For):
+        if isinstance(node, gsm_data_generator.tir.For):
             loops.append(node)
         return True
 
@@ -421,7 +421,7 @@ def test_is_output_block():
                 vi, vj = T.axis.remap("SS", [i, j])
                 C[vi, vj] = B[vi, vj] + 1.0
 
-    sch = gsmDataGen.tir.Schedule(two_elementwise)
+    sch = gsm_data_generator.tir.Schedule(two_elementwise)
     block_rv = sch.get_block("C")
     assert is_output_block(sch, block_rv)
 
@@ -451,8 +451,8 @@ def test_empty_grid():
                 out[az, ay, az] = T.int32(0)
 
     # This caused a crash before.
-    sch = gsmDataGen.tir.Schedule(foo)
+    sch = gsm_data_generator.tir.Schedule(foo)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

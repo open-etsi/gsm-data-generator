@@ -15,15 +15,15 @@
 # specific language governing permissions and limitations
 # under the License.
 # pylint: disable=missing-module-docstring,missing-function-docstring,missing-class-docstring
-from gsmDataGen import meta_schedule as ms
-from gsmDataGen.meta_schedule.testing import te_workload
-from gsmDataGen.meta_schedule.testing.space_generation import (
+from gsm_data_generator import meta_schedule as ms
+from gsm_data_generator.meta_schedule.testing import te_workload
+from gsm_data_generator.meta_schedule.testing.space_generation import (
     check_sketches,
     generate_design_space,
 )
-from gsmDataGen.script import tir as T
-from gsmDataGen.target import Target
-from gsmDataGen.te import create_prim_func
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.target import Target
+from gsm_data_generator.te import create_prim_func
 
 
 def test_cpu_matmul():

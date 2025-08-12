@@ -14,15 +14,15 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import te, tir
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import te, tir
+from gsm_data_generator.script import tir as T
 
 
 class CanonicalChecker:
     def __init__(self):
-        self.analyzer = gsmDataGen.arith.Analyzer()
+        self.analyzer = gsm_data_generator.arith.Analyzer()
 
     def _convert(self, expr):
         # TODO(Lunderberg): Make utility functions `tir.convert` and
@@ -37,7 +37,7 @@ class CanonicalChecker:
     def verify(self, data, expected):
         res = self.analyzer.canonical_simplify(data)
         expected = self._convert(expected)
-        assert gsmDataGen.ir.structural_equal(res, expected), "\ndata={}\nres={}\nexpected={}".format(
+        assert gsm_data_generator.ir.structural_equal(res, expected), "\ndata={}\nres={}\nexpected={}".format(
             data, res, expected
         )
 
@@ -49,15 +49,15 @@ def test_mul_sum_simplify():
     ck.verify(2 + (3 * x + z + y + 1) * 4 + x, x * 13 + z * 4 + y * 4 + 6)
     ck.verify(x * 3 - 4 * x + 1, 1 - x)
     ck.verify(y + x * 3 - 5 * x + 1 + y, y * 2 + 1 - x * 2)
-    tdiv = gsmDataGen.tir.truncdiv
-    tmod = gsmDataGen.tir.truncmod
+    tdiv = gsm_data_generator.tir.truncdiv
+    tmod = gsm_data_generator.tir.truncmod
     # trucdiv
     ck.verify(tdiv(x + y + x + y * 3, 2), y * 2 + x)
     ck.verify(tmod(x + y + x + y * 3, 2), 0)
 
     # floordiv
-    fld = gsmDataGen.te.floordiv
-    flm = gsmDataGen.te.floormod
+    fld = gsm_data_generator.te.floordiv
+    flm = gsm_data_generator.te.floormod
     ck.verify(flm(x + x + y * 3, 2), flm(y * 3, 2))
     ck.verify(fld(x + y + x + y * 3, 2), y * 2 + x)
     ck.verify(flm(x + y + x + y * 3, 2), 0)
@@ -69,8 +69,8 @@ def test_split_index_simplify():
     x, y, z = te.var("x"), te.var("y"), te.var("z")
 
     # trucdiv
-    tdiv = gsmDataGen.tir.truncdiv
-    tmod = gsmDataGen.tir.truncmod
+    tdiv = gsm_data_generator.tir.truncdiv
+    tmod = gsm_data_generator.tir.truncmod
 
     # split div const
     ck.verify(tdiv(x, 3) * 3 + tmod(x, 3), x)
@@ -85,19 +85,19 @@ def test_split_index_simplify():
     ck.verify(tmod(x * 8, 2), 0)
 
     # simplify then fold
-    ck.analyzer.update(x, gsmDataGen.arith.ConstIntBound(0, 1000))
-    ck.analyzer.update(y, gsmDataGen.arith.ConstIntBound(0, 1000))
+    ck.analyzer.update(x, gsm_data_generator.arith.ConstIntBound(0, 1000))
+    ck.analyzer.update(y, gsm_data_generator.arith.ConstIntBound(0, 1000))
     ck.verify(tdiv(x * 4 + y, 2) * 2 + tmod(x * 4 + y, 2), x * 4 + y)
     # complex fold
     ck.verify(tdiv(z * 9 + y, 2) * 2 + tmod(z * 9 + y, 2), z * 9 + y)
 
-    ck.analyzer.update(x, gsmDataGen.arith.ConstIntBound(-100, 1000), True)
-    ck.analyzer.update(y, gsmDataGen.arith.ConstIntBound(-100, 1000), True)
+    ck.analyzer.update(x, gsm_data_generator.arith.ConstIntBound(-100, 1000), True)
+    ck.analyzer.update(y, gsm_data_generator.arith.ConstIntBound(-100, 1000), True)
     ck.verify(tdiv(x * 4 + y, 2) * 2 + tmod(x * 4 + y, 2), x * 4 + y)
 
     # floordiv
-    fld = gsmDataGen.te.floordiv
-    flm = gsmDataGen.te.floormod
+    fld = gsm_data_generator.te.floordiv
+    flm = gsm_data_generator.te.floormod
     ck.verify(fld(x * 5, 2), fld(x * 5, 2))
     ck.verify(fld(x, 3) * 3 + flm(x, 3), x)
     ck.verify(fld(x, 6) * 6 + flm(fld(x, 3), 2) * 3 + flm(x, 3), x)
@@ -115,7 +115,7 @@ def test_split_index_simplify():
 def test_div_simplify():
     ck = CanonicalChecker()
     x = te.var("x")
-    tdiv = gsmDataGen.tir.truncdiv
+    tdiv = gsm_data_generator.tir.truncdiv
 
     # truc div
     ck.verify(tdiv(16 + 48 * x, 16), x * 3 + 1)
@@ -123,14 +123,14 @@ def test_div_simplify():
     # (17+48*x)/16 != 1+3*x
     ck.verify(tdiv(17 + 48 * x, 16), tdiv(x * 48 + 17, 16))
     # However, when x >= 0, then 17+48*x >= 0 and (17+48*x)/16 can be simplified
-    ck.analyzer.update(x, gsmDataGen.arith.ConstIntBound(0, 10))
+    ck.analyzer.update(x, gsm_data_generator.arith.ConstIntBound(0, 10))
     ck.verify(tdiv(17 + 48 * x, 16), x * 3 + 1)
     # Trying expressions that are not simplifiable for any values of the variables
     ck.verify(tdiv(17 + 47 * x, 16), tdiv(x * 47 + 17, 16))
 
     # floordiv
-    fld = gsmDataGen.te.floordiv
-    ck.analyzer.update(x, gsmDataGen.arith.ConstIntBound(-1000, 10000), True)
+    fld = gsm_data_generator.te.floordiv
+    ck.analyzer.update(x, gsm_data_generator.arith.ConstIntBound(-1000, 10000), True)
     ck.verify(fld(16 + 48 * x, 16), x * 3 + 1)
     ck.verify(fld(17 + 48 * x, 16), x * 3 + 1)
     ck.verify(fld(17 + 47 * x, 16), fld(x * 47 + 17, 16))
@@ -138,9 +138,9 @@ def test_div_simplify():
 
 def test_fp16_const_fold():
     ck = CanonicalChecker()
-    zero = gsmDataGen.tir.const(0, "float16")
-    one = gsmDataGen.tir.const(1, "float16")
-    half = gsmDataGen.tir.const(0.5, "float16")
+    zero = gsm_data_generator.tir.const(0, "float16")
+    one = gsm_data_generator.tir.const(1, "float16")
+    half = gsm_data_generator.tir.const(0.5, "float16")
 
     ck.verify(zero + half, half)
     ck.verify(half - zero, half)
@@ -154,7 +154,7 @@ def test_fp16_const_fold():
 
 def test_floormod_simplify():
     ck = CanonicalChecker()
-    flm = gsmDataGen.te.floormod
+    flm = gsm_data_generator.te.floormod
     x, y = te.var("x"), te.var("y")
     ck.verify(flm(flm((x * 4) + y - 466036, 24528) - 24512, 16), flm((x * 4) + y + 12, 16))
     ck.verify(flm(flm((x * 4), 16), 8), flm(x, 2) * 4)
@@ -165,18 +165,18 @@ def test_floormod_simplify():
 def test_canonical_mixed():
     ck = CanonicalChecker()
     x = te.var("x")
-    z = gsmDataGen.tir.const(3, "int32")
-    tdiv = gsmDataGen.tir.truncdiv
-    tmod = gsmDataGen.tir.truncmod
+    z = gsm_data_generator.tir.const(3, "int32")
+    tdiv = gsm_data_generator.tir.truncdiv
+    tmod = gsm_data_generator.tir.truncmod
     ck.verify(tdiv(x, (z * z)) - tdiv(x, (z * z)), 0)
     ck.verify(tdiv(x, (z + z)) - tdiv(x, (z + z)), 0)
     ck.verify(x - 2 < 3, x < 5)
-    ck.verify(gsmDataGen.te.max(x, 1) - gsmDataGen.te.max(x, 1), 0)
-    ck.verify(gsmDataGen.te.min(x, 1) - gsmDataGen.te.min(x, 1), 0)
+    ck.verify(gsm_data_generator.te.max(x, 1) - gsm_data_generator.te.max(x, 1), 0)
+    ck.verify(gsm_data_generator.te.min(x, 1) - gsm_data_generator.te.min(x, 1), 0)
     ck.verify(x * x - x * x, 0)
     ck.verify(tmod(tdiv(tmod(x, 20), 2) * 2, 4), tdiv(tmod(x, 4), 2) * 2)
 
-    fld = gsmDataGen.te.floordiv
+    fld = gsm_data_generator.te.floordiv
     ck.verify(fld(x, (z * z)) - fld(x, (z * z)), 0)
     ck.verify(fld(x, (z + z)) - fld(x, (z + z)), 0)
 
@@ -185,15 +185,15 @@ def test_reduce_combiner_simplify():
     ck = CanonicalChecker()
     dummy = te.var("dummy")
     comm_reducer = te.comm_reducer
-    prod = comm_reducer(lambda x, y: x * y, lambda t0: gsmDataGen.tir.const(1, t0))
+    prod = comm_reducer(lambda x, y: x * y, lambda t0: gsm_data_generator.tir.const(1, t0))
 
     sum_or_prod = comm_reducer(
-        lambda x, y: gsmDataGen.tir.Select(dummy < 0, x + y, x * y),
-        lambda t0: gsmDataGen.tir.Select(dummy < 0, gsmDataGen.tir.const(0, t0), gsmDataGen.tir.const(1, t0)),
+        lambda x, y: gsm_data_generator.tir.Select(dummy < 0, x + y, x * y),
+        lambda t0: gsm_data_generator.tir.Select(dummy < 0, gsm_data_generator.tir.const(0, t0), gsm_data_generator.tir.const(1, t0)),
     )
     sum_and_prod = comm_reducer(
         lambda x, y: (x[0] + y[0], x[1] * y[1]),
-        lambda t0, t1: (gsmDataGen.tir.const(0, t0), gsmDataGen.tir.const(5, t1) - gsmDataGen.tir.const(4, t1)),
+        lambda t0, t1: (gsm_data_generator.tir.const(0, t0), gsm_data_generator.tir.const(5, t1) - gsm_data_generator.tir.const(4, t1)),
     )
     some_reducer1 = comm_reducer(
         lambda x, y: (
@@ -204,24 +204,24 @@ def test_reduce_combiner_simplify():
             4.0,
         ),
         lambda t0, t1, t2, t3, t4: (
-            gsmDataGen.tir.const(0, t0),
-            gsmDataGen.tir.const(1, t1),
-            gsmDataGen.tir.const(2, t2),
-            gsmDataGen.tir.const(3, t3),
-            gsmDataGen.tir.const(4, t4),
+            gsm_data_generator.tir.const(0, t0),
+            gsm_data_generator.tir.const(1, t1),
+            gsm_data_generator.tir.const(2, t2),
+            gsm_data_generator.tir.const(3, t3),
+            gsm_data_generator.tir.const(4, t4),
         ),
     )
 
     k = te.reduce_axis((0, 10), name="k")
     A = te.placeholder((10,), name="A")
     # Test that SimplifyCombiner makes use of vranges
-    ck.analyzer.update(dummy, gsmDataGen.arith.ConstIntBound(-10, -4))
+    ck.analyzer.update(dummy, gsm_data_generator.arith.ConstIntBound(-10, -4))
     ck.verify(sum_or_prod(A[k], k), te.sum(A[k], k))
     ck.verify(sum_or_prod(A[k], k, init=1), te.sum(A[k], k, init=1))
-    ck.analyzer.update(dummy, gsmDataGen.arith.ConstIntBound(5, 9), True)
+    ck.analyzer.update(dummy, gsm_data_generator.arith.ConstIntBound(5, 9), True)
     ck.verify(sum_or_prod(A[k], k), prod(A[k], k))
     ck.verify(sum_or_prod(A[k], k, init=1), prod(A[k], k, init=1))
-    ck.analyzer.update(dummy, gsmDataGen.arith.ConstIntBound(-10, 100), True)
+    ck.analyzer.update(dummy, gsm_data_generator.arith.ConstIntBound(-10, 100), True)
     ck.verify(sum_and_prod((A[k], A[10 - k]), k)[0], te.sum(A[k], k))
     ck.verify(sum_and_prod((A[k], A[10 - k]), k)[1], prod(A[10 - k], k))
 
@@ -241,11 +241,11 @@ def test_reduce_combiner_simplify():
 
         # Check that the remaining components are the expected ones.
         for lhs, rhs in zip(simplified.source, reference_simplified_sources[j]):
-            gsmDataGen.ir.assert_structural_equal(lhs, rhs)
+            gsm_data_generator.ir.assert_structural_equal(lhs, rhs)
 
     # Test that components with side effects are not removed
-    dummy = gsmDataGen.ir.GlobalVar("dummy")
-    side_effect = lambda *xs: gsmDataGen.tir.Call("int32", dummy, xs)
+    dummy = gsm_data_generator.ir.GlobalVar("dummy")
+    side_effect = lambda *xs: gsm_data_generator.tir.Call("int32", dummy, xs)
     ck.verify(
         sum_and_prod((A[k], side_effect(A[10 - k])), k)[0],
         sum_and_prod((A[k], side_effect(A[10 - k])), k)[0],
@@ -258,23 +258,23 @@ def test_reduce_simplify():
     k = te.reduce_axis((0, 10), name="k")
     j = te.reduce_axis((-5, 3), name="j")
     A = te.placeholder((10,), name="A")
-    ck.verify(te.sum(gsmDataGen.tir.Select(k + j < 12, k + j, 0), [k, j]), te.sum(k + j, [k, j]))
+    ck.verify(te.sum(gsm_data_generator.tir.Select(k + j < 12, k + j, 0), [k, j]), te.sum(k + j, [k, j]))
     ck.verify(te.sum(A[3], []), A[3])
-    ck.verify(te.sum(A[3], [], where=k > 12, init=1.0), gsmDataGen.tir.const(1.0, dtype="float32"))
+    ck.verify(te.sum(A[3], [], where=k > 12, init=1.0), gsm_data_generator.tir.const(1.0, dtype="float32"))
     # The rule below is not typical, removed for now
-    ck.verify(te.sum(te.div(k, 10), k), te.sum(gsmDataGen.tir.const(0, "int32"), k))
+    ck.verify(te.sum(te.div(k, 10), k), te.sum(gsm_data_generator.tir.const(0, "int32"), k))
 
 
 def test_simplify_if_then_else():
     ck = CanonicalChecker()
     x = te.var("x")
     y = te.var("y")
-    tdiv = gsmDataGen.tir.truncdiv
-    tmod = gsmDataGen.tir.truncmod
+    tdiv = gsm_data_generator.tir.truncdiv
+    tmod = gsm_data_generator.tir.truncmod
     # simplification that takes condition into account.
-    res = gsmDataGen.tir.if_then_else(
+    res = gsm_data_generator.tir.if_then_else(
         (x * 4 + y) >= 466036,
-        gsmDataGen.tir.if_then_else(
+        gsm_data_generator.tir.if_then_else(
             24512 <= tmod(((x * 4) + y) - 466036, 24528),
             tmod(tmod(((x * 4) + y) - 466036, 24528) - 24512, 16),
             x,
@@ -282,34 +282,34 @@ def test_simplify_if_then_else():
         y,
     )
 
-    res2 = gsmDataGen.tir.if_then_else(
+    res2 = gsm_data_generator.tir.if_then_else(
         (x * 4) >= 466036 - y,
-        gsmDataGen.tir.if_then_else(
+        gsm_data_generator.tir.if_then_else(
             24512 <= tmod(((x * 4) + y) - 466036, 24528),
             tmod(tmod(((x * 4) + y) - 466036, 24528) - 24512, 16),
             x,
         ),
         y,
     )
-    expected = gsmDataGen.tir.if_then_else(
-        gsmDataGen.tir.LE(466036, (x * 4 + y)),
-        gsmDataGen.tir.if_then_else(
-            gsmDataGen.tir.LE(24512, tmod(((x * 4) + y) - 4, 24528)), tmod(((x * 4) + y) - 4, 16), x
+    expected = gsm_data_generator.tir.if_then_else(
+        gsm_data_generator.tir.LE(466036, (x * 4 + y)),
+        gsm_data_generator.tir.if_then_else(
+            gsm_data_generator.tir.LE(24512, tmod(((x * 4) + y) - 4, 24528)), tmod(((x * 4) + y) - 4, 16), x
         ),
         y,
     )
     ck.verify(res, expected)
     ck.verify(res2, expected)
     # can only simplify if condition
-    res = gsmDataGen.tir.Select(gsmDataGen.tir.all(x >= -1, y >= 0), tmod(x + y + 100, 3), tmod(x + 100, 3))
-    expected = gsmDataGen.tir.Select(gsmDataGen.tir.all(x >= -1, y >= 0), tmod(x + y + 1, 3), tmod(x + 100, 3))
+    res = gsm_data_generator.tir.Select(gsm_data_generator.tir.all(x >= -1, y >= 0), tmod(x + y + 100, 3), tmod(x + 100, 3))
+    expected = gsm_data_generator.tir.Select(gsm_data_generator.tir.all(x >= -1, y >= 0), tmod(x + y + 1, 3), tmod(x + 100, 3))
     ck.verify(res, ck.analyzer.canonical_simplify(expected))
 
-    res = gsmDataGen.tir.Select(x >= 10, gsmDataGen.tir.if_then_else(tdiv(x, 3) > 2, x, 0), 0)
-    expected = gsmDataGen.tir.Select(x >= 10, x, 0)
+    res = gsm_data_generator.tir.Select(x >= 10, gsm_data_generator.tir.if_then_else(tdiv(x, 3) > 2, x, 0), 0)
+    expected = gsm_data_generator.tir.Select(x >= 10, x, 0)
     ck.verify(res, ck.analyzer.canonical_simplify(expected))
 
-    res = gsmDataGen.tir.Select(x >= 10, gsmDataGen.tir.if_then_else(tdiv(x, 3) < 2, x, 0), 0)
+    res = gsm_data_generator.tir.Select(x >= 10, gsm_data_generator.tir.if_then_else(tdiv(x, 3) < 2, x, 0), 0)
     ck.verify(res, 0)
 
 
@@ -317,19 +317,19 @@ def test_complex_cases():
     ck = CanonicalChecker()
     x = te.var("x")
     y = te.var("y")
-    tdiv = gsmDataGen.tir.truncdiv
-    tmod = gsmDataGen.tir.truncmod
+    tdiv = gsm_data_generator.tir.truncdiv
+    tmod = gsm_data_generator.tir.truncmod
     res2 = (
         tdiv(tdiv(tmod(x * 128 + y, 1296), 36) * 2 + 1, 2) * 36
         + tdiv(tmod((x * 128) + y, 36) * 2 + 1, 2)
         - tmod((x * 128) + y, 1296)
         + 1
     )
-    ck.analyzer.update(x, gsmDataGen.arith.ConstIntBound(0, 5))
-    ck.analyzer.update(y, gsmDataGen.arith.ConstIntBound(0, 127))
+    ck.analyzer.update(x, gsm_data_generator.arith.ConstIntBound(0, 5))
+    ck.analyzer.update(y, gsm_data_generator.arith.ConstIntBound(0, 127))
     ck.verify(res2, 1)
 
-    ck.analyzer.update(y, gsmDataGen.arith.ConstIntBound(0, 1024), True)
+    ck.analyzer.update(y, gsm_data_generator.arith.ConstIntBound(0, 1024), True)
     res3 = (
         tdiv(x * 1024 + y, 65536)
         + tdiv(tmod(x * 1024 + y, 65536), 256)
@@ -345,40 +345,40 @@ def test_complex_cases():
 
 def test_simplify_cast():
     ck = CanonicalChecker()
-    tcast = gsmDataGen.tir.Cast
-    fld = gsmDataGen.te.floordiv
-    flm = gsmDataGen.te.floormod
+    tcast = gsm_data_generator.tir.Cast
+    fld = gsm_data_generator.te.floordiv
+    flm = gsm_data_generator.te.floormod
     # cast(i64, i + j + 1) - cast(i64, i)
     i = te.var("i", dtype="int32")
     j = te.var("j", dtype="int32")
     res = tcast("int64", i + j + 1) - tcast("int64", i)
-    ck.verify(res, tcast("int64", j) + gsmDataGen.tir.const(1, "int64"))
+    ck.verify(res, tcast("int64", j) + gsm_data_generator.tir.const(1, "int64"))
     # cast(i32, i + j + 1) - cast(i32, i)
     i = te.var("i", dtype="int64")
     j = te.var("j", dtype="int64")
-    ck.analyzer.update(i, gsmDataGen.arith.ConstIntBound(0, 10))
-    ck.analyzer.update(j, gsmDataGen.arith.ConstIntBound(0, 10))
+    ck.analyzer.update(i, gsm_data_generator.arith.ConstIntBound(0, 10))
+    ck.analyzer.update(j, gsm_data_generator.arith.ConstIntBound(0, 10))
     res = tcast("int32", i + j + 1) - tcast("int32", i)
     ck.verify(res, tcast("int32", j) + 1)
     # cast(i32, i + j - 100)
     i = te.var("i", dtype="int64")
     j = te.var("j", dtype="int64")
-    ck.analyzer.update(i, gsmDataGen.arith.ConstIntBound(0, 2**31 - 1))
-    ck.analyzer.update(j, gsmDataGen.arith.ConstIntBound(0, 10))
+    ck.analyzer.update(i, gsm_data_generator.arith.ConstIntBound(0, 2**31 - 1))
+    ck.analyzer.update(j, gsm_data_generator.arith.ConstIntBound(0, 10))
     res = tcast("int32", i + j - 100)
     ck.verify(res, res)
     # cast(i32, flm(axis, 7i64) * 2i64 + 1i64) + 1i32
     # - cast(i32, flm(axis, 7i64) * 2i64)
     axis = te.var("axis", dtype="int64")
-    ck.analyzer.update(axis, gsmDataGen.arith.ConstIntBound(0, 42))
+    ck.analyzer.update(axis, gsm_data_generator.arith.ConstIntBound(0, 42))
     res = (
         tcast(
             "int32",
-            flm(axis, gsmDataGen.tir.const(7, "int64")) * gsmDataGen.tir.const(2, "int64")
-            + gsmDataGen.tir.const(1, "int64"),
+            flm(axis, gsm_data_generator.tir.const(7, "int64")) * gsm_data_generator.tir.const(2, "int64")
+            + gsm_data_generator.tir.const(1, "int64"),
         )
-        + gsmDataGen.tir.const(1, "int32")
-        - tcast("int32", flm(axis, gsmDataGen.tir.const(7, "int64")) * gsmDataGen.tir.const(2, "int64"))
+        + gsm_data_generator.tir.const(1, "int32")
+        - tcast("int32", flm(axis, gsm_data_generator.tir.const(7, "int64")) * gsm_data_generator.tir.const(2, "int64"))
     )
     ck.verify(res, 2)
 
@@ -399,10 +399,10 @@ def test_simplify_normalize_min_value_expr():
 
 def test_proddiv_simplify():
     ck = CanonicalChecker()
-    flm = gsmDataGen.te.floormod
-    fld = gsmDataGen.te.floordiv
-    tdiv = gsmDataGen.te.truncdiv
-    tmod = gsmDataGen.te.truncmod
+    flm = gsm_data_generator.te.floormod
+    fld = gsm_data_generator.te.floordiv
+    tdiv = gsm_data_generator.te.truncdiv
+    tmod = gsm_data_generator.te.truncmod
 
     x, y, z = te.var("x"), te.var("y"), te.var("y")
 
@@ -428,7 +428,7 @@ def test_proddiv_simplify():
 
 def test_floormod_two():
     ck = CanonicalChecker()
-    flm = gsmDataGen.te.floormod
+    flm = gsm_data_generator.te.floormod
     x, y = te.var("x"), te.var("y")
     ck.verify(flm(x * 10 + 1 + y * 2 + 2, 2), 1)
 
@@ -437,8 +437,8 @@ def test_simplify_le():
     ck = CanonicalChecker()
     # Case 1. Ignore the extra expr if it's small than the division number
     x, y, z = te.var("x"), te.var("y"), te.var("z")
-    ck.analyzer.bind(y, gsmDataGen.ir.Range(0, 8))
-    ck.analyzer.bind(z, gsmDataGen.ir.Range(0, 2))
+    ck.analyzer.bind(y, gsm_data_generator.ir.Range(0, 8))
+    ck.analyzer.bind(z, gsm_data_generator.ir.Range(0, 2))
     ck.verify(x * 8 + y < 16, x < 2)
     ck.verify(x * 8 + z * 4 < 16, x < 2)
     ck.verify(x * 8 + z * 4 < 16, x < 2)
@@ -454,17 +454,17 @@ def test_simplify_le():
 
     # Case 2. Simplify the extra expr
     x1, x2, ty, tx, vec = (
-        gsmDataGen.te.var("x1"),
-        gsmDataGen.te.var("x2"),
-        gsmDataGen.te.var("ty"),
-        gsmDataGen.te.var("tx"),
-        gsmDataGen.te.var("vec"),
+        gsm_data_generator.te.var("x1"),
+        gsm_data_generator.te.var("x2"),
+        gsm_data_generator.te.var("ty"),
+        gsm_data_generator.te.var("tx"),
+        gsm_data_generator.te.var("vec"),
     )
-    ck.analyzer.bind(x1, gsmDataGen.ir.Range(0, 2))
-    ck.analyzer.bind(x2, gsmDataGen.ir.Range(0, 3))
-    ck.analyzer.bind(ty, gsmDataGen.ir.Range(0, 8))
-    ck.analyzer.bind(tx, gsmDataGen.ir.Range(0, 32))
-    ck.analyzer.bind(vec, gsmDataGen.ir.Range(0, 8))
+    ck.analyzer.bind(x1, gsm_data_generator.ir.Range(0, 2))
+    ck.analyzer.bind(x2, gsm_data_generator.ir.Range(0, 3))
+    ck.analyzer.bind(ty, gsm_data_generator.ir.Range(0, 8))
+    ck.analyzer.bind(tx, gsm_data_generator.ir.Range(0, 32))
+    ck.analyzer.bind(vec, gsm_data_generator.ir.Range(0, 8))
     ck.verify(
         x1 * 5632 + (((x2 * 8 + ty) * 32 + tx) * 8 + vec) % 5632 < 11008,
         x1 * 22 + (x2 * 8 + ty) % 22 < 43,
@@ -473,9 +473,9 @@ def test_simplify_le():
 
     # Case 3. No failure
     x, y, z = te.var("x"), te.var("y"), te.var("z")
-    ck.analyzer.bind(y, gsmDataGen.ir.Range(0, 1024))
+    ck.analyzer.bind(y, gsm_data_generator.ir.Range(0, 1024))
     ck.verify(x * 1024 + y < z * 7168, x - z * 7 < 0)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

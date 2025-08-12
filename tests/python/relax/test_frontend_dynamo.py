@@ -19,15 +19,15 @@ import pytest
 pytest.importorskip("torch._dynamo")
 
 
-import gsmDataGen
-from gsmDataGen import relax, meta_schedule as ms, tir
-import gsmDataGen.testing
+import gsm_data_generator
+from gsm_data_generator import relax, meta_schedule as ms, tir
+import gsm_data_generator.testing
 import torch
 import torch._dynamo as dynamo
-from gsmDataGen.relax.frontend.torch import relax_dynamo
-from gsmDataGen.script import ir as I
-from gsmDataGen.script import relax as R
-from gsmDataGen.script import tir as T
+from gsm_data_generator.relax.frontend.torch import relax_dynamo
+from gsm_data_generator.script import ir as I
+from gsm_data_generator.script import relax as R
+from gsm_data_generator.script import tir as T
 from packaging import version
 
 torch_version = torch.__version__
@@ -45,7 +45,7 @@ def test_relax_dynamo():
     model = Input1()
 
     ### construct the database
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Input1_ir:
         @T.prim_func
         def main(
@@ -120,7 +120,7 @@ def test_relax_dynamo():
 
     default_output = model(inp).detach().numpy()
     optimized_output = opt_model(inp).detach().numpy()
-    gsmDataGen.testing.assert_allclose(optimized_output, default_output, rtol=1e-5, atol=1e-5)
+    gsm_data_generator.testing.assert_allclose(optimized_output, default_output, rtol=1e-5, atol=1e-5)
 
 
 def test_relax_dynamo_dynamic():
@@ -137,7 +137,7 @@ def test_relax_dynamo_dynamic():
     opt_model = torch.compile(model, backend=relax_dynamo(), dynamic=True)
 
     inp = torch.randn(10, 100)
-    gsmDataGen.testing.assert_allclose(
+    gsm_data_generator.testing.assert_allclose(
         opt_model(inp).detach().numpy(), model(inp).detach().numpy(), rtol=1e-5, atol=1e-5
     )
 
@@ -154,12 +154,12 @@ def test_relax_dynamo_dynamic():
         x = torch.randn(s, 100)
         y = torch.randn(s, 100)
         with torch.no_grad():
-            gsmDataGen.testing.assert_allclose(opt_func(x, y), opt_func(x, y))
+            gsm_data_generator.testing.assert_allclose(opt_func(x, y), opt_func(x, y))
 
 
 def test_subgraph_capture():
     import torch
-    from gsmDataGen.relax.frontend.torch.dynamo import dynamo_capture_subgraphs
+    from gsm_data_generator.relax.frontend.torch.dynamo import dynamo_capture_subgraphs
 
     class Input1(torch.nn.Module):
         def __init__(self):
@@ -169,7 +169,7 @@ def test_subgraph_capture():
         def forward(self, x):
             return torch.nn.functional.relu(self.lin(x))
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected1:
         @R.function
         def subgraph_0(
@@ -189,7 +189,7 @@ def test_subgraph_capture():
 
     model = Input1()
     mod = dynamo_capture_subgraphs(model, torch.randn(10, 100))
-    gsmDataGen.ir.assert_structural_equal(mod, Expected1)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected1)
 
     def Input2(a, b):
         x = a / (torch.sin(a) + 1)
@@ -197,7 +197,7 @@ def test_subgraph_capture():
             b = b * -1
         return x * b
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected2:
         @R.function
         def subgraph_0(
@@ -229,7 +229,7 @@ def test_subgraph_capture():
             return gv1
 
     mod = dynamo_capture_subgraphs(Input2, torch.randn(10), torch.ones(10))
-    gsmDataGen.ir.assert_structural_equal(mod, Expected2)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected2)
 
     class Input3(torch.nn.Module):
         def __init__(self):
@@ -241,7 +241,7 @@ def test_subgraph_capture():
                 x = x + 1
             return torch.nn.functional.relu(self.lin(x))
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected3:
         @R.function
         def subgraph_0(
@@ -262,22 +262,22 @@ def test_subgraph_capture():
 
     model = Input3()
     mod = dynamo_capture_subgraphs(model, torch.randn(10, 100), add_one=True)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected3)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected3)
 
 
 def verify_dynamo_model(torch_model, input_info, binding, expected):
     import torch
     import torch._dynamo as dynamo
-    from gsmDataGen.relax.frontend.torch import from_fx
+    from gsm_data_generator.relax.frontend.torch import from_fx
 
     args = []
     for info in input_info:
         args.append(torch.zeros(*info[0], dtype=_convert_data_type(info[1])))
     graph_model = dynamo.export(torch_model)(*args)[0]
     mod = from_fx(graph_model, input_info, unwrap_unit_return_tuple=True)
-    binding = {k: gsmDataGen.nd.array(v) for k, v in binding.items()}
+    binding = {k: gsm_data_generator.nd.array(v) for k, v in binding.items()}
     expected = relax.transform.BindParams("main", binding)(expected)
-    gsmDataGen.ir.assert_structural_equal(mod, expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, expected)
 
 
 def _convert_data_type(input_type):
@@ -299,7 +299,7 @@ def _convert_data_type(input_type):
         raise NotImplementedError("input_type {} is not handled yet".format(input_type))
 
 
-@gsmDataGen.testing.requires_gpu
+@gsm_data_generator.testing.requires_gpu
 def test_ones():
     import torch
     from torch.nn import Module
@@ -330,7 +330,7 @@ def test_ones():
     )
 
 
-@gsmDataGen.testing.requires_gpu
+@gsm_data_generator.testing.requires_gpu
 def test_full():
     import torch
     from torch.nn import Module
@@ -361,7 +361,7 @@ def test_full():
     )
 
 
-@gsmDataGen.testing.requires_gpu
+@gsm_data_generator.testing.requires_gpu
 def test_gelu():
     import torch
     from torch.nn import Module
@@ -413,7 +413,7 @@ def test_gelu():
     )
 
 
-@gsmDataGen.testing.requires_gpu
+@gsm_data_generator.testing.requires_gpu
 def test_masked_fill():
     import torch
     from torch.nn import Module
@@ -450,7 +450,7 @@ def test_masked_fill():
     )
 
 
-@gsmDataGen.testing.requires_gpu
+@gsm_data_generator.testing.requires_gpu
 def test_getitem():
     import torch
     from torch.nn import Module
@@ -526,7 +526,7 @@ def test_getitem():
     version.parse(torch_version) >= version.parse("2.6.0"),
     reason="Need to support dynamic arange in Relax",
 )
-@gsmDataGen.testing.requires_gpu
+@gsm_data_generator.testing.requires_gpu
 def test_arange():
     import torch
     from torch.nn import Module
@@ -554,4 +554,4 @@ def test_arange():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

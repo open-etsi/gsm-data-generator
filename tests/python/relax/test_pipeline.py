@@ -16,18 +16,18 @@
 # under the License.
 import numpy as np
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import relax
-from gsmDataGen.script import relax as R
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import relax
+from gsm_data_generator.script import relax as R
+from gsm_data_generator.script import tir as T
 
 
 def test_pipeline_compile():
-    target = gsmDataGen.target.Target("llvm", host="llvm")
+    target = gsm_data_generator.target.Target("llvm", host="llvm")
     pipeline = relax.pipeline.get_default_pipeline(target)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Mod:
         @R.function
         def main(x: R.Tensor((3, 4), "float32"), y: R.Tensor((3, 4), "float32")):
@@ -37,23 +37,23 @@ def test_pipeline_compile():
     mod = Mod
     mod = pipeline(mod)
 
-    ex = gsmDataGen.compile(mod, target)
+    ex = gsm_data_generator.compile(mod, target)
     x_np = np.random.rand(3, 4).astype(np.float32)
     y_np = np.random.rand(3, 4).astype(np.float32)
-    x = gsmDataGen.nd.array(x_np)
-    y = gsmDataGen.nd.array(y_np)
+    x = gsm_data_generator.nd.array(x_np)
+    y = gsm_data_generator.nd.array(y_np)
 
-    vm = relax.VirtualMachine(ex, gsmDataGen.cpu())
+    vm = relax.VirtualMachine(ex, gsm_data_generator.cpu())
     z = vm["main"](x, y)
-    gsmDataGen.testing.assert_allclose(z.numpy(), x_np + y_np, rtol=1e-7, atol=1e-7)
+    gsm_data_generator.testing.assert_allclose(z.numpy(), x_np + y_np, rtol=1e-7, atol=1e-7)
 
 
 def test_pipeline_with_kv_cache():
     """A dummy pipline that simulates KV update."""
-    target = gsmDataGen.target.Target("llvm", host="llvm")
+    target = gsm_data_generator.target.Target("llvm", host="llvm")
     pipeline = relax.pipeline.get_default_pipeline(target)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Mod:
         @R.function
         def create_kv_cache(reserve_slots: R.Shape(["m"])):
@@ -95,21 +95,21 @@ def test_pipeline_with_kv_cache():
     mod = Mod
     mod = pipeline(mod)
 
-    ex = gsmDataGen.compile(mod, target)
+    ex = gsm_data_generator.compile(mod, target)
 
     num_steps = 8
     cache_np = np.empty((num_steps, 4), dtype="float32")
-    vm = relax.VirtualMachine(ex, gsmDataGen.cpu())
+    vm = relax.VirtualMachine(ex, gsm_data_generator.cpu())
 
-    kv_cache = vm["create_kv_cache"](gsmDataGen.runtime.ShapeTuple([1]))
+    kv_cache = vm["create_kv_cache"](gsm_data_generator.runtime.ShapeTuple([1]))
 
     for i in range(num_steps):
         x_np = np.random.rand(1, 4).astype(np.float32)
         y_np = np.random.rand(1, 4).astype(np.float32)
-        x = gsmDataGen.nd.array(x_np)
-        y = gsmDataGen.nd.array(y_np)
+        x = gsm_data_generator.nd.array(x_np)
+        y = gsm_data_generator.nd.array(y_np)
         np_shape = (i + 1, 4)
-        kv, kv_cache = vm["main"](x, y, gsmDataGen.runtime.ShapeTuple(np_shape), kv_cache)
+        kv, kv_cache = vm["main"](x, y, gsm_data_generator.runtime.ShapeTuple(np_shape), kv_cache)
 
         cache_np[i, :] = x_np + y_np
-        gsmDataGen.testing.assert_allclose(kv.numpy(), cache_np[: np_shape[0], :], rtol=1e-7, atol=1e-7)
+        gsm_data_generator.testing.assert_allclose(kv.numpy(), cache_np[: np_shape[0], :], rtol=1e-7, atol=1e-7)

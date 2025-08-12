@@ -17,21 +17,21 @@
 """Block builder unit test"""
 # The test here do not depend on tvmscript to cover most basic features
 import pytest
-import gsmDataGen
-import gsmDataGen.testing
-import gsmDataGen.contrib.cblas
+import gsm_data_generator
+import gsm_data_generator.testing
+import gsm_data_generator.contrib.cblas
 
-from gsmDataGen import te, tir, topi
-from gsmDataGen import relax as rx
-from gsmDataGen.ir.base import assert_structural_equal
-from gsmDataGen.relax import ExternFunc
-from gsmDataGen.script import ir as I, relax as R, tir as T
-from gsmDataGen.tir.function import PrimFunc
+from gsm_data_generator import te, tir, topi
+from gsm_data_generator import relax as rx
+from gsm_data_generator.ir.base import assert_structural_equal
+from gsm_data_generator.relax import ExternFunc
+from gsm_data_generator.script import ir as I, relax as R, tir as T
+from gsm_data_generator.tir.function import PrimFunc
 
 
 @pytest.fixture(scope="module")
 def register_nop():
-    @gsmDataGen.register_func("test.blockbuilder.nop")
+    @gsm_data_generator.register_func("test.blockbuilder.nop")
     def nop():
         pass
 
@@ -324,15 +324,15 @@ def test_tuple_indexing():
     # TupleGetItem will initialize struct info from the
     # TupleStructInfo, if present.
     x = relax_tuple[0]
-    gsmDataGen.ir.assert_structural_equal(x.struct_info, shape_x)
+    gsm_data_generator.ir.assert_structural_equal(x.struct_info, shape_x)
 
     y = relax_tuple[1]
-    gsmDataGen.ir.assert_structural_equal(y.struct_info, shape_y)
+    gsm_data_generator.ir.assert_structural_equal(y.struct_info, shape_y)
 
     # Tuple unpacking produces TupleGetItem structs
     x_unpack, y_unpack = relax_tuple
-    gsmDataGen.ir.assert_structural_equal(x, x_unpack)
-    gsmDataGen.ir.assert_structural_equal(y, y_unpack)
+    gsm_data_generator.ir.assert_structural_equal(x, x_unpack)
+    gsm_data_generator.ir.assert_structural_equal(y, y_unpack)
 
     # When TupleStructInfo is available, tuple unpacking fails immediately
     # for incorrect number of arguments.
@@ -425,7 +425,7 @@ def test_emit_te():
         B = te.placeholder((n, m), dtype="float32", name="B")
         C = te.placeholder((n, m), dtype="float32", name="C")
         out = te_func((A, B), {"C": C}, "")
-        return gsmDataGen.te.create_prim_func([A, B, C, out], index_dtype_override="int64")
+        return gsm_data_generator.te.create_prim_func([A, B, C, out], index_dtype_override="int64")
 
     # check TIR structure matches expected
     assert_structural_equal(mod["te_func"].body, get_tir_func().body)
@@ -512,7 +512,7 @@ def test_emit_te_extern():
     y = rx.Var("y", rx.TensorStructInfo([m, n], "float32"))
 
     with bb.function("rx_cblas_matmul", [x, y]):
-        out = bb.emit_te(gsmDataGen.contrib.cblas.matmul, x, y, transa=False, transb=False)
+        out = bb.emit_te(gsm_data_generator.contrib.cblas.matmul, x, y, transa=False, transb=False)
         bb.emit_func_output(out)
 
     mod = bb.finalize()
@@ -682,7 +682,7 @@ def test_emit_nested_tuple(emit_nested_tuple):
     expected = make_expected(emit_nested_tuple)
     actual = make_function(emit_nested_tuple)
 
-    gsmDataGen.ir.assert_structural_equal(expected, actual)
+    gsm_data_generator.ir.assert_structural_equal(expected, actual)
 
 
 @pytest.mark.skip_well_formed_check_before_transform
@@ -758,7 +758,7 @@ def test_emit_nested_seqexpr_in_binding_block():
         f = R.add(d, e)
         return f
 
-    gsmDataGen.ir.assert_structural_equal(expected, output)
+    gsm_data_generator.ir.assert_structural_equal(expected, output)
 
 
 def test_emit_nested_dataflow_seqexpr_in_dataflow_block():
@@ -796,7 +796,7 @@ def test_emit_nested_dataflow_seqexpr_in_dataflow_block():
             R.output(c, f)
         return f
 
-    gsmDataGen.ir.assert_structural_equal(expected, output)
+    gsm_data_generator.ir.assert_structural_equal(expected, output)
 
 
 def test_emit_ill_formed_nested_seqexpr_in_dataflow_block():
@@ -833,7 +833,7 @@ def test_emit_ill_formed_nested_seqexpr_in_dataflow_block():
 
     output = bb.finalize()["func"]
 
-    assert not rx.analysis.well_formed(gsmDataGen.ir.IRModule.from_expr(output))
+    assert not rx.analysis.well_formed(gsm_data_generator.ir.IRModule.from_expr(output))
 
 
 def test_emit_well_formed_nested_seqexpr_in_dataflow_block():
@@ -870,7 +870,7 @@ def test_emit_well_formed_nested_seqexpr_in_dataflow_block():
 
     output = bb.finalize()["func"]
 
-    assert rx.analysis.well_formed(gsmDataGen.ir.IRModule.from_expr(output))
+    assert rx.analysis.well_formed(gsm_data_generator.ir.IRModule.from_expr(output))
 
     @R.function(private=True)
     def expected() -> R.Tensor((), dtype="int64"):
@@ -886,7 +886,7 @@ def test_emit_well_formed_nested_seqexpr_in_dataflow_block():
             R.output(f)
         return f
 
-    gsmDataGen.ir.assert_structural_equal(expected, output)
+    gsm_data_generator.ir.assert_structural_equal(expected, output)
 
 
 def test_error_when_unwrapping_dataflowvar():
@@ -914,7 +914,7 @@ def test_error_when_unwrapping_dataflowvar():
             rhs = bb.emit(func.bind_params({lhs: local_lhs}).body, "f")
             out = bb.emit_output(rhs, "f")
 
-        with pytest.raises(gsmDataGen.TVMError, match="Malformed AST"):
+        with pytest.raises(gsm_data_generator.TVMError, match="Malformed AST"):
             bb.emit_func_output(out)
 
 
@@ -957,7 +957,7 @@ def test_deduplication_when_input_contains_duplicates():
     # This test case is only valid when the two subroutines are
     # structurally equal, and therefore allowed to be de-duplicated by
     # the BlockBuilder.
-    gsmDataGen.ir.assert_structural_equal(Module["subroutine_a"], Module["subroutine_b"])
+    gsm_data_generator.ir.assert_structural_equal(Module["subroutine_a"], Module["subroutine_b"])
 
     gvar_a = Module.get_global_var("subroutine_a")
     gvar_b = Module.get_global_var("subroutine_b")
@@ -984,4 +984,4 @@ def test_deduplication_when_input_contains_duplicates():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

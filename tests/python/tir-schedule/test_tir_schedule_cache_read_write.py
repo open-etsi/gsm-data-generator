@@ -18,11 +18,11 @@
 import sys
 
 import pytest
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import tir
-from gsmDataGen.script import tir as T
-from gsmDataGen.tir.schedule.testing import (
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import tir
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.tir.schedule.testing import (
     verify_trace_roundtrip,
     assert_structural_equal_ignore_global_symbol,
 )
@@ -1303,7 +1303,7 @@ def symbolic_matmul_blocked_cache_write(
 
 ########## Testcases for cache_read ##########
 
-use_block_name = gsmDataGen.testing.parameter(by_dict={"block_obj": False, "block_name": True})
+use_block_name = gsm_data_generator.testing.parameter(by_dict={"block_obj": False, "block_name": True})
 
 
 def test_cache_read_elementwise(use_block_name):
@@ -1402,21 +1402,21 @@ def test_cache_read_nested_buffer_access(use_block_name):
 def test_cache_read_fail_multi_producer(use_block_name):
     sch = tir.Schedule(func_multi_producer, debug_mask="all")
     block_b = "B" if use_block_name else sch.get_block("B")
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         sch.cache_read(block_b, 0, "global")
 
 
 def test_cache_read_fail_index_out_of_bound(use_block_name):
     sch = tir.Schedule(elementwise, debug_mask="all")
     block_b = "B" if use_block_name else sch.get_block("B")
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         sch.cache_read(block_b, 1, "global")
 
 
 def test_cache_read_fail_invalid_storage_scope(use_block_name):
     sch = tir.Schedule(elementwise, debug_mask="all")
     block_b = "B" if use_block_name else sch.get_block("B")
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         sch.cache_read(block_b, 0, "test_scope")
 
 
@@ -1461,7 +1461,7 @@ def test_cache_read_allocate_const():
 
 
 def test_inplace_cache_read():
-    sch = gsmDataGen.tir.Schedule(inplace_func, debug_mask="all")
+    sch = gsm_data_generator.tir.Schedule(inplace_func, debug_mask="all")
     block = sch.get_block("copy_in")
     sch.cache_read(block, 0, "local", [block])
     assert_structural_equal_ignore_global_symbol(cache_read_inplace, sch.mod["main"])
@@ -1470,8 +1470,8 @@ def test_inplace_cache_read():
 
 def test_cache_inplace():
     # cache_inplace could introduce WAR, which is expected but stage pipeline property changes
-    debug_mask = gsmDataGen.tir.schedule.state.ScheduleDebugMask.VERIFY_SREF_TREE
-    sch = gsmDataGen.tir.Schedule(inplace_call, debug_mask=debug_mask)
+    debug_mask = gsm_data_generator.tir.schedule.state.ScheduleDebugMask.VERIFY_SREF_TREE
+    sch = gsm_data_generator.tir.Schedule(inplace_call, debug_mask=debug_mask)
     block = sch.get_block("ext_call")
     blocks = sch.cache_inplace(block, 0, "local")
     block = sch.cache_read(blocks[0], 0, "global", [blocks[0]])
@@ -1604,23 +1604,23 @@ def test_cache_write_fail_multi_producer(use_block_name):
     sch = tir.Schedule(func_multi_producer, debug_mask="all")
     block_a0 = "A0" if use_block_name else sch.get_block("A0")
     block_a1 = "A1" if use_block_name else sch.get_block("A1")
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         sch.cache_write(block_a0, 0, "global")
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         sch.cache_write(block_a1, 0, "global")
 
 
 def test_cache_write_fail_index_out_of_bound(use_block_name):
     sch = tir.Schedule(elementwise, debug_mask="all")
     block_b = "B" if use_block_name else sch.get_block("B")
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         sch.cache_write(block_b, 1, "global")
 
 
 def test_cache_write_fail_invalid_storage_scope(use_block_name):
     sch = tir.Schedule(elementwise, debug_mask="all")
     block_b = "B" if use_block_name else sch.get_block("B")
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         sch.cache_write(block_b, 0, "test_scope")
 
 
@@ -1715,7 +1715,7 @@ def test_reindex_cache_read_multi_consumer():
 
 def test_reindex_cache_read_fail_not_match():
     sch = tir.Schedule(elementwise, debug_mask="all")
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         sch.reindex_cache_read(
             "C",
             0,
@@ -1726,7 +1726,7 @@ def test_reindex_cache_read_fail_not_match():
 
 def test_reindex_cache_read_failed_not_single_point():
     sch = tir.Schedule(access_under_scope, debug_mask="all")
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         sch.reindex_cache_read("scope", 0, "shared", lambda i, j: (i, j))
 
 
@@ -1748,7 +1748,7 @@ def test_reindex_cache_write_reduce():
 
 def test_reindex_cache_write_fail_not_match():
     sch = tir.Schedule(elementwise, debug_mask="all")
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         sch.reindex_cache_write(
             "B",
             0,
@@ -1759,7 +1759,7 @@ def test_reindex_cache_write_fail_not_match():
 
 def test_reindex_cache_write_fail_not_single_point():
     sch = tir.Schedule(access_under_scope, debug_mask="all")
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         sch.reindex_cache_write("scope", 0, "shared", lambda i, j: (i, j))
 
 
@@ -1784,4 +1784,4 @@ def test_symbolic_matmul_blocked_cache_write(use_block_name):
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

@@ -15,10 +15,10 @@
 # specific language governing permissions and limitations
 # under the License.
 # pylint: disable=missing-module-docstring,missing-function-docstring,missing-class-docstring
-from gsmDataGen import meta_schedule as ms
-from gsmDataGen.script import tir as T
-from gsmDataGen.target import Target
-from gsmDataGen.tir import Schedule
+from gsm_data_generator import meta_schedule as ms
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.target import Target
+from gsm_data_generator.tir import Schedule
 
 # pylint: disable=invalid-name, no-member
 

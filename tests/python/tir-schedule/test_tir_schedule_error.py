@@ -17,10 +17,10 @@
 # pylint: disable=missing-function-docstring,missing-module-docstring
 import pytest
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import tir
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import tir
+from gsm_data_generator.script import tir as T
 
 # pylint: disable=no-member,invalid-name,unused-variable
 
@@ -97,4 +97,4 @@ def test_tir_schedule_two_kernels():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

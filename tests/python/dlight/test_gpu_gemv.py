@@ -17,13 +17,13 @@
 # pylint: disable=missing-docstring
 import pytest
 
-import gsmDataGen.testing
-from gsmDataGen import dlight as dl
-from gsmDataGen.script import tir as T
-from gsmDataGen.target import Target
+import gsm_data_generator.testing
+from gsm_data_generator import dlight as dl
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.target import Target
 
 
-class BaseBeforeAfter(gsmDataGen.testing.CompareBeforeAfter):
+class BaseBeforeAfter(gsm_data_generator.testing.CompareBeforeAfter):
     @pytest.fixture
     def transform(self):
         def transform(mod):
@@ -272,10 +272,10 @@ def test_decode_gemv_256_threads():
 
     # fmt: on
 
-    mod = gsmDataGen.IRModule({"main": before})
+    mod = gsm_data_generator.IRModule({"main": before})
     with Target("apple/m1-gpu-restricted"):
         mod = dl.ApplyDefaultSchedule(dl.gpu.GEMV())(mod)
-    gsmDataGen.ir.assert_structural_equal(mod["main"], expected)
+    gsm_data_generator.ir.assert_structural_equal(mod["main"], expected)
 
 
 def test_decode_gemv1():
@@ -380,10 +380,10 @@ def test_decode_gemv1():
 
     # fmt: on
 
-    mod = gsmDataGen.IRModule({"main": before})
+    mod = gsm_data_generator.IRModule({"main": before})
     with Target("nvidia/geforce-rtx-3090-ti"):
         mod = dl.ApplyDefaultSchedule(dl.gpu.GEMV())(mod)
-    gsmDataGen.ir.assert_structural_equal(mod["main"], expected)
+    gsm_data_generator.ir.assert_structural_equal(mod["main"], expected)
 
 
 def test_decode_gemv2():
@@ -503,10 +503,10 @@ def test_decode_gemv2():
 
     # fmt: on
 
-    mod = gsmDataGen.IRModule({"main": before})
+    mod = gsm_data_generator.IRModule({"main": before})
     with Target("nvidia/geforce-rtx-3090-ti"):
         mod = dl.ApplyDefaultSchedule(dl.gpu.GEMV())(mod)
-    gsmDataGen.ir.assert_structural_equal(mod["main"], expected)
+    gsm_data_generator.ir.assert_structural_equal(mod["main"], expected)
 
 
 def test_decode_gemv3():
@@ -627,10 +627,10 @@ def test_decode_gemv3():
 
     # fmt: on
 
-    mod = gsmDataGen.IRModule({"main": before})
+    mod = gsm_data_generator.IRModule({"main": before})
     with Target("nvidia/geforce-rtx-3090-ti"):
         mod = dl.ApplyDefaultSchedule(dl.gpu.GEMV())(mod)
-    gsmDataGen.ir.assert_structural_equal(mod["main"], expected)
+    gsm_data_generator.ir.assert_structural_equal(mod["main"], expected)
 
 
 def test_autogptq_decode_gemv():
@@ -665,10 +665,10 @@ def test_autogptq_decode_gemv():
 
     # The GeMV rule does not yet support the inner dim being grouped.
     # So the rule is expected to skip transforming this function.
-    mod = gsmDataGen.IRModule({"main": func})
+    mod = gsm_data_generator.IRModule({"main": func})
     with Target("nvidia/geforce-rtx-3090-ti"):
         mod = dl.ApplyDefaultSchedule(dl.gpu.GEMV())(mod)
-    gsmDataGen.ir.assert_structural_equal(mod["main"], func)
+    gsm_data_generator.ir.assert_structural_equal(mod["main"], func)
 
 
 def test_outer_reduction_adreno():
@@ -777,10 +777,10 @@ def test_outer_reduction_adreno():
                         T.writes(p_output0_intermediate[0, 0, v0])
                         p_output0_intermediate[0, 0, v0] = lv570[0, 0, v0] + var_matmul_intermediate_local[0, 0, v0]
     # fmt: on
-    mod = gsmDataGen.IRModule({"main": before})
+    mod = gsm_data_generator.IRModule({"main": before})
     with Target("opencl", host="llvm -mtriple=aarch64-linux-android"):
         mod = dl.ApplyDefaultSchedule(dl.gpu.GEMV())(mod)
-    gsmDataGen.ir.assert_structural_equal(mod["main"], expected)
+    gsm_data_generator.ir.assert_structural_equal(mod["main"], expected)
 
 
 def test_outer_reduction_adreno_dynamic():
@@ -919,10 +919,10 @@ def test_outer_reduction_adreno_dynamic():
                         p_output0_intermediate[T.int64(0), T.int64(0), v0] = T.Cast("float32", var_matmul_intermediate_local[T.int64(0), T.int64(0), v0])
     # fmt: on
 
-    mod = gsmDataGen.IRModule({"main": before})
+    mod = gsm_data_generator.IRModule({"main": before})
     with Target("opencl", host="llvm -mtriple=aarch64-linux-android"):
         mod = dl.ApplyDefaultSchedule(dl.gpu.GEMV())(mod)
-        gsmDataGen.ir.assert_structural_equal(mod["main"], expected)
+        gsm_data_generator.ir.assert_structural_equal(mod["main"], expected)
 
 
 def test_blockized_gemv():
@@ -1021,10 +1021,10 @@ def test_blockized_gemv():
                                     o[v_expert_id_o, v0] = o[v_expert_id_o, v0] + o_rf_local_1[vax1_fused_u_fused_1_ax1_fused_u_fused_3_fused_0, v_expert_id_o, v0]
     # fmt: on
 
-    mod = gsmDataGen.IRModule({"main": before})
+    mod = gsm_data_generator.IRModule({"main": before})
     with Target("metal"):
         mod = dl.ApplyDefaultSchedule(dl.gpu.GEMV())(mod)
-        gsmDataGen.ir.assert_structural_equal(mod["main"], expected)
+        gsm_data_generator.ir.assert_structural_equal(mod["main"], expected)
 
 
 def test_func_to_skip():
@@ -1054,11 +1054,11 @@ def test_func_to_skip():
             )
 
     # This function should be skipped.
-    mod = gsmDataGen.IRModule({"main": before})
+    mod = gsm_data_generator.IRModule({"main": before})
     with Target("metal"):
         mod = dl.ApplyDefaultSchedule(dl.gpu.GEMV())(mod)
-        gsmDataGen.ir.assert_structural_equal(mod["main"], before)
+        gsm_data_generator.ir.assert_structural_equal(mod["main"], before)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

@@ -22,19 +22,19 @@ import time
 from typing import List
 
 import pytest
-import gsmDataGen.testing
+import gsm_data_generator.testing
 
-from gsmDataGen import script
-from gsmDataGen.ffi import register_func
-from gsmDataGen.meta_schedule.builder import (
+from gsm_data_generator import script
+from gsm_data_generator.ffi import register_func
+from gsm_data_generator.meta_schedule.builder import (
     BuilderInput,
     BuilderResult,
     LocalBuilder,
     PyBuilder,
 )
-from gsmDataGen.runtime import Module
-from gsmDataGen.script import tir as T
-from gsmDataGen.target import Target
+from gsm_data_generator.runtime import Module
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.target import Target
 
 
 # pylint: disable=invalid-name,no-member,line-too-long,too-many-nested-blocks,missing-docstring
@@ -226,4 +226,4 @@ def test_meta_schedule_missing_build_func():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

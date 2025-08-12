@@ -21,22 +21,22 @@ from torch import nn
 from torch.nn import Module
 from torch.export import export
 
-import gsmDataGen
-from gsmDataGen import relax
-import gsmDataGen.testing
-from gsmDataGen.script import ir as I
-from gsmDataGen.script import relax as R
-from gsmDataGen.script import tir as T
-from gsmDataGen.relax.frontend.torch import from_exported_program
+import gsm_data_generator
+from gsm_data_generator import relax
+import gsm_data_generator.testing
+from gsm_data_generator.script import ir as I
+from gsm_data_generator.script import relax as R
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.relax.frontend.torch import from_exported_program
 
 
 def verify_model(torch_model, example_args, binding, expected, dynamic_shapes=None):
     exported_program = export(torch_model, args=example_args, dynamic_shapes=dynamic_shapes)
     mod = from_exported_program(exported_program)
 
-    binding = {k: gsmDataGen.nd.array(v) for k, v in binding.items()}
+    binding = {k: gsm_data_generator.nd.array(v) for k, v in binding.items()}
     expected = relax.transform.BindParams("main", binding)(expected)
-    gsmDataGen.ir.assert_structural_equal(mod, expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, expected)
 
 
 operator_basic_unary = [
@@ -84,7 +84,7 @@ def test_basic_unary_ops(pytorch_op, relax_op):
         def forward(self, input):
             return pytorch_op(input)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected:
         @R.function
         def main(
@@ -114,7 +114,7 @@ def test_bool_unary_ops(pytorch_op, relax_op):
         def forward(self, input):
             return pytorch_op(input)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected:
         @R.function
         def main(
@@ -146,7 +146,7 @@ def test_extended_unary_ops():
             return torch.nn.functional.celu(input)
 
     # alpha * min(0, exp(x / alpha) - 1) + max(0, x)
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected_celu:
         @R.function
         def main(
@@ -180,7 +180,7 @@ def test_extended_unary_ops():
         def forward(self, input):
             return torch.clamp(input, min=0.1, max=0.5)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected_clamp:
         @R.function
         def main(
@@ -202,7 +202,7 @@ def test_extended_unary_ops():
         def forward(self, input):
             return torch.clamp(input, min=0.5, max=None)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected_clamp_min_only:
         @R.function
         def main(
@@ -222,7 +222,7 @@ def test_extended_unary_ops():
         def forward(self, input):
             return torch.clamp(input, min=input, max=input)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected_clamp_tensors:
         @R.function
         def main(
@@ -264,7 +264,7 @@ def test_extended_unary_ops():
         def forward(self, input):
             return torch.ops.aten.dropout_(input, 0.5, train=True)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected_dropout:
         @R.function
         def main(
@@ -293,7 +293,7 @@ def test_extended_unary_ops():
         def forward(self, input):
             return torch.nn.functional.elu(input)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected_elu:
         @R.function
         def main(
@@ -333,7 +333,7 @@ def test_extended_unary_ops():
         def forward(self, input):
             return torch.nn.functional.hardsigmoid(input)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected_hardsigmoid:
         @R.function
         def main(
@@ -369,7 +369,7 @@ def test_extended_unary_ops():
         def forward(self, input):
             return torch.ops.aten.hardswish_(input)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected1:
         @R.function
         def main(
@@ -395,7 +395,7 @@ def test_extended_unary_ops():
         def forward(self, x):
             return torch.log2(x)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected_log2:
         @R.function
         def main(
@@ -417,7 +417,7 @@ def test_extended_unary_ops():
         def forward(self, x):
             return torch.log10(x)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected_log10:
         @R.function
         def main(
@@ -439,7 +439,7 @@ def test_extended_unary_ops():
         def forward(self, x):
             return torch.log1p(x)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected_log1p:
         @R.function
         def main(
@@ -460,7 +460,7 @@ def test_extended_unary_ops():
         def forward(self, input):
             return torch.reciprocal(input)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected_reciprocal:
         @R.function
         def main(
@@ -481,7 +481,7 @@ def test_extended_unary_ops():
         def forward(self, input):
             return torch.max(input)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected_max:
         @R.function
         def main(
@@ -500,7 +500,7 @@ def test_extended_unary_ops():
         def forward(self, input):
             return torch.min(input)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected_min:
         @R.function
         def main(
@@ -531,7 +531,7 @@ def test_extended_unary_ops():
         def forward(self, x):
             return torch.ops.aten.relu6_(x)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected_relu6_1:
         @R.function
         def main(
@@ -545,7 +545,7 @@ def test_extended_unary_ops():
                 R.output(gv)
             return gv
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected_relu6_2:
         @R.function
         def main(
@@ -579,7 +579,7 @@ def test_hardtanh():
         def forward(self, input):
             return torch.ops.aten.hardtanh_(input)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected1:
         @R.function
         def main(
@@ -617,7 +617,7 @@ def test_softplus():
         def forward(self, input):
             return torch.nn.functional.softplus(input, 1.0, 20.0)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected:
         @R.function
         def main(
@@ -658,7 +658,7 @@ def test_leakyrelu():
         def forward(self, input):
             return torch.ops.aten.leaky_relu_(input, 0.02)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected:
         @R.function
         def main(
@@ -682,7 +682,7 @@ def test_logaddexp():
         def forward(self, input1, input2):
             return torch.logaddexp(input1, input2)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected:
         @R.function
         def main(
@@ -716,7 +716,7 @@ def test_logsoftmax():
         def forward(self, input):
             return torch.nn.functional.log_softmax(input, dim=1)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected1:
         @R.function
         def main(
@@ -751,7 +751,7 @@ def test_prelu():
         def forward(self, x):
             return torch.nn.functional.prelu(x, self.alpha)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected:
         @R.function
         def main(
@@ -783,7 +783,7 @@ def test_softmax():
         def forward(self, input):
             return torch.nn.functional.softmax(input, dim=1)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected1:
         @R.function
         def main(
@@ -814,7 +814,7 @@ def test_softsign():
         def forward(self, input):
             return torch.nn.functional.softsign(input)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected_softsign:
         @R.function
         def main(
@@ -846,7 +846,7 @@ def test_softshrink():
         def forward(self, input):
             return torch.nn.functional.softshrink(input, lambd=0.5)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected_softshrink:
         @R.function
         def main(
@@ -888,7 +888,7 @@ def test_tril_triu():
         def forward(self, input):
             return torch.tril(input, 1)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected_tril:
         @R.function
         def main(
@@ -907,7 +907,7 @@ def test_tril_triu():
         def forward(self, input):
             return torch.triu(input, 1)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected_triu:
         @R.function
         def main(
@@ -958,7 +958,7 @@ def test_binary1(op, relax_op):
         def forward(self, lhs, rhs):
             return self.op(lhs, rhs)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected_binary1:
         @R.function
         def main(
@@ -979,7 +979,7 @@ def test_binary1(op, relax_op):
         def forward(self, lhs):
             return self.op(lhs, 1.0)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected_binary2:
         @R.function
         def main(
@@ -1021,7 +1021,7 @@ def test_binary2(op, relax_op):
         def forward(self, lhs, rhs):
             return self.op(lhs, rhs)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected_binary1:
         @R.function
         def main(
@@ -1042,7 +1042,7 @@ def test_binary2(op, relax_op):
         def forward(self, lhs):
             return self.op(lhs, 1.0)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected_binary2:
         @R.function
         def main(
@@ -1114,7 +1114,7 @@ def test_binary3():
         def forward(self, x):
             return torch.rsub(x, 5.0)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected_rsub1:
         @R.function
         def main(
@@ -1126,7 +1126,7 @@ def test_binary3():
                 R.output(gv)
             return gv
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected_rsub2:
         @R.function
         def main(
@@ -1150,7 +1150,7 @@ def test_isin():
         def forward(self, x, test_elements):
             return torch.isin(x, test_elements)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected:
         @R.function
         def main(
@@ -1179,7 +1179,7 @@ def test_div_mode():
         def forward(self, a, b):
             return torch.div(a, b)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected_div:
         @R.function
         def main(
@@ -1202,7 +1202,7 @@ def test_div_mode():
         def forward(self, a, b):
             return torch.div(a, b, rounding_mode="trunc")
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected_div_trunc:
         @R.function
         def main(
@@ -1222,7 +1222,7 @@ def test_div_mode():
         def forward(self, a, b):
             return torch.div(a, b, rounding_mode="floor")
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected_div_floor:
         @R.function
         def main(
@@ -1246,7 +1246,7 @@ def test_batchnorm2d():
         def forward(self, input):
             return self.bn(input)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected1:
         @R.function
         def main(
@@ -1303,7 +1303,7 @@ def test_adaptive_avgpool1d():
         def forward(self, input):
             return torch.nn.functional.adaptive_avg_pool1d(input, output_size=5)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected1:
         @R.function
         def main(
@@ -1335,7 +1335,7 @@ def test_adaptive_avgpool2d():
         def forward(self, input):
             return torch.nn.functional.adaptive_avg_pool2d(input, [10, 10])
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected1:
         @R.function
         def main(
@@ -1368,7 +1368,7 @@ def test_adaptive_avgpool3d():
         def forward(self, input):
             return torch.nn.functional.adaptive_avg_pool3d(input, [4, 4, 4])
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected1:
         @R.function
         def main(
@@ -1402,7 +1402,7 @@ def test_addmm():
         def forward(self, x1, x2, x3):
             return torch.addmm(x1, x2, x3, beta=0.8, alpha=0.5)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected1:
         @R.function
         def main(
@@ -1418,7 +1418,7 @@ def test_addmm():
                 R.output(gv)
             return gv
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected2:
         @R.function
         def main(
@@ -1455,7 +1455,7 @@ def test_avg_pool1d():
         def forward(self, input):
             return self.pool(input)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected1:
         @R.function
         def main(
@@ -1491,7 +1491,7 @@ def test_avg_pool1d():
                 input, kernel_size=3, stride=2, padding=1, ceil_mode=True
             )
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected2:
         @R.function
         def main(input_1: R.Tensor((1, 3, 10), dtype="float32")):
@@ -1515,7 +1515,7 @@ def test_avg_pool1d():
         def forward(self, input):
             return torch.nn.functional.avg_pool1d(input, kernel_size=2, stride=2, padding=0)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected3:
         @R.function
         def main(input_1: R.Tensor((1, 3, 10), dtype="float32")):
@@ -1551,7 +1551,7 @@ def test_avg_pool2d():
         def forward(self, input):
             return self.pool(input)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected1:
         @R.function
         def main(
@@ -1586,7 +1586,7 @@ def test_avg_pool2d():
                 input, kernel_size=[4, 4], stride=2, padding=2, ceil_mode=True
             )
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected2:
         @R.function
         def main(input_1: R.Tensor((1, 3, 10, 10), dtype="float32")):
@@ -1609,7 +1609,7 @@ def test_avg_pool2d():
         def forward(self, input):
             return torch.nn.functional.avg_pool2d(input, kernel_size=[2, 1], divisor_override=2)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected3:
         @R.function
         def main(input_1: R.Tensor((1, 3, 10, 10), dtype="float32")):
@@ -1644,7 +1644,7 @@ def test_avg_pool3d():
         def forward(self, input):
             return self.pool(input)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected1:
         @R.function
         def main(
@@ -1680,7 +1680,7 @@ def test_avg_pool3d():
                 input, kernel_size=3, stride=2, padding=1, ceil_mode=True
             )
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected2:
         @R.function
         def main(input_1: R.Tensor((1, 3, 8, 8, 8), dtype="float32")):
@@ -1704,7 +1704,7 @@ def test_avg_pool3d():
         def forward(self, input):
             return torch.nn.functional.avg_pool3d(input, kernel_size=[2, 1, 2], stride=[2, 1, 2])
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected3:
         @R.function
         def main(input_1: R.Tensor((1, 3, 8, 8, 8), dtype="float32")):
@@ -1739,7 +1739,7 @@ def test_baddbmm():
         def forward(self, c, x, y):
             return torch.baddbmm(c, x, y)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected1:
         @R.function
         def main(
@@ -1761,7 +1761,7 @@ def test_baddbmm():
         def forward(self, c, x, y):
             return torch.baddbmm(c, x, y, alpha=2, beta=0)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected2:
         @R.function
         def main(
@@ -1785,7 +1785,7 @@ def test_baddbmm():
         def forward(self, c, x, y):
             return torch.baddbmm(c, x, y, alpha=2, beta=3)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected3:
         @R.function
         def main(
@@ -1841,7 +1841,7 @@ def test_bmm():
         def forward(self, x, y):
             return torch.bmm(x, y)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(
@@ -1887,7 +1887,7 @@ def test_conv_transpose1d():
         def forward(self, input):
             return torch.nn.functional.conv_transpose1d(input, self.weight, self.bias)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected1:
         @R.function
         def main(
@@ -1923,7 +1923,7 @@ def test_conv_transpose1d():
         def forward(self, input):
             return self.conv(input)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected2:
         @R.function
         def main(
@@ -1981,7 +1981,7 @@ def test_conv_transpose2d():
         def forward(self, input):
             return torch.nn.functional.conv_transpose2d(input, self.weight, self.bias)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected1:
         @R.function
         def main(
@@ -2017,7 +2017,7 @@ def test_conv_transpose2d():
         def forward(self, input):
             return self.conv(input)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected2:
         @R.function
         def main(
@@ -2075,7 +2075,7 @@ def test_conv1d():
         def forward(self, input):
             return torch.nn.functional.conv1d(input, self.weight, self.bias)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected1:
         @R.function
         def main(
@@ -2110,7 +2110,7 @@ def test_conv1d():
         def forward(self, input):
             return self.conv(input)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected2:
         @R.function
         def main(
@@ -2167,7 +2167,7 @@ def test_conv2d():
         def forward(self, input):
             return torch.nn.functional.conv2d(input, self.weight, self.bias)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected1:
         @R.function
         def main(
@@ -2202,7 +2202,7 @@ def test_conv2d():
         def forward(self, input):
             return self.conv(input)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected2:
         @R.function
         def main(
@@ -2259,7 +2259,7 @@ def test_conv3d():
         def forward(self, input):
             return torch.nn.functional.conv3d(input, self.weight, self.bias)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected1:
         @R.function
         def main(
@@ -2294,7 +2294,7 @@ def test_conv3d():
         def forward(self, input):
             return self.conv(input)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected2:
         @R.function
         def main(
@@ -2347,7 +2347,7 @@ def test_pad():
             else:
                 return torch.nn.functional.pad(x, self.pad, mode=self.mode)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected_constant:
         @R.function
         def main(
@@ -2364,7 +2364,7 @@ def test_pad():
                 R.output(gv)
             return gv
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected_reflect:
         @R.function
         def main(
@@ -2381,7 +2381,7 @@ def test_pad():
                 R.output(gv)
             return gv
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected_replicate:
         @R.function
         def main(
@@ -2398,7 +2398,7 @@ def test_pad():
                 R.output(gv)
             return gv
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected_circular:
         @R.function
         def main(
@@ -2439,7 +2439,7 @@ def test_pixel_shuffle():
         def forward(self, x):
             return torch.nn.functional.pixel_shuffle(x, self.upscale_factor)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected:
         @R.function
         def main(
@@ -2473,7 +2473,7 @@ def test_einsum():
         def forward(self, x, y):
             return torch.einsum("i,j->ij", x, y)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected1:
         @R.function
         def main(
@@ -2485,7 +2485,7 @@ def test_einsum():
                 R.output(gv)
             return gv
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected2:
         @R.function
         def main(
@@ -2511,7 +2511,7 @@ def test_outer():
         def forward(self, x, y):
             return torch.outer(x, y)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected:
         @R.function
         def main(
@@ -2539,7 +2539,7 @@ def test_embedding():
         def forward(self, input):
             return self.embedding(input)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected1:
         @R.function
         def main(
@@ -2575,7 +2575,7 @@ def test_groupnorm():
         def forward(self, input):
             return self.gn(input)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected1:
         @R.function
         def main(
@@ -2621,7 +2621,7 @@ def test_instancenorm2d():
         def forward(self, input):
             return self.gn(input)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected1:
         @R.function
         def main(
@@ -2663,7 +2663,7 @@ def test_layernorm():
         def forward(self, input):
             return self.ln(input)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected1:
         @R.function
         def main(
@@ -2714,7 +2714,7 @@ def test_linear():
         def forward(self, input):
             return torch.nn.functional.linear(input, self.weight, self.bias)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected1:
         @R.function
         def main(
@@ -2741,7 +2741,7 @@ def test_linear():
         def forward(self, input):
             return self.linear(input)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected2:
         @R.function
         def main(
@@ -2797,7 +2797,7 @@ def test_maxpool1d():
         def forward(self, input):
             return self.pool(input)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected1:
         @R.function
         def main(
@@ -2817,7 +2817,7 @@ def test_maxpool1d():
                 R.output(gv)
             return gv
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected2:
         @R.function
         def main(
@@ -2837,7 +2837,7 @@ def test_maxpool1d():
                 R.output(gv)
             return gv
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected3:
         @R.function
         def main(
@@ -2884,7 +2884,7 @@ def test_maxpool2d():
         def forward(self, input):
             return torch.nn.functional.max_pool2d(input, kernel_size=[1, 1])
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected1:
         @R.function
         def main(
@@ -2913,7 +2913,7 @@ def test_maxpool2d():
         def forward(self, input):
             return self.pool(input)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected2:
         @R.function
         def main(
@@ -2942,7 +2942,7 @@ def test_maxpool2d():
         def forward(self, input):
             return self.pool(input)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected3:
         @R.function
         def main(
@@ -2986,7 +2986,7 @@ def test_maxpool3d():
         def forward(self, input):
             return torch.nn.functional.max_pool3d(input, kernel_size=[1, 1, 1])
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected1:
         @R.function
         def main(
@@ -3014,7 +3014,7 @@ def test_maxpool3d():
         def forward(self, input):
             return self.pool(input)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected2:
         @R.function
         def main(
@@ -3042,7 +3042,7 @@ def test_maxpool3d():
         def forward(self, input):
             return self.pool(input)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected3:
         @R.function
         def main(
@@ -3169,7 +3169,7 @@ def test_unbind():
         def forward(self, data):
             return torch.unbind(data)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected1:
         @R.function
         def main(
@@ -3212,7 +3212,7 @@ def test_unbind():
         def forward(self, data):
             return torch.unbind(data, dim=1)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected2:
         @R.function
         def main(
@@ -3261,7 +3261,7 @@ def test_interpolate():
         def forward(self, input):
             return torch.nn.functional.interpolate(input, (224, 224), mode="bilinear")
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected_bilinear:
         @R.function
         def main(
@@ -3290,7 +3290,7 @@ def test_interpolate():
         def forward(self, input):
             return torch.nn.functional.interpolate(input, (224, 224), mode="nearest")
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected_nearest:
         @R.function
         def main(
@@ -3319,7 +3319,7 @@ def test_interpolate():
         def forward(self, input):
             return torch.nn.functional.interpolate(input, (224, 224), mode="bicubic")
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected_bicubic:
         @R.function
         def main(
@@ -3393,7 +3393,7 @@ def test_sum():
         def forward(self, x):
             return torch.sum(x, (2, 1))
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected1:
         @R.function
         def main(
@@ -3427,7 +3427,7 @@ def test_argmax_argmin():
         def forward(self, input):
             return torch.argmax(input, dim=-1, keepdim=True)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected_argmax1:
         @R.function
         def main(
@@ -3439,7 +3439,7 @@ def test_argmax_argmin():
                 R.output(gv)
             return gv
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected_argmax2:
         @R.function
         def main(
@@ -3468,7 +3468,7 @@ def test_argmax_argmin():
         def forward(self, input):
             return torch.argmin(input, keepdim=True)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected_argmin1:
         @R.function
         def main(
@@ -3480,7 +3480,7 @@ def test_argmax_argmin():
                 R.output(gv)
             return gv
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected_argmin2:
         @R.function
         def main(
@@ -3551,7 +3551,7 @@ def test_cumsum():
         def forward(self, input):
             return torch.cumsum(input, dim=1, dtype=torch.int32)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected1:
         @R.function
         def main(
@@ -3577,7 +3577,7 @@ def test_expand():
         def forward(self, x):
             return x.expand(4, -1, -1, 4)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected1:
         @R.function
         def main(
@@ -3604,7 +3604,7 @@ def test_flatten():
         def forward(self, input):
             return self.f(input)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected1:
         @R.function
         def main(
@@ -3630,7 +3630,7 @@ def test_meshgrid():
         def forward(self, input1, input2):
             return torch.meshgrid((input1, input2), indexing="xy")
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected1:
         @R.function
         def main(
@@ -3648,7 +3648,7 @@ def test_meshgrid():
                 R.output(gv)
             return gv
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected2:
         @R.function
         def main(
@@ -3683,7 +3683,7 @@ def test_permute():
         def forward(self, x):
             return torch.permute(x, (0, 3, 2, 1))
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected1:
         @R.function
         def main(
@@ -3710,7 +3710,7 @@ def test_repeat():
         def forward(self, x: torch.Tensor):
             return x.repeat(4, 2)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected1:
         @R.function
         def main(x: R.Tensor((3,), dtype="float32")) -> R.Tuple(R.Tensor((6,), dtype="float32")):
@@ -3721,7 +3721,7 @@ def test_repeat():
                 R.output(gv)
             return gv
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected2:
         @R.function
         def main(
@@ -3749,7 +3749,7 @@ def test_reshape():
         def forward(self, x):
             return x.reshape(2, 12)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected1:
         @R.function
         def main(
@@ -3771,7 +3771,7 @@ def test_reshape_as():
         def forward(self, x: torch.Tensor, y: torch.Tensor):
             return x.reshape_as(y)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected1:
         @R.function
         def main(
@@ -3922,7 +3922,7 @@ def test_select_slice():
         def forward(self, x):
             return x[0, 1::2, :, :3]
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected1:
         @R.function
         def main(
@@ -4005,7 +4005,7 @@ def test_slice_scatter():
         def forward(self, input, src):
             return torch.slice_scatter(input, src, dim=1, start=1, end=7, step=2)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected1:
         @R.function
         def main(
@@ -4050,7 +4050,7 @@ def test_split():
         def forward(self, input):
             return torch.chunk(input, 3, dim=1)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(
@@ -4082,7 +4082,7 @@ def test_split():
         def forward(self, data):
             return torch.unbind(data)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected1:
         @R.function
         def main(
@@ -4125,7 +4125,7 @@ def test_split():
         def forward(self, data):
             return torch.unbind(data, dim=1)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected2:
         @R.function
         def main(
@@ -4177,7 +4177,7 @@ def test_squeeze():
         def forward(self, input):
             return input.squeeze(1)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected1:
         @R.function
         def main(
@@ -4193,7 +4193,7 @@ def test_squeeze():
         def forward(self, input):
             return input.squeeze()
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected2:
         @R.function
         def main(
@@ -4288,7 +4288,7 @@ def test_tile():
         def forward(self, x):
             return torch.tile(x, (4, 2))
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected1:
         @R.function
         def main(
@@ -4301,7 +4301,7 @@ def test_tile():
                 R.output(gv)
             return gv
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected2:
         @R.function
         def main(
@@ -4325,7 +4325,7 @@ def test_transpose():
         def forward(self, x):
             return x.transpose(1, 3)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected1:
         @R.function
         def main(
@@ -4347,7 +4347,7 @@ def test_unsqueeze():
         def forward(self, input):
             return input.unsqueeze(1)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected1:
         @R.function
         def main(
@@ -4364,7 +4364,7 @@ def test_unsqueeze():
         def forward(self, input):
             return input.unsqueeze(-1)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected2:
         @R.function
         def main(
@@ -4388,7 +4388,7 @@ def test_view():
         def forward(self, x):
             return x.view(2, 12)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected1:
         @R.function
         def main(
@@ -4410,7 +4410,7 @@ def test_arange():
         def forward(self, input):
             return torch.arange(0, 20, dtype=torch.int32)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(
@@ -4431,7 +4431,7 @@ def test_hamming_window():
         def forward(self, input):
             return torch.hamming_window(20, True, dtype=torch.float32)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(
@@ -4458,7 +4458,7 @@ def test_contiguous():
         def forward(self, input):
             return input.contiguous()
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(
@@ -4478,7 +4478,7 @@ def test_clone():
         def forward(self, input):
             return torch.clone(input)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(
@@ -4498,7 +4498,7 @@ def test_empty():
         def forward(self, input):
             return torch.empty((10, 10), dtype=torch.float32)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(
@@ -4521,7 +4521,7 @@ def test_fill():
         def forward(self, input: torch.Tensor):
             return torch.fill(input, 1.5)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(
@@ -4545,7 +4545,7 @@ def test_fill_inplace():
             input.fill_(42.0)
             return input
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(
@@ -4568,7 +4568,7 @@ def test_masked_fill():
         def forward(self, input: torch.Tensor, mask: torch.Tensor):
             return torch.masked_fill(input, mask, 0)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(
@@ -4592,7 +4592,7 @@ def test_masked_fill_inplace():
         def forward(self, input: torch.Tensor, mask: torch.Tensor):
             return input.masked_fill_(mask, 1.5)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(
@@ -4616,7 +4616,7 @@ def test_new_ones():
         def forward(self, x):
             return x.new_ones(1, 2, 3)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected1:
         @R.function
         def main(
@@ -4640,7 +4640,7 @@ def test_new_zeros():
         def forward(self, x):
             return x.new_zeros(1, 128, 128)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected1:
         @R.function
         def main(
@@ -4664,7 +4664,7 @@ def test_to_copy():
         def forward(self, x):
             return x.float()
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected_float:
         @R.function
         def main(
@@ -4682,7 +4682,7 @@ def test_to_copy():
         def forward(self, x):
             return x.half()
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected_half:
         @R.function
         def main(
@@ -4700,7 +4700,7 @@ def test_to_copy():
         def forward(self, x):
             return x.type(torch.float32)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected_type:
         @R.function
         def main(
@@ -4762,7 +4762,7 @@ def test_keep_params():
         def forward(self, input):
             return self.conv(input)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class expected1:
         @R.function
         def main(
@@ -4790,14 +4790,14 @@ def test_keep_params():
                 R.output(gv)
             return gv
 
-    from gsmDataGen.relax.frontend import detach_params
+    from gsm_data_generator.relax.frontend import detach_params
 
     example_args = (torch.randn(1, 3, 10, 10, dtype=torch.float32),)
     model = Conv2D1()
     exported_program = torch.export.export(model, example_args)
     mod = from_exported_program(exported_program, keep_params_as_input=True)
     mod, params = detach_params(mod)
-    gsmDataGen.ir.assert_structural_equal(mod, expected1)
+    gsm_data_generator.ir.assert_structural_equal(mod, expected1)
     func = mod["main"]
     params = params["main"]
 
@@ -4806,8 +4806,8 @@ def test_keep_params():
         assert tuple(x.value for x in param_var.struct_info.shape.values) == param_ndarray.shape
         assert param_var.struct_info.dtype == param_ndarray.dtype
 
-    gsmDataGen.testing.assert_allclose(params[0].numpy(), model.conv.weight.detach().detach().numpy())
-    gsmDataGen.testing.assert_allclose(params[1].numpy(), model.conv.bias.detach().detach().numpy())
+    gsm_data_generator.testing.assert_allclose(params[0].numpy(), model.conv.weight.detach().detach().numpy())
+    gsm_data_generator.testing.assert_allclose(params[1].numpy(), model.conv.bias.detach().detach().numpy())
 
 
 def test_unwrap_unit_return_tuple():
@@ -4818,7 +4818,7 @@ def test_unwrap_unit_return_tuple():
         def forward(self, x):
             return (x,)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(
@@ -4832,7 +4832,7 @@ def test_unwrap_unit_return_tuple():
     example_args = (torch.randn(256, 256, dtype=torch.float32),)
     exported_program = export(Identity(), args=example_args)
     mod = from_exported_program(exported_program, unwrap_unit_return_tuple=True)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_no_bind_return_tuple():
@@ -4843,7 +4843,7 @@ def test_no_bind_return_tuple():
         def forward(self, x, y):
             return (x, y)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(
@@ -4862,7 +4862,7 @@ def test_no_bind_return_tuple():
     )
     exported_program = export(Identity(), args=example_args)
     mod = from_exported_program(exported_program, no_bind_return_tuple=True)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_empty_like():
@@ -4870,7 +4870,7 @@ def test_empty_like():
         def forward(self, data):
             return torch.empty_like(data)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(
@@ -4892,7 +4892,7 @@ def test_one_hot():
         def forward(self, indices):
             return torch.nn.functional.one_hot(indices, num_classes=10)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(
@@ -4916,7 +4916,7 @@ def test_ones_like():
         def forward(self, input):
             return torch.ones_like(input)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(
@@ -4938,7 +4938,7 @@ def test_zero_inplace():
         def forward(self, input):
             return input.zero_()
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(
@@ -4960,7 +4960,7 @@ def test_zeros():
         def forward(self, input):
             return torch.zeros(5, 2)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(
@@ -4982,7 +4982,7 @@ def test_zeros_like():
         def forward(self, input):
             return torch.zeros_like(input)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(
@@ -5003,7 +5003,7 @@ def test_type_as():
         def forward(self, input, other):
             return input.type_as(other)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(
@@ -5029,7 +5029,7 @@ def test_select():
         def forward(self, input):
             return torch.select(input, 0, 1)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(
@@ -5055,7 +5055,7 @@ def test_unflatten():
         def forward(self, input):
             return torch.ops.aten.unflatten(input, -2, (3, 5))
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(
@@ -5090,7 +5090,7 @@ def test_gather():
         def forward(self, data, indices):
             return torch.gather(data, -2, indices)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected0:
         @R.function
         def main(
@@ -5103,7 +5103,7 @@ def test_gather():
                 R.output(gv)
             return gv
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected1:
         @R.function
         def main(
@@ -5116,7 +5116,7 @@ def test_gather():
                 R.output(gv)
             return gv
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected2:
         @R.function
         def main(
@@ -5129,7 +5129,7 @@ def test_gather():
                 R.output(gv)
             return gv
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected3:
         @R.function
         def main(
@@ -5337,7 +5337,7 @@ def test_flip():
         def forward(self, data):
             return torch.flip(data, [1])
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected0:
         @R.function
         def main(
@@ -5349,7 +5349,7 @@ def test_flip():
                 R.output(gv)
             return gv
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected1:
         @R.function
         def main(
@@ -5372,7 +5372,7 @@ def test_take():
         def forward(self, data, indices):
             return torch.take(data, indices)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(
@@ -5399,7 +5399,7 @@ def test_std():
         def forward(self, x):
             return torch.std(x)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(
@@ -5420,7 +5420,7 @@ def test_var():
         def forward(self, x):
             return torch.var(x)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(
@@ -5441,7 +5441,7 @@ def test_prod():
         def forward(self, x):
             return torch.prod(x)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(
@@ -5462,7 +5462,7 @@ def test_cumprod():
         def forward(self, x):
             return torch.cumprod(x, 0)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(
@@ -5483,7 +5483,7 @@ def test_where():
         def forward(self, condition, x, y):
             return torch.where(condition, x, y)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(
@@ -5509,7 +5509,7 @@ def test_bucketize():
         def forward(self, input_tensor, boundaries):
             return torch.bucketize(input_tensor, boundaries)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(
@@ -5534,7 +5534,7 @@ def test_argsort():
         def forward(self, x):
             return torch.argsort(x, dim=1, descending=True)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(x: R.Tensor((5, 3), dtype="float32")) -> R.Tuple(R.Tensor((5, 3), dtype="int32")):
@@ -5555,7 +5555,7 @@ def test_topk():
         def forward(self, x):
             return torch.topk(x, k=2, dim=1, largest=True, sorted=True)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(
@@ -5583,9 +5583,9 @@ def test_dynamic_shape():
         def forward(self, x1, x2):
             return torch.ops.aten.add.Tensor(x1, x2)
 
-    B = gsmDataGen.tir.SizeVar("BatchSize", dtype="int64")
+    B = gsm_data_generator.tir.SizeVar("BatchSize", dtype="int64")
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(
@@ -5610,7 +5610,7 @@ def test_broadcast_to():
         def forward(self, x):
             return torch.broadcast_to(x, (5, 3))
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(
@@ -5632,7 +5632,7 @@ def test_narrow():
         def forward(self, x):
             return torch.narrow(x, 1, 0, 2)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(
@@ -5660,7 +5660,7 @@ def test_item():
         def forward(self, x):
             return x.item()
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(input: R.Tensor((1,), dtype="float32")) -> R.Tuple(R.Tensor((), dtype="float32")):
@@ -5685,7 +5685,7 @@ def test_norm():
         def forward(self, x):
             return torch.norm(x, p=self.p, dim=self.dim, keepdim=self.keepdim)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected1:
         @R.function
         def main(
@@ -5697,7 +5697,7 @@ def test_norm():
                 R.output(gv)
             return gv
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected2:
         @R.function
         def main(
@@ -5709,7 +5709,7 @@ def test_norm():
                 R.output(gv)
             return gv
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected3:
         @R.function
         def main(
@@ -5724,7 +5724,7 @@ def test_norm():
                 R.output(gv)
             return gv
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected4:
         @R.function
         def main(
@@ -5739,7 +5739,7 @@ def test_norm():
                 R.output(gv)
             return gv
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected5:
         @R.function
         def main(
@@ -5756,7 +5756,7 @@ def test_norm():
                 R.output(gv)
             return gv
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected6:
         @R.function
         def main(
@@ -5791,7 +5791,7 @@ def test_eye():
         def forward(self, input):
             return torch.eye(3, 5, dtype=torch.float32)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected1:
         @R.function
         def main(
@@ -5807,7 +5807,7 @@ def test_eye():
         def forward(self, input):
             return torch.eye(5, dtype=torch.float32)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected2:
         @R.function
         def main(
@@ -5836,7 +5836,7 @@ def test_cross_entropy():
         def forward(self, x):
             return self.criterion(x, self.target)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected1:
         @R.function
         def main(x: R.Tensor((4, 3), dtype="float32")) -> R.Tuple(R.Tensor((), dtype="float32")):
@@ -5861,7 +5861,7 @@ def test_linspace():
         def forward(self, input):
             return torch.linspace(0, 1, steps=9, dtype=torch.float32)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(
@@ -5898,7 +5898,7 @@ def test_dtypes(torch_dtype, relax_dtype):
         def forward(self, lhs: torch.Tensor, rhs: torch.Tensor):
             return torch.ops.aten.add(lhs, rhs)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(
@@ -5915,5 +5915,5 @@ def test_dtypes(torch_dtype, relax_dtype):
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()
 1

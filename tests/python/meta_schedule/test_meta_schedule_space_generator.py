@@ -20,23 +20,23 @@
 import math
 
 import pytest
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen.base import TVMError
-from gsmDataGen.meta_schedule.space_generator import (
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator.base import TVMError
+from gsm_data_generator.meta_schedule.space_generator import (
     PySpaceGenerator,
     ScheduleFn,
     SpaceGeneratorUnion,
 )
-from gsmDataGen.meta_schedule.tune_context import TuneContext
-from gsmDataGen.meta_schedule.utils import derived_object
-from gsmDataGen.script import tir as T
-from gsmDataGen.tir.schedule import Schedule
+from gsm_data_generator.meta_schedule.tune_context import TuneContext
+from gsm_data_generator.meta_schedule.utils import derived_object
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.tir.schedule import Schedule
 
 # pylint: disable=invalid-name,no-member,line-too-long,too-many-nested-blocks,no-self-argument
 # fmt: off
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Matmul:
     @T.prim_func
     def main(a: T.handle, b: T.handle, c: T.handle) -> None:
@@ -107,4 +107,4 @@ def test_meta_schedule_design_space_generator_NIE():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

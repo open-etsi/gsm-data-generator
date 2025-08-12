@@ -14,11 +14,11 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-import gsmDataGen
-from gsmDataGen import te
+import gsm_data_generator
+from gsm_data_generator import te
 import numpy as np
-from gsmDataGen import rpc
-from gsmDataGen.contrib import utils, xcode, coreml_runtime
+from gsm_data_generator import rpc
+from gsm_data_generator.contrib import utils, xcode, coreml_runtime
 
 import pytest
 import os
@@ -73,7 +73,7 @@ def test_coreml_runtime():
         # inference via tvm coreml runtime
         runtime = coreml_runtime.create("main", model_path, dev)
         for name in inputs:
-            runtime.set_input(name, gsmDataGen.nd.array(inputs[name], dev))
+            runtime.set_input(name, gsm_data_generator.nd.array(inputs[name], dev))
         runtime.invoke()
         tvm_outputs = [runtime.get_output(i).numpy() for i in range(runtime.get_num_outputs())]
 
@@ -94,7 +94,7 @@ def test_coreml_runtime():
     def check_local(coreml_model):
         temp = utils.tempdir()
         compiled_model = xcode.compile_coreml(coreml_model, out_dir=temp.temp_dir)
-        dev = gsmDataGen.cpu(0)
+        dev = gsm_data_generator.cpu(0)
         verify(coreml_model, compiled_model, dev)
 
     coreml_model = create_coreml_model()

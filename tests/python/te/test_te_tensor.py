@@ -15,10 +15,10 @@
 # specific language governing permissions and limitations
 # under the License.
 import numpy as np
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import te
-from gsmDataGen.topi.nn.pooling import pool2d
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import te
+from gsm_data_generator.topi.nn.pooling import pool2d
 
 
 def test_tensor():
@@ -31,7 +31,7 @@ def test_tensor():
     print(T)
     print(T.op.body)
     assert tuple(T.shape) == (m, n, l)
-    assert isinstance(A.op, gsmDataGen.te.PlaceholderOp)
+    assert isinstance(A.op, gsm_data_generator.te.PlaceholderOp)
     assert A == A
     assert T.op.output(0) == T
     assert T.op.output(0).__hash__() == T.__hash__()
@@ -83,14 +83,14 @@ def test_tensor_comm_reducer():
     n = te.size_var("n")
     A = te.placeholder((m, n), name="A")
     k = te.reduce_axis((0, n), "k")
-    mysum = te.comm_reducer(lambda x, y: x + y, lambda t: gsmDataGen.tir.const(0, dtype=t))
+    mysum = te.comm_reducer(lambda x, y: x + y, lambda t: gsm_data_generator.tir.const(0, dtype=t))
     C = te.compute((m,), lambda i: mysum(A[i, k], axis=k))
 
 
 def test_tensor_comm_reducer_overload():
     m = te.size_var("m")
     n = te.size_var("n")
-    mysum = te.comm_reducer(lambda x, y: x + y, lambda t: gsmDataGen.tir.const(0, dtype=t))
+    mysum = te.comm_reducer(lambda x, y: x + y, lambda t: gsm_data_generator.tir.const(0, dtype=t))
     sum_res = mysum(m, n)
 
 
@@ -104,8 +104,8 @@ def test_tensor_reduce():
     rv = te.reduce_axis((0, A.shape[1]), "k")
     C = te.compute((m, n), lambda i, j: te.sum(T(i, j, rv + 1), axis=rv))
     # json load save
-    C_json = gsmDataGen.ir.save_json(C)
-    C_loaded = gsmDataGen.ir.load_json(C_json)
+    C_json = gsm_data_generator.ir.save_json(C)
+    C_loaded = gsm_data_generator.ir.load_json(C_json)
     assert isinstance(C_loaded, te.tensor.Tensor)
     assert str(C_loaded) == str(C)
 
@@ -115,7 +115,7 @@ def test_tensor_reduce_multiout_with_cond():
         return x[0] + y[0], x[1] + y[1]
 
     def fidentity(t0, t1):
-        return gsmDataGen.tir.const(0, t0), gsmDataGen.tir.const(1, t1)
+        return gsm_data_generator.tir.const(0, t0), gsm_data_generator.tir.const(1, t1)
 
     mysum = te.comm_reducer(fcombine, fidentity, name="mysum")
 
@@ -133,7 +133,7 @@ def test_tensor_scan():
     n = te.size_var("n")
     x = te.placeholder((m, n))
     s = te.placeholder((m, n))
-    res = gsmDataGen.te.scan(
+    res = gsm_data_generator.te.scan(
         te.compute((1, n), lambda _, i: x[0, i]),
         te.compute((m, n), lambda t, i: s[t - 1, i] + x[t, i]),
         s,
@@ -153,12 +153,12 @@ def test_scan_multi_out():
     s1_update = te.compute((m, n), lambda t, i: s1[t - 1, i] + s2[t - 1, i] + x1[t, i])
     s2_update = te.compute((m, n), lambda t, i: x2[t, i] + s2[t - 1, i])
 
-    r0, r1 = gsmDataGen.te.scan([s1_init, s2_init], [s1_update, s2_update], [s1, s2])
+    r0, r1 = gsm_data_generator.te.scan([s1_init, s2_init], [s1_update, s2_update], [s1, s2])
     assert r0.value_index == 0
     assert r1.value_index == 1
-    json_str = gsmDataGen.ir.save_json(r0.op)
-    zz = gsmDataGen.ir.load_json(json_str)
-    assert isinstance(zz, gsmDataGen.te.ScanOp)
+    json_str = gsm_data_generator.ir.save_json(r0.op)
+    zz = gsm_data_generator.ir.load_json(json_str)
+    assert isinstance(zz, gsm_data_generator.te.ScanOp)
 
 
 def test_extern():
@@ -166,8 +166,8 @@ def test_extern():
     A = te.placeholder((m,), name="A")
 
     def extern_func(ins, outs):
-        assert isinstance(ins[0], gsmDataGen.tir.Buffer)
-        return gsmDataGen.tir.call_packed("myadd", ins[0].data, outs[0].data, m)
+        assert isinstance(ins[0], gsm_data_generator.tir.Buffer)
+        return gsm_data_generator.tir.call_packed("myadd", ins[0].data, outs[0].data, m)
 
     B = te.extern((m,), [A], extern_func)
     assert tuple(B.shape) == (m,)
@@ -179,8 +179,8 @@ def test_extern_multi_out():
     B = te.compute((m,), lambda i: A[i] * 10)
 
     def extern_func(ins, outs):
-        assert isinstance(ins[0], gsmDataGen.tir.Buffer)
-        return gsmDataGen.tir.call_packed("myadd", ins[0].data, outs[0].data, outs[1].data, m)
+        assert isinstance(ins[0], gsm_data_generator.tir.Buffer)
+        return gsm_data_generator.tir.call_packed("myadd", ins[0].data, outs[0].data, outs[1].data, m)
 
     res = te.extern([A.shape, A.shape], [A, B], extern_func)
     assert len(res) == 2

@@ -17,8 +17,8 @@
 
 import pytest
 import pickle
-from gsmDataGen.ffi import Device
-from gsmDataGen import ffi as tvm_ffi
+from gsm_data_generator.ffi import Device
+from gsm_data_generator import ffi as tvm_ffi
 
 
 def test_device():

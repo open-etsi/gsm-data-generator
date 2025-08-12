@@ -14,10 +14,10 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-import gsmDataGen
-from gsmDataGen.script import ir as I
-from gsmDataGen.script import tir as T
-from gsmDataGen.meta_schedule.testing import te_workload
+import gsm_data_generator
+from gsm_data_generator.script import ir as I
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.meta_schedule.testing import te_workload
 
 # pylint: disable=invalid-name,no-member,line-too-long,too-many-nested-blocks,no-self-argument,missing-class-docstring,missing-function-docstring
 # fmt: off
@@ -34,7 +34,7 @@ class Module:
         T.func_attr(
             {
                 "global_symbol": "test",
-                "target": gsmDataGen.target.Target("llvm", host="llvm"),
+                "target": gsm_data_generator.target.Target("llvm", host="llvm"),
                 "tir.noalias": True,
             }
         )
@@ -56,12 +56,12 @@ def test_host_func():
     """Test that host functions are not split."""
     # te schedule copied from test_tir_transform_split_host_device.py
 
-    func = gsmDataGen.te.create_prim_func(
+    func = gsm_data_generator.te.create_prim_func(
         te_workload.matmul(729, 729, 729, in_dtype="float32", out_dtype="float32")
     )
-    mod = gsmDataGen.ir.IRModule({"main": func})
-    target = gsmDataGen.target.Target("cuda")
-    mod = gsmDataGen.tir.transform.Apply(
+    mod = gsm_data_generator.ir.IRModule({"main": func})
+    target = gsm_data_generator.target.Target("cuda")
+    mod = gsm_data_generator.tir.transform.Apply(
         lambda f: f.with_attr(
             {
                 "global_symbol": "test",
@@ -69,8 +69,8 @@ def test_host_func():
             }
         )
     )(mod)
-    mod = gsmDataGen.tir.transform.BindTarget(target)(mod)
-    gsmDataGen.ir.assert_structural_equal(mod, Module)
+    mod = gsm_data_generator.tir.transform.BindTarget(target)(mod)
+    gsm_data_generator.ir.assert_structural_equal(mod, Module)
     assert (
         "tir.is_host_func" not in mod["main"].attrs
     ), """Target and is_host_func attributes should be mutually exclusive"""

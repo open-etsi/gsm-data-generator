@@ -18,9 +18,9 @@
 
 import pytest
 
-import gsmDataGen
-from gsmDataGen.script import tir as T
-from gsmDataGen.tir.schedule.testing import assert_structural_equal_ignore_global_symbol
+import gsm_data_generator
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.tir.schedule.testing import assert_structural_equal_ignore_global_symbol
 
 
 @T.prim_func
@@ -181,13 +181,13 @@ def test_specialize_nothing():
 def test_specialize_matmul():
     a, _, _, n = matmul.params
     # fully specialized
-    func = matmul.specialize({a: gsmDataGen.tir.decl_buffer((128, 128))})
+    func = matmul.specialize({a: gsm_data_generator.tir.decl_buffer((128, 128))})
     assert_structural_equal_ignore_global_symbol(func, matmul_128)
     # partially specialized
     func = matmul.specialize({n: 128})
     assert_structural_equal_ignore_global_symbol(func, matmul_m_128)
     # symbolic specialized
-    func = matmul.specialize({n: gsmDataGen.tir.Var("x", "int32") * 8})
+    func = matmul.specialize({n: gsm_data_generator.tir.Var("x", "int32") * 8})
     assert_structural_equal_ignore_global_symbol(func, matmul_m_8x)
 
 
@@ -195,17 +195,17 @@ def test_specialize_elemwise():
     a, c = element_wise.params
     C = element_wise.buffer_map[c]
     # fully specialized
-    func = element_wise.specialize({a: gsmDataGen.tir.decl_buffer((128, 64))})
+    func = element_wise.specialize({a: gsm_data_generator.tir.decl_buffer((128, 64))})
     assert_structural_equal_ignore_global_symbol(func, element_wise_128_64)
     # partially specialized
-    func = element_wise.specialize({c: gsmDataGen.tir.decl_buffer((128, C.shape[1]))})
+    func = element_wise.specialize({c: gsm_data_generator.tir.decl_buffer((128, C.shape[1]))})
     assert_structural_equal_ignore_global_symbol(func, element_wise_128_n)
 
 
 def test_specialize_mem_copy():
     a, _, m, n, p, q = mem_copy.params
     # fully specialized
-    func = mem_copy.specialize({a: gsmDataGen.tir.decl_buffer((16, 16), strides=[8, 1], elem_offset=4)})
+    func = mem_copy.specialize({a: gsm_data_generator.tir.decl_buffer((16, 16), strides=[8, 1], elem_offset=4)})
     assert_structural_equal_ignore_global_symbol(func, mem_copy_16_16_8_4)
     func = mem_copy.specialize({n: 16, m: 16, p: 8, q: 4})
     assert_structural_equal_ignore_global_symbol(func, mem_copy_16_16_8_4)
@@ -240,7 +240,7 @@ def test_specialize_with_const_folding():
                 B[vi] = A[vi // 8, vi % 8] + 714
 
     b = before.params[1]
-    after = before.specialize({b: gsmDataGen.tir.decl_buffer([16], dtype="int32")})
+    after = before.specialize({b: gsm_data_generator.tir.decl_buffer([16], dtype="int32")})
     assert_structural_equal_ignore_global_symbol(expected, after)
 
 
@@ -262,7 +262,7 @@ def test_specialize_decl_buffer():
     param_map = {before.params[1]: T.int32(16)}
     after = before.specialize(param_map)
 
-    gsmDataGen.ir.assert_structural_equal(expected, after)
+    gsm_data_generator.ir.assert_structural_equal(expected, after)
 
 
 def test_specialize_buffer_var_to_var():
@@ -294,7 +294,7 @@ def test_specialize_buffer_var_to_var():
     param_map = {B_handle: A}
     after = before.specialize(param_map)
 
-    gsmDataGen.ir.assert_structural_equal(expected, after)
+    gsm_data_generator.ir.assert_structural_equal(expected, after)
 
 
 def test_specialize_buffer_var_to_expr():
@@ -324,10 +324,10 @@ def test_specialize_buffer_var_to_expr():
 
     B_data = before.params[1]
     A_buf = before.body.buffer
-    param_map = {B_data: gsmDataGen.tir.address_of(A_buf[16])}
+    param_map = {B_data: gsm_data_generator.tir.address_of(A_buf[16])}
     after = before.specialize(param_map)
 
-    gsmDataGen.ir.assert_structural_equal(expected, after)
+    gsm_data_generator.ir.assert_structural_equal(expected, after)
 
 
 def test_specialization_updates_struct_info():
@@ -345,21 +345,21 @@ def test_specialization_updates_struct_info():
     def expected() -> T.int32:
         T.ret(50)
 
-    sinfo_before = gsmDataGen.relax.FuncStructInfo(
-        [gsmDataGen.relax.PrimStructInfo("int32")], gsmDataGen.relax.PrimStructInfo("int32")
+    sinfo_before = gsm_data_generator.relax.FuncStructInfo(
+        [gsm_data_generator.relax.PrimStructInfo("int32")], gsm_data_generator.relax.PrimStructInfo("int32")
     )
-    gsmDataGen.ir.assert_structural_equal(before.struct_info, sinfo_before)
+    gsm_data_generator.ir.assert_structural_equal(before.struct_info, sinfo_before)
 
-    sinfo_expected = gsmDataGen.relax.FuncStructInfo([], gsmDataGen.relax.PrimStructInfo("int32"))
-    gsmDataGen.ir.assert_structural_equal(expected.struct_info, sinfo_expected)
+    sinfo_expected = gsm_data_generator.relax.FuncStructInfo([], gsm_data_generator.relax.PrimStructInfo("int32"))
+    gsm_data_generator.ir.assert_structural_equal(expected.struct_info, sinfo_expected)
 
     n = before.params[0]
     param_map = {n: 5}
     after = before.specialize(param_map)
 
-    gsmDataGen.ir.assert_structural_equal(after, expected)
-    gsmDataGen.ir.assert_structural_equal(after.struct_info, sinfo_expected)
+    gsm_data_generator.ir.assert_structural_equal(after, expected)
+    gsm_data_generator.ir.assert_structural_equal(after.struct_info, sinfo_expected)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

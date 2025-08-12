@@ -15,17 +15,17 @@
 # specific language governing permissions and limitations
 # under the License.
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import relax, topi
-from gsmDataGen.script import ir as I, relax as R, tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import relax, topi
+from gsm_data_generator.script import ir as I, relax as R, tir as T
 
 
 def _check(mod_actual, mod_expected):
     mod_actual = relax.transform.AnnotateTIROpPattern()(mod_actual)
     mod_actual = relax.transform.FuseOps()(mod_actual)
     mod_expected = relax.transform.AnnotateTIROpPattern()(mod_expected)
-    gsmDataGen.ir.assert_structural_equal(mod_actual, mod_expected)
+    gsm_data_generator.ir.assert_structural_equal(mod_actual, mod_expected)
 
 
 def test_fuse_simple():
@@ -1135,7 +1135,7 @@ def test_multiple_paths():
     mod = relax.transform.LegalizeOps()(Module)
     mod = relax.transform.AnnotateTIROpPattern()(mod)
     mod = relax.transform.FuseOps()(mod)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_dead_group():
@@ -1314,7 +1314,7 @@ def test_symbolic_shape_aware_fuse_2():
             n = T.int64()
             with R.dataflow():
                 lv0 = R.emit_te(topi.full, [n, n], "float32", 0)
-                lv1 = R.emit_te(topi.trilu, lv0, gsmDataGen.tir.const(1, "int32"), upper=True)
+                lv1 = R.emit_te(topi.trilu, lv0, gsm_data_generator.tir.const(1, "int32"), upper=True)
                 gv = R.emit_te(topi.broadcast_to, lv1, [1, 1, n, n])
                 R.output(gv)
             return gv
@@ -1329,7 +1329,7 @@ def test_symbolic_shape_aware_fuse_2():
             n = T.int64()
             with R.dataflow():
                 lv0 = R.emit_te(topi.full, [n, n], "float32", 0)
-                lv1 = R.emit_te(topi.trilu, lv0, gsmDataGen.tir.const(1, "int32"), upper=True)
+                lv1 = R.emit_te(topi.trilu, lv0, gsm_data_generator.tir.const(1, "int32"), upper=True)
                 gv = R.emit_te(topi.broadcast_to, lv1, [1, 1, n, n])
                 R.output(gv)
             return gv
@@ -1356,7 +1356,7 @@ def test_shape_expr_arg():
             n = T.int64()
             with R.dataflow():
                 lv0 = R.emit_te(topi.full, [n, n], "float32", 0)
-                lv1 = R.emit_te(topi.trilu, lv0, gsmDataGen.tir.const(1, "int32"), upper=True)
+                lv1 = R.emit_te(topi.trilu, lv0, gsm_data_generator.tir.const(1, "int32"), upper=True)
                 lv2 = R.emit_te(topi.broadcast_to, lv1, [1, 1, n, n])
                 gv = R.call_pure_packed(
                     "vm.builtin.attention_kv_cache_view",
@@ -1377,7 +1377,7 @@ def test_shape_expr_arg():
             n = T.int64()
             with R.dataflow():
                 lv0 = R.emit_te(topi.full, [n, n], "float32", 0)
-                lv1 = R.emit_te(topi.trilu, lv0, gsmDataGen.tir.const(1, "int32"), upper=True)
+                lv1 = R.emit_te(topi.trilu, lv0, gsm_data_generator.tir.const(1, "int32"), upper=True)
                 gv = R.emit_te(topi.broadcast_to, lv1, [1, 1, n, n])
                 R.output(gv)
             return gv
@@ -1695,4 +1695,4 @@ def test_packed_params():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

@@ -15,13 +15,13 @@
 # specific language governing permissions and limitations
 # under the License.
 
-import gsmDataGen.testing
-from gsmDataGen.ir import Range
-from gsmDataGen.script.parser import ir as I
-from gsmDataGen.script.parser import relax as R
-from gsmDataGen.script.parser import tir as T
-from gsmDataGen.relax.distributed import DeviceMesh, DTensorStructInfo, Placement
-from gsmDataGen.relax import TensorStructInfo
+import gsm_data_generator.testing
+from gsm_data_generator.ir import Range
+from gsm_data_generator.script.parser import ir as I
+from gsm_data_generator.script.parser import relax as R
+from gsm_data_generator.script.parser import tir as T
+from gsm_data_generator.relax.distributed import DeviceMesh, DTensorStructInfo, Placement
+from gsm_data_generator.relax import TensorStructInfo
 
 
 def _assert_print(obj, expected):
@@ -156,4 +156,4 @@ class Module:
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

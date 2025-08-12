@@ -18,14 +18,14 @@ import sys
 
 import numpy as np
 import pytest
-import gsmDataGen
-import gsmDataGen.testing
-import gsmDataGen.tir.tensor_intrin.cuda
-from gsmDataGen import TVMError, te, tir
-from gsmDataGen.meta_schedule.testing import te_workload
-from gsmDataGen.script import tir as T
-from gsmDataGen.testing.tir import mma_schedule
-from gsmDataGen.tir.tensor_intrin.cuda import (
+import gsm_data_generator
+import gsm_data_generator.testing
+import gsm_data_generator.tir.tensor_intrin.cuda
+from gsm_data_generator import TVMError, te, tir
+from gsm_data_generator.meta_schedule.testing import te_workload
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.testing.tir import mma_schedule
+from gsm_data_generator.tir.tensor_intrin.cuda import (
     LDMATRIX_f16_A_DYN_INTRIN,
     LDMATRIX_f16_B_DYN_INTRIN,
     MMA_f16f16f32_INTRIN,
@@ -37,18 +37,18 @@ from gsmDataGen.tir.tensor_intrin.cuda import (
 
 def _check(original, transformed):
     func = original
-    mod = gsmDataGen.IRModule.from_expr(func.with_attr("global_symbol", "main"))
-    mod = gsmDataGen.tir.transform.InjectSoftwarePipeline()(mod)
-    mod = gsmDataGen.tir.transform.Simplify()(mod)
-    gsmDataGen.ir.assert_structural_equal(
+    mod = gsm_data_generator.IRModule.from_expr(func.with_attr("global_symbol", "main"))
+    mod = gsm_data_generator.tir.transform.InjectSoftwarePipeline()(mod)
+    mod = gsm_data_generator.tir.transform.Simplify()(mod)
+    gsm_data_generator.ir.assert_structural_equal(
         mod["main"], transformed.with_attr("global_symbol", "main"), True
     )
 
 
 def _check_error(func):
-    mod = gsmDataGen.IRModule.from_expr(func)
+    mod = gsm_data_generator.IRModule.from_expr(func)
     with pytest.raises(ValueError):
-        gsmDataGen.tir.transform.InjectSoftwarePipeline()(mod)
+        gsm_data_generator.tir.transform.InjectSoftwarePipeline()(mod)
 
 
 @T.prim_func
@@ -1182,12 +1182,12 @@ def test_error_missing_annotation():
 
 
 def test_simple_compute_async():
-    mod = gsmDataGen.IRModule.from_expr(gen_simple_compute(1).with_attr("global_symbol", "main"))
-    sch = gsmDataGen.tir.Schedule(mod)
+    mod = gsm_data_generator.IRModule.from_expr(gen_simple_compute(1).with_attr("global_symbol", "main"))
+    sch = gsm_data_generator.tir.Schedule(mod)
 
     _, loop = sch.get_loops(sch.get_block("compute"))
     sch.annotate(loop, ann_key="software_pipeline_async_stages", ann_val=[0])
-    mod = gsmDataGen.tir.transform.InjectSoftwarePipeline()(sch.mod)
+    mod = gsm_data_generator.tir.transform.InjectSoftwarePipeline()(sch.mod)
 
     @T.prim_func
     def ref(A: T.Buffer((16, 16), "float32"), C: T.Buffer((16, 16), "float32")):
@@ -1227,14 +1227,14 @@ def test_simple_compute_async():
                         with T.attr(0, "async_wait_inflight_count", 0):
                             C[tx, 15] = B[T.FloorMod(15, 2), tx, 0] + T.float32(1)
 
-    gsmDataGen.ir.assert_structural_equal(mod["main"], ref.with_attr("global_symbol", "main"), True)
+    gsm_data_generator.ir.assert_structural_equal(mod["main"], ref.with_attr("global_symbol", "main"), True)
 
-    mod = gsmDataGen.IRModule.from_expr(gen_simple_compute(3).with_attr("global_symbol", "main"))
-    sch = gsmDataGen.tir.Schedule(mod)
+    mod = gsm_data_generator.IRModule.from_expr(gen_simple_compute(3).with_attr("global_symbol", "main"))
+    sch = gsm_data_generator.tir.Schedule(mod)
 
     _, loop = sch.get_loops(sch.get_block("compute"))
     sch.annotate(loop, ann_key="software_pipeline_async_stages", ann_val=[0])
-    mod = gsmDataGen.tir.transform.InjectSoftwarePipeline()(sch.mod)
+    mod = gsm_data_generator.tir.transform.InjectSoftwarePipeline()(sch.mod)
 
     @T.prim_func
     def ref(A: T.Buffer((16, 16), "float32"), C: T.Buffer((16, 16), "float32")) -> None:
@@ -1284,7 +1284,7 @@ def test_simple_compute_async():
                                 with T.attr(0, "async_wait_inflight_count", 2 - i):
                                     C[tx, i - 3 + 16] = B[(i - 3 + 16) % 4, tx, 0] + T.float32(1)
 
-    gsmDataGen.ir.assert_structural_equal(mod["main"], ref.with_attr("global_symbol", "main"), True)
+    gsm_data_generator.ir.assert_structural_equal(mod["main"], ref.with_attr("global_symbol", "main"), True)
 
 
 def test_async_producer_interleaving():
@@ -1314,14 +1314,14 @@ def test_async_producer_interleaving():
                         T.writes(C[tx, i])
                         C[tx, i] = A_shared[tx, 0] + B_shared[tx, 0]
 
-    mod = gsmDataGen.IRModule.from_expr(simple_compute.with_attr("global_symbol", "main"))
-    sch = gsmDataGen.tir.Schedule(mod)
+    mod = gsm_data_generator.IRModule.from_expr(simple_compute.with_attr("global_symbol", "main"))
+    sch = gsm_data_generator.tir.Schedule(mod)
 
     _, loop = sch.get_loops(sch.get_block("compute"))
     sch.annotate(loop, ann_key="software_pipeline_stage", ann_val=[0, 0, 3])
     sch.annotate(loop, ann_key="software_pipeline_order", ann_val=[0, 2, 1])
     sch.annotate(loop, ann_key="software_pipeline_async_stages", ann_val=[0])
-    mod = gsmDataGen.tir.transform.InjectSoftwarePipeline()(sch.mod)
+    mod = gsm_data_generator.tir.transform.InjectSoftwarePipeline()(sch.mod)
 
     @T.prim_func
     def ref(
@@ -1391,17 +1391,17 @@ def test_async_producer_interleaving():
                                         + B_shared[(i - 3 + 16) % 4, tx, 0]
                                     )
 
-    gsmDataGen.ir.assert_structural_equal(mod["main"], ref.with_attr("global_symbol", "main"), True)
+    gsm_data_generator.ir.assert_structural_equal(mod["main"], ref.with_attr("global_symbol", "main"), True)
 
 
 def test_three_stage_compute_two_stage_async():
-    mod = gsmDataGen.IRModule.from_expr(three_stage_compute.with_attr("global_symbol", "main"))
-    sch = gsmDataGen.tir.Schedule(mod)
+    mod = gsm_data_generator.IRModule.from_expr(three_stage_compute.with_attr("global_symbol", "main"))
+    sch = gsm_data_generator.tir.Schedule(mod)
 
     _, loop = sch.get_loops(sch.get_block("compute"))
     sch.annotate(loop, ann_key="software_pipeline_async_stages", ann_val=[0, 1])
 
-    mod = gsmDataGen.tir.transform.InjectSoftwarePipeline()(sch.mod)
+    mod = gsm_data_generator.tir.transform.InjectSoftwarePipeline()(sch.mod)
 
     @T.prim_func
     def ref(A: T.Buffer((16, 16), "float32"), D: T.Buffer((16, 16), "float32")) -> None:
@@ -1489,7 +1489,7 @@ def test_three_stage_compute_two_stage_async():
                                 ):
                                     D[tx, i - 2 + 16] = C[(i - 2 + 16) % 2, tx, 0] + T.float32(1)
 
-    gsmDataGen.ir.assert_structural_equal(mod["main"], ref.with_attr("global_symbol", "main"), True)
+    gsm_data_generator.ir.assert_structural_equal(mod["main"], ref.with_attr("global_symbol", "main"), True)
 
 
 N = K = M = 4096
@@ -1530,22 +1530,22 @@ def get_mma_schedule():
 
 
 def build_and_run(sch):
-    if gsmDataGen.testing.is_ampere_or_newer():
-        with gsmDataGen.transform.PassContext(config={"tir.use_async_copy": 1}):
-            f = gsmDataGen.compile(sch.mod["main"], target="cuda")
+    if gsm_data_generator.testing.is_ampere_or_newer():
+        with gsm_data_generator.transform.PassContext(config={"tir.use_async_copy": 1}):
+            f = gsm_data_generator.compile(sch.mod["main"], target="cuda")
 
-        dev = gsmDataGen.device("cuda", 0)
+        dev = gsm_data_generator.device("cuda", 0)
         a_np = np.random.uniform(size=(N, K)).astype("float16")
         b_np = np.random.uniform(size=(K, M)).astype("float16")
         c_np = np.dot(a_np.astype("float32"), b_np.astype("float32"))
-        a = gsmDataGen.nd.array(a_np, dev)
-        b = gsmDataGen.nd.array(b_np, dev)
-        c = gsmDataGen.nd.array(np.zeros((N, M), dtype="float32"), dev)
+        a = gsm_data_generator.nd.array(a_np, dev)
+        b = gsm_data_generator.nd.array(b_np, dev)
+        c = gsm_data_generator.nd.array(np.zeros((N, M), dtype="float32"), dev)
         f(a, b, c)
-        gsmDataGen.testing.assert_allclose(c.numpy(), c_np, rtol=1e-3)
+        gsm_data_generator.testing.assert_allclose(c.numpy(), c_np, rtol=1e-3)
 
 
-@gsmDataGen.testing.requires_cuda
+@gsm_data_generator.testing.requires_cuda
 def test_async_pipelined_mma_gemm_simple():
     sch = get_mma_schedule()
 
@@ -1555,13 +1555,13 @@ def test_async_pipelined_mma_gemm_simple():
     sch.annotate(k0, ann_key="software_pipeline_order", ann_val=[0, 1, 2])
     sch.annotate(k0, ann_key="software_pipeline_async_stages", ann_val=[0])
 
-    seq = gsmDataGen.transform.Sequential(
+    seq = gsm_data_generator.transform.Sequential(
         [
-            gsmDataGen.tir.transform.PlanAndUpdateBufferAllocationLocation(),
-            gsmDataGen.tir.transform.ConvertBlocksToOpaque(),
-            gsmDataGen.tir.transform.UnifyThreadBinding(),
-            gsmDataGen.tir.transform.LowerMatchBuffer(),
-            gsmDataGen.tir.transform.InjectSoftwarePipeline(),
+            gsm_data_generator.tir.transform.PlanAndUpdateBufferAllocationLocation(),
+            gsm_data_generator.tir.transform.ConvertBlocksToOpaque(),
+            gsm_data_generator.tir.transform.UnifyThreadBinding(),
+            gsm_data_generator.tir.transform.LowerMatchBuffer(),
+            gsm_data_generator.tir.transform.InjectSoftwarePipeline(),
         ]
     )
     mod = seq(sch.mod)
@@ -1586,7 +1586,7 @@ def test_async_pipelined_mma_gemm_simple():
     build_and_run(sch)
 
 
-@gsmDataGen.testing.requires_cuda
+@gsm_data_generator.testing.requires_cuda
 def test_async_nested_pipeline_mma_gemm_ideal_annotation():
     sch = get_mma_schedule()
 
@@ -1600,13 +1600,13 @@ def test_async_nested_pipeline_mma_gemm_ideal_annotation():
     sch.annotate(k1, ann_key="software_pipeline_stage", ann_val=[0, 0, 1])
     sch.annotate(k1, ann_key="software_pipeline_order", ann_val=[0, 1, 2])
 
-    seq = gsmDataGen.transform.Sequential(
+    seq = gsm_data_generator.transform.Sequential(
         [
-            gsmDataGen.tir.transform.PlanAndUpdateBufferAllocationLocation(),
-            gsmDataGen.tir.transform.ConvertBlocksToOpaque(),
-            gsmDataGen.tir.transform.UnifyThreadBinding(),
-            gsmDataGen.tir.transform.LowerMatchBuffer(),
-            gsmDataGen.tir.transform.InjectSoftwarePipeline(),
+            gsm_data_generator.tir.transform.PlanAndUpdateBufferAllocationLocation(),
+            gsm_data_generator.tir.transform.ConvertBlocksToOpaque(),
+            gsm_data_generator.tir.transform.UnifyThreadBinding(),
+            gsm_data_generator.tir.transform.LowerMatchBuffer(),
+            gsm_data_generator.tir.transform.InjectSoftwarePipeline(),
         ]
     )
     mod = seq(sch.mod)
@@ -1812,4 +1812,4 @@ def test_less_loop_than_num_stage_dynamic():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

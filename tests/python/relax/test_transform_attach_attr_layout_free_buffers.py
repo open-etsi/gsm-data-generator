@@ -15,13 +15,13 @@
 # specific language governing permissions and limitations
 # under the License.
 import numpy as np
-import gsmDataGen.testing
+import gsm_data_generator.testing
 
-from gsmDataGen import relax, tir
-from gsmDataGen.script import relax as R, tir as T, ir as I
-from gsmDataGen.relax.transform import CombineParallelMatmul
-from gsmDataGen.script.ir_builder import IRBuilder
-from gsmDataGen.script.ir_builder import relax as relax_builder
+from gsm_data_generator import relax, tir
+from gsm_data_generator.script import relax as R, tir as T, ir as I
+from gsm_data_generator.relax.transform import CombineParallelMatmul
+from gsm_data_generator.script.ir_builder import IRBuilder
+from gsm_data_generator.script.ir_builder import relax as relax_builder
 
 
 def test_param():
@@ -73,7 +73,7 @@ def test_param():
             return gv
 
     after = relax.transform.AttachAttrLayoutFreeBuffers()(Before)
-    gsmDataGen.ir.assert_structural_equal(after, Expected)
+    gsm_data_generator.ir.assert_structural_equal(after, Expected)
 
 
 def test_const():
@@ -135,7 +135,7 @@ def test_const():
             return gv
 
     after = relax.transform.AttachAttrLayoutFreeBuffers()(Before)
-    gsmDataGen.ir.assert_structural_equal(after, Expected)
+    gsm_data_generator.ir.assert_structural_equal(after, Expected)
 
 
 def test_multiple_same_func():
@@ -213,7 +213,7 @@ def test_multiple_same_func():
             return gv
 
     after = relax.transform.AttachAttrLayoutFreeBuffers()(Before)
-    gsmDataGen.ir.assert_structural_equal(after, Expected)
+    gsm_data_generator.ir.assert_structural_equal(after, Expected)
 
 
 def test_multiple_same_func_with_different_free_buffers():
@@ -304,8 +304,8 @@ def test_multiple_same_func_with_different_free_buffers():
             return gv
 
     after = relax.transform.AttachAttrLayoutFreeBuffers()(Before)
-    gsmDataGen.ir.assert_structural_equal(after, Expected)
+    gsm_data_generator.ir.assert_structural_equal(after, Expected)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

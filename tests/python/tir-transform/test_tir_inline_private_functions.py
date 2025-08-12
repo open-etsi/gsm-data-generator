@@ -17,18 +17,18 @@
 
 import pytest
 
-import gsmDataGen.testing
-from gsmDataGen.script import ir as I, tir as T
+import gsm_data_generator.testing
+from gsm_data_generator.script import ir as I, tir as T
 
 
 class BaseTestCase:
     def test_well_formed(self):
-        After = gsmDataGen.tir.transform.InlinePrivateFunctions()(self.Before)
-        gsmDataGen.tir.analysis.verify_well_formed(After)
+        After = gsm_data_generator.tir.transform.InlinePrivateFunctions()(self.Before)
+        gsm_data_generator.tir.analysis.verify_well_formed(After)
 
     def test_produces_expected(self):
-        After = gsmDataGen.tir.transform.InlinePrivateFunctions()(self.Before)
-        gsmDataGen.ir.assert_structural_equal(self.Expected, After)
+        After = gsm_data_generator.tir.transform.InlinePrivateFunctions()(self.Before)
+        gsm_data_generator.ir.assert_structural_equal(self.Expected, After)
 
 
 class TestSimple(BaseTestCase):
@@ -250,4 +250,4 @@ class TestInlineFunctionWithBufferArguments(BaseTestCase):
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

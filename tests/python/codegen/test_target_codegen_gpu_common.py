@@ -19,17 +19,17 @@ from functools import partial
 import numpy as np
 import pytest
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import te
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import te
 
 
-@gsmDataGen.testing.requires_gpu
-@gsmDataGen.testing.parametrize_targets("cuda", "metal", "vulkan -supports_int64=1", "opencl")
+@gsm_data_generator.testing.requires_gpu
+@gsm_data_generator.testing.parametrize_targets("cuda", "metal", "vulkan -supports_int64=1", "opencl")
 @pytest.mark.parametrize("dtype", ["int32", "uint32", "int64", "uint64"])
 def test_int_intrin(target, dev, dtype):
     test_funcs = [
-        (gsmDataGen.tir.clz, lambda x, dtype: int(dtype[-2:]) - (len(bin(x)) - 2)),
+        (gsm_data_generator.tir.clz, lambda x, dtype: int(dtype[-2:]) - (len(bin(x)) - 2)),
     ]
 
     def run_test(tvm_intrin, np_func, dtype):
@@ -37,19 +37,19 @@ def test_int_intrin(target, dev, dtype):
         A = te.placeholder((n,), name="A", dtype=dtype)
         B = te.compute(A.shape, lambda *i: tvm_intrin(A(*i)), name="B")
         func = te.create_prim_func([A, B])
-        sch = gsmDataGen.tir.Schedule(func)
+        sch = gsm_data_generator.tir.Schedule(func)
         (x,) = sch.get_loops(sch.get_block("B"))
         sch.bind(x, "threadIdx.x")
-        f = gsmDataGen.compile(sch.mod, target=target)
-        a = gsmDataGen.nd.array(np.random.randint(0, 100000, size=n).astype(A.dtype), dev)
-        b = gsmDataGen.nd.array(np.zeros(shape=(n,)).astype(B.dtype), dev)
+        f = gsm_data_generator.compile(sch.mod, target=target)
+        a = gsm_data_generator.nd.array(np.random.randint(0, 100000, size=n).astype(A.dtype), dev)
+        b = gsm_data_generator.nd.array(np.zeros(shape=(n,)).astype(B.dtype), dev)
         f(a, b)
         ref = np.vectorize(partial(np_func, dtype=dtype))(a.numpy())
-        gsmDataGen.testing.assert_allclose(b.numpy(), ref)
+        gsm_data_generator.testing.assert_allclose(b.numpy(), ref)
 
     for func in test_funcs:
         run_test(*func, dtype)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

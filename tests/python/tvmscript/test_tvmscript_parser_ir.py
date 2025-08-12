@@ -18,9 +18,9 @@
 
 import pytest
 import inspect
-import gsmDataGen.testing
-from gsmDataGen.script.parser import ir_module
-from gsmDataGen.ir import IRModule
+import gsm_data_generator.testing
+from gsm_data_generator.script.parser import ir_module
+from gsm_data_generator.ir import IRModule
 
 
 def test_ir_base():
@@ -33,4 +33,4 @@ def test_ir_base():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

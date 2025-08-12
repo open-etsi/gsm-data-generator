@@ -19,8 +19,8 @@ import os
 import subprocess
 import sys
 
-import gsmDataGen
-import gsmDataGen.testing
+import gsm_data_generator
+import gsm_data_generator.testing
 
 
 def test_check_if_device_exists():
@@ -49,4 +49,4 @@ def test_check_if_device_exists():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

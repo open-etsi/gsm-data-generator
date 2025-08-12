@@ -14,9 +14,9 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-import gsmDataGen
-from gsmDataGen import tir
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+from gsm_data_generator import tir
+from gsm_data_generator.script import tir as T
 
 
 @T.prim_func

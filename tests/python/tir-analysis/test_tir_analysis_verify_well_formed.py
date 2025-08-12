@@ -17,9 +17,9 @@
 
 import pytest
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen.script import ir as I, tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator.script import ir as I, tir as T
 
 
 def test_pass_simple():
@@ -38,8 +38,8 @@ def test_pass_simple():
                 # It's a opaque block , so it can use outside variables
                 C[i, j] = B[i, j] * 2.0
 
-    assert gsmDataGen.tir.analysis.verify_well_formed(element_wise)
-    assert gsmDataGen.tir.analysis.verify_well_formed(gsmDataGen.IRModule.from_expr(element_wise))
+    assert gsm_data_generator.tir.analysis.verify_well_formed(element_wise)
+    assert gsm_data_generator.tir.analysis.verify_well_formed(gsm_data_generator.IRModule.from_expr(element_wise))
 
 
 def test_fail_use_out_loop_var():
@@ -54,7 +54,7 @@ def test_fail_use_out_loop_var():
                 # we cannot use `i` since it's defined outside the block
                 B[vi, vj] = A[i, vj] * 2.0
 
-    assert not gsmDataGen.tir.analysis.verify_well_formed(element_wise, assert_mode=False)
+    assert not gsm_data_generator.tir.analysis.verify_well_formed(element_wise, assert_mode=False)
 
 
 def test_error_for_out_of_scope_usage():
@@ -70,7 +70,7 @@ def test_error_for_out_of_scope_usage():
     with pytest.raises(
         ValueError, match="Invalid use of undefined variable i at .* no longer in-scope."
     ):
-        gsmDataGen.tir.analysis.verify_well_formed(func)
+        gsm_data_generator.tir.analysis.verify_well_formed(func)
 
 
 def test_error_for_nested_rebind_usage():
@@ -86,7 +86,7 @@ def test_error_for_nested_rebind_usage():
     with pytest.raises(
         ValueError, match="ill-formed, due to multiple nested definitions of variable i"
     ):
-        gsmDataGen.tir.analysis.verify_well_formed(func)
+        gsm_data_generator.tir.analysis.verify_well_formed(func)
 
 
 def test_error_for_repeated_binding():
@@ -101,13 +101,13 @@ def test_error_for_repeated_binding():
             T.evaluate(i)
 
     with pytest.raises(ValueError, match="multiple definitions of variable i"):
-        gsmDataGen.tir.analysis.verify_well_formed(func)
+        gsm_data_generator.tir.analysis.verify_well_formed(func)
 
 
 def test_error_for_cross_function_reuse():
     """A variable may not be re-defined in another function"""
 
-    i = gsmDataGen.tir.Var("i", "int32")
+    i = gsm_data_generator.tir.Var("i", "int32")
 
     @I.ir_module(check_well_formed=False)
     class mod:
@@ -122,7 +122,7 @@ def test_error_for_cross_function_reuse():
                 T.evaluate(i)
 
     with pytest.raises(ValueError, match="multiple definitions of variable i"):
-        gsmDataGen.tir.analysis.verify_well_formed(mod)
+        gsm_data_generator.tir.analysis.verify_well_formed(mod)
 
 
 def test_reuse_of_env_thread_in_function_is_well_formed():
@@ -141,7 +141,7 @@ def test_reuse_of_env_thread_in_function_is_well_formed():
         with T.launch_thread(threadIdx_x, 256):
             A[threadIdx_x] = A[threadIdx_x] + 2.0
 
-    gsmDataGen.tir.analysis.verify_well_formed(func)
+    gsm_data_generator.tir.analysis.verify_well_formed(func)
 
 
 def test_reuse_of_env_thread_in_function_is_mandatory():
@@ -162,7 +162,7 @@ def test_reuse_of_env_thread_in_function_is_mandatory():
         with T.launch_thread("threadIdx.x", 256) as threadIdx_x:
             A[threadIdx_x] = A[threadIdx_x] + 2.0
 
-    gsmDataGen.tir.analysis.verify_well_formed(func)
+    gsm_data_generator.tir.analysis.verify_well_formed(func)
 
 
 def test_reuse_of_env_thread_across_functions_is_ill_formed():
@@ -173,7 +173,7 @@ def test_reuse_of_env_thread_across_functions_is_ill_formed():
     PrimFuncs.
     """
 
-    threadIdx_x = gsmDataGen.tir.Var("threadIdx_x", "int32")
+    threadIdx_x = gsm_data_generator.tir.Var("threadIdx_x", "int32")
 
     @I.ir_module(check_well_formed=False)
     class mod:
@@ -196,7 +196,7 @@ def test_reuse_of_env_thread_across_functions_is_ill_formed():
             A[threadIdx_x] = A[threadIdx_x] + T.float32(1)
 
     with pytest.raises(ValueError, match="multiple definitions of variable threadIdx_x"):
-        gsmDataGen.tir.analysis.verify_well_formed(mod)
+        gsm_data_generator.tir.analysis.verify_well_formed(mod)
 
 
 def test_multiple_buffer_arguments_may_share_allocation():
@@ -216,7 +216,7 @@ def test_multiple_buffer_arguments_may_share_allocation():
 
             pass
 
-    gsmDataGen.tir.analysis.verify_well_formed(mod)
+    gsm_data_generator.tir.analysis.verify_well_formed(mod)
 
 
 def test_buffer_bind_scope_defines_buffer_obj():
@@ -242,7 +242,7 @@ def test_buffer_bind_scope_defines_buffer_obj():
                 for i, j in T.grid(16, 16):
                     B[i, j] = 0.0
 
-    gsmDataGen.tir.analysis.verify_well_formed(mod)
+    gsm_data_generator.tir.analysis.verify_well_formed(mod)
 
 
 def test_buffer_bind_scope_defines_symbolic_variables():
@@ -269,7 +269,7 @@ def test_buffer_bind_scope_defines_symbolic_variables():
                 for i, j in T.grid(16, 16):
                     B[i, j] = elem_offset
 
-    gsmDataGen.tir.analysis.verify_well_formed(mod)
+    gsm_data_generator.tir.analysis.verify_well_formed(mod)
 
 
 def test_block_match_buffer_defines_buffer_obj():
@@ -288,7 +288,7 @@ def test_block_match_buffer_defines_buffer_obj():
                     )
                     B[i, j] = 0.0
 
-    gsmDataGen.tir.analysis.verify_well_formed(mod)
+    gsm_data_generator.tir.analysis.verify_well_formed(mod)
 
 
 def test_block_match_buffer_defines_symbolic_variables():
@@ -311,7 +311,7 @@ def test_block_match_buffer_defines_symbolic_variables():
 
                     B[i, j] = elem_offset
 
-    gsmDataGen.tir.analysis.verify_well_formed(mod)
+    gsm_data_generator.tir.analysis.verify_well_formed(mod)
 
 
 def test_buffer_realize_on_external_buffer_is_annotation():
@@ -326,7 +326,7 @@ def test_buffer_realize_on_external_buffer_is_annotation():
             for i in range(16):
                 A[i] = 1
 
-    gsmDataGen.tir.analysis.verify_well_formed(mod)
+    gsm_data_generator.tir.analysis.verify_well_formed(mod)
 
 
 def test_buffer_realize_is_allocation():
@@ -342,8 +342,8 @@ def test_buffer_realize_is_allocation():
             for i in range(16):
                 A[i] = 1
 
-    gsmDataGen.tir.analysis.verify_well_formed(mod)
+    gsm_data_generator.tir.analysis.verify_well_formed(mod)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

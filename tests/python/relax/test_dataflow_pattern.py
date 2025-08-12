@@ -20,16 +20,16 @@ import math
 
 import pytest
 
-import gsmDataGen.testing
-from gsmDataGen import relax as rx
-from gsmDataGen import tir
-from gsmDataGen.relax.analysis import get_var2val
-from gsmDataGen.relax.dpl import *
-from gsmDataGen.script import relax as R
-from gsmDataGen.script import tir as T
+import gsm_data_generator.testing
+from gsm_data_generator import relax as rx
+from gsm_data_generator import tir
+from gsm_data_generator.relax.analysis import get_var2val
+from gsm_data_generator.relax.dpl import *
+from gsm_data_generator.script import relax as R
+from gsm_data_generator.script import tir as T
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Module:
     @T.prim_func
     def tir_matmul(x: T.handle, y: T.handle, z: T.handle) -> None:
@@ -238,7 +238,7 @@ def test_shape_pattern():
     shape = [32, 32]
     pattern = wildcard().has_shape(shape)
     assert isinstance(pattern, ShapePattern)
-    gsmDataGen.ir.structural_equal(pattern.shape, shape)
+    gsm_data_generator.ir.structural_equal(pattern.shape, shape)
     assert pattern.match(bindings[0].var)
     assert wildcard().has_shape([32, 32]).match(bindings[0].var)
     n, m = tir.Var("n", dtype="int64"), tir.Var("m", dtype="int64")
@@ -388,7 +388,7 @@ def test_counter_syntax_match():
         assert not ctx.match_dfb(dfb)
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Diamond:
     @R.function
     def main(x: R.Tensor((32, 32), "float32"), w: R.Tensor((32, 32), "float32")) -> R.Tensor:
@@ -451,7 +451,7 @@ def test_diamond_counter_oub():
         assert not ctx.match_dfb(dfb)
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class SmallDiamond:
     @R.function
     def main(x: R.Tensor((32, 32), "float32")) -> R.Tensor:
@@ -466,7 +466,7 @@ class SmallDiamond:
         return lv1
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class SmallParallel:
     @R.function
     def main(x: R.Tensor((32, 32), "float32")) -> R.Tensor:
@@ -510,7 +510,7 @@ def test_distinguish_diamond_and_parallel():
         assert not ctx.match_dfb(diamond)
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class CBRx2:
     @R.function
     def main(
@@ -592,7 +592,7 @@ def test_two_cbr():
 
 def test_two_matmul():
     # Same as Figure 2(a) in TASO paper.
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class MatMul2:
         @R.function
         def main(
@@ -627,7 +627,7 @@ def test_two_matmul():
 
 def test_concat_mm_split():
     # Same as Figure 2(b) in TASO paper.
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class CMS:
         @R.function
         def main(
@@ -675,7 +675,7 @@ def test_concat_mm_split():
 def test_self_attention():
     # The example comes from.
     # https://developer.nvidia.com/blog/nlu-with-tensorrt-bert/
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class SelfAttention:
         @R.function
         def main(
@@ -723,7 +723,7 @@ def test_self_attention():
 
 
 def test_nested_diamond():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class DiamondInDiamond:
         @R.function
         def main(x: R.Tensor((32, 32), "float32"), w: R.Tensor((32, 32), "float32")) -> R.Tensor:
@@ -893,7 +893,7 @@ def test_rewrite_simple():
         return R.multiply(matchings[x], R.const(2, "float32"))
 
     rewritten = rewrite_call(pattern, rewriter, main)
-    gsmDataGen.ir.assert_structural_equal(rewritten, expected1.with_attr("global_symbol", "main"))
+    gsm_data_generator.ir.assert_structural_equal(rewritten, expected1.with_attr("global_symbol", "main"))
 
     add1 = is_op("relax.add")(x, x)
     pattern = is_op("relax.add")(add1, add1)
@@ -902,14 +902,14 @@ def test_rewrite_simple():
         return R.multiply(matchings[x], R.const(4, "float32"))
 
     rewritten = rewrite_call(pattern, rewriter, main)
-    gsmDataGen.ir.assert_structural_equal(rewritten, expected2.with_attr("global_symbol", "main"))
+    gsm_data_generator.ir.assert_structural_equal(rewritten, expected2.with_attr("global_symbol", "main"))
 
     # No rewriting, return the original call node as is
     def rewriter(orig, _):
         return orig
 
     rewritten = rewrite_call(pattern, rewriter, main)
-    gsmDataGen.ir.assert_structural_equal(rewritten, main)
+    gsm_data_generator.ir.assert_structural_equal(rewritten, main)
 
 
 def test_rewrite_attention():
@@ -977,11 +977,11 @@ def test_rewrite_attention():
         return R.nn.attention(matchings[Q], matchings[K], matchings[V])
 
     rewritten = rewrite_call(pattern, rewriter, main)
-    gsmDataGen.ir.assert_structural_equal(rewritten, expected.with_attr("global_symbol", "main"))
+    gsm_data_generator.ir.assert_structural_equal(rewritten, expected.with_attr("global_symbol", "main"))
 
 
 def test_attention_qkv():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class QKV_proj:
         @R.function
         def main(
@@ -1017,7 +1017,7 @@ def test_attention_qkv():
 
 
 def test_attention_fake_qkv():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class QKV_proj:
         @R.function
         def main(
@@ -1129,7 +1129,7 @@ def test_combine_matmul_twice():
 
     ctx, rewriter = get_qkv_proj_rewriter()
     rewritten = rewrite_bindings(ctx, rewriter, qkv_x2)
-    gsmDataGen.ir.assert_structural_equal(rewritten, expected)
+    gsm_data_generator.ir.assert_structural_equal(rewritten, expected)
 
 
 def test_dataflow_may_start_with_match_cast():
@@ -1183,7 +1183,7 @@ def test_dataflow_may_start_with_match_cast():
 
     ctx, rewriter = get_qkv_proj_rewriter()
     rewritten = rewrite_bindings(ctx, rewriter, before)
-    gsmDataGen.ir.assert_structural_equal(rewritten, expected)
+    gsm_data_generator.ir.assert_structural_equal(rewritten, expected)
 
 
 def test_combine_matmul_emit_order():
@@ -1230,13 +1230,13 @@ def test_combine_matmul_emit_order():
     ctx, rewriter = get_qkv_proj_rewriter()
 
     rewritten = rewrite_bindings(ctx, rewriter, main)
-    gsmDataGen.ir.assert_structural_equal(rewritten, expected)
+    gsm_data_generator.ir.assert_structural_equal(rewritten, expected)
 
     # make sure it builds
-    mod = gsmDataGen.IRModule()
+    mod = gsm_data_generator.IRModule()
     mod["main"] = rewritten
 
-    gsmDataGen.compile(mod, target="llvm")
+    gsm_data_generator.compile(mod, target="llvm")
 
 
 def test_combine_transposed_matmul_twice():
@@ -1325,14 +1325,14 @@ def test_combine_transposed_matmul_twice():
             }
 
         rewritten = rewrite_bindings(ctx, rewriter, main)
-        gsmDataGen.ir.assert_structural_equal(rewritten, expected)
+        gsm_data_generator.ir.assert_structural_equal(rewritten, expected)
 
         # make sure it builds
-        mod = gsmDataGen.IRModule()
+        mod = gsm_data_generator.IRModule()
         mod["main"] = rewritten
         print(mod)
 
-        gsmDataGen.compile(mod, target="llvm")
+        gsm_data_generator.compile(mod, target="llvm")
 
 
 def test_commutative_pattern_match():
@@ -1375,7 +1375,7 @@ def test_commutative_pattern_match():
             return expr
 
     after = rewrite_call(pattern, rewriter, before)
-    gsmDataGen.ir.assert_structural_equal(after, expected)
+    gsm_data_generator.ir.assert_structural_equal(after, expected)
 
 
 def test_repeated_pattern_match():
@@ -1423,10 +1423,10 @@ def test_repeated_pattern_match():
         return (matches[pattern_add_lhs] * const) + (matches[pattern_add_rhs] * const)
 
     after = rewrite_call(pattern, rewriter, before)
-    gsmDataGen.ir.assert_structural_equal(after, expected)
+    gsm_data_generator.ir.assert_structural_equal(after, expected)
 
 
-bind_to_dataflow_var = gsmDataGen.testing.parameter(
+bind_to_dataflow_var = gsm_data_generator.testing.parameter(
     by_dict={"var-to-var": False, "var-to-dataflow-var": True}
 )
 
@@ -1479,16 +1479,16 @@ def test_rewrite_without_trivial_binding(bind_to_dataflow_var):
         arg = matches[pattern_arg]
         shape_expr = matches[pattern_shape_expr]
 
-        if gsmDataGen.ir.structural_equal(arg.struct_info.shape, shape_expr):
+        if gsm_data_generator.ir.structural_equal(arg.struct_info.shape, shape_expr):
             return arg
         else:
             return expr
 
     after = rewrite_call(pattern, rewriter, before)
-    gsmDataGen.ir.assert_structural_equal(after, expected)
+    gsm_data_generator.ir.assert_structural_equal(after, expected)
 
 
-same_shape_func_type = gsmDataGen.testing.parameter(
+same_shape_func_type = gsm_data_generator.testing.parameter(
     "same_static_shape",
     "same_dynamic_shape",
     "different_static_shape",
@@ -1647,7 +1647,7 @@ def test_iterative_rewrite_without_trivial_binding():
         return expr
 
     after = rewrite_call(pattern, rewriter, before)
-    gsmDataGen.ir.assert_structural_equal(after, expected)
+    gsm_data_generator.ir.assert_structural_equal(after, expected)
 
 
 def test_iterative_rewrite_with_removed_intermediates():
@@ -1756,7 +1756,7 @@ def test_iterative_rewrite_with_removed_intermediates():
         if pat_unwrap_concat_split in matches:
             args = matches[pat_args]
 
-            if len(args) == 2 and gsmDataGen.ir.structural_equal(args[0].struct_info, args[1].struct_info):
+            if len(args) == 2 and gsm_data_generator.ir.structural_equal(args[0].struct_info, args[1].struct_info):
                 return args
 
         elif pat_add_self in matches:
@@ -1766,7 +1766,7 @@ def test_iterative_rewrite_with_removed_intermediates():
         return expr
 
     after = rewrite_call(pattern, rewriter, before)
-    gsmDataGen.ir.assert_structural_equal(expected, after)
+    gsm_data_generator.ir.assert_structural_equal(expected, after)
 
 
 def test_wildcard_with_struct_info_updates_when_matching():
@@ -1802,7 +1802,7 @@ def test_wildcard_with_struct_info_updates_when_matching():
         return C
 
     after = rewrite_call(pat, rewriter, before)
-    gsmDataGen.ir.assert_structural_equal(expected, after)
+    gsm_data_generator.ir.assert_structural_equal(expected, after)
 
 
 def test_wildcard_with_struct_info_is_no_op_when_not_matching():
@@ -1836,7 +1836,7 @@ def test_wildcard_with_struct_info_is_no_op_when_not_matching():
     expected = before
 
     after = rewrite_call(pat, rewriter, before)
-    gsmDataGen.ir.assert_structural_equal(expected, after)
+    gsm_data_generator.ir.assert_structural_equal(expected, after)
 
 
 def test_wildcard_struct_info_for_unknown_dtype():
@@ -1882,7 +1882,7 @@ def test_wildcard_struct_info_for_unknown_dtype():
         return output
 
     after = rewrite_call(pat, rewriter, before)
-    gsmDataGen.ir.assert_structural_equal(expected, after)
+    gsm_data_generator.ir.assert_structural_equal(expected, after)
 
 
 def test_wildcard_struct_info_with_symbolic_vars():
@@ -1935,7 +1935,7 @@ def test_wildcard_struct_info_with_symbolic_vars():
         return output
 
     after = rewrite_call(pat, rewriter, before)
-    gsmDataGen.ir.assert_structural_equal(expected, after)
+    gsm_data_generator.ir.assert_structural_equal(expected, after)
 
 
 def test_backtrack_if_rewriter_returns_no_op():
@@ -1998,7 +1998,7 @@ def test_backtrack_if_rewriter_returns_no_op():
         return C
 
     after = rewrite_call(pat, rewriter, before)
-    gsmDataGen.ir.assert_structural_equal(expected, after)
+    gsm_data_generator.ir.assert_structural_equal(expected, after)
 
 
 def test_backtrack_for_no_op_rewriter_does_not_match_on_var():
@@ -2031,8 +2031,8 @@ def test_backtrack_for_no_op_rewriter_does_not_match_on_var():
 
     expected = before
     after = rewrite_call(pat, rewriter, before)
-    gsmDataGen.ir.assert_structural_equal(expected, after)
+    gsm_data_generator.ir.assert_structural_equal(expected, after)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

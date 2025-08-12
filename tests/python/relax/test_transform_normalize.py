@@ -16,14 +16,14 @@
 # under the License.
 import pytest
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import relax
-from gsmDataGen import tir
-from gsmDataGen.ir.base import assert_structural_equal
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import relax
+from gsm_data_generator import tir
+from gsm_data_generator.ir.base import assert_structural_equal
 
-import gsmDataGen.script
-from gsmDataGen.script import tir as T, relax as R
+import gsm_data_generator.script
+from gsm_data_generator.script import tir as T, relax as R
 
 
 def test_normalize_function():
@@ -40,7 +40,7 @@ def test_normalize_function():
     )
 
     # Note: from_expr api names private function (function without global_symbol) as "main"
-    before_mod = gsmDataGen.IRModule.from_expr(mul_add)
+    before_mod = gsm_data_generator.IRModule.from_expr(mul_add)
 
     after_mod = relax.transform.Normalize()(before_mod)
 
@@ -83,7 +83,7 @@ def test_normalize_if():
         ret_struct_info=R.Tensor("float32", ndim=1),
     )
 
-    before_mod = gsmDataGen.IRModule.from_expr(f)
+    before_mod = gsm_data_generator.IRModule.from_expr(f)
     after_mod = relax.transform.Normalize()(before_mod)
 
     @R.function(private=True)
@@ -105,7 +105,7 @@ def test_normalize_if():
 
 def test_normalize_no_op():
     # the normalize pass should be no-op for IR in ANF
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class ANFMod1:
         @R.function
         def f(x: R.Tensor(dtype="float32")):
@@ -118,7 +118,7 @@ def test_normalize_no_op():
     after_mod = relax.transform.Normalize()(before_mod)
     assert_structural_equal(before_mod, after_mod, map_free_vars=True)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class ANFMod2:
         @R.function
         def foo(x: R.Tensor(("m", "n"), "float32")):
@@ -148,7 +148,7 @@ def test_normalize_seq_body():
         ret_struct_info=R.Tensor([], "int32"),
     )
 
-    before_mod = gsmDataGen.IRModule.from_expr(f)
+    before_mod = gsm_data_generator.IRModule.from_expr(f)
     after_mod = relax.transform.Normalize()(before_mod)
 
     @R.function(private=True)
@@ -172,7 +172,7 @@ def test_normalize_func_body():
         ret_struct_info=R.Tensor([], "int32"),
     )
 
-    before_mod = gsmDataGen.IRModule.from_expr(f)
+    before_mod = gsm_data_generator.IRModule.from_expr(f)
     after_mod = relax.transform.Normalize()(before_mod)
 
     @R.function(private=True)
@@ -204,7 +204,7 @@ def test_normalize_if_branches():
         ret_struct_info=R.Tensor([], "int32"),
     )
 
-    before_mod = gsmDataGen.IRModule.from_expr(f)
+    before_mod = gsm_data_generator.IRModule.from_expr(f)
     after_mod = relax.transform.Normalize()(before_mod)
 
     @R.function(private=True)
@@ -254,7 +254,7 @@ def test_normalize_if_condition():
         ret_struct_info=R.Tensor("float32", ndim=1),
     )
 
-    before_mod = gsmDataGen.IRModule.from_expr(f)
+    before_mod = gsm_data_generator.IRModule.from_expr(f)
     after_mod = relax.transform.Normalize()(before_mod)
 
     @R.function(private=True)
@@ -287,7 +287,7 @@ def test_normalize_tuple_get_item():
         ret_struct_info=R.Tensor([], "int32"),
     )
 
-    before_mod = gsmDataGen.IRModule.from_expr(f)
+    before_mod = gsm_data_generator.IRModule.from_expr(f)
     after_mod = relax.transform.Normalize()(before_mod)
 
     # TODO: Revisit once we canonicalize SeqExprs (part of normalization?)
@@ -312,7 +312,7 @@ def test_normalize_tuple_get_item():
         ),
         ret_struct_info=R.Tensor([], "int32"),
     )
-    expected_mod = gsmDataGen.IRModule.from_expr(expected_f)
+    expected_mod = gsm_data_generator.IRModule.from_expr(expected_f)
     # apply normalization to fill in type and shape annotations (tedious otherwise)
     final_mod = relax.transform.Normalize()(expected_mod)
 
@@ -339,7 +339,7 @@ def test_normalize_combine_nearby_blocks():
         ret_struct_info=R.Tensor([], "int32"),
     )
 
-    after_mod = relax.transform.Normalize()(gsmDataGen.IRModule.from_expr(f))
+    after_mod = relax.transform.Normalize()(gsm_data_generator.IRModule.from_expr(f))
 
     @R.function(private=True)
     def expected(x: R.Tensor((), "int32")):
@@ -381,7 +381,7 @@ def test_normalize_nested_seq():
         seq,
         ret_struct_info=R.Tensor([], "int32"),
     )
-    after_mod = relax.transform.Normalize()(gsmDataGen.IRModule.from_expr(f))
+    after_mod = relax.transform.Normalize()(gsm_data_generator.IRModule.from_expr(f))
 
     @R.function(private=True)
     def expected():
@@ -432,7 +432,7 @@ def test_normalize_nested_seq_dataflow():
         seq,
         ret_struct_info=R.Tensor([], "int32"),
     )
-    after_mod = relax.transform.Normalize()(gsmDataGen.IRModule.from_expr(f))
+    after_mod = relax.transform.Normalize()(gsm_data_generator.IRModule.from_expr(f))
 
     @R.function(private=True)
     def expected():
@@ -505,7 +505,7 @@ def test_normalize_deeply_nested_seq():
         seq,
         ret_struct_info=R.Tensor([], "int32"),
     )
-    after_mod = relax.transform.Normalize()(gsmDataGen.IRModule.from_expr(f))
+    after_mod = relax.transform.Normalize()(gsm_data_generator.IRModule.from_expr(f))
 
     @R.function(private=True)
     def expected():
@@ -548,7 +548,7 @@ def test_nesting_non_dataflow_in_dataflow_error():
         seq,
         ret_struct_info=R.Tensor([], "int32"),
     )
-    relax.transform.Normalize()(gsmDataGen.IRModule.from_expr(f))
+    relax.transform.Normalize()(gsm_data_generator.IRModule.from_expr(f))
     # should fail due to a normal binding block being inside a dataflowblock
 
 
@@ -573,7 +573,7 @@ def test_remove_usage_of_void_type_variables():
     seq = relax.SeqExpr([relax.BindingBlock(bindings)], x)
     before = relax.Function([], seq, ret_struct_info=R.Tuple([]), is_pure=False)
 
-    after = relax.transform.Normalize()(gsmDataGen.IRModule({"main": before}))["main"]
+    after = relax.transform.Normalize()(gsm_data_generator.IRModule({"main": before}))["main"]
 
     @R.function(private=True, pure=False)
     def expected():
@@ -582,4 +582,4 @@ def test_remove_usage_of_void_type_variables():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

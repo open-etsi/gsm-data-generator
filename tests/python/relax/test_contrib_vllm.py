@@ -17,42 +17,42 @@
 import numpy as np
 import pytest
 
-import gsmDataGen.testing
-import gsmDataGen
-from gsmDataGen import relax
-from gsmDataGen.script import ir as I
-from gsmDataGen.script import relax as R
-from gsmDataGen.script import tir as T
+import gsm_data_generator.testing
+import gsm_data_generator
+from gsm_data_generator import relax
+from gsm_data_generator.script import ir as I
+from gsm_data_generator.script import relax as R
+from gsm_data_generator.script import tir as T
 
 
-has_vllm = gsmDataGen.get_global_func("tvm.contrib.vllm.single_query_cached_kv_attention", True)
+has_vllm = gsm_data_generator.get_global_func("tvm.contrib.vllm.single_query_cached_kv_attention", True)
 
 vllm_enabled = pytest.mark.skipif(
     not has_vllm,
     reason="VLLM not enabled.",
 )
 
-pytestmark = [vllm_enabled] + gsmDataGen.testing.requires_cuda.marks()
+pytestmark = [vllm_enabled] + gsm_data_generator.testing.requires_cuda.marks()
 
 
 def build_and_run(mod, inputs_np, target, legalize=True):
     if legalize:
         mod = relax.transform.LegalizeOps()(mod)
 
-        with gsmDataGen.target.Target("cuda"):
-            mod = gsmDataGen.tir.transform.DefaultGPUSchedule()(mod)
+        with gsm_data_generator.target.Target("cuda"):
+            mod = gsm_data_generator.tir.transform.DefaultGPUSchedule()(mod)
 
-    with gsmDataGen.transform.PassContext():
-        ex = gsmDataGen.compile(mod, target)
+    with gsm_data_generator.transform.PassContext():
+        ex = gsm_data_generator.compile(mod, target)
 
-    dev = gsmDataGen.device(target, 0)
+    dev = gsm_data_generator.device(target, 0)
     vm = relax.VirtualMachine(ex, dev)
     f = vm["main"]
-    inputs = [gsmDataGen.nd.array(inp, dev) for inp in inputs_np]
+    inputs = [gsm_data_generator.nd.array(inp, dev) for inp in inputs_np]
 
     out = f(*inputs)
 
-    if isinstance(out, gsmDataGen.ir.container.Array):
+    if isinstance(out, gsm_data_generator.ir.container.Array):
         return [arr.numpy() for arr in out]
 
     return out.numpy()
@@ -750,24 +750,24 @@ def test_reconstruct_from_cache():
     num_tokens = 8
     num_blocks = 1
 
-    dev = gsmDataGen.device("cuda", 0)
+    dev = gsm_data_generator.device("cuda", 0)
 
-    key = gsmDataGen.nd.array(np.random.randn(num_tokens, num_heads, head_dim).astype("float16"), dev)
-    value = gsmDataGen.nd.array(np.random.randn(num_tokens, num_heads, head_dim).astype("float16"), dev)
-    slot_mapping = gsmDataGen.nd.array(np.arange(num_tokens).astype("int32"), dev)
+    key = gsm_data_generator.nd.array(np.random.randn(num_tokens, num_heads, head_dim).astype("float16"), dev)
+    value = gsm_data_generator.nd.array(np.random.randn(num_tokens, num_heads, head_dim).astype("float16"), dev)
+    slot_mapping = gsm_data_generator.nd.array(np.arange(num_tokens).astype("int32"), dev)
 
-    k_cache = gsmDataGen.nd.array(
+    k_cache = gsm_data_generator.nd.array(
         np.random.randn(num_blocks, num_heads, head_dim // vec_size, block_size, vec_size).astype(
             "float16"
         ),
         dev,
     )
-    v_cache = gsmDataGen.nd.array(
+    v_cache = gsm_data_generator.nd.array(
         np.random.randn(num_blocks, num_heads, head_dim, block_size).astype("float16"), dev
     )
 
-    reshape_and_cache_func = gsmDataGen.get_global_func("tvm.contrib.vllm.reshape_and_cache")
-    reconstruct_from_cache_func = gsmDataGen.get_global_func("tvm.contrib.vllm.reconstruct_from_cache")
+    reshape_and_cache_func = gsm_data_generator.get_global_func("tvm.contrib.vllm.reshape_and_cache")
+    reconstruct_from_cache_func = gsm_data_generator.get_global_func("tvm.contrib.vllm.reconstruct_from_cache")
 
     reshape_and_cache_func(key, value, k_cache, v_cache, slot_mapping)
     out = reconstruct_from_cache_func(k_cache, v_cache, slot_mapping)
@@ -777,4 +777,4 @@ def test_reconstruct_from_cache():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

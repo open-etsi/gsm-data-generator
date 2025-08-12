@@ -17,11 +17,11 @@
 # pylint: disable=missing-function-docstring,missing-module-docstring
 
 import pytest
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import tir
-from gsmDataGen.script import tir as T
-from gsmDataGen.tir.schedule.testing import (
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import tir
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.tir.schedule.testing import (
     assert_structural_equal_ignore_global_symbol,
     verify_trace_roundtrip,
 )
@@ -93,7 +93,7 @@ def element_wise_subregion_match_set_dtype(A: T.Buffer((128, 128), "float32"), C
             C[vi, vj] = T.cast(B_subregion1[()], "float32") + 1.0
 
 
-use_block_name = gsmDataGen.testing.parameter(by_dict={"block_obj": False, "block_name": True})
+use_block_name = gsm_data_generator.testing.parameter(by_dict={"block_obj": False, "block_name": True})
 
 def test_set_dtype(use_block_name):
     func = element_wise
@@ -105,15 +105,15 @@ def test_set_dtype(use_block_name):
 def test_set_dtype_fail_on_output_buffer(use_block_name):
     func = element_wise
     sch = tir.Schedule(func, debug_mask='all')
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         sch.unsafe_set_dtype('C' if use_block_name else sch.get_block("C"), 0, "float16")
 
 def test_set_dtype_fail_on_index_out_of_bound():
     func = element_wise
     sch = tir.Schedule(func, debug_mask='all')
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         sch.unsafe_set_dtype(sch.get_block("B"), 1, "float64")
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         sch.unsafe_set_dtype(sch.get_block("B"), -1, "float64")
 
 def test_set_dtype_subregion():
@@ -125,4 +125,4 @@ def test_set_dtype_subregion():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

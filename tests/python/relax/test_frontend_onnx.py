@@ -29,13 +29,13 @@ import onnxruntime
 import pytest
 from onnx import ModelProto, TensorProto, helper, mapping
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import relax
-from gsmDataGen.relax.frontend.onnx import from_onnx
-from gsmDataGen.script import relax as R
-from gsmDataGen.script import tir as T
-from gsmDataGen.script import ir as I
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import relax
+from gsm_data_generator.relax.frontend.onnx import from_onnx
+from gsm_data_generator.script import relax as R
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.script import ir as I
 
 bg = np.random.MT19937(0)
 rg = np.random.Generator(bg)
@@ -131,9 +131,9 @@ def check_correctness(
     # Separate model from parameters.
     tvm_model, params = relax.frontend.detach_params(tvm_model)
     # Compile the relax graph into a VM then run.
-    with gsmDataGen.transform.PassContext(opt_level=3):
-        ex = gsmDataGen.compile(tvm_model, target="llvm")
-        vm = relax.VirtualMachine(ex, gsmDataGen.cpu())
+    with gsm_data_generator.transform.PassContext(opt_level=3):
+        ex = gsm_data_generator.compile(tvm_model, target="llvm")
+        vm = relax.VirtualMachine(ex, gsm_data_generator.cpu())
     # Prepare inputs.
     input_list = [
         inputs[key.name_hint] for key in tvm_model["main"].params if key.name_hint in inputs
@@ -153,17 +153,17 @@ def check_correctness(
         tvm_output = [tvm_output]
 
     def _check_output(tvm_out, ort_out):
-        if isinstance(tvm_out, tuple) and isinstance(ort_out, (gsmDataGen.runtime.ShapeTuple, list)):
+        if isinstance(tvm_out, tuple) and isinstance(ort_out, (gsm_data_generator.runtime.ShapeTuple, list)):
             assert len(tvm_out) == len(ort_out), "Unequal number of outputs"
             for tvm_out_i, ort_out_i in zip(tvm_out, ort_out):
                 _check_output(tvm_out_i, ort_out_i)
-        elif isinstance(tvm_out, gsmDataGen.nd.NDArray) and isinstance(ort_out, np.ndarray):
-            gsmDataGen.testing.assert_allclose(tvm_out.numpy(), ort_out, rtol=rtol, atol=atol)
-        elif isinstance(tvm_out, gsmDataGen.runtime.ShapeTuple) and isinstance(ort_out, np.ndarray):
-            shape_out = gsmDataGen.nd.array([int(i) for i in tvm_out])
-            gsmDataGen.testing.assert_allclose(shape_out.numpy(), ort_out, rtol=rtol, atol=atol)
+        elif isinstance(tvm_out, gsm_data_generator.nd.NDArray) and isinstance(ort_out, np.ndarray):
+            gsm_data_generator.testing.assert_allclose(tvm_out.numpy(), ort_out, rtol=rtol, atol=atol)
+        elif isinstance(tvm_out, gsm_data_generator.runtime.ShapeTuple) and isinstance(ort_out, np.ndarray):
+            shape_out = gsm_data_generator.nd.array([int(i) for i in tvm_out])
+            gsm_data_generator.testing.assert_allclose(shape_out.numpy(), ort_out, rtol=rtol, atol=atol)
         elif isinstance(tvm_out, (int, float, bool)) and isinstance(ort_out, np.ndarray):
-            gsmDataGen.testing.assert_allclose(np.array(tvm_out), ort_out, rtol=rtol, atol=atol)
+            gsm_data_generator.testing.assert_allclose(np.array(tvm_out), ort_out, rtol=rtol, atol=atol)
         else:
             raise ValueError(f"Unsupported types: {type(tvm_out)}, {type(ort_out)}")
 
@@ -3008,7 +3008,7 @@ def test_shape_dim_string_expression_graph_add():
             return gv
     # fmt: on
 
-    gsmDataGen.ir.assert_structural_equal(tvm_model, Expected)
+    gsm_data_generator.ir.assert_structural_equal(tvm_model, Expected)
 
 
 def test_shape_dim_string_expression_graph_subtract():
@@ -3042,7 +3042,7 @@ def test_shape_dim_string_expression_graph_subtract():
             return gv
     # fmt: on
 
-    gsmDataGen.ir.assert_structural_equal(tvm_model, Expected)
+    gsm_data_generator.ir.assert_structural_equal(tvm_model, Expected)
 
 
 def test_shape_dim_string_expression_graph_mul():
@@ -3076,7 +3076,7 @@ def test_shape_dim_string_expression_graph_mul():
             return gv
     # fmt: on
 
-    gsmDataGen.ir.assert_structural_equal(tvm_model, Expected)
+    gsm_data_generator.ir.assert_structural_equal(tvm_model, Expected)
 
 
 def test_shape_dim_string_expression_graph_div_1():
@@ -3111,7 +3111,7 @@ def test_shape_dim_string_expression_graph_div_1():
             return gv
     # fmt: on
 
-    gsmDataGen.ir.assert_structural_equal(tvm_model, Expected)
+    gsm_data_generator.ir.assert_structural_equal(tvm_model, Expected)
 
 
 def test_shape_dim_string_expression_graph_div_2():
@@ -3145,8 +3145,8 @@ def test_shape_dim_string_expression_graph_div_2():
             return gv
     # fmt: on
 
-    gsmDataGen.ir.assert_structural_equal(tvm_model, Expected)
+    gsm_data_generator.ir.assert_structural_equal(tvm_model, Expected)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

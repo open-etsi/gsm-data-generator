@@ -16,19 +16,19 @@
 # under the License.
 import numpy as np
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import te
-from gsmDataGen.script import tir as T
-from gsmDataGen import tir
-from gsmDataGen.tir.tensor_intrin.hexagon import VRMPY_u8u8i32_INTRIN
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import te
+from gsm_data_generator.script import tir as T
+from gsm_data_generator import tir
+from gsm_data_generator.tir.tensor_intrin.hexagon import VRMPY_u8u8i32_INTRIN
 
 
 def _check(original, transformed):
     func = original
-    mod = gsmDataGen.IRModule.from_expr(func.with_attr("global_symbol", "main"))
-    mod = gsmDataGen.tir.transform.PlanAndUpdateBufferAllocationLocation()(mod)
-    gsmDataGen.ir.assert_structural_equal(mod["main"], transformed.with_attr("global_symbol", "main"))
+    mod = gsm_data_generator.IRModule.from_expr(func.with_attr("global_symbol", "main"))
+    mod = gsm_data_generator.tir.transform.PlanAndUpdateBufferAllocationLocation()(mod)
+    gsm_data_generator.ir.assert_structural_equal(mod["main"], transformed.with_attr("global_symbol", "main"))
 
 
 @T.prim_func
@@ -453,4 +453,4 @@ def test_reduce_buffer_dominate_reduce_loops():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

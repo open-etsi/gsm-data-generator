@@ -15,12 +15,12 @@
 # specific language governing permissions and limitations
 # under the License.
 # pylint: disable=missing-module-docstring,missing-function-docstring,missing-class-docstring
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import meta_schedule as ms
-from gsmDataGen.script import tir as T
-from gsmDataGen.target import Target
-from gsmDataGen.tir.schedule.testing import assert_structural_equal_ignore_global_symbol
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import meta_schedule as ms
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.target import Target
+from gsm_data_generator.tir.schedule.testing import assert_structural_equal_ignore_global_symbol
 
 
 def _target() -> Target:
@@ -43,7 +43,7 @@ def _create_context(mod, target) -> ms.TuneContext:
     return ctx
 
 
-class BaseBeforeAfter(gsmDataGen.testing.CompareBeforeAfter):
+class BaseBeforeAfter(gsm_data_generator.testing.CompareBeforeAfter):
     def transform(self):
         def inner(mod):
             target = Target("cuda", host="llvm")
@@ -59,10 +59,10 @@ class BaseBeforeAfter(gsmDataGen.testing.CompareBeforeAfter):
                 ),
                 task_name="test",
             )
-            sch = gsmDataGen.tir.Schedule(mod, debug_mask="all")
+            sch = gsm_data_generator.tir.Schedule(mod, debug_mask="all")
             sch.enter_postproc()
             if not ctx.space_generator.postprocs[0].apply(sch):
-                raise gsmDataGen.TVMError("RewriteLayout postproc failed")
+                raise gsm_data_generator.TVMError("RewriteLayout postproc failed")
             return sch.mod
 
         return inner
@@ -122,7 +122,7 @@ class TestRewrittenBuffersMustOccurWithinBlock(BaseBeforeAfter):
         for i, j in T.grid(16, 16):
             T.evaluate(A[i, j])
 
-    expected = gsmDataGen.TVMError
+    expected = gsm_data_generator.TVMError
 
 
 class TestExtentOne(BaseBeforeAfter):
@@ -200,14 +200,14 @@ def rewritten_tir_matmul(
 def test_layout_rewrite():
     target = _target()
     ctx = _create_context(tir_matmul, target)
-    sch = gsmDataGen.tir.Schedule(tir_matmul, debug_mask="all")
+    sch = gsm_data_generator.tir.Schedule(tir_matmul, debug_mask="all")
     sch.enter_postproc()
     assert ctx.space_generator.postprocs[0].apply(sch)
     assert_structural_equal_ignore_global_symbol(sch.mod["main"], rewritten_tir_matmul)
 
 
 # fmt: off
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Conv2dCacheRead:
     @T.prim_func
     def main(p0: T.Buffer((1, 56, 56, 64), "float32"), p1: T.Buffer((3, 3, 64, 64), "float32"), conv2d_nhwc: T.Buffer((1, 56, 56, 64), "float32")):
@@ -284,7 +284,7 @@ class Conv2dCacheRead:
                                 conv2d_nhwc[v0, v1, v2, v3] = conv2d_nhwc_global[v0, v1, v2, v3]
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Conv2dCacheReadRewritten:
     @T.prim_func
     def main(p0: T.Buffer((1, 56, 56, 64), "float32"), p1: T.Buffer((3, 3, 64, 64), "float32"), conv2d_nhwc: T.Buffer((1, 56, 56, 64), "float32")):
@@ -369,7 +369,7 @@ class Conv2dCacheReadRewritten:
                                 conv2d_nhwc[v0, v1, v2, v3] = conv2d_nhwc_global[v0, v1, v2, v3]
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Conv2dCacheReadMultipleRewritten:
     @T.prim_func
     def main(p0: T.Buffer((1, 56, 56, 64), "float32"), p1: T.Buffer((3, 3, 64, 64), "float32"), conv2d_nhwc: T.Buffer((1, 56, 56, 64), "float32")):
@@ -466,20 +466,20 @@ class Conv2dCacheReadMultipleRewritten:
 def test_layout_rewrite_cache_read():
     target = Target("llvm")
     ctx = _create_context(Conv2dCacheRead, target)
-    sch = gsmDataGen.tir.Schedule(Conv2dCacheRead, debug_mask="all")
+    sch = gsm_data_generator.tir.Schedule(Conv2dCacheRead, debug_mask="all")
     sch.enter_postproc()
     assert ctx.space_generator.postprocs[0].apply(sch)
-    gsmDataGen.ir.assert_structural_equal(sch.mod, Conv2dCacheReadRewritten)
+    gsm_data_generator.ir.assert_structural_equal(sch.mod, Conv2dCacheReadRewritten)
 
 
 def test_layout_rewrite_cache_read_multiple():
     target = Target("llvm")
     ctx = _create_context(Conv2dCacheRead, target)
-    sch = gsmDataGen.tir.Schedule(Conv2dCacheRead, debug_mask="all")
+    sch = gsm_data_generator.tir.Schedule(Conv2dCacheRead, debug_mask="all")
     sch.cache_read(sch.get_block("p1_global"), 0, "global2")
     sch.enter_postproc()
     assert ctx.space_generator.postprocs[0].apply(sch)
-    gsmDataGen.ir.assert_structural_equal(sch.mod, Conv2dCacheReadMultipleRewritten)
+    gsm_data_generator.ir.assert_structural_equal(sch.mod, Conv2dCacheReadMultipleRewritten)
 
 
 class TestLayoutRewriteInt64Index(BaseBeforeAfter):
@@ -613,4 +613,4 @@ class TestLayoutRewriteInt64Index(BaseBeforeAfter):
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

@@ -15,12 +15,12 @@
 # specific language governing permissions and limitations
 # under the License.
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import relax
-from gsmDataGen.script import ir as I
-from gsmDataGen.script import relax as R
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import relax
+from gsm_data_generator.script import ir as I
+from gsm_data_generator.script import relax as R
+from gsm_data_generator.script import tir as T
 
 
 def test_alloc_storage():
@@ -56,7 +56,7 @@ def test_alloc_storage():
             return alloc
 
     mod = relax.transform.LowerGPUIPCAllocStorage()(Module)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_builtin_alloc_tensor():
@@ -89,7 +89,7 @@ def test_builtin_alloc_tensor():
             return tensor
 
     mod = relax.transform.LowerGPUIPCAllocStorage()(Module)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 if __name__ == "__main__":

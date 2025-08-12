@@ -16,14 +16,14 @@
 # under the License.
 
 """
-This is the global script that set the version information of TVM.
+This is the global script that set the version information of DATAGEN.
 This script runs and update all the locations that related to versions
 
 List of affected files:
-- tvm-root/python/tvm/libinfo.py
-- tvm-root/include/tvm/runtime/base.h
-- tvm-root/conda/recipe/meta.yaml
-- tvm-root/web/package.json
+- gsm_gsm_datagen-root/python/gsm_gsm_datagen/libinfo.py
+- gsm_gsm_datagen-root/include/gsm_gsm_datagen/runtime/base.h
+- gsm_gsm_datagen-root/conda/recipe/meta.yaml
+- gsm_data_generator-root/web/package.json
 """
 import os
 import re
@@ -170,27 +170,15 @@ def sync_version(pub_ver, local_ver, dry_run):
     """Synchronize version."""
     # python uses the PEP-440: local version
     update(
-        os.path.join(PROJ_ROOT, "python", "tvm", "libinfo.py"),
+        os.path.join(PROJ_ROOT, "gsm_data_generator", "libinfo.py"),
         r"(?<=__version__ = \")[.0-9a-z\+]+",
         local_ver,
         dry_run,
     )
     # Use public version for other parts for now
-    # Note that full git hash is already available in libtvm
-    # C++ header
-    update(
-        os.path.join(PROJ_ROOT, "include", "tvm", "runtime", "base.h"),
-        r'(?<=TVM_VERSION ")[.0-9a-z\+]+',
-        pub_ver,
-        dry_run,
-    )
-    # conda
-    update(
-        os.path.join(PROJ_ROOT, "conda", "recipe", "meta.yaml"),
-        r"(?<=version = ')[.0-9a-z\+]+",
-        pub_ver,
-        dry_run,
-    )
+    # Note that full git hash is already available in libgsm_gsm_datagen
+
+
     # web
     # change to pre-release convention by npm
     dev_pos = pub_ver.find(".dev")

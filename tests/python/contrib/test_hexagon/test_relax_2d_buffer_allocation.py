@@ -19,13 +19,13 @@
 import numpy as np
 import pytest
 
-import gsmDataGen
-import gsmDataGen.contrib.hexagon
-import gsmDataGen.testing
-from gsmDataGen import relax
-from gsmDataGen.script import ir as I
-from gsmDataGen.script import relax as R
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.contrib.hexagon
+import gsm_data_generator.testing
+from gsm_data_generator import relax
+from gsm_data_generator.script import ir as I
+from gsm_data_generator.script import relax as R
+from gsm_data_generator.script import tir as T
 
 
 # pylint: disable=missing-docstring,no-self-argument,invalid-name
@@ -76,18 +76,18 @@ def test_alloc_storage_with_scope_global(hexagon_launcher):
 
     mod = Module
 
-    target_hexagon = gsmDataGen.target.hexagon("v69", vtcm_capacity=4 * 2**20)
-    target = gsmDataGen.target.Target(target_hexagon, host=target_hexagon)
-    with gsmDataGen.transform.PassContext(opt_level=3):
-        lib = gsmDataGen.compile(mod, target, exec_mode="compiled")
+    target_hexagon = gsm_data_generator.target.hexagon("v69", vtcm_capacity=4 * 2**20)
+    target = gsm_data_generator.target.Target(target_hexagon, host=target_hexagon)
+    with gsm_data_generator.transform.PassContext(opt_level=3):
+        lib = gsm_data_generator.compile(mod, target, exec_mode="compiled")
 
     with hexagon_launcher.create_session() as session:
         dev = session.device
         vm_mod = session.get_executor_from_factory(lib)
         # This is the important line which tests nd allocator
         vm_rt = relax.VirtualMachine(vm_mod, dev, memory_cfg="naive")
-        x = gsmDataGen.nd.array(arg0, dev)
+        x = gsm_data_generator.nd.array(arg0, dev)
         vm_rt.set_input("main", x)
         vm_rt.invoke_stateful("main")
         hexagon_output = vm_rt.get_outputs("main").numpy()
-    gsmDataGen.testing.assert_allclose(output_ref, hexagon_output)
+    gsm_data_generator.testing.assert_allclose(output_ref, hexagon_output)

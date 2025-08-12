@@ -14,10 +14,10 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-import gsmDataGen.testing
-from gsmDataGen import relax
-from gsmDataGen.ir.base import assert_structural_equal
-from gsmDataGen.script import relax as R, ir as I
+import gsm_data_generator.testing
+from gsm_data_generator import relax
+from gsm_data_generator.ir.base import assert_structural_equal
+from gsm_data_generator.script import relax as R, ir as I
 
 
 @I.ir_module
@@ -295,4 +295,4 @@ def test_categorical_cross_entropy_loss_with_ignore_index():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

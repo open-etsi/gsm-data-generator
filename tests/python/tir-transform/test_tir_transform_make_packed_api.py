@@ -17,14 +17,14 @@
 
 import pytest
 import numpy as np
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import te, tir
-from gsmDataGen.script import tir as T, ir as I
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import te, tir
+from gsm_data_generator.script import tir as T, ir as I
 
 
 def _find_assignment(stmt, var_name):
-    while not isinstance(stmt, gsmDataGen.tir.LetStmt):
+    while not isinstance(stmt, gsm_data_generator.tir.LetStmt):
         stmt = stmt.body
 
     if stmt.var.name != var_name:
@@ -40,7 +40,7 @@ def _find_next(stmt, type):
         stmt = search_stack.pop()
         if isinstance(stmt, type):
             return stmt
-        elif isinstance(stmt, gsmDataGen.tir.SeqStmt):
+        elif isinstance(stmt, gsm_data_generator.tir.SeqStmt):
             search_stack.extend(reversed(stmt))
         else:
             search_stack.append(stmt.body)
@@ -63,7 +63,7 @@ def _find_compute_scope(func):
 
 @pytest.mark.parametrize("use_global_symbol", [True, False])
 def test_no_op_when_global_symbol_is_absent(use_global_symbol):
-    func_attr = {"target": gsmDataGen.target.Target("llvm", host="llvm")}
+    func_attr = {"target": gsm_data_generator.target.Target("llvm", host="llvm")}
 
     @T.prim_func(private=True)
     def before():
@@ -73,11 +73,11 @@ def test_no_op_when_global_symbol_is_absent(use_global_symbol):
     if use_global_symbol:
         before = before.with_attr("global_symbol", "main")
 
-    after = gsmDataGen.tir.transform.MakePackedAPI()(gsmDataGen.IRModule.from_expr(before))["main"]
+    after = gsm_data_generator.tir.transform.MakePackedAPI()(gsm_data_generator.IRModule.from_expr(before))["main"]
     if use_global_symbol:
         assert len(after.params) == 4
     else:
-        gsmDataGen.ir.assert_structural_equal(before, after)
+        gsm_data_generator.ir.assert_structural_equal(before, after)
 
 
 def test_target_host_removed():
@@ -88,7 +88,7 @@ def test_target_host_removed():
     only contain the host-side target.
     """
 
-    host = gsmDataGen.target.Target("llvm")
+    host = gsm_data_generator.target.Target("llvm")
 
     @I.ir_module
     class before:
@@ -97,7 +97,7 @@ def test_target_host_removed():
             T.func_attr({"global_symbol": "main", "target": T.target("cuda", host=host)})
             T.evaluate(0)
 
-    after = gsmDataGen.tir.transform.MakePackedAPI()(before)
+    after = gsm_data_generator.tir.transform.MakePackedAPI()(before)
     target_attr = after["main"].attrs["target"]
     assert str(host) == str(target_attr)
 
@@ -124,12 +124,12 @@ def test_internal_subroutine_call():
             T.func_attr({"target": T.target("llvm")})
             T.evaluate(A_data)
 
-    after = gsmDataGen.tir.transform.MakePackedAPI()(before)
-    gsmDataGen.ir.assert_structural_equal(before["subroutine"], after["subroutine"])
+    after = gsm_data_generator.tir.transform.MakePackedAPI()(before)
+    gsm_data_generator.ir.assert_structural_equal(before["subroutine"], after["subroutine"])
 
     compute_scope = _find_compute_scope(after["main"])
     subroutine_call_op = compute_scope.body.value.op
-    assert isinstance(subroutine_call_op, gsmDataGen.ir.GlobalVar), (
+    assert isinstance(subroutine_call_op, gsm_data_generator.ir.GlobalVar), (
         f"The main function's CallNode should use the subroutine's GLobalVar as the operation, "
         f"but instead has an operation of type {subroutine_call_op}"
     )
@@ -156,7 +156,7 @@ def test_subroutine_call_to_externally_visible_subroutine():
             T.func_attr({"global_symbol": "subroutine", "target": T.target("llvm", host="llvm")})
             T.evaluate(A_data)
 
-    after = gsmDataGen.tir.transform.MakePackedAPI()(before)
+    after = gsm_data_generator.tir.transform.MakePackedAPI()(before)
 
     main_compute_scope = _find_compute_scope(after["main"])
     assert main_compute_scope is not None
@@ -165,7 +165,7 @@ def test_subroutine_call_to_externally_visible_subroutine():
 
     subroutine_call_op = main_compute_scope.body.value.op
     assert (
-        isinstance(subroutine_call_op, gsmDataGen.ir.Op)
+        isinstance(subroutine_call_op, gsm_data_generator.ir.Op)
         and subroutine_call_op.name == "tir.tvm_call_cpacked"
     ), (
         f"The main function's CallNode should be lowered to the builtin 'tir.tvm_call_cpacked', "
@@ -185,9 +185,9 @@ def test_function_call_with_wrong_argument_count():
     ):
         pass
 
-    built = gsmDataGen.compile(func, target="llvm")
+    built = gsm_data_generator.compile(func, target="llvm")
 
-    with pytest.raises(gsmDataGen.TVMError):
+    with pytest.raises(gsm_data_generator.TVMError):
         built()
 
 
@@ -198,9 +198,9 @@ def test_function_call_with_wrong_type_code():
     def func(A: T.Buffer([16, 16], "int32")):
         pass
 
-    built = gsmDataGen.compile(func, target="llvm")
+    built = gsm_data_generator.compile(func, target="llvm")
 
-    with pytest.raises(gsmDataGen.TVMError):
+    with pytest.raises(gsm_data_generator.TVMError):
         built(0)
 
 
@@ -212,12 +212,12 @@ def test_function_call_with_null_data_pointer():
         for i, j in T.grid(16, 16):
             B[i, j] = A[i, j]
 
-    built = gsmDataGen.compile(func, target="llvm")
+    built = gsm_data_generator.compile(func, target="llvm")
 
-    A = gsmDataGen.nd.array(np.zeros([16], dtype="int32"))
-    B = gsmDataGen.nd.empty([16, 16], "int32", gsmDataGen.cpu())
+    A = gsm_data_generator.nd.array(np.zeros([16], dtype="int32"))
+    B = gsm_data_generator.nd.empty([16, 16], "int32", gsm_data_generator.cpu())
 
-    with pytest.raises(gsmDataGen.TVMError):
+    with pytest.raises(gsm_data_generator.TVMError):
         built(A, B)
 
 
@@ -229,12 +229,12 @@ def test_function_call_with_wrong_dimensionality():
         for i, j in T.grid(16, 16):
             B[i, j] = A[i, j]
 
-    built = gsmDataGen.compile(func, target="llvm")
+    built = gsm_data_generator.compile(func, target="llvm")
 
-    A = gsmDataGen.nd.array(np.zeros([16], dtype="int32"))
-    B = gsmDataGen.nd.empty([16], "int32", gsmDataGen.cpu())
+    A = gsm_data_generator.nd.array(np.zeros([16], dtype="int32"))
+    B = gsm_data_generator.nd.empty([16], "int32", gsm_data_generator.cpu())
 
-    with pytest.raises(gsmDataGen.TVMError):
+    with pytest.raises(gsm_data_generator.TVMError):
         built(A, B)
 
 
@@ -271,8 +271,8 @@ def test_zero_arg_function():
                 return 0
             return 0
 
-    After = gsmDataGen.tir.transform.MakePackedAPI()(Before)
-    gsmDataGen.ir.assert_structural_equal(Expected, After)
+    After = gsm_data_generator.tir.transform.MakePackedAPI()(Before)
+    gsm_data_generator.ir.assert_structural_equal(Expected, After)
 
 
 def test_int_parameter():
@@ -335,8 +335,8 @@ def test_int_parameter():
                     return 0
             return 0
 
-    After = gsmDataGen.tir.transform.MakePackedAPI()(Before)
-    gsmDataGen.ir.assert_structural_equal(Expected, After)
+    After = gsm_data_generator.tir.transform.MakePackedAPI()(Before)
+    gsm_data_generator.ir.assert_structural_equal(Expected, After)
 
 
 def test_bool_parameter():
@@ -392,9 +392,9 @@ def test_bool_parameter():
                     return 0
             return 0
 
-    After = gsmDataGen.tir.transform.MakePackedAPI()(Before)
-    gsmDataGen.ir.assert_structural_equal(Expected, After)
+    After = gsm_data_generator.tir.transform.MakePackedAPI()(Before)
+    gsm_data_generator.ir.assert_structural_equal(Expected, After)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

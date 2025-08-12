@@ -15,15 +15,15 @@
 # specific language governing permissions and limitations
 # under the License.
 import pytest
-import gsmDataGen.testing
+import gsm_data_generator.testing
 import numpy as np
 
-import gsmDataGen
-from gsmDataGen import relax, TVMError
-from gsmDataGen.relax.training import SetupTrainer, Trainer
-from gsmDataGen.relax.training.optimizer import SGD, Adam
-from gsmDataGen.relax.training.loss import MSELoss
-from gsmDataGen.script import ir as I, relax as R
+import gsm_data_generator
+from gsm_data_generator import relax, TVMError
+from gsm_data_generator.relax.training import SetupTrainer, Trainer
+from gsm_data_generator.relax.training.optimizer import SGD, Adam
+from gsm_data_generator.relax.training.loss import MSELoss
+from gsm_data_generator.script import ir as I, relax as R
 
 
 def _get_backbone():
@@ -52,7 +52,7 @@ def _make_dataset():
     return [[np.ones((1, 10)).astype(np.float32), np.array([[0, 0, 1, 0, 0]], np.float32)]] * N
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_execute(target, dev):
     backbone = _get_backbone()
     pred_sinfo = relax.TensorStructInfo((1, 5), "float32")
@@ -64,7 +64,7 @@ def test_execute(target, dev):
     )
 
     train_mod = setup_trainer(backbone)
-    ex = gsmDataGen.compile(train_mod, target)
+    ex = gsm_data_generator.compile(train_mod, target)
     vm = relax.VirtualMachine(ex, dev, profile=True)
 
     trainer = Trainer(train_mod, vm, dev, False)
@@ -77,7 +77,7 @@ def test_execute(target, dev):
     trainer.profile_adjoint(dataset[0][0], dataset[0][1])
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_execute_numeric(target, dev):
     backbone = _get_backbone()
     pred_sinfo = relax.TensorStructInfo((1, 5), "float32")
@@ -89,7 +89,7 @@ def test_execute_numeric(target, dev):
     )
 
     train_mod = setup_trainer(backbone)
-    ex = gsmDataGen.compile(train_mod, target)
+    ex = gsm_data_generator.compile(train_mod, target)
     vm = relax.VirtualMachine(ex, dev)
 
     trainer = Trainer(train_mod, vm, dev, False)
@@ -99,14 +99,14 @@ def test_execute_numeric(target, dev):
     for _ in range(2):
         for input, label in dataset:
             loss = trainer.update(input, label)
-    gsmDataGen.testing.assert_allclose(loss.numpy(), 3.1974423e-14)
+    gsm_data_generator.testing.assert_allclose(loss.numpy(), 3.1974423e-14)
 
     result = trainer.predict(dataset[0][0])
     result_expected = np.array([[0, 0, 0.9999998, 0, 0]], np.float32)
-    gsmDataGen.testing.assert_allclose(result.numpy(), result_expected)
+    gsm_data_generator.testing.assert_allclose(result.numpy(), result_expected)
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_load_export_params(target, dev):
     backbone = _get_backbone()
     pred_sinfo = relax.TensorStructInfo((1, 5), "float32")
@@ -118,7 +118,7 @@ def test_load_export_params(target, dev):
     )
 
     train_mod = setup_trainer(backbone)
-    ex = gsmDataGen.compile(train_mod, target)
+    ex = gsm_data_generator.compile(train_mod, target)
     vm = relax.VirtualMachine(ex, dev)
 
     trainer = Trainer(train_mod, vm, dev, False)
@@ -136,12 +136,12 @@ def test_load_export_params(target, dev):
     trainer1.load_params(param_dict)
 
     x_sample = dataset[np.random.randint(len(dataset))][0]
-    gsmDataGen.testing.assert_allclose(
+    gsm_data_generator.testing.assert_allclose(
         trainer.predict(x_sample).numpy(), trainer1.predict(x_sample).numpy()
     )
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_setting_error(target, dev):
     backbone = _get_backbone()
     pred_sinfo = relax.TensorStructInfo((1, 5), "float32")
@@ -153,7 +153,7 @@ def test_setting_error(target, dev):
     )
 
     train_mod = setup_trainer(backbone)
-    ex = gsmDataGen.compile(train_mod, target)
+    ex = gsm_data_generator.compile(train_mod, target)
     vm = relax.VirtualMachine(ex, dev)
 
     trainer = Trainer(train_mod, vm, dev, False)
@@ -167,4 +167,4 @@ def test_setting_error(target, dev):
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

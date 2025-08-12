@@ -14,16 +14,16 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import relax as rx
-from gsmDataGen.script import relax as R
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import relax as rx
+from gsm_data_generator.script import relax as R
+from gsm_data_generator.script import tir as T
 
 
-@gsmDataGen.register_func("test.op.identity", override=True)
+@gsm_data_generator.register_func("test.op.identity", override=True)
 def identity_packed(a):
-    return gsmDataGen.nd.array(a.numpy())
+    return gsm_data_generator.nd.array(a.numpy())
 
 
 @T.prim_func
@@ -57,13 +57,13 @@ def test_call_tir_with_grad():
         te_grad_kwargs={"k": 1.0},
     )
     assert v2.attrs.te_grad_name == "identity_k_grad"
-    assert isinstance(v2.attrs.te_grad_kwargs, gsmDataGen.ir.container.Map)
+    assert isinstance(v2.attrs.te_grad_kwargs, gsm_data_generator.ir.container.Map)
     val = list(v2.attrs.te_grad_kwargs.items())[0]
     assert val[0] == "k" and float(val[1]) == 1.0
 
 
 def test_implicit_op():
-    m, n = gsmDataGen.tir.Var("m", "int64"), gsmDataGen.tir.Var("n", "int64")
+    m, n = gsm_data_generator.tir.Var("m", "int64"), gsm_data_generator.tir.Var("n", "int64")
     x = rx.Var("x", R.Tensor([m, n], "float32"))
     y = rx.Var("y", R.Tensor([m, n], "float32"))
     func = rx.Var(
@@ -81,7 +81,7 @@ def test_implicit_op():
         assert isinstance(expr, rx.Call)
         if not op_name.startswith("relax."):
             op_name = "relax." + op_name
-        op = gsmDataGen.ir.Op.get(op_name)
+        op = gsm_data_generator.ir.Op.get(op_name)
         assert expr.op == op
 
     # Comparison operators
@@ -129,7 +129,7 @@ def test_vm_alloc_tensor():
     storage = rx.Var("storage", rx.TensorStructInfo(dtype="float32"))
     alloc = rx.op.vm.alloc_tensor(storage, offset=0, shape=rx.ShapeExpr([4, 5]), dtype="float32")
     alloc = bb.normalize(alloc)
-    gsmDataGen.ir.assert_structural_equal(alloc.struct_info, R.Tensor([4, 5], "float32"))
+    gsm_data_generator.ir.assert_structural_equal(alloc.struct_info, R.Tensor([4, 5], "float32"))
 
 
 def test_vm_alloc_tensor_infer_struct_info():
@@ -138,7 +138,7 @@ def test_vm_alloc_tensor_infer_struct_info():
     storage = rx.Var("storage", rx.TensorStructInfo(dtype="float32"))
     alloc = rx.op.vm.alloc_tensor(storage, offset=0, shape=s1, dtype="float32")
     ret = bb.normalize(alloc)
-    gsmDataGen.ir.assert_structural_equal(ret.struct_info, R.Tensor(dtype="float32", ndim=3))
+    gsm_data_generator.ir.assert_structural_equal(ret.struct_info, R.Tensor(dtype="float32", ndim=3))
 
 
 def test_vm_kill_object():
@@ -146,7 +146,7 @@ def test_vm_kill_object():
     storage = rx.Var("storage", rx.TensorStructInfo(dtype="float32"))
     kill = rx.op.vm.kill_object(storage)
     ret = bb.normalize(kill)
-    gsmDataGen.ir.assert_structural_equal(ret.struct_info, R.Tuple([]))
+    gsm_data_generator.ir.assert_structural_equal(ret.struct_info, R.Tuple([]))
 
 
 def test_builtin_stop_lift_params():
@@ -154,8 +154,8 @@ def test_builtin_stop_lift_params():
     x = rx.Var("x", rx.TensorStructInfo(shape=[4, 5], dtype="float32"))
     x1 = rx.op.builtin.stop_lift_params(x)
     x1 = bb.normalize(x1)
-    gsmDataGen.ir.assert_structural_equal(x1.struct_info, R.Tensor([4, 5], "float32"))
+    gsm_data_generator.ir.assert_structural_equal(x1.struct_info, R.Tensor([4, 5], "float32"))
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

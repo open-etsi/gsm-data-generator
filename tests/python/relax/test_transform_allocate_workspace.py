@@ -14,11 +14,11 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import relax
-from gsmDataGen.script import ir as I
-from gsmDataGen.script import relax as R
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import relax
+from gsm_data_generator.script import ir as I
+from gsm_data_generator.script import relax as R
 
 
 @I.ir_module
@@ -156,8 +156,8 @@ class Expected:
 
 def test_single_attention():
     rewritten = relax.transform.AllocateWorkspace()(Module)
-    gsmDataGen.ir.assert_structural_equal(rewritten, Expected)
+    gsm_data_generator.ir.assert_structural_equal(rewritten, Expected)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

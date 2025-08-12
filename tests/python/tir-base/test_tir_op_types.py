@@ -15,9 +15,9 @@
 # specific language governing permissions and limitations
 # under the License.
 # pylint: disable=missing-docstring
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import tir
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import tir
 
 
 def test_tir_op_tvm_tuple():
@@ -349,4 +349,4 @@ def test_tir_op_TVMBackendFreeWorkspace():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

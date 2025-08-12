@@ -22,7 +22,7 @@ import json
 from pathlib import Path
 from typing import Dict, Any
 
-import gsmDataGen
+import gsm_data_generator
 from .test_utils import GITHUB_SCRIPT_ROOT, TempGit, run_script
 
 
@@ -46,7 +46,7 @@ class _TvmBotTest:
         """
         return data
 
-    @gsmDataGen.testing.skip_if_wheel_test
+    @gsm_data_generator.testing.skip_if_wheel_test
     def test(self, tmpdir_factory):
         """
         Run the tvm-bot script using the data from preprocess_data
@@ -277,4 +277,4 @@ class TestIgnoreJobs(_TvmBotTest):
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

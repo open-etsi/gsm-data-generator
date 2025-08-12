@@ -14,50 +14,50 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import te
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import te
 import numpy as np
 
 
-@gsmDataGen.testing.requires_package("torch")
+@gsm_data_generator.testing.requires_package("torch")
 def test_from_dlpack_shape_one():
     # A test case for the issue https://github.com/pytorch/pytorch/issues/99803
     import torch
     from torch.utils.dlpack import to_dlpack
 
-    tgt = gsmDataGen.target.Target(target="llvm", host="llvm")
+    tgt = gsm_data_generator.target.Target(target="llvm", host="llvm")
 
     rows = 1
-    a = gsmDataGen.runtime.ndarray.from_dlpack(to_dlpack(torch.randn(rows, 16)))
+    a = gsm_data_generator.runtime.ndarray.from_dlpack(to_dlpack(torch.randn(rows, 16)))
 
     A = te.placeholder((rows, 16), name="A")
     B = te.placeholder((rows, 16), name="B")
     C = te.compute(A.shape, lambda i, j: A[i, j] + B[i, j], name="C")
 
-    fadd = gsmDataGen.compile(te.create_prim_func([A, B, C]), target=tgt)
+    fadd = gsm_data_generator.compile(te.create_prim_func([A, B, C]), target=tgt)
 
-    dev = gsmDataGen.device(tgt.kind.name, 0)
+    dev = gsm_data_generator.device(tgt.kind.name, 0)
 
-    b = gsmDataGen.nd.array(np.random.uniform(size=(rows, 16)).astype(B.dtype), dev)
-    c = gsmDataGen.nd.array(np.zeros((rows, 16), dtype=C.dtype), dev)
+    b = gsm_data_generator.nd.array(np.random.uniform(size=(rows, 16)).astype(B.dtype), dev)
+    c = gsm_data_generator.nd.array(np.zeros((rows, 16), dtype=C.dtype), dev)
     fadd(a, b, c)
 
-    gsmDataGen.testing.assert_allclose(c.numpy(), a.numpy() + b.numpy())
+    gsm_data_generator.testing.assert_allclose(c.numpy(), a.numpy() + b.numpy())
 
 
-@gsmDataGen.testing.requires_package("torch")
+@gsm_data_generator.testing.requires_package("torch")
 def test_from_dlpack_strided():
     import torch
     from torch.utils.dlpack import to_dlpack
 
     rows = 1
     inp = torch.randn(rows, 16)
-    a = gsmDataGen.runtime.ndarray.from_dlpack(to_dlpack(inp))
+    a = gsm_data_generator.runtime.ndarray.from_dlpack(to_dlpack(inp))
     view = a._create_view((2, 8))
 
     np.testing.assert_equal(inp.numpy().reshape(2, 8), view.numpy())
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

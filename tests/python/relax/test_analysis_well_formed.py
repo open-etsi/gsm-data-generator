@@ -17,12 +17,12 @@
 
 import pytest
 
-import gsmDataGen
-import gsmDataGen.testing
+import gsm_data_generator
+import gsm_data_generator.testing
 
-from gsmDataGen import relax as rx
-from gsmDataGen import tir
-from gsmDataGen.script import ir as I, relax as R, tir as T
+from gsm_data_generator import relax as rx
+from gsm_data_generator import tir
+from gsm_data_generator.script import ir as I, relax as R, tir as T
 
 m = tir.Var("m", "int64")
 n = tir.Var("n", "int64")
@@ -47,7 +47,7 @@ def test_var():
     bindings = [rx.VarBinding(gv1, call_node)]
     blocks = [rx.BindingBlock(bindings)]
     func = build_function(blocks)
-    mod = gsmDataGen.IRModule({rx.GlobalVar("foo"): func})
+    mod = gsm_data_generator.IRModule({rx.GlobalVar("foo"): func})
     assert not rx.analysis.well_formed(mod, check_struct_info=False)
 
     # Error: Var gv0 is defined more than once
@@ -57,7 +57,7 @@ def test_var():
     bindings = [rx.VarBinding(gv0, call_node), rx.VarBinding(gv0, call_node2)]
     blocks = [rx.BindingBlock(bindings)]
     func = build_function(blocks)
-    mod = gsmDataGen.IRModule({rx.GlobalVar("foo"): func})
+    mod = gsm_data_generator.IRModule({rx.GlobalVar("foo"): func})
     assert not rx.analysis.well_formed(mod, check_struct_info=False)
 
 
@@ -69,7 +69,7 @@ def test_dataflow_var():
     bindings = [rx.VarBinding(gv0, call_node)]
     blocks = [rx.DataflowBlock(bindings)]
     func = build_function(blocks)
-    mod = gsmDataGen.IRModule({rx.GlobalVar("foo"): func})
+    mod = gsm_data_generator.IRModule({rx.GlobalVar("foo"): func})
     assert not rx.analysis.well_formed(mod, check_struct_info=False)
 
     # Error: DataflowVar gv0 is defined more than once
@@ -79,7 +79,7 @@ def test_dataflow_var():
     bindings = [rx.VarBinding(lv0, call_node), rx.VarBinding(lv0, call_node2)]
     blocks = [rx.DataflowBlock(bindings)]
     func = build_function(blocks)
-    mod = gsmDataGen.IRModule({rx.GlobalVar("foo"): func})
+    mod = gsm_data_generator.IRModule({rx.GlobalVar("foo"): func})
     assert not rx.analysis.well_formed(mod, check_struct_info=False)
 
     # Error: DataflowVar lv0 is defined outside DataflowBlock
@@ -88,7 +88,7 @@ def test_dataflow_var():
     bindings = [rx.VarBinding(lv0, call_node)]
     blocks = [rx.BindingBlock(bindings)]
     func = build_function(blocks)
-    mod = gsmDataGen.IRModule({rx.GlobalVar("foo"): func})
+    mod = gsm_data_generator.IRModule({rx.GlobalVar("foo"): func})
     assert not rx.analysis.well_formed(mod, check_struct_info=False)
 
     # Error: DataflowVar lv0 is used outside DataflowBlock
@@ -98,7 +98,7 @@ def test_dataflow_var():
     bindings = [rx.VarBinding(lv0, call_node)]
     blocks = [rx.BindingBlock(bindings)]
     func = build_function(blocks)
-    mod = gsmDataGen.IRModule({rx.GlobalVar("foo"): func})
+    mod = gsm_data_generator.IRModule({rx.GlobalVar("foo"): func})
     assert not rx.analysis.well_formed(mod, check_struct_info=False)
 
 
@@ -122,13 +122,13 @@ def test_global_var():
     gv0 = rx.Var("gv0", R.Tensor([m, n], "float32"))
     globalvar = rx.GlobalVar("GlobalVar0")
     call_node = rx.Call(
-        op=gsmDataGen.ir.Op.get("relax.call_tir"),
+        op=gsm_data_generator.ir.Op.get("relax.call_tir"),
         args=[globalvar, rx.Tuple([x]), rx.ShapeExpr([m, n])],
     )
     bindings = [rx.VarBinding(gv0, call_node)]
     blocks = [rx.BindingBlock(bindings)]
     func = build_function(blocks)
-    mod = gsmDataGen.IRModule({rx.GlobalVar("foo"): func})
+    mod = gsm_data_generator.IRModule({rx.GlobalVar("foo"): func})
     assert not rx.analysis.well_formed(mod, check_struct_info=False)
 
 
@@ -140,7 +140,7 @@ def test_symbolic_var():
     bindings = [rx.VarBinding(gv0, call_node)]
     blocks = [rx.BindingBlock(bindings)]
     func = build_function(blocks)
-    mod = gsmDataGen.IRModule({rx.GlobalVar("foo"): func})
+    mod = gsm_data_generator.IRModule({rx.GlobalVar("foo"): func})
     assert not rx.analysis.well_formed(mod, check_struct_info=False)
 
 
@@ -160,7 +160,7 @@ def test_symbolic_var_across_functions():
 
 def test_symbolic_var_invalid_type():
     with pytest.raises(
-        gsmDataGen.TVMError, match="the value in ShapeStructInfo can only have dtype of int64"
+        gsm_data_generator.TVMError, match="the value in ShapeStructInfo can only have dtype of int64"
     ):
         dim = tir.Var("dim", "float32")
         y = rx.Var("y", R.Tensor([dim], "float32"))
@@ -169,7 +169,7 @@ def test_symbolic_var_invalid_type():
         bindings = [rx.VarBinding(gv0, call_node)]
         blocks = [rx.BindingBlock(bindings)]
         func = build_function(blocks, [y])
-        mod = gsmDataGen.IRModule({rx.GlobalVar("foo"): func})
+        mod = gsm_data_generator.IRModule({rx.GlobalVar("foo"): func})
         assert not rx.analysis.well_formed(mod, check_struct_info=False)
 
 
@@ -186,7 +186,7 @@ def test_seq_expr():
     bindings = [rx.VarBinding(gv0, _seq_expr)]
     blocks = [rx.BindingBlock(bindings)]
     func = build_function(blocks)
-    mod = gsmDataGen.IRModule({rx.GlobalVar("foo"): func})
+    mod = gsm_data_generator.IRModule({rx.GlobalVar("foo"): func})
     assert not rx.analysis.well_formed(mod, check_struct_info=False)
 
 
@@ -212,7 +212,7 @@ def test_recursive():
         ]
     )
     func = rx.Function([], rx.SeqExpr([outer_block], gv0), scalar_struct_info)
-    mod = gsmDataGen.IRModule.from_expr(func)
+    mod = gsm_data_generator.IRModule.from_expr(func)
     normalized = rx.transform.Normalize()(mod)
     assert rx.analysis.well_formed(normalized)
 
@@ -245,7 +245,7 @@ def test_if():
     bindings = [rx.VarBinding(gv0, if_node), rx.VarBinding(gv1, v_in_if)]
     blocks = [rx.BindingBlock(bindings)]
     func = build_function(blocks)
-    mod = gsmDataGen.IRModule({rx.GlobalVar("foo"): func})
+    mod = gsm_data_generator.IRModule({rx.GlobalVar("foo"): func})
     assert not rx.analysis.well_formed(mod, check_struct_info=True)
 
 
@@ -263,7 +263,7 @@ def test_if_non_seq_body():
         )
     ]
     func = build_function(blocks)
-    mod = gsmDataGen.IRModule.from_expr(func)
+    mod = gsm_data_generator.IRModule.from_expr(func)
     assert not rx.analysis.well_formed(mod, check_struct_info=False)
 
     # on the other hand, if they're wrapped in a seq node, it's fine
@@ -280,7 +280,7 @@ def test_if_non_seq_body():
         )
     ]
     new_func = build_function(new_blocks)
-    new_mod = gsmDataGen.IRModule.from_expr(new_func)
+    new_mod = gsm_data_generator.IRModule.from_expr(new_func)
     # apply normalization to fill in struct_info_
     normalized = rx.transform.Normalize()(new_mod)
     assert rx.analysis.well_formed(normalized, check_struct_info=True)
@@ -302,7 +302,7 @@ def test_if_complex_condition():
         )
     ]
     func = build_function(blocks)
-    mod = gsmDataGen.IRModule.from_expr(func)
+    mod = gsm_data_generator.IRModule.from_expr(func)
     assert not rx.analysis.well_formed(mod, check_struct_info=False)
 
     cond_var = rx.Var("q", R.Tensor([], "bool"))
@@ -319,7 +319,7 @@ def test_if_complex_condition():
         )
     ]
     func = build_function(blocks)
-    mod = gsmDataGen.IRModule.from_expr(func)
+    mod = gsm_data_generator.IRModule.from_expr(func)
     # apply normalization to fill in struct_info_
     normalized = rx.transform.Normalize()(mod)
     assert rx.analysis.well_formed(normalized, check_struct_info=True)
@@ -338,7 +338,7 @@ def test_tuple_get_item_nested():
         ret_struct_info=R.Tensor(ndim=0, dtype="int32"),
     )
     f = f.with_attr("global_symbol", "f")
-    mod = gsmDataGen.IRModule.from_expr(f)
+    mod = gsm_data_generator.IRModule.from_expr(f)
     assert not rx.analysis.well_formed(mod, check_struct_info=False)
 
     # okay with an intermediate binding
@@ -358,7 +358,7 @@ def test_tuple_get_item_nested():
         ret_struct_info=R.Tensor(ndim=0, dtype="int32"),
     )
     new_f = new_f.with_attr("global_symbol", "new_f")
-    mod = gsmDataGen.IRModule.from_expr(new_f)
+    mod = gsm_data_generator.IRModule.from_expr(new_f)
     # normalize in order to fill in checked type
     normalized = rx.transform.Normalize()(mod)
     assert rx.analysis.well_formed(normalized, check_struct_info=True)
@@ -373,7 +373,7 @@ def test_complex_seq_body():
         rx.SeqExpr([], rx.op.add(x, y)),
         R.Tensor(ndim=0, dtype="int32"),
     ).with_attr("global_symbol", "foo")
-    mod = gsmDataGen.IRModule.from_expr(func)
+    mod = gsm_data_generator.IRModule.from_expr(func)
     assert not rx.analysis.well_formed(mod, check_struct_info=False)
 
     # but if the result is bound, then it's okay
@@ -395,7 +395,7 @@ def test_complex_seq_body():
         ),
         R.Tensor(ndim=0, dtype="int32"),
     ).with_attr("global_symbol", "foo")
-    new_mod = gsmDataGen.IRModule.from_expr(new_func)
+    new_mod = gsm_data_generator.IRModule.from_expr(new_func)
     # normalize in order to fill in checked type
     normalized = rx.transform.Normalize()(new_mod)
     assert rx.analysis.well_formed(normalized, check_struct_info=True)
@@ -418,7 +418,7 @@ def test_inline_prim_func():
                         rx.VarBinding(
                             var=y,
                             value=rx.Call(
-                                op=gsmDataGen.ir.Op.get("relax.call_tir"),
+                                op=gsm_data_generator.ir.Op.get("relax.call_tir"),
                                 args=[
                                     rx.GlobalVar("GlobalVar0"),
                                     rx.Tuple([x, tir.PrimFunc([], tir.Evaluate(0))]),
@@ -433,7 +433,7 @@ def test_inline_prim_func():
         ),
         R.Tensor(ndim=0, dtype="int32"),
     ).with_attr("global_symbol", "foo")
-    new_mod = gsmDataGen.IRModule.from_expr(new_func)
+    new_mod = gsm_data_generator.IRModule.from_expr(new_func)
     assert not rx.analysis.well_formed(new_mod, check_struct_info=False)
 
 
@@ -444,7 +444,7 @@ def test_ANF():
     bindings = [rx.VarBinding(gv0, call_node)]
     blocks = [rx.BindingBlock(bindings)]
     func = build_function(blocks)
-    mod = gsmDataGen.IRModule({rx.GlobalVar("foo"): func})
+    mod = gsm_data_generator.IRModule({rx.GlobalVar("foo"): func})
     assert not rx.analysis.well_formed(mod, check_struct_info=False)
 
     # Error: Call Node in Tuple
@@ -452,7 +452,7 @@ def test_ANF():
     bindings = [rx.VarBinding(gv0, rx.Tuple((x, rx.op.add(x, x))))]
     blocks = [rx.BindingBlock(bindings)]
     func = build_function(blocks)
-    mod = gsmDataGen.IRModule({rx.GlobalVar("foo"): func})
+    mod = gsm_data_generator.IRModule({rx.GlobalVar("foo"): func})
     assert not rx.analysis.well_formed(mod, check_struct_info=False)
 
 
@@ -466,7 +466,7 @@ def test_global_var_vs_gsymbol():
         rx.SeqExpr(blocks, gv0),
         R.Tensor(ndim=2, dtype="float32"),
     ).with_attr("global_symbol", "main1")
-    mod = gsmDataGen.IRModule({rx.GlobalVar("main"): func})
+    mod = gsm_data_generator.IRModule({rx.GlobalVar("main"): func})
     assert not rx.analysis.well_formed(mod, check_struct_info=False)
 
 
@@ -489,7 +489,7 @@ def test_nested_dataflow():
         ]
     )
     func = rx.Function([], rx.SeqExpr([outer_block], gv0), scalar_struct_info)
-    mod = gsmDataGen.IRModule.from_expr(func)
+    mod = gsm_data_generator.IRModule.from_expr(func)
     normalized = rx.transform.Normalize()(mod)
     assert rx.analysis.well_formed(normalized)
 
@@ -500,7 +500,7 @@ def test_sinfo_args_tir_var_used_before_define_call_packed():
     n1 = tir.Var("n1", "int64")
     call = R.call_packed("my_func", x, sinfo_args=R.Tensor((m1, n1), "float32"))
     func = build_function([rx.BindingBlock([rx.VarBinding(rx.Var("gv"), call)])])
-    mod = rx.transform.Normalize()(gsmDataGen.IRModule.from_expr(func))
+    mod = rx.transform.Normalize()(gsm_data_generator.IRModule.from_expr(func))
     assert not rx.analysis.well_formed(mod, check_struct_info=False)
 
 
@@ -510,7 +510,7 @@ def test_sinfo_args_tir_var_used_before_define_call_tir():
     n1 = tir.Var("n1", "int64")
     call = R.call_dps_packed("my_func", x, out_sinfo=R.Tensor((m1, n1), "float32"))
     func = build_function([rx.BindingBlock([rx.VarBinding(rx.Var("gv"), call)])])
-    mod = rx.transform.Normalize()(gsmDataGen.IRModule.from_expr(func))
+    mod = rx.transform.Normalize()(gsm_data_generator.IRModule.from_expr(func))
     assert not rx.analysis.well_formed(mod, check_struct_info=False)
 
 
@@ -532,7 +532,7 @@ def test_sinfo_erase_to_well_formed():
     func = rx.Function([x], seq_expr, R.Tensor((m1, n1), "float32")).with_attr(
         "global_symbol", "foo"
     )
-    mod = rx.transform.Normalize()(gsmDataGen.IRModule.from_expr(func))
+    mod = rx.transform.Normalize()(gsm_data_generator.IRModule.from_expr(func))
     assert not rx.analysis.well_formed(mod)
 
 
@@ -545,7 +545,7 @@ def test_func_sinfo_well_formed():
 
         return local
 
-    mod = rx.transform.Normalize()(gsmDataGen.IRModule.from_expr(foo))
+    mod = rx.transform.Normalize()(gsm_data_generator.IRModule.from_expr(foo))
     assert rx.analysis.well_formed(mod)
 
 
@@ -557,7 +557,7 @@ def test_conditional_in_dataflow_block():
     func = rx.Function([x], rx.SeqExpr([block], y), R.Tensor((), dtype="int32")).with_attr(
         "global_symbol", "foo"
     )
-    mod = rx.transform.Normalize()(gsmDataGen.IRModule.from_expr(func))
+    mod = rx.transform.Normalize()(gsm_data_generator.IRModule.from_expr(func))
     assert not rx.analysis.well_formed(mod)
 
 
@@ -569,7 +569,7 @@ def test_unlabeled_impure():
     func = rx.Function([x], rx.SeqExpr([block], x), R.Tensor((), dtype="int32")).with_attr(
         "global_symbol", "foo"
     )
-    mod = rx.transform.Normalize()(gsmDataGen.IRModule.from_expr(func))
+    mod = rx.transform.Normalize()(gsm_data_generator.IRModule.from_expr(func))
     assert not rx.analysis.well_formed(mod)
 
 
@@ -582,7 +582,7 @@ def test_labeled_impure():
     func = rx.Function(
         [x], rx.SeqExpr([block], x), R.Tensor((), dtype="int32"), is_pure=False
     ).with_attrs({"global_symbol": "foo"})
-    mod = rx.transform.Normalize()(gsmDataGen.IRModule.from_expr(func))
+    mod = rx.transform.Normalize()(gsm_data_generator.IRModule.from_expr(func))
     assert rx.analysis.well_formed(mod)
 
 
@@ -594,7 +594,7 @@ def test_force_pure():
     func = rx.Function([x], rx.SeqExpr([block], x), R.Tensor((), dtype="int32")).with_attrs(
         {"global_symbol": "foo", "relax.force_pure": True}
     )
-    mod = rx.transform.Normalize()(gsmDataGen.IRModule.from_expr(func))
+    mod = rx.transform.Normalize()(gsm_data_generator.IRModule.from_expr(func))
     assert rx.analysis.well_formed(mod)
 
 
@@ -605,7 +605,7 @@ def test_force_pure_improper():
     func = rx.Function(
         [x], rx.SeqExpr([], x), R.Tensor((), dtype="int32"), is_pure=False
     ).with_attrs({"global_symbol": "foo", "relax.force_pure": True})
-    mod = rx.transform.Normalize()(gsmDataGen.IRModule.from_expr(func))
+    mod = rx.transform.Normalize()(gsm_data_generator.IRModule.from_expr(func))
     assert not rx.analysis.well_formed(mod)
 
 
@@ -617,7 +617,7 @@ def test_impure_in_dataflow_block(capfd):
     func = rx.Function([x], rx.SeqExpr([block], x), R.Tensor((), dtype="int32")).with_attrs(
         {"global_symbol": "foo", "relax.force_pure": True}
     )
-    mod = rx.transform.Normalize()(gsmDataGen.IRModule.from_expr(func))
+    mod = rx.transform.Normalize()(gsm_data_generator.IRModule.from_expr(func))
     assert not rx.analysis.well_formed(mod)
 
     _stdout, stderr = capfd.readouterr()
@@ -1229,12 +1229,12 @@ def test_var_binding_must_have_compatible_struct_info():
     #     B: R.Tensor(shape=[128, 32], dtype="int32") = A
     #     return B
 
-    param = gsmDataGen.relax.Var("A", R.Tensor(shape=[128, 32], dtype="float32"))
-    var = gsmDataGen.relax.Var("B", R.Tensor(shape=[128, 32], dtype="int32"))
-    binding = gsmDataGen.relax.VarBinding(var, param)
-    body = gsmDataGen.relax.SeqExpr([gsmDataGen.relax.BindingBlock([binding])], var)
-    gsmDataGen.relax.expr._update_struct_info(body, var.struct_info)
-    main = gsmDataGen.relax.Function([param], body)
+    param = gsm_data_generator.relax.Var("A", R.Tensor(shape=[128, 32], dtype="float32"))
+    var = gsm_data_generator.relax.Var("B", R.Tensor(shape=[128, 32], dtype="int32"))
+    binding = gsm_data_generator.relax.VarBinding(var, param)
+    body = gsm_data_generator.relax.SeqExpr([gsm_data_generator.relax.BindingBlock([binding])], var)
+    gsm_data_generator.relax.expr._update_struct_info(body, var.struct_info)
+    main = gsm_data_generator.relax.Function([param], body)
 
     assert not rx.analysis.well_formed(main)
 
@@ -1258,7 +1258,7 @@ def test_var_binding_may_have_less_constrained_struct_info():
             return B
 
     assert isinstance(
-        Module["main"].body.blocks[0].bindings[0].var.struct_info, gsmDataGen.relax.ObjectStructInfo
+        Module["main"].body.blocks[0].bindings[0].var.struct_info, gsm_data_generator.relax.ObjectStructInfo
     ), "Validity of this test requires a variable with R.Object struct info"
 
     assert rx.analysis.well_formed(Module)
@@ -1285,12 +1285,12 @@ def test_var_binding_with_incomplete_struct_info_must_be_consistent():
     #       B: R.Tensor(ndim=3) = A
     #       return B
 
-    param = gsmDataGen.relax.Var("A", R.Tensor(shape=[128, 32], dtype="float32"))
-    var = gsmDataGen.relax.Var("B", R.Tensor(ndim=3, dtype="int32"))
-    binding = gsmDataGen.relax.VarBinding(var, param)
-    body = gsmDataGen.relax.SeqExpr([gsmDataGen.relax.BindingBlock([binding])], var)
-    gsmDataGen.relax.expr._update_struct_info(body, var.struct_info)
-    main = gsmDataGen.relax.Function([param], body)
+    param = gsm_data_generator.relax.Var("A", R.Tensor(shape=[128, 32], dtype="float32"))
+    var = gsm_data_generator.relax.Var("B", R.Tensor(ndim=3, dtype="int32"))
+    binding = gsm_data_generator.relax.VarBinding(var, param)
+    body = gsm_data_generator.relax.SeqExpr([gsm_data_generator.relax.BindingBlock([binding])], var)
+    gsm_data_generator.relax.expr._update_struct_info(body, var.struct_info)
+    main = gsm_data_generator.relax.Function([param], body)
 
     assert not rx.analysis.well_formed(main)
 
@@ -1381,4 +1381,4 @@ def test_incomplete_struct_info_must_be_consistent():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

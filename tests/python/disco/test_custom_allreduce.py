@@ -22,10 +22,10 @@ from itertools import product
 import numpy as np
 import pytest
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen.runtime import DataType, ShapeTuple, disco
-from gsmDataGen.runtime.disco import Session
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator.runtime import DataType, ShapeTuple, disco
+from gsm_data_generator.runtime.disco import Session
 
 
 class AllReduceStrategyType(enum.IntEnum):
@@ -44,7 +44,7 @@ _strategies = [
     AllReduceStrategyType.AUTO,
 ]
 
-_ccl = [ccl for ccl in gsmDataGen.get_global_func("runtime.disco.compiled_ccl")() if ccl == "nccl"]
+_ccl = [ccl for ccl in gsm_data_generator.get_global_func("runtime.disco.compiled_ccl")() if ccl == "nccl"]
 
 
 @pytest.mark.parametrize("shape", _shapes)

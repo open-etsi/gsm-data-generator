@@ -20,7 +20,7 @@ import sys
 
 import pytest
 
-import gsmDataGen.testing
+import gsm_data_generator.testing
 
 # This file tests features in tvm.testing, such as verifying that
 # cached fixtures are run an appropriate number of times.  As a
@@ -34,8 +34,8 @@ import gsmDataGen.testing
 class TestTargetAutoParametrization:
     targets_used = []
     devices_used = []
-    enabled_targets = [target for target, dev in gsmDataGen.testing.enabled_targets()]
-    enabled_devices = [dev for target, dev in gsmDataGen.testing.enabled_targets()]
+    enabled_targets = [target for target, dev in gsm_data_generator.testing.enabled_targets()]
+    enabled_devices = [dev for target, dev in gsm_data_generator.testing.enabled_targets()]
 
     def test_target_parametrization(self, target):
         assert target in self.enabled_targets
@@ -54,20 +54,20 @@ class TestTargetAutoParametrization:
 
     targets_with_explicit_list = []
 
-    @gsmDataGen.testing.parametrize_targets("llvm")
+    @gsm_data_generator.testing.parametrize_targets("llvm")
     def test_explicit_list(self, target):
         assert target == "llvm"
         self.targets_with_explicit_list.append(target)
 
     def test_no_repeats_in_explicit_list(self):
-        if gsmDataGen.testing.device_enabled("llvm"):
+        if gsm_data_generator.testing.device_enabled("llvm"):
             assert self.targets_with_explicit_list == ["llvm"]
         else:
             assert self.targets_with_explicit_list == []
 
     targets_with_exclusion = []
 
-    @gsmDataGen.testing.exclude_targets("llvm")
+    @gsm_data_generator.testing.exclude_targets("llvm")
     def test_exclude_target(self, target):
         assert "llvm" not in target
         self.targets_with_exclusion.append(target)
@@ -79,7 +79,7 @@ class TestTargetAutoParametrization:
 
     run_targets_with_known_failure = []
 
-    @gsmDataGen.testing.known_failing_targets("llvm")
+    @gsm_data_generator.testing.known_failing_targets("llvm")
     def test_known_failing_target(self, target):
         # This test runs for all targets, but intentionally fails for
         # llvm.  The behavior is working correctly if this test shows
@@ -90,8 +90,8 @@ class TestTargetAutoParametrization:
     def test_all_targets_ran(self):
         assert sorted(self.run_targets_with_known_failure) == sorted(self.enabled_targets)
 
-    @gsmDataGen.testing.known_failing_targets("llvm")
-    @gsmDataGen.testing.parametrize_targets("llvm")
+    @gsm_data_generator.testing.known_failing_targets("llvm")
+    @gsm_data_generator.testing.parametrize_targets("llvm")
     def test_known_failing_explicit_list(self, target):
         assert target != "llvm"
 
@@ -101,13 +101,13 @@ class TestJointParameter:
     param2_vals = ["a", "b", "c"]
 
     independent_usages = 0
-    param1 = gsmDataGen.testing.parameter(*param1_vals)
-    param2 = gsmDataGen.testing.parameter(*param2_vals)
+    param1 = gsm_data_generator.testing.parameter(*param1_vals)
+    param2 = gsm_data_generator.testing.parameter(*param2_vals)
 
     joint_usages = 0
     joint_param_vals = list(zip(param1_vals, param2_vals))
     joint_param_ids = ["apple", "pear", "banana"]
-    joint_param1, joint_param2 = gsmDataGen.testing.parameters(*joint_param_vals, ids=joint_param_ids)
+    joint_param1, joint_param2 = gsm_data_generator.testing.parameters(*joint_param_vals, ids=joint_param_ids)
 
     def test_using_independent(self, param1, param2):
         type(self).independent_usages += 1
@@ -135,13 +135,13 @@ class TestFixtureCaching:
     param1_vals = [1, 2, 3]
     param2_vals = ["a", "b", "c"]
 
-    param1 = gsmDataGen.testing.parameter(*param1_vals)
-    param2 = gsmDataGen.testing.parameter(*param2_vals)
+    param1 = gsm_data_generator.testing.parameter(*param1_vals)
+    param2 = gsm_data_generator.testing.parameter(*param2_vals)
 
     uncached_calls = 0
     cached_calls = 0
 
-    @gsmDataGen.testing.fixture
+    @gsm_data_generator.testing.fixture
     def uncached_fixture(self, param1):
         type(self).uncached_calls += 1
         return 2 * param1
@@ -152,7 +152,7 @@ class TestFixtureCaching:
     def test_uncached_count(self):
         assert self.uncached_calls == len(self.param1_vals) * len(self.param2_vals)
 
-    @gsmDataGen.testing.fixture(cache_return_value=True)
+    @gsm_data_generator.testing.fixture(cache_return_value=True)
     def cached_fixture(self, param1):
         type(self).cached_calls += 1
         return 3 * param1
@@ -169,9 +169,9 @@ class TestFixtureCaching:
 
 
 class TestCachedFixtureIsCopy:
-    param = gsmDataGen.testing.parameter(1, 2, 3, 4)
+    param = gsm_data_generator.testing.parameter(1, 2, 3, 4)
 
-    @gsmDataGen.testing.fixture(cache_return_value=True)
+    @gsm_data_generator.testing.fixture(cache_return_value=True)
     def cached_mutable_fixture(self):
         return {"val": 0}
 
@@ -193,7 +193,7 @@ class TestBrokenFixture:
     num_uses_broken_uncached_fixture = 0
     num_uses_broken_cached_fixture = 0
 
-    @gsmDataGen.testing.fixture
+    @gsm_data_generator.testing.fixture
     def broken_uncached_fixture(self):
         raise RuntimeError("Intentionally broken fixture")
 
@@ -204,7 +204,7 @@ class TestBrokenFixture:
     def test_num_uses_uncached(self):
         assert self.num_uses_broken_uncached_fixture == 0
 
-    @gsmDataGen.testing.fixture(cache_return_value=True)
+    @gsm_data_generator.testing.fixture(cache_return_value=True)
     def broken_cached_fixture(self):
         raise RuntimeError("Intentionally broken fixture")
 
@@ -219,7 +219,7 @@ class TestBrokenFixture:
 class TestAutomaticMarks:
     @staticmethod
     def check_marks(request, target):
-        decorators = gsmDataGen.testing.plugin._target_to_requirement(target)
+        decorators = gsm_data_generator.testing.plugin._target_to_requirement(target)
         required_marks = [decorator.mark for decorator in decorators]
         applied_marks = list(request.node.iter_markers())
 
@@ -229,11 +229,11 @@ class TestAutomaticMarks:
     def test_automatic_fixture(self, request, target):
         self.check_marks(request, target)
 
-    @gsmDataGen.testing.parametrize_targets
+    @gsm_data_generator.testing.parametrize_targets
     def test_bare_parametrize(self, request, target):
         self.check_marks(request, target)
 
-    @gsmDataGen.testing.parametrize_targets("llvm", "cuda", "vulkan")
+    @gsm_data_generator.testing.parametrize_targets("llvm", "cuda", "vulkan")
     def test_explicit_parametrize(self, request, target):
         self.check_marks(request, target)
 
@@ -254,7 +254,7 @@ class TestCacheableTypes:
     class EmptyClass:
         pass
 
-    @gsmDataGen.testing.fixture(cache_return_value=True)
+    @gsm_data_generator.testing.fixture(cache_return_value=True)
     def uncacheable_fixture(self):
         return self.EmptyClass()
 
@@ -271,7 +271,7 @@ class TestCacheableTypes:
         def __reduce__(self):
             return super().__reduce__()
 
-    @gsmDataGen.testing.fixture(cache_return_value=True)
+    @gsm_data_generator.testing.fixture(cache_return_value=True)
     def fixture_with_reduce(self):
         return self.ImplementsReduce()
 
@@ -282,7 +282,7 @@ class TestCacheableTypes:
         def __deepcopy__(self, memo):
             return type(self)()
 
-    @gsmDataGen.testing.fixture(cache_return_value=True)
+    @gsm_data_generator.testing.fixture(cache_return_value=True)
     def fixture_with_deepcopy(self):
         return self.ImplementsDeepcopy()
 
@@ -291,7 +291,7 @@ class TestCacheableTypes:
 
 
 class TestPytestCache:
-    param = gsmDataGen.testing.parameter(1, 2, 3)
+    param = gsm_data_generator.testing.parameter(1, 2, 3)
 
     @pytest.fixture(scope="class")
     def cached_fixture(self, param):
@@ -302,4 +302,4 @@ class TestPytestCache:
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

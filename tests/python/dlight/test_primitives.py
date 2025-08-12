@@ -16,9 +16,9 @@
 # under the License.
 # pylint: disable=missing-docstring
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator.script import tir as T
 
 
 @T.prim_func
@@ -49,12 +49,12 @@ def main(p0: T.Buffer((), "int32"), T_stack: T.Buffer((T.int64(3),), "int32")):
             )
 
 
-@gsmDataGen.testing.requires_cuda
+@gsm_data_generator.testing.requires_cuda
 def test_normalize_primfunc_with_scalar():
-    sch = gsmDataGen.tir.Schedule(main)
-    f_normalize_prim_func = gsmDataGen.get_global_func("tir.schedule.NormalizePrimFunc")
+    sch = gsm_data_generator.tir.Schedule(main)
+    f_normalize_prim_func = gsm_data_generator.get_global_func("tir.schedule.NormalizePrimFunc")
     assert f_normalize_prim_func(sch)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

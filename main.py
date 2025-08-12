@@ -1,4 +1,4 @@
-import gsmDataGen
+import gsm_data_generator
 
-print(gsmDataGen.__version__)
-print(gsmDataGen)
+print(gsm_data_generator.__version__)
+print(gsm_data_generator)

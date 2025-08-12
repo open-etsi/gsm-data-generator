@@ -18,12 +18,12 @@ import inspect
 import re
 
 import pytest
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import tir
-from gsmDataGen.ir.diagnostics import override_renderer
-from gsmDataGen.script import from_source
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import tir
+from gsm_data_generator.ir.diagnostics import override_renderer
+from gsm_data_generator.script import from_source
+from gsm_data_generator.script import tir as T
 
 
 def check_error(func, rel_lineno):
@@ -45,7 +45,7 @@ def check_error(func, rel_lineno):
             line[indent:] for line in source_code.splitlines()
         )
         from_source(source_code)
-    except gsmDataGen.error.DiagnosticError as e:
+    except gsm_data_generator.error.DiagnosticError as e:
         pass
     assert len(errors) == 1, errors
     if rel_lineno is None:
@@ -458,7 +458,7 @@ def test_reorder_fail_block():
     sch = tir.Schedule(elementwise_not_affine, debug_mask="all")
     block_b = sch.get_block("B")
     i, j, k, l = sch.get_loops(block_b)
-    with pytest.raises(gsmDataGen.tir.ScheduleError) as execinfo:
+    with pytest.raises(gsm_data_generator.tir.ScheduleError) as execinfo:
         sch.reorder(l, i)
     expected_sub_error_message = (
         "                            # tir.Block#0\n"
@@ -472,7 +472,7 @@ def test_reorder_fail_nested_loop_inner():
     sch = tir.Schedule(elementwise_non_single_branch, debug_mask="all")
     block_b = sch.get_block("B")
     i, j, k = sch.get_loops(block_b)
-    with pytest.raises(gsmDataGen.tir.ScheduleError) as execinfo:
+    with pytest.raises(gsm_data_generator.tir.ScheduleError) as execinfo:
         sch.reorder(k, i)
     expected_sub_error_message = (
         "            for i in range(128):\n"
@@ -487,7 +487,7 @@ def test_fuse_fail_nested_loop_outer():
     sch = tir.Schedule(elementwise_non_single_branch, debug_mask="all")
     block_b = sch.get_block("B")
     i, j, k = sch.get_loops(block_b)
-    with pytest.raises(gsmDataGen.tir.ScheduleError) as execinfo:
+    with pytest.raises(gsm_data_generator.tir.ScheduleError) as execinfo:
         sch.fuse(k, i)
     expected_sub_error_message = (
         "            # tir.For#1\n"
@@ -501,7 +501,7 @@ def test_fuse_fail_nested_loop_outer():
 def test_report_error_root_block():
     sch = tir.Schedule(elementwise_non_single_branch, debug_mask="all")
     root = sch.get_block("root")
-    with pytest.raises(gsmDataGen.tir.ScheduleError) as execinfo:
+    with pytest.raises(gsm_data_generator.tir.ScheduleError) as execinfo:
         sch.compute_inline(root)
     expected_sub_error_message = (
         "        # tir.Block#0\n"
@@ -602,4 +602,4 @@ def test_syntax_sugar_fail():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

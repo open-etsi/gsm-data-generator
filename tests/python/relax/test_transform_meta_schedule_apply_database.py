@@ -15,14 +15,14 @@
 # specific language governing permissions and limitations
 # under the License.
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import tir
-from gsmDataGen import meta_schedule as ms
-from gsmDataGen import relax
-from gsmDataGen.script import ir as I, tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import tir
+from gsm_data_generator import meta_schedule as ms
+from gsm_data_generator import relax
+from gsm_data_generator.script import ir as I, tir as T
 
-target = gsmDataGen.target.Target("llvm --num-cores=16")
+target = gsm_data_generator.target.Target("llvm --num-cores=16")
 
 
 def test_apply_to_func_with_different_block_name():
@@ -62,7 +62,7 @@ def test_apply_to_func_with_different_block_name():
                     vi = T.axis.spatial(2, i)
                     B[vi] = A[vi]
 
-    def create_trace(mod: gsmDataGen.IRModule):
+    def create_trace(mod: gsm_data_generator.IRModule):
         sch = tir.Schedule(mod)
         _ = sch.get_block("block")
         return sch.trace
@@ -77,8 +77,8 @@ def test_apply_to_func_with_different_block_name():
 
     with db, target:
         mod = relax.transform.MetaScheduleApplyDatabase()(BlockRenamedModule)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

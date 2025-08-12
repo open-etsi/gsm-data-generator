@@ -16,12 +16,12 @@
 # under the License.
 # pylint: disable=missing-function-docstring,missing-module-docstring
 import pytest
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import tir
-from gsmDataGen.tir import IndexMap
-from gsmDataGen.script import tir as T
-from gsmDataGen.tir.schedule.testing import (
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import tir
+from gsm_data_generator.tir import IndexMap
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.tir.schedule.testing import (
     assert_structural_equal_ignore_global_symbol,
     verify_trace_roundtrip,
 )
@@ -105,7 +105,7 @@ def element_wise_subregion_match_set_axis_separator(A: T.Buffer((128, 128), "flo
 
 # pylint: enable=no-member,invalid-name,unused-variable,unexpected-keyword-arg
 
-argument_style = gsmDataGen.testing.parameter('set_axis_separators',
+argument_style = gsm_data_generator.testing.parameter('set_axis_separators',
                                       'transform_layout_named',
                                       'transform_layout_buffer_object',
                                       )
@@ -174,7 +174,7 @@ def test_set_axis_separator_subregion(argument_style):
     assert_structural_equal_ignore_global_symbol(element_wise_subregion_match_set_axis_separator, s.mod["main"])
     verify_trace_roundtrip(sch=s, mod=func)
 
-class TestIndexedLookup(gsmDataGen.testing.CompareBeforeAfter):
+class TestIndexedLookup(gsm_data_generator.testing.CompareBeforeAfter):
     def transform(self):
         def func(mod):
             sch = tir.Schedule(mod)
@@ -200,4 +200,4 @@ class TestIndexedLookup(gsmDataGen.testing.CompareBeforeAfter):
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

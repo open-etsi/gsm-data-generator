@@ -16,7 +16,7 @@
 # under the License.
 import pytest
 import pickle
-import gsmDataGen.ffi as tvm_ffi
+import gsm_data_generator.ffi as tvm_ffi
 
 
 def test_array():

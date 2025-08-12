@@ -15,14 +15,14 @@
 # specific language governing permissions and limitations
 # under the License.
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator.script import tir as T
 
 import pytest
 
 
-class BaseBeforeAfter(gsmDataGen.testing.CompareBeforeAfter):
+class BaseBeforeAfter(gsm_data_generator.testing.CompareBeforeAfter):
     use_dataflow_analysis = False
 
     def transform(self):
@@ -32,8 +32,8 @@ class BaseBeforeAfter(gsmDataGen.testing.CompareBeforeAfter):
                     "use_dataflow_analysis": self.use_dataflow_analysis,
                 }
             }
-            with gsmDataGen.transform.PassContext(config=config):
-                mod = gsmDataGen.tir.transform.ReduceBranchingThroughOvercompute()(mod)
+            with gsm_data_generator.transform.PassContext(config=config):
+                mod = gsm_data_generator.tir.transform.ReduceBranchingThroughOvercompute()(mod)
             return mod
 
         return inner
@@ -216,4 +216,4 @@ class TestIntroduceSupersetOverwrittenWrite(BaseBeforeAfter):
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

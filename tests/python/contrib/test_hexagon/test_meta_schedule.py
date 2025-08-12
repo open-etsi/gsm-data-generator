@@ -20,21 +20,21 @@ import tempfile
 
 import numpy as np
 import pytest
-import gsmDataGen.testing
-import gsmDataGen.topi.testing
-from gsmDataGen import meta_schedule as ms
-from gsmDataGen import te
-from gsmDataGen.contrib.hexagon.meta_schedule import (
+import gsm_data_generator.testing
+import gsm_data_generator.topi.testing
+from gsm_data_generator import meta_schedule as ms
+from gsm_data_generator import te
+from gsm_data_generator.contrib.hexagon.meta_schedule import (
     get_hexagon_local_builder,
     get_hexagon_rpc_runner,
 )
-from gsmDataGen.meta_schedule import postproc, schedule_rule
-from gsmDataGen.meta_schedule.arg_info import TensorInfo
-from gsmDataGen.meta_schedule.builder import BuilderInput
-from gsmDataGen.meta_schedule.runner import RunnerInput
-from gsmDataGen.script import tir as T
-from gsmDataGen.tir import FloatImm
-from gsmDataGen.tir.tensor_intrin.hexagon import VRMPY_u8u8i32_INTRIN
+from gsm_data_generator.meta_schedule import postproc, schedule_rule
+from gsm_data_generator.meta_schedule.arg_info import TensorInfo
+from gsm_data_generator.meta_schedule.builder import BuilderInput
+from gsm_data_generator.meta_schedule.runner import RunnerInput
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.tir import FloatImm
+from gsm_data_generator.tir.tensor_intrin.hexagon import VRMPY_u8u8i32_INTRIN
 
 from .infrastructure import get_hexagon_target
 
@@ -42,7 +42,7 @@ MATMUL_N = 16
 MATMUL_M = 32
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class MatmulModule:
     """Matmultest class"""
 
@@ -65,7 +65,7 @@ class MatmulModule:
                 )
 
 
-@gsmDataGen.testing.requires_hexagon
+@gsm_data_generator.testing.requires_hexagon
 def test_builder_runner(hexagon_launcher):
     """Test builder and runner."""
     if hexagon_launcher.is_simulator():
@@ -116,7 +116,7 @@ def dense_compute(m, n, k):
         lambda i, j: te.sum(
             X[i, axis_k].astype("int32")
             * packed_width[
-                gsmDataGen.tir.indexdiv(j, 32), gsmDataGen.tir.indexdiv(axis_k, 4), j % 32, axis_k % 4
+                gsm_data_generator.tir.indexdiv(j, 32), gsm_data_generator.tir.indexdiv(axis_k, 4), j % 32, axis_k % 4
             ].astype("int32"),
             axis=axis_k,
         ),
@@ -156,7 +156,7 @@ def schedule_dense(sch, block, m_size, do_tune):
 
 def verify_dense(sch, target, m_size, n_size, k_size, hexagon_session):
     """Verify dense operator."""
-    f = gsmDataGen.compile(sch.mod["main"], target=target)
+    f = gsm_data_generator.compile(sch.mod["main"], target=target)
     mod = hexagon_session.load_module(f)
     dev = hexagon_session.device
 
@@ -174,9 +174,9 @@ def verify_dense(sch, target, m_size, n_size, k_size, hexagon_session):
                         k_output * 4 + t_idx
                     ]
 
-    a = gsmDataGen.nd.array(a_np, dev)
-    b = gsmDataGen.nd.array(pack_width, dev)
-    c = gsmDataGen.nd.array(np.zeros((m_size, n_size), dtype="int32"), dev)
+    a = gsm_data_generator.nd.array(a_np, dev)
+    b = gsm_data_generator.nd.array(pack_width, dev)
+    c = gsm_data_generator.nd.array(np.zeros((m_size, n_size), dtype="int32"), dev)
 
     mod(a, b, c)
     np.testing.assert_equal(c.numpy(), c_np)
@@ -187,7 +187,7 @@ def verify_dense(sch, target, m_size, n_size, k_size, hexagon_session):
     print("%f ms, %f GOPS" % (time_ms, gflops / (time_ms / 1e3)))
 
 
-@gsmDataGen.testing.requires_hexagon
+@gsm_data_generator.testing.requires_hexagon
 def test_vrmpy_dense(hexagon_launcher):
     """Test vector reduce muliply dense."""
     if hexagon_launcher.is_simulator():
@@ -199,8 +199,8 @@ def test_vrmpy_dense(hexagon_launcher):
     workload = te.create_prim_func(dense_compute(m_size, n_size, k_size))
 
     if not do_tune:
-        ir_module = gsmDataGen.IRModule({"main": workload})
-        sch = gsmDataGen.tir.Schedule(ir_module)
+        ir_module = gsm_data_generator.IRModule({"main": workload})
+        sch = gsm_data_generator.tir.Schedule(ir_module)
         block = sch.get_block("compute")
         schedule_dense(sch, block, m_size, do_tune)
     else:
@@ -234,7 +234,7 @@ def test_vrmpy_dense(hexagon_launcher):
 
 # This is an example of a schedule found by vrmpy auto tensorization.
 # It gets 440 GFLOPS on SD888.
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class ModuleVRMPYAutoTensorize:
     """Vector Reduce Multimply auto tensorize test class."""
 
@@ -298,7 +298,7 @@ class ModuleVRMPYAutoTensorize:
                     )
 
 
-@gsmDataGen.testing.requires_hexagon
+@gsm_data_generator.testing.requires_hexagon
 def test_vrmpy_dense_auto_tensorize(hexagon_launcher):
     """Test VRMPY dense operator."""
     if hexagon_launcher.is_simulator():
@@ -357,11 +357,11 @@ def test_vrmpy_dense_auto_tensorize(hexagon_launcher):
             )
             sch = ms.tir_integration.compile_tir(database, workload, target)
     else:
-        sch = gsmDataGen.tir.Schedule(ModuleVRMPYAutoTensorize, debug_mask="all")
+        sch = gsm_data_generator.tir.Schedule(ModuleVRMPYAutoTensorize, debug_mask="all")
 
     with hexagon_launcher.create_session() as session:
         verify_dense(sch, get_hexagon_target("v68"), m_size, n_size, k_size, session)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

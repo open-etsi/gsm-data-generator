@@ -20,41 +20,41 @@ import re
 import numpy as np
 import pytest
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import te, tir
-from gsmDataGen.contrib import clang, utils
-from gsmDataGen.script import ir as I
-from gsmDataGen.script import tir as T
-from gsmDataGen.target.codegen import llvm_get_intrinsic_name, llvm_lookup_intrinsic_id
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import te, tir
+from gsm_data_generator.contrib import clang, utils
+from gsm_data_generator.script import ir as I
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.target.codegen import llvm_get_intrinsic_name, llvm_lookup_intrinsic_id
 
 
-@gsmDataGen.testing.requires_llvm
+@gsm_data_generator.testing.requires_llvm
 def test_llvm_intrin():
-    ib = gsmDataGen.tir.ir_builder.create()
-    n = gsmDataGen.runtime.convert(4)
+    ib = gsm_data_generator.tir.ir_builder.create()
+    n = gsm_data_generator.runtime.convert(4)
     A = ib.pointer("float32", name="A")
-    args = [gsmDataGen.tir.call_intrin("handle", "tir.address_of", A[0]), 0, 3, 1]
-    ib.emit(gsmDataGen.tir.Evaluate(gsmDataGen.tir.Call("int32", "tir.prefetch", args)))
+    args = [gsm_data_generator.tir.call_intrin("handle", "tir.address_of", A[0]), 0, 3, 1]
+    ib.emit(gsm_data_generator.tir.Evaluate(gsm_data_generator.tir.Call("int32", "tir.prefetch", args)))
     body = ib.get()
 
-    mod = gsmDataGen.IRModule.from_expr(gsmDataGen.tir.PrimFunc([A], body).with_attr("global_symbol", "prefetch"))
-    fcode = gsmDataGen.compile(mod)
+    mod = gsm_data_generator.IRModule.from_expr(gsm_data_generator.tir.PrimFunc([A], body).with_attr("global_symbol", "prefetch"))
+    fcode = gsm_data_generator.compile(mod)
 
 
-@gsmDataGen.testing.requires_llvm
+@gsm_data_generator.testing.requires_llvm
 def test_llvm_void_intrin():
-    ib = gsmDataGen.tir.ir_builder.create()
+    ib = gsm_data_generator.tir.ir_builder.create()
     A = ib.pointer("uint8", name="A")
     # Create an intrinsic that returns void.
-    x = gsmDataGen.tir.call_llvm_intrin("", "llvm.va_start", gsmDataGen.tir.const(1, "uint32"), A.asobject().data)
+    x = gsm_data_generator.tir.call_llvm_intrin("", "llvm.va_start", gsm_data_generator.tir.const(1, "uint32"), A.asobject().data)
     ib.emit(x)
     body = ib.get()
-    mod = gsmDataGen.IRModule.from_expr(gsmDataGen.tir.PrimFunc([A], body).with_attr("global_symbol", "main"))
-    fcode = gsmDataGen.compile(mod)
+    mod = gsm_data_generator.IRModule.from_expr(gsm_data_generator.tir.PrimFunc([A], body).with_attr("global_symbol", "main"))
+    fcode = gsm_data_generator.compile(mod)
 
 
-@gsmDataGen.testing.requires_llvm
+@gsm_data_generator.testing.requires_llvm
 def test_llvm_intrinsic_id():
     orig_name = "llvm.x86.sse2.pmadd.wd"
     intrin_id = llvm_lookup_intrinsic_id(orig_name)
@@ -62,25 +62,25 @@ def test_llvm_intrinsic_id():
     assert orig_name == name
 
 
-@gsmDataGen.testing.requires_llvm
+@gsm_data_generator.testing.requires_llvm
 def test_llvm_overloaded_intrin():
     # Name lookup for overloaded intrinsics in LLVM 4- requires a name
     # that includes the overloaded types.
-    if gsmDataGen.target.codegen.llvm_version_major() < 5:
+    if gsm_data_generator.target.codegen.llvm_version_major() < 5:
         return
 
     def use_llvm_intrinsic(A, C):
-        ib = gsmDataGen.tir.ir_builder.create()
+        ib = gsm_data_generator.tir.ir_builder.create()
         L = A.vload((0, 0))
-        I = gsmDataGen.tir.call_llvm_pure_intrin(
-            "int32", "llvm.ctlz", gsmDataGen.tir.const(2, "uint32"), L, gsmDataGen.tir.const(0, "int1")
+        I = gsm_data_generator.tir.call_llvm_pure_intrin(
+            "int32", "llvm.ctlz", gsm_data_generator.tir.const(2, "uint32"), L, gsm_data_generator.tir.const(0, "int1")
         )
         S = C.vstore((0, 0), I)
         ib.emit(S)
         return ib.get()
 
-    A = gsmDataGen.te.placeholder((1, 1), dtype="int32", name="A")
-    C = gsmDataGen.te.extern(
+    A = gsm_data_generator.te.placeholder((1, 1), dtype="int32", name="A")
+    C = gsm_data_generator.te.extern(
         (1, 1), [A], lambda ins, outs: use_llvm_intrinsic(ins[0], outs[0]), name="C", dtype="int32"
     )
 
@@ -89,45 +89,45 @@ def test_llvm_overloaded_intrin():
     sch = tir.Schedule(mod)
 
     # Build from scheduled TIR
-    f = gsmDataGen.compile(sch.mod, target="llvm")
+    f = gsm_data_generator.compile(sch.mod, target="llvm")
 
 
-@gsmDataGen.testing.requires_llvm
+@gsm_data_generator.testing.requires_llvm
 def test_llvm_lookup_intrin():
-    ib = gsmDataGen.tir.ir_builder.create()
+    ib = gsm_data_generator.tir.ir_builder.create()
     A = ib.pointer("uint8x8", name="A")
-    z = gsmDataGen.tir.const(0, "int32")
-    x = gsmDataGen.tir.call_llvm_pure_intrin(
-        "uint8x8", "llvm.ctpop.v8i8", gsmDataGen.tir.const(1, "uint32"), A[z]
+    z = gsm_data_generator.tir.const(0, "int32")
+    x = gsm_data_generator.tir.call_llvm_pure_intrin(
+        "uint8x8", "llvm.ctpop.v8i8", gsm_data_generator.tir.const(1, "uint32"), A[z]
     )
     ib.emit(x)
     body = ib.get()
-    mod = gsmDataGen.IRModule.from_expr(gsmDataGen.tir.PrimFunc([A], body).with_attr("global_symbol", "main"))
-    fcode = gsmDataGen.compile(mod, None)
+    mod = gsm_data_generator.IRModule.from_expr(gsm_data_generator.tir.PrimFunc([A], body).with_attr("global_symbol", "main"))
+    fcode = gsm_data_generator.compile(mod, None)
 
 
-@gsmDataGen.testing.requires_llvm
+@gsm_data_generator.testing.requires_llvm
 def test_llvm_large_uintimm():
     value = (1 << 63) + 123
-    other = gsmDataGen.tir.const(3, "uint64")
-    A = te.compute((), lambda: gsmDataGen.tir.const(value, "uint64") + other, name="A")
+    other = gsm_data_generator.tir.const(3, "uint64")
+    A = te.compute((), lambda: gsm_data_generator.tir.const(value, "uint64") + other, name="A")
 
     # Convert to TIR and create schedule
     mod = te.create_prim_func([A])
     sch = tir.Schedule(mod)
 
     def check_llvm():
-        f = gsmDataGen.compile(sch.mod, target="llvm")
-        dev = gsmDataGen.cpu(0)
+        f = gsm_data_generator.compile(sch.mod, target="llvm")
+        dev = gsm_data_generator.cpu(0)
         # launch the kernel.
-        a = gsmDataGen.nd.empty((), dtype=A.dtype, device=dev)
+        a = gsm_data_generator.nd.empty((), dtype=A.dtype, device=dev)
         f(a)
         assert a.numpy() == value + 3
 
     check_llvm()
 
 
-@gsmDataGen.testing.requires_llvm
+@gsm_data_generator.testing.requires_llvm
 def test_llvm_multi_parallel():
     n = 128
     A = te.placeholder((n,), name="A")
@@ -159,21 +159,21 @@ def test_llvm_multi_parallel():
 
     def check_llvm():
         # BUILD and invoke the kernel.
-        f = gsmDataGen.compile(sch.mod, target="llvm")
-        dev = gsmDataGen.cpu(0)
+        f = gsm_data_generator.compile(sch.mod, target="llvm")
+        dev = gsm_data_generator.cpu(0)
         # launch the kernel.
-        a = gsmDataGen.nd.array(np.random.uniform(size=n).astype(A.dtype), dev)
-        c = gsmDataGen.nd.array(np.zeros(n, dtype=C.dtype), dev)
+        a = gsm_data_generator.nd.array(np.random.uniform(size=n).astype(A.dtype), dev)
+        c = gsm_data_generator.nd.array(np.zeros(n, dtype=C.dtype), dev)
         f(a, c)
-        gsmDataGen.testing.assert_allclose(c.numpy(), np.sqrt(a.numpy() + 1) * 2 + 2, rtol=1e-5)
+        gsm_data_generator.testing.assert_allclose(c.numpy(), np.sqrt(a.numpy() + 1) * 2 + 2, rtol=1e-5)
 
     check_llvm()
 
 
-@gsmDataGen.testing.requires_llvm
+@gsm_data_generator.testing.requires_llvm
 def test_llvm_flip_pipeline():
     def check_llvm(nn, base):
-        n = gsmDataGen.runtime.convert(nn)
+        n = gsm_data_generator.runtime.convert(nn)
         A = te.placeholder((n + base), name="A")
         C = te.compute((n,), lambda i: A(nn + base - i - 1), name="C")
 
@@ -191,14 +191,14 @@ def test_llvm_flip_pipeline():
         sch.vectorize(xi)
 
         # build and invoke the kernel.
-        f = gsmDataGen.compile(sch.mod, target="llvm")
-        dev = gsmDataGen.cpu(0)
+        f = gsm_data_generator.compile(sch.mod, target="llvm")
+        dev = gsm_data_generator.cpu(0)
         # launch the kernel.
         n = nn
-        a = gsmDataGen.nd.array(np.random.uniform(size=(n + base)).astype(A.dtype), dev)
-        c = gsmDataGen.nd.array(np.zeros(n, dtype=C.dtype), dev)
+        a = gsm_data_generator.nd.array(np.random.uniform(size=(n + base)).astype(A.dtype), dev)
+        c = gsm_data_generator.nd.array(np.zeros(n, dtype=C.dtype), dev)
         f(a, c)
-        gsmDataGen.testing.assert_allclose(c.numpy(), a.numpy()[::-1][:n])
+        gsm_data_generator.testing.assert_allclose(c.numpy(), a.numpy()[::-1][:n])
 
     check_llvm(4, 0)
     check_llvm(128, 8)
@@ -206,7 +206,7 @@ def test_llvm_flip_pipeline():
     check_llvm(128, 1)
 
 
-@gsmDataGen.testing.requires_llvm
+@gsm_data_generator.testing.requires_llvm
 def test_llvm_vadd_pipeline():
     n = te.size_var("n")
     A = te.placeholder((n,), name="A")
@@ -225,20 +225,20 @@ def test_llvm_vadd_pipeline():
     _, inner = sch.split(loop, factors=[None, 4])
     sch.vectorize(inner)
     # Build and verify
-    f = gsmDataGen.compile(sch.mod, target="llvm")
-    dev = gsmDataGen.cpu(0)
+    f = gsm_data_generator.compile(sch.mod, target="llvm")
+    dev = gsm_data_generator.cpu(0)
     n = 128
-    a = gsmDataGen.nd.array(np.random.uniform(size=n).astype(A.dtype), dev)
-    b = gsmDataGen.nd.array(np.random.uniform(size=n).astype(B.dtype), dev)
-    c = gsmDataGen.nd.array(np.zeros(n, dtype=C.dtype), dev)
+    a = gsm_data_generator.nd.array(np.random.uniform(size=n).astype(A.dtype), dev)
+    b = gsm_data_generator.nd.array(np.random.uniform(size=n).astype(B.dtype), dev)
+    c = gsm_data_generator.nd.array(np.zeros(n, dtype=C.dtype), dev)
     f(a, b, c)
-    gsmDataGen.testing.assert_allclose(c.numpy(), a.numpy() + b.numpy())
+    gsm_data_generator.testing.assert_allclose(c.numpy(), a.numpy() + b.numpy())
 
 
-@gsmDataGen.testing.requires_llvm
+@gsm_data_generator.testing.requires_llvm
 def test_llvm_madd_pipeline():
     def check_llvm(nn, base, stride):
-        n = gsmDataGen.runtime.convert(nn)
+        n = gsm_data_generator.runtime.convert(nn)
         A = te.placeholder((n + base, stride), name="A")
         C = te.compute((n, stride), lambda i, j: A(base + i, j) + 1, name="C")
 
@@ -256,26 +256,26 @@ def test_llvm_madd_pipeline():
         sch.vectorize(xi)
 
         # build and invoke the kernel.
-        f = gsmDataGen.compile(sch.mod, target="llvm")
-        dev = gsmDataGen.cpu(0)
+        f = gsm_data_generator.compile(sch.mod, target="llvm")
+        dev = gsm_data_generator.cpu(0)
         # launch the kernel.
         n = nn
-        a = gsmDataGen.nd.array(np.random.uniform(size=(n + base, stride)).astype(A.dtype), dev)
-        c = gsmDataGen.nd.array(np.zeros((n, stride), dtype=C.dtype), dev)
+        a = gsm_data_generator.nd.array(np.random.uniform(size=(n + base, stride)).astype(A.dtype), dev)
+        c = gsm_data_generator.nd.array(np.zeros((n, stride), dtype=C.dtype), dev)
         f(a, c)
-        gsmDataGen.testing.assert_allclose(c.numpy(), a.numpy()[base:] + 1)
+        gsm_data_generator.testing.assert_allclose(c.numpy(), a.numpy()[base:] + 1)
 
     check_llvm(64, 0, 2)
     check_llvm(4, 0, 1)
 
-    with gsmDataGen.transform.PassContext(config={"tir.noalias": False}):
+    with gsm_data_generator.transform.PassContext(config={"tir.noalias": False}):
         check_llvm(4, 0, 3)
 
 
-@gsmDataGen.testing.requires_llvm
+@gsm_data_generator.testing.requires_llvm
 def test_llvm_temp_space():
     nn = 1024
-    n = gsmDataGen.runtime.convert(nn)
+    n = gsm_data_generator.runtime.convert(nn)
     A = te.placeholder((n,), name="A")
     B = te.compute(A.shape, lambda i: A(i) + 1, name="B")
     C = te.compute(A.shape, lambda i: B(i) + 1, name="C")
@@ -286,19 +286,19 @@ def test_llvm_temp_space():
 
     def check_llvm():
         # build and invoke the kernel.
-        f = gsmDataGen.compile(sch.mod, target="llvm")
-        dev = gsmDataGen.cpu(0)
+        f = gsm_data_generator.compile(sch.mod, target="llvm")
+        dev = gsm_data_generator.cpu(0)
         # launch the kernel.
         n = nn
-        a = gsmDataGen.nd.array(np.random.uniform(size=n).astype(A.dtype), dev)
-        c = gsmDataGen.nd.array(np.zeros(n, dtype=C.dtype), dev)
+        a = gsm_data_generator.nd.array(np.random.uniform(size=n).astype(A.dtype), dev)
+        c = gsm_data_generator.nd.array(np.zeros(n, dtype=C.dtype), dev)
         f(a, c)
-        gsmDataGen.testing.assert_allclose(c.numpy(), a.numpy() + 1 + 1)
+        gsm_data_generator.testing.assert_allclose(c.numpy(), a.numpy() + 1 + 1)
 
     check_llvm()
 
 
-@gsmDataGen.testing.requires_llvm
+@gsm_data_generator.testing.requires_llvm
 def test_multiple_func():
     # Define the computation
     n = te.size_var("n")
@@ -311,7 +311,7 @@ def test_multiple_func():
     sch = tir.Schedule(mod)
 
     # Create two functions with different names
-    mod = gsmDataGen.IRModule(
+    mod = gsm_data_generator.IRModule(
         {
             "fadd1": sch.mod["main"].with_attr("global_symbol", "fadd1"),
             "fadd2": sch.mod["main"].with_attr("global_symbol", "fadd2"),
@@ -319,45 +319,45 @@ def test_multiple_func():
     )
 
     # Build and verify
-    f = gsmDataGen.compile(mod, target="llvm")
-    dev = gsmDataGen.cpu(0)
+    f = gsm_data_generator.compile(mod, target="llvm")
+    dev = gsm_data_generator.cpu(0)
     n = 10
-    a = gsmDataGen.nd.array(np.random.uniform(size=n).astype(A.dtype), dev)
-    b = gsmDataGen.nd.array(np.random.uniform(size=n).astype(B.dtype), dev)
-    c = gsmDataGen.nd.array(np.zeros(n, dtype=C.dtype), dev)
+    a = gsm_data_generator.nd.array(np.random.uniform(size=n).astype(A.dtype), dev)
+    b = gsm_data_generator.nd.array(np.random.uniform(size=n).astype(B.dtype), dev)
+    c = gsm_data_generator.nd.array(np.zeros(n, dtype=C.dtype), dev)
 
     # Test both functions
     f["fadd1"](a, b, c)
-    gsmDataGen.testing.assert_allclose(c.numpy(), a.numpy() + b.numpy())
+    gsm_data_generator.testing.assert_allclose(c.numpy(), a.numpy() + b.numpy())
     f["fadd2"](a, b, c)
-    gsmDataGen.testing.assert_allclose(c.numpy(), a.numpy() + b.numpy())
+    gsm_data_generator.testing.assert_allclose(c.numpy(), a.numpy() + b.numpy())
 
 
-@gsmDataGen.testing.requires_llvm
+@gsm_data_generator.testing.requires_llvm
 def test_llvm_condition():
     def check_llvm(n, offset):
         A = te.placeholder((n,), name="A")
-        C = te.compute((n,), lambda i: gsmDataGen.tir.if_then_else(i >= offset, A[i], 0.0), name="C")
+        C = te.compute((n,), lambda i: gsm_data_generator.tir.if_then_else(i >= offset, A[i], 0.0), name="C")
 
         # Convert to TIR and create schedule
         mod = te.create_prim_func([A, C])
         sch = tir.Schedule(mod)
 
         # build and invoke the kernel.
-        f = gsmDataGen.compile(sch.mod, target="llvm")
-        dev = gsmDataGen.cpu(0)
+        f = gsm_data_generator.compile(sch.mod, target="llvm")
+        dev = gsm_data_generator.cpu(0)
         # launch the kernel.
-        a = gsmDataGen.nd.array(np.random.uniform(size=(n,)).astype(A.dtype), dev)
-        c = gsmDataGen.nd.empty((n,), A.dtype, dev)
+        a = gsm_data_generator.nd.array(np.random.uniform(size=(n,)).astype(A.dtype), dev)
+        c = gsm_data_generator.nd.empty((n,), A.dtype, dev)
         f(a, c)
         c_np = a.numpy()
         c_np[:offset] = 0
-        gsmDataGen.testing.assert_allclose(c.numpy(), c_np)
+        gsm_data_generator.testing.assert_allclose(c.numpy(), c_np)
 
     check_llvm(64, 8)
 
 
-@gsmDataGen.testing.requires_llvm
+@gsm_data_generator.testing.requires_llvm
 def test_llvm_bool():
     def check_llvm(n):
         A = te.placeholder((n,), name="A", dtype="int32")
@@ -368,19 +368,19 @@ def test_llvm_bool():
         sch = tir.Schedule(mod)
 
         # build and invoke the kernel.
-        f = gsmDataGen.compile(sch.mod, target="llvm")
-        dev = gsmDataGen.cpu(0)
+        f = gsm_data_generator.compile(sch.mod, target="llvm")
+        dev = gsm_data_generator.cpu(0)
         # launch the kernel.
-        a = gsmDataGen.nd.array(np.random.randint(0, 2, size=(n,)).astype(A.dtype), dev)
-        c = gsmDataGen.nd.empty((n,), C.dtype, dev)
+        a = gsm_data_generator.nd.array(np.random.randint(0, 2, size=(n,)).astype(A.dtype), dev)
+        c = gsm_data_generator.nd.empty((n,), C.dtype, dev)
         f(a, c)
         c_np = a.numpy() == 1
-        gsmDataGen.testing.assert_allclose(c.numpy(), c_np)
+        gsm_data_generator.testing.assert_allclose(c.numpy(), c_np)
 
     check_llvm(64)
 
 
-@gsmDataGen.testing.requires_llvm
+@gsm_data_generator.testing.requires_llvm
 def test_rank_zero():
     def check_llvm(n):
         A = te.placeholder((n,), name="A")
@@ -394,23 +394,23 @@ def test_rank_zero():
         sch = tir.Schedule(mod)
 
         # build and invoke the kernel.
-        f = gsmDataGen.compile(sch.mod, target="llvm")
-        dev = gsmDataGen.cpu(0)
+        f = gsm_data_generator.compile(sch.mod, target="llvm")
+        dev = gsm_data_generator.cpu(0)
         # launch the kernel.
-        a = gsmDataGen.nd.array(np.random.randint(0, 2, size=(n,)).astype(A.dtype), dev)
-        sc = gsmDataGen.nd.array(np.random.randint(0, 2, size=()).astype(scale.dtype), dev)
-        d = gsmDataGen.nd.empty((), D.dtype, dev)
+        a = gsm_data_generator.nd.array(np.random.randint(0, 2, size=(n,)).astype(A.dtype), dev)
+        sc = gsm_data_generator.nd.array(np.random.randint(0, 2, size=()).astype(scale.dtype), dev)
+        d = gsm_data_generator.nd.empty((), D.dtype, dev)
         f(a, sc, d)
         d_np = np.sum(a.numpy()) * sc.numpy() + 1
-        gsmDataGen.testing.assert_allclose(d.numpy(), d_np)
+        gsm_data_generator.testing.assert_allclose(d.numpy(), d_np)
 
     check_llvm(64)
 
 
-@gsmDataGen.testing.requires_llvm
+@gsm_data_generator.testing.requires_llvm
 def test_rank_zero_bound_checkers():
     def check_llvm(n):
-        with gsmDataGen.transform.PassContext(config={"tir.instrument_bound_checkers": True}):
+        with gsm_data_generator.transform.PassContext(config={"tir.instrument_bound_checkers": True}):
             A = te.placeholder((n,), name="A")
             scale = te.placeholder((), name="scale")
             k = te.reduce_axis((0, n), name="k")
@@ -422,22 +422,22 @@ def test_rank_zero_bound_checkers():
             sch = tir.Schedule(mod)
 
             # build and invoke the kernel.
-            f = gsmDataGen.compile(sch.mod, target="llvm")
-            dev = gsmDataGen.cpu(0)
+            f = gsm_data_generator.compile(sch.mod, target="llvm")
+            dev = gsm_data_generator.cpu(0)
             # launch the kernel.
-            a = gsmDataGen.nd.array(np.random.randint(0, 2, size=(n,)).astype(A.dtype), dev)
-            sc = gsmDataGen.nd.array(np.random.randint(0, 2, size=()).astype(scale.dtype), dev)
-            d = gsmDataGen.nd.empty((), D.dtype, dev)
+            a = gsm_data_generator.nd.array(np.random.randint(0, 2, size=(n,)).astype(A.dtype), dev)
+            sc = gsm_data_generator.nd.array(np.random.randint(0, 2, size=()).astype(scale.dtype), dev)
+            d = gsm_data_generator.nd.empty((), D.dtype, dev)
             f(a, sc, d)
             d_np = np.sum(a.numpy()) * sc.numpy() + 1
-            gsmDataGen.testing.assert_allclose(d.numpy(), d_np)
+            gsm_data_generator.testing.assert_allclose(d.numpy(), d_np)
 
     check_llvm(64)
 
 
-@gsmDataGen.testing.requires_llvm
+@gsm_data_generator.testing.requires_llvm
 def test_alignment():
-    n = gsmDataGen.runtime.convert(1024)
+    n = gsm_data_generator.runtime.convert(1024)
     A = te.placeholder((n,), name="A")
     B = te.compute(A.shape, lambda i: A[i] * 3, name="B")
 
@@ -454,7 +454,7 @@ def test_alignment():
     sch.vectorize(tx)
 
     # Build with name
-    f = gsmDataGen.tir.build(sch.mod, target="llvm")
+    f = gsm_data_generator.tir.build(sch.mod, target="llvm")
 
     lines = f.get_source().split("\n")
 
@@ -472,7 +472,7 @@ def test_alignment():
                 return True
         return False
 
-    if gsmDataGen.target.codegen.llvm_version_major() >= 5:
+    if gsm_data_generator.target.codegen.llvm_version_major() >= 5:
         assert has_param_alignment()
 
     # Check for assume intrinsics. This isn't 100% accurate, since it just
@@ -487,13 +487,13 @@ def test_alignment():
     assert has_call_to_assume()
 
 
-@gsmDataGen.testing.requires_llvm
+@gsm_data_generator.testing.requires_llvm
 def test_llvm_div():
     """Check that the semantics of div and mod is correct"""
 
     def check(start, end, dstart, dend, dtype, floor_div=False):
-        div = gsmDataGen.te.floordiv if floor_div else gsmDataGen.tir.truncdiv
-        mod = gsmDataGen.te.floormod if floor_div else gsmDataGen.tir.truncmod
+        div = gsm_data_generator.te.floordiv if floor_div else gsm_data_generator.tir.truncdiv
+        mod = gsm_data_generator.te.floormod if floor_div else gsm_data_generator.tir.truncmod
 
         # A are dividends, B are divisors. Note that we add 1 to make include end in the range.
         A = te.placeholder((end - start + 1,), name="A", dtype=dtype)
@@ -501,23 +501,23 @@ def test_llvm_div():
         # We clip values with min and max so that simplifiers know the ranges of values
 
         def clipa(x):
-            return gsmDataGen.te.min(gsmDataGen.tir.const(end, dtype), gsmDataGen.te.max(gsmDataGen.tir.const(start, dtype), x))
+            return gsm_data_generator.te.min(gsm_data_generator.tir.const(end, dtype), gsm_data_generator.te.max(gsm_data_generator.tir.const(start, dtype), x))
 
         def clipb(x):
-            return gsmDataGen.te.min(
-                gsmDataGen.tir.const(dend, dtype), gsmDataGen.te.max(gsmDataGen.tir.const(dstart, dtype), x)
+            return gsm_data_generator.te.min(
+                gsm_data_generator.tir.const(dend, dtype), gsm_data_generator.te.max(gsm_data_generator.tir.const(dstart, dtype), x)
             )
 
         # If the range is just a single point, use the constant itself
         if start == end:
 
             def clipa(x):
-                return gsmDataGen.tir.const(start, dtype)
+                return gsm_data_generator.tir.const(start, dtype)
 
         if dstart == dend:
 
             def clipb(x):
-                return gsmDataGen.tir.const(dstart, dtype)
+                return gsm_data_generator.tir.const(dstart, dtype)
 
         # D are division results and M are modulo results
         [D, M] = te.compute(
@@ -530,19 +530,19 @@ def test_llvm_div():
         sch = tir.Schedule(mod)
 
         # Build from scheduled TIR
-        f = gsmDataGen.compile(sch.mod, target="llvm")
+        f = gsm_data_generator.compile(sch.mod, target="llvm")
 
         # Fill input arrays with values
-        A_arr = gsmDataGen.nd.empty((end - start + 1,), dtype)
-        B_arr = gsmDataGen.nd.empty((dend - dstart + 1,), dtype)
+        A_arr = gsm_data_generator.nd.empty((end - start + 1,), dtype)
+        B_arr = gsm_data_generator.nd.empty((dend - dstart + 1,), dtype)
         A_arr.copyfrom(np.arange(start, end + 1, dtype=dtype))
         B_np = np.arange(dstart, dend + 1, dtype=dtype)
         # If the range of the divisor contains 0, replace it with 1 to avoid division by zero
         if dend >= 0 and dstart <= 0:
             B_np[-dstart] = 1
         B_arr.copyfrom(B_np)
-        D_arr = gsmDataGen.nd.empty((end - start + 1, dend - dstart + 1), dtype)
-        M_arr = gsmDataGen.nd.empty((end - start + 1, dend - dstart + 1), dtype)
+        D_arr = gsm_data_generator.nd.empty((end - start + 1, dend - dstart + 1), dtype)
+        M_arr = gsm_data_generator.nd.empty((end - start + 1, dend - dstart + 1), dtype)
 
         # Run the function and convert the results to numpy
         f(A_arr, B_arr, D_arr, M_arr)
@@ -625,7 +625,7 @@ def test_llvm_div():
         check(0, 255, dstart, dend, "uint8", floor_div=True)
 
 
-@gsmDataGen.testing.requires_llvm
+@gsm_data_generator.testing.requires_llvm
 def test_llvm_fp_math():
     def check_llvm_reciprocal(n):
         A = te.placeholder((n,), name="A")
@@ -636,12 +636,12 @@ def test_llvm_fp_math():
         sch = tir.Schedule(mod)
 
         # Build from scheduled TIR
-        f = gsmDataGen.compile(sch.mod, target="llvm")
+        f = gsm_data_generator.compile(sch.mod, target="llvm")
 
-        a = gsmDataGen.nd.array(np.full((n,), 100, "float32"))
-        b = gsmDataGen.nd.empty((n,), "float32")
+        a = gsm_data_generator.nd.array(np.full((n,), 100, "float32"))
+        b = gsm_data_generator.nd.empty((n,), "float32")
         f(a, b)
-        gsmDataGen.testing.assert_allclose(b.numpy(), np.zeros((n,), "float32"))
+        gsm_data_generator.testing.assert_allclose(b.numpy(), np.zeros((n,), "float32"))
 
     check_llvm_reciprocal(4)
     check_llvm_reciprocal(8)
@@ -656,22 +656,22 @@ def test_llvm_fp_math():
         sch = tir.Schedule(mod)
 
         # Build from scheduled TIR
-        f = gsmDataGen.compile(sch.mod, target="llvm")
+        f = gsm_data_generator.compile(sch.mod, target="llvm")
 
-        a = gsmDataGen.nd.array(np.full((n,), -1000, "float32"))
-        b = gsmDataGen.nd.empty((n,), "float32")
+        a = gsm_data_generator.nd.array(np.full((n,), -1000, "float32"))
+        b = gsm_data_generator.nd.empty((n,), "float32")
         f(a, b)
-        gsmDataGen.testing.assert_allclose(b.numpy(), np.zeros((n,), "float32"))
+        gsm_data_generator.testing.assert_allclose(b.numpy(), np.zeros((n,), "float32"))
 
     check_llvm_sigmoid(4)
     check_llvm_sigmoid(8)
     check_llvm_sigmoid(16)
 
 
-@gsmDataGen.testing.requires_llvm
+@gsm_data_generator.testing.requires_llvm
 def test_dwarf_debug_information():
     nn = 1024
-    n = gsmDataGen.runtime.convert(nn)
+    n = gsm_data_generator.runtime.convert(nn)
     A = te.placeholder((n,), name="A")
     B = te.placeholder((n,), name="B")
     C = te.compute(A.shape, lambda *i: A(*i) + B(*i), name="C")
@@ -690,18 +690,18 @@ def test_dwarf_debug_information():
     sch.vectorize(xi)
 
     def check_llvm_object():
-        if gsmDataGen.target.codegen.llvm_version_major() < 5:
+        if gsm_data_generator.target.codegen.llvm_version_major() < 5:
             return
-        if gsmDataGen.target.codegen.llvm_version_major() > 6:
+        if gsm_data_generator.target.codegen.llvm_version_major() > 6:
             return
         # build two functions
-        mod = gsmDataGen.IRModule(
+        mod = gsm_data_generator.IRModule(
             {
                 "fadd1": sch.mod["main"].with_attr("global_symbol", "fadd1"),
                 "fadd2": sch.mod["main"].with_attr("global_symbol", "fadd2"),
             }
         )
-        m = gsmDataGen.compile(mod, target="llvm")
+        m = gsm_data_generator.compile(mod, target="llvm")
         temp = utils.tempdir()
         o_path = temp.relpath("temp.o")
         m.save(o_path)
@@ -728,18 +728,18 @@ def test_dwarf_debug_information():
             assert re.search(r"""DW_AT_name.*fadd2""", str(output))
 
     def check_llvm_ir():
-        if gsmDataGen.target.codegen.llvm_version_major() < 5:
+        if gsm_data_generator.target.codegen.llvm_version_major() < 5:
             return
-        if gsmDataGen.target.codegen.llvm_version_major() > 6:
+        if gsm_data_generator.target.codegen.llvm_version_major() > 6:
             return
         # build two functions
-        mod = gsmDataGen.IRModule(
+        mod = gsm_data_generator.IRModule(
             {
                 "fadd1": sch.mod["main"].with_attr("global_symbol", "fadd1"),
                 "fadd2": sch.mod["main"].with_attr("global_symbol", "fadd2"),
             }
         )
-        m = gsmDataGen.tir.build(mod, target="llvm -mtriple=aarch64-linux-gnu")
+        m = gsm_data_generator.tir.build(mod, target="llvm -mtriple=aarch64-linux-gnu")
         ll = m.get_source("ll")
 
         # On non-Darwin OS, don't explicitly specify DWARF version.
@@ -749,7 +749,7 @@ def test_dwarf_debug_information():
         assert re.search(r"""llvm.dbg.value""", ll)
 
         # Try Darwin, require DWARF-2
-        m = gsmDataGen.tir.build(mod, target="llvm -mtriple=x86_64-apple-darwin-macho")
+        m = gsm_data_generator.tir.build(mod, target="llvm -mtriple=x86_64-apple-darwin-macho")
         ll = m.get_source("ll")
         assert re.search(r"""i32 4, !"Dwarf Version", i32 2""", ll)
         assert re.search(r"""llvm.dbg.value""", ll)
@@ -758,7 +758,7 @@ def test_dwarf_debug_information():
     check_llvm_ir()
 
 
-@gsmDataGen.testing.requires_llvm
+@gsm_data_generator.testing.requires_llvm
 def test_llvm_bf16():
     def dotest(do_vectorize):
         np.random.seed(122)
@@ -778,38 +778,38 @@ def test_llvm_bf16():
         if do_vectorize:
             sch.vectorize(loop)
 
-        module = gsmDataGen.compile(sch.mod, target="llvm")
+        module = gsm_data_generator.compile(sch.mod, target="llvm")
         npa = np.random.rand(32).astype("bfloat16")
         npb = np.random.rand(32).astype("bfloat16")
         res = npa + npb
-        a_ = gsmDataGen.nd.array(npa)
-        b_ = gsmDataGen.nd.array(npb)
-        c_ = gsmDataGen.nd.empty((32,), "bfloat16")
+        a_ = gsm_data_generator.nd.array(npa)
+        b_ = gsm_data_generator.nd.array(npb)
+        c_ = gsm_data_generator.nd.empty((32,), "bfloat16")
         module(a_, b_, c_)
         # Note: directly compare without casting to float32 should work with the
         # latest numpy version.
-        gsmDataGen.testing.assert_allclose(c_.numpy().astype("float32"), res.astype("float32"))
+        gsm_data_generator.testing.assert_allclose(c_.numpy().astype("float32"), res.astype("float32"))
 
     dotest(True)
     dotest(False)
 
 
-@gsmDataGen.testing.requires_llvm
+@gsm_data_generator.testing.requires_llvm
 def test_llvm_crt_static_lib():
     A = te.placeholder((32,), dtype="bfloat16")
     B = te.placeholder((32,), dtype="bfloat16")
     d = te.compute((32,), lambda x: A[x] + B[x])
-    mod = gsmDataGen.IRModule.from_expr(te.create_prim_func([A, B, d]))
-    module = gsmDataGen.tir.build(
+    mod = gsm_data_generator.IRModule.from_expr(te.create_prim_func([A, B, d]))
+    module = gsm_data_generator.tir.build(
         mod.with_attr("system_lib_prefix", ""),
-        target=gsmDataGen.target.Target("llvm"),
+        target=gsm_data_generator.target.Target("llvm"),
     )
     module.get_source()
     with utils.tempdir() as temp:
         module.save(temp.relpath("test.o"))
 
 
-@gsmDataGen.testing.requires_llvm
+@gsm_data_generator.testing.requires_llvm
 def test_llvm_order_functions():
     """Check that functions in the LLVM module are ordered alphabetically."""
 
@@ -818,11 +818,11 @@ def test_llvm_order_functions():
     def make_call_extern(caller, callee):
         # Create a function:
         #   float32 caller(float32 v) { return callee(v); }
-        ib = gsmDataGen.tir.ir_builder.create()
-        v = gsmDataGen.te.var("v", dtype="float32")
-        t = gsmDataGen.tir.call_extern("float32", callee, v)
+        ib = gsm_data_generator.tir.ir_builder.create()
+        v = gsm_data_generator.te.var("v", dtype="float32")
+        t = gsm_data_generator.tir.call_extern("float32", callee, v)
         ib.emit(t)
-        return gsmDataGen.tir.PrimFunc([v], ib.get()).with_attr("global_symbol", caller)
+        return gsm_data_generator.tir.PrimFunc([v], ib.get()).with_attr("global_symbol", caller)
 
     # Create some functions in a random order.
     functions = {
@@ -830,15 +830,15 @@ def test_llvm_order_functions():
         "Sammy": make_call_extern("Sammy", "Eve"),
         "Kirby": make_call_extern("Kirby", "Fred"),
     }
-    mod = gsmDataGen.IRModule(functions=functions)
-    ir_text = gsmDataGen.tir.build(mod, target="llvm").get_source("ll")
+    mod = gsm_data_generator.IRModule(functions=functions)
+    ir_text = gsm_data_generator.tir.build(mod, target="llvm").get_source("ll")
     # Skip functions whose names start with _.
     matches = re.findall(r"^define[^@]*@([a-zA-Z][a-zA-Z0-9_]*)", ir_text, re.MULTILINE)
     assert matches == sorted(matches)
 
 
-@gsmDataGen.testing.requires_llvm
-@gsmDataGen.testing.skip_if_32bit
+@gsm_data_generator.testing.requires_llvm
+@gsm_data_generator.testing.skip_if_32bit
 def test_llvm_import():
     """all-platform-minimal-test: check shell dependent clang behavior."""
     # extern "C" is necessary to get the correct signature
@@ -850,7 +850,7 @@ def test_llvm_import():
     n = 10
     A = te.placeholder((n,), name="A")
     B = te.compute(
-        (n,), lambda *i: gsmDataGen.tir.call_pure_extern("float32", "my_add", A(*i), 1.0), name="B"
+        (n,), lambda *i: gsm_data_generator.tir.call_pure_extern("float32", "my_add", A(*i), 1.0), name="B"
     )
 
     def check_llvm(use_file):
@@ -860,42 +860,42 @@ def test_llvm_import():
         temp = utils.tempdir()
         ll_path = temp.relpath("temp.ll")
         ll_code = clang.create_llvm(cc_code, output=ll_path)
-        sch = gsmDataGen.tir.Schedule(te.create_prim_func([A, B]))
+        sch = gsm_data_generator.tir.Schedule(te.create_prim_func([A, B]))
 
         if use_file:
             sch.annotate(sch.get_loops("B")[0], "pragma_import_llvm", ll_path)
         else:
             sch.annotate(sch.get_loops("B")[0], "pragma_import_llvm", ll_code)
         # BUILD and invoke the kernel.
-        f = gsmDataGen.compile(sch.mod, target="llvm")
-        dev = gsmDataGen.cpu(0)
+        f = gsm_data_generator.compile(sch.mod, target="llvm")
+        dev = gsm_data_generator.cpu(0)
         # launch the kernel.
-        a = gsmDataGen.nd.array(np.random.uniform(size=n).astype(A.dtype), dev)
-        b = gsmDataGen.nd.array(np.random.uniform(size=n).astype(B.dtype), dev)
+        a = gsm_data_generator.nd.array(np.random.uniform(size=n).astype(A.dtype), dev)
+        b = gsm_data_generator.nd.array(np.random.uniform(size=n).astype(B.dtype), dev)
         f(a, b)
-        gsmDataGen.testing.assert_allclose(b.numpy(), a.numpy() + 1.0)
+        gsm_data_generator.testing.assert_allclose(b.numpy(), a.numpy() + 1.0)
 
     check_llvm(use_file=True)
     check_llvm(use_file=False)
 
 
-@gsmDataGen.testing.requires_llvm
+@gsm_data_generator.testing.requires_llvm
 def test_llvm_scalar_concat():
-    x = gsmDataGen.tir.Var("x", "int32")
-    y = gsmDataGen.tir.Var("y", "int32")
-    z = gsmDataGen.tir.decl_buffer((1,), "int32x2")
-    s = gsmDataGen.tir.Shuffle([x, y], [0, 1])
-    f = gsmDataGen.tir.PrimFunc([x, y, z], z.vstore(0, s))
+    x = gsm_data_generator.tir.Var("x", "int32")
+    y = gsm_data_generator.tir.Var("y", "int32")
+    z = gsm_data_generator.tir.decl_buffer((1,), "int32x2")
+    s = gsm_data_generator.tir.Shuffle([x, y], [0, 1])
+    f = gsm_data_generator.tir.PrimFunc([x, y, z], z.vstore(0, s))
 
-    mod = gsmDataGen.ir.IRModule.from_expr(f.with_attr("global_symbol", "codegen_scalar_concat"))
+    mod = gsm_data_generator.ir.IRModule.from_expr(f.with_attr("global_symbol", "codegen_scalar_concat"))
 
     # This will crash in LLVM codegen if CodeGenLLVM::CreateVecConcat doesn't convert
     # scalars to single-lane LLVM vectors.
-    with gsmDataGen.transform.PassContext(config={"tir.disable_assert": True}):
-        m = gsmDataGen.compile(mod, target="llvm")
+    with gsm_data_generator.transform.PassContext(config={"tir.disable_assert": True}):
+        m = gsm_data_generator.compile(mod, target="llvm")
 
 
-@gsmDataGen.testing.requires_llvm
+@gsm_data_generator.testing.requires_llvm
 def test_raise_exception_during_codegen():
     @T.prim_func
     def threadpool_nested_parallel_loop(
@@ -906,13 +906,13 @@ def test_raise_exception_during_codegen():
             for j in T.parallel(4):
                 B[i, j] = A[i, j] * 2.0
 
-    with pytest.raises(gsmDataGen.TVMError) as e:
-        gsmDataGen.compile(gsmDataGen.IRModule.from_expr(threadpool_nested_parallel_loop), target="llvm")
+    with pytest.raises(gsm_data_generator.TVMError) as e:
+        gsm_data_generator.compile(gsm_data_generator.IRModule.from_expr(threadpool_nested_parallel_loop), target="llvm")
     msg = str(e)
     assert msg.find("Nested parallel loop is not supported") != -1
 
 
-@gsmDataGen.testing.requires_llvm
+@gsm_data_generator.testing.requires_llvm
 def test_llvm_target_attributes():
     """Check that when LLVM codegen creates new functions, they get the same target
     attributes as the original function.
@@ -920,17 +920,17 @@ def test_llvm_target_attributes():
     n = te.var()
     A = te.placeholder((n,), name="A", dtype="float32")
     B = te.compute((n,), lambda i: A[i], name="B")
-    C = te.compute((n,), lambda i: B[i] + gsmDataGen.tir.const(1, A.dtype), name="C")
+    C = te.compute((n,), lambda i: B[i] + gsm_data_generator.tir.const(1, A.dtype), name="C")
 
-    sch = gsmDataGen.tir.Schedule(
+    sch = gsm_data_generator.tir.Schedule(
         te.create_prim_func([A, B, C, n]).with_attr("global_symbol", "test_func")
     )
     xo, xi = sch.split(sch.get_loops("C")[0], factors=[2, None])
     sch.parallel(xo)
 
     target_llvm = "llvm -mtriple=x86_64-linux-gnu -mcpu=skylake -mattr=+avx512f"
-    target = gsmDataGen.target.Target(target_llvm, host=target_llvm)
-    module = gsmDataGen.tir.build(sch.mod, target=target)
+    target = gsm_data_generator.target.Target(target_llvm, host=target_llvm)
+    module = gsm_data_generator.tir.build(sch.mod, target=target)
 
     llvm_ir = module.get_source()
     llvm_ir_lines = llvm_ir.split("\n")
@@ -960,7 +960,7 @@ def test_llvm_target_attributes():
         assert n in functions_with_target
 
 
-@gsmDataGen.testing.requires_llvm
+@gsm_data_generator.testing.requires_llvm
 def test_llvm_assume():
     """
     Check that LLVM does not error out when generating code with tir.assume.
@@ -978,13 +978,13 @@ def test_llvm_assume():
             B_1 = T.Buffer((14,), "int32", data=B.data)
             B_1[i] = A_1[i] * 2
 
-    mod = gsmDataGen.IRModule.from_expr(tir_assume_func)
+    mod = gsm_data_generator.IRModule.from_expr(tir_assume_func)
     inp = te.placeholder((4, 4), name="A", dtype="int32")
     out = te.placeholder((14,), name="B", dtype="int32")
-    m = gsmDataGen.compile(mod, target="llvm")
+    m = gsm_data_generator.compile(mod, target="llvm")
 
 
-@gsmDataGen.testing.requires_llvm
+@gsm_data_generator.testing.requires_llvm
 def test_debug_symbol_for_float64():
     """Check that LLVM can define DWARF debug type for float64
 
@@ -1001,10 +1001,10 @@ def test_debug_symbol_for_float64():
         for i in range(n):
             B[i] = A[i]
 
-    gsmDataGen.compile(func, target="llvm")
+    gsm_data_generator.compile(func, target="llvm")
 
 
-@gsmDataGen.testing.requires_llvm
+@gsm_data_generator.testing.requires_llvm
 def test_subroutine_call():
     @I.ir_module
     class mod:
@@ -1022,16 +1022,16 @@ def test_subroutine_call():
             A[0] = 42.0
 
     target = "llvm"
-    dev = gsmDataGen.cpu()
+    dev = gsm_data_generator.cpu()
 
-    built = gsmDataGen.compile(mod)
+    built = gsm_data_generator.compile(mod)
 
-    arr = gsmDataGen.nd.array(np.zeros([1], "float32"), device=dev)
+    arr = gsm_data_generator.nd.array(np.zeros([1], "float32"), device=dev)
     built["main"](arr)
     assert arr.numpy()[0] == 42.0
 
 
-@gsmDataGen.testing.requires_llvm
+@gsm_data_generator.testing.requires_llvm
 def test_call_packed_returning_void():
     """Allow codegen of PackedFunc calls returning void
 
@@ -1051,16 +1051,16 @@ def test_call_packed_returning_void():
     def func():
         T.Call(
             "void",
-            gsmDataGen.ir.Op.get("tir.tvm_call_packed"),
+            gsm_data_generator.ir.Op.get("tir.tvm_call_packed"),
             ["dummy_function_name"],
         )
 
     # Error occurred during build, as part of
     # CodeGenCPU::MakeCallPackedLowered.
-    built = gsmDataGen.compile(func, target="llvm")
+    built = gsm_data_generator.compile(func, target="llvm")
 
 
-@gsmDataGen.testing.requires_llvm
+@gsm_data_generator.testing.requires_llvm
 def test_call_packed_without_string_arg():
     """The first argument to tvm_call_packed must be a string
 
@@ -1073,22 +1073,22 @@ def test_call_packed_without_string_arg():
     @T.prim_func
     def func(A: T.Buffer(1, "float32")):
         T.func_attr({"global_symbol": "func"})
-        T.Call("int32", gsmDataGen.ir.Op.get("tir.tvm_call_packed"), [A.data])
+        T.Call("int32", gsm_data_generator.ir.Op.get("tir.tvm_call_packed"), [A.data])
 
-    with pytest.raises(gsmDataGen.TVMError):
-        built = gsmDataGen.compile(func, target="llvm")
+    with pytest.raises(gsm_data_generator.TVMError):
+        built = gsm_data_generator.compile(func, target="llvm")
 
 
-@gsmDataGen.testing.requires_llvm
+@gsm_data_generator.testing.requires_llvm
 def test_call_extern_returning_void():
     """Like test_call_packed_returning_void, but for call_extern"""
 
     @T.prim_func
     def func():
         T.func_attr({"global_symbol": "func"})
-        T.Call("void", gsmDataGen.ir.Op.get("tir.call_extern"), ["dummy_function_name"])
+        T.Call("void", gsm_data_generator.ir.Op.get("tir.call_extern"), ["dummy_function_name"])
 
-    built = gsmDataGen.compile(func, target="llvm")
+    built = gsm_data_generator.compile(func, target="llvm")
 
 
 def test_invalid_volatile_masked_buffer_load():
@@ -1101,9 +1101,9 @@ def test_invalid_volatile_masked_buffer_load():
         B[0:4] = A.vload([T.Ramp(0, 1, 4)], predicate=T.Broadcast(T.bool(True), 4))
 
     err_msg = "The masked load intrinsic does not support declaring load as volatile."
-    with pytest.raises(gsmDataGen.TVMError, match=err_msg):
-        with gsmDataGen.target.Target("llvm"):
-            gsmDataGen.compile(func)
+    with pytest.raises(gsm_data_generator.TVMError, match=err_msg):
+        with gsm_data_generator.target.Target("llvm"):
+            gsm_data_generator.compile(func)
 
 
 def test_invalid_volatile_masked_buffer_store():
@@ -1115,9 +1115,9 @@ def test_invalid_volatile_masked_buffer_store():
         A.vstore([T.Ramp(0, 1, 4)], T.Broadcast(0.0, 4), predicate=T.Broadcast(T.bool(True), 4))
 
     err_msg = "The masked store intrinsic does not support declaring store as volatile."
-    with pytest.raises(gsmDataGen.TVMError, match=err_msg):
-        with gsmDataGen.target.Target("llvm"):
-            gsmDataGen.compile(func)
+    with pytest.raises(gsm_data_generator.TVMError, match=err_msg):
+        with gsm_data_generator.target.Target("llvm"):
+            gsm_data_generator.compile(func)
 
 
 def test_int_parameter():
@@ -1131,7 +1131,7 @@ def test_int_parameter():
         else:
             return 20
 
-    built = gsmDataGen.compile(func)
+    built = gsm_data_generator.compile(func)
     output = built(True)
     assert output == 10
 
@@ -1150,7 +1150,7 @@ def test_bool_parameter():
         else:
             return 20
 
-    built = gsmDataGen.compile(func)
+    built = gsm_data_generator.compile(func)
     output = built(1)
     assert output == 10
 
@@ -1169,7 +1169,7 @@ def test_bool_return_value():
         T.func_attr({"target": T.target("llvm")})
         return value < 10
 
-    built = gsmDataGen.compile(func)
+    built = gsm_data_generator.compile(func)
     assert isinstance(built(0), bool)
     assert built(0)
 
@@ -1185,16 +1185,16 @@ def test_invalid_arguments():
         T.func_attr({"target": T.target("llvm")})
         return 0
 
-    built = gsmDataGen.compile(func)
+    built = gsm_data_generator.compile(func)
     with pytest.raises(RuntimeError):
         built(1, 1)
 
     with pytest.raises(RuntimeError):
-        built(1, gsmDataGen.nd.empty([10], "int32"))
+        built(1, gsm_data_generator.nd.empty([10], "int32"))
 
     with pytest.raises(RuntimeError):
-        built(False, gsmDataGen.nd.empty([11], "float32"))
+        built(False, gsm_data_generator.nd.empty([11], "float32"))
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

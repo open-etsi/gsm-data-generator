@@ -19,10 +19,10 @@ import re
 
 import pytest
 
-import gsmDataGen
-from gsmDataGen import relax
-from gsmDataGen.ir.base import assert_structural_equal
-from gsmDataGen.script.parser import relax as R, tir as T
+import gsm_data_generator
+from gsm_data_generator import relax
+from gsm_data_generator.ir.base import assert_structural_equal
+from gsm_data_generator.script.parser import relax as R, tir as T
 
 
 def test_copy_with_new_vars():
@@ -55,14 +55,14 @@ def test_copy_with_new_vars_copied_symbolic_vars():
 
 
 def test_copy_with_new_vars_on_ir_module():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Actual:
         @R.function
         def func(x: R.Tensor((3,), "float32"), y: R.Tensor((3,), "float32")):
             gv = R.add(x, y)
             return gv
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def func(x: R.Tensor((3,), "float32"), y: R.Tensor((3,), "float32")):
@@ -84,7 +84,7 @@ def test_copy_with_new_vars_on_ir_module():
 
 
 def test_copy_with_new_vars_on_ir_module_nested_function():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Actual:
         @R.function
         def func(x: R.Tensor((3,), "float32"), y: R.Tensor((3,), "float32")):
@@ -96,7 +96,7 @@ def test_copy_with_new_vars_on_ir_module_nested_function():
             gv = R.add(x, y)
             return gv
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def func(x: R.Tensor((3,), "float32"), y: R.Tensor((3,), "float32")):
@@ -166,7 +166,7 @@ def test_structural_equal_of_call_nodes():
         C = R.add(A, B)
         return C
 
-    gsmDataGen.ir.assert_structural_equal(uses_same_object_twice, uses_two_different_objects)
+    gsm_data_generator.ir.assert_structural_equal(uses_same_object_twice, uses_two_different_objects)
 
 
 def test_structural_equal_with_recursive_lambda_function():
@@ -203,7 +203,7 @@ def test_structural_equal_with_recursive_lambda_function():
     func_1 = define_function()
     func_2 = define_function()
 
-    gsmDataGen.ir.assert_structural_equal(func_1, func_2)
+    gsm_data_generator.ir.assert_structural_equal(func_1, func_2)
 
 
 def test_structural_equal_with_distinct_recursive_lambda_function():
@@ -268,7 +268,7 @@ def test_structural_equal_with_distinct_recursive_lambda_function():
     ]
 
     with pytest.raises(ValueError, match=re.escape(".".join(mismatch_path))):
-        gsmDataGen.ir.assert_structural_equal(func_a, func_b)
+        gsm_data_generator.ir.assert_structural_equal(func_a, func_b)
 
 
 if __name__ == "__main__":

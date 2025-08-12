@@ -15,15 +15,15 @@
 # specific language governing permissions and limitations
 # under the License.
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen.ir import VDevice
-from gsmDataGen.relax.transform import UpdateVDevice
-from gsmDataGen.script.parser import ir as I, relax as R, tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator.ir import VDevice
+from gsm_data_generator.relax.transform import UpdateVDevice
+from gsm_data_generator.script.parser import ir as I, relax as R, tir as T
 
 
 def verify(input, new_vdevice, vdevice_index, expected):
-    gsmDataGen.ir.assert_structural_equal(UpdateVDevice(new_vdevice, vdevice_index)(input), expected)
+    gsm_data_generator.ir.assert_structural_equal(UpdateVDevice(new_vdevice, vdevice_index)(input), expected)
 
 
 def test_update():
@@ -125,4 +125,4 @@ def test_update():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

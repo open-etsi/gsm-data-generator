@@ -14,9 +14,9 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-import gsmDataGen
-from gsmDataGen import te
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+from gsm_data_generator import te
+from gsm_data_generator.script import tir as T
 
 
 @T.prim_func
@@ -35,41 +35,41 @@ def test_domain_touched():
     a, b = [func.buffer_map[var] for var in func.params]
     ir = func.body
 
-    a_domain_r = gsmDataGen.arith._ffi_api.DomainTouched(ir, a, True, False)
+    a_domain_r = gsm_data_generator.arith._ffi_api.DomainTouched(ir, a, True, False)
 
     assert a_domain_r[0].min.value == -1
     assert a_domain_r[0].extent.value == 100
     assert a_domain_r[1].min.value == -1
     assert a_domain_r[1].extent.name == "m"
 
-    a_domain_w = gsmDataGen.arith._ffi_api.DomainTouched(ir, a, False, True)
+    a_domain_w = gsm_data_generator.arith._ffi_api.DomainTouched(ir, a, False, True)
     assert a_domain_w[0].min.value == 0
     assert a_domain_w[0].extent.value == 100
     assert a_domain_w[1].min.value == 0
     assert a_domain_w[1].extent.name == "m"
 
-    a_domain_rw = gsmDataGen.arith._ffi_api.DomainTouched(ir, a, True, True)
+    a_domain_rw = gsm_data_generator.arith._ffi_api.DomainTouched(ir, a, True, True)
     assert a_domain_rw[0].min.value == -1
     assert a_domain_rw[0].extent.value == 101
     assert a_domain_rw[1].min.value == -1
-    assert isinstance(a_domain_rw[1].extent, gsmDataGen.tir.Add)
+    assert isinstance(a_domain_rw[1].extent, gsm_data_generator.tir.Add)
     assert a_domain_rw[1].extent.a.name == "m"
     assert a_domain_rw[1].extent.b.value == 1
 
-    b_domain_r = gsmDataGen.arith._ffi_api.DomainTouched(ir, b, True, False)
+    b_domain_r = gsm_data_generator.arith._ffi_api.DomainTouched(ir, b, True, False)
     assert b_domain_r
     assert b_domain_r[0].min.value == -1
     assert b_domain_r[0].extent.value == 100
     assert b_domain_r[1].min.value == 1
     assert b_domain_r[1].extent.name == "m"
 
-    b_domain_w = gsmDataGen.arith._ffi_api.DomainTouched(ir, b, False, True)
-    assert isinstance(b_domain_w, gsmDataGen.container.Array)
+    b_domain_w = gsm_data_generator.arith._ffi_api.DomainTouched(ir, b, False, True)
+    assert isinstance(b_domain_w, gsm_data_generator.container.Array)
     assert len(b_domain_w) == 0
 
 
 def test_domain_touched_vector():
-    m = gsmDataGen.runtime.convert(128)
+    m = gsm_data_generator.runtime.convert(128)
 
     @T.prim_func
     def func(a: T.handle, b: T.handle, n: T.int32):
@@ -81,11 +81,11 @@ def test_domain_touched_vector():
 
     a, b = [func.buffer_map[var] for var in func.params[:2]]
 
-    assert gsmDataGen.arith._ffi_api.DomainTouched(func.body, a, True, False)[0].extent.value == 128
-    assert gsmDataGen.arith._ffi_api.DomainTouched(func.body, a, True, False)[0].extent.value == 128
-    assert gsmDataGen.arith._ffi_api.DomainTouched(func.body, a, True, True)[0].extent.value == 128
-    assert gsmDataGen.arith._ffi_api.DomainTouched(func.body, b, True, False)[0].extent.value == 128
-    assert gsmDataGen.arith._ffi_api.DomainTouched(func.body, b, True, False)[0].extent.value == 128
+    assert gsm_data_generator.arith._ffi_api.DomainTouched(func.body, a, True, False)[0].extent.value == 128
+    assert gsm_data_generator.arith._ffi_api.DomainTouched(func.body, a, True, False)[0].extent.value == 128
+    assert gsm_data_generator.arith._ffi_api.DomainTouched(func.body, a, True, True)[0].extent.value == 128
+    assert gsm_data_generator.arith._ffi_api.DomainTouched(func.body, b, True, False)[0].extent.value == 128
+    assert gsm_data_generator.arith._ffi_api.DomainTouched(func.body, b, True, False)[0].extent.value == 128
 
 
 if __name__ == "__main__":

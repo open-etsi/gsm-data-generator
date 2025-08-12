@@ -15,19 +15,19 @@
 # specific language governing permissions and limitations
 # under the License.
 import pytest
-import gsmDataGen
-import gsmDataGen.meta_schedule as ms
-import gsmDataGen.testing
-from gsmDataGen.script import tir as T
-from gsmDataGen.target import Target
-from gsmDataGen.target.codegen import llvm_lookup_intrinsic_id
-from gsmDataGen.tir import Schedule, floordiv, floormod
-from gsmDataGen.tir.tensor_intrin.cuda import *
-from gsmDataGen.tir.tensor_intrin.x86 import VNNI_DOT_16x4_INTRIN as VNNI_INTRIN
+import gsm_data_generator
+import gsm_data_generator.meta_schedule as ms
+import gsm_data_generator.testing
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.target import Target
+from gsm_data_generator.target.codegen import llvm_lookup_intrinsic_id
+from gsm_data_generator.tir import Schedule, floordiv, floormod
+from gsm_data_generator.tir.tensor_intrin.cuda import *
+from gsm_data_generator.tir.tensor_intrin.x86 import VNNI_DOT_16x4_INTRIN as VNNI_INTRIN
 
 
 # fmt: off
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Dense:
     @T.prim_func
     def main(
@@ -50,7 +50,7 @@ class Dense:
                 T_matmul_NT[i, j] = T_matmul_NT[i, j] + p0[i, k] * p1[j, k]
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class DenseAdd:
     @T.prim_func
     def main(
@@ -86,7 +86,7 @@ class DenseAdd:
                 T_add[ax0, ax1] = T_matmul_NT[ax0, ax1] + compile_engine_const[()]
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class DenseAdd_scheduled_cpu:
     @T.prim_func
     def main(
@@ -169,7 +169,7 @@ class DenseAdd_scheduled_cpu:
                         T_add[v0, v1] = T_matmul_NT_global[v0, v1] + T.float32(1)
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class DenseAdd_cpu_no_write_cache:
     @T.prim_func
     def main(p0: T.Buffer((128, 128), "float32"), p1: T.Buffer((128, 128), "float32"), T_add: T.Buffer((128, 128), "float32")) -> None:
@@ -215,7 +215,7 @@ class DenseAdd_cpu_no_write_cache:
                 T_add[ax0, ax1] = T_matmul_NT[ax0, ax1] + T.float32(1)
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class DenseAdd_scheduled_gpu:
     @T.prim_func
     def main(
@@ -369,7 +369,7 @@ class DenseAdd_scheduled_gpu:
                             T_add[v0, v1] = T_matmul_NT_local[v0, v1] + T.float32(1)
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Conv2dInt8:
     @T.prim_func
     def main(p0: T.Buffer((16, 56, 56, 64), "int8"), p1: T.Buffer((256, 1, 1, 64), "int8"), p2: T.Buffer((1, 1, 1, 256), "int32"), p3: T.Buffer((1, 1, 1, 256), "int32"), p4: T.Buffer((1, 1, 1, 256), "int64"), p5: T.Buffer((1, 1, 1, 256), "int64"), p6: T.Buffer((1, 1, 1, 256), "int64"), p7: T.Buffer((), "int32"), p8: T.Buffer(1, "int32"), compute: T.Buffer((16, 56, 56, 256), "int32")) -> None:
@@ -485,7 +485,7 @@ class Conv2dInt8:
                 compute[i0_7, i1_7, i2_7, i3_7] = T.q_multiply_shift(T_subtract_1[i0_7, i1_7, i2_7, i3_7], 1963325822, 31, 1, dtype="int32")
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Conv2dInt8_target:
     @T.prim_func
     def main(p0: T.Buffer((16, 56, 56, 64), "int8"), p1: T.Buffer((256, 1, 1, 64), "int8"), p2: T.Buffer((1, 1, 1, 256), "int32"), p3: T.Buffer((1, 1, 1, 256), "int32"), p4: T.Buffer((1, 1, 1, 256), "int64"), p5: T.Buffer((1, 1, 1, 256), "int64"), p6: T.Buffer((1, 1, 1, 256), "int64"), p7: T.Buffer((), "int32"), p8: T.Buffer(1, "int32"), p9: T.Buffer((16, 56, 56, 256), "int32"), compute: T.Buffer((16, 56, 56, 256), "uint8")) -> None:
@@ -629,7 +629,7 @@ class Conv2dInt8_target:
                 compute[i0_13, i1_13, i2_13, i3_13] = T.max(T.min(T_cast_4[i0_13, i1_13, i2_13, i3_13], T.uint8(255)), T.uint8(0))
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Conv2dInt8_tensorcore_scheduled:
     @T.prim_func
     def main(p0: T.Buffer((16, 56, 56, 64), "int8"), p1: T.Buffer((256, 1, 1, 64), "int8"), p2: T.Buffer((1, 1, 1, 256), "int32"), p3: T.Buffer((1, 1, 1, 256), "int32"), p4: T.Buffer((1, 1, 1, 256), "int64"), p5: T.Buffer((1, 1, 1, 256), "int64"), p6: T.Buffer((1, 1, 1, 256), "int64"), p7: T.Buffer((), "int32"), p8: T.Buffer((1,), "int32"), p9: T.Buffer((16, 56, 56, 256), "int32"), compute: T.Buffer((16, 56, 56, 256), "uint8")):
@@ -730,7 +730,7 @@ class Conv2dInt8_tensorcore_scheduled:
                             T.writes(compute[v0 // 3136, v0 % 3136 // 56, v0 % 56, v1])
                             compute[v0 // 3136, v0 % 3136 // 56, v0 % 56, v1] = T.max(T.min(T.Cast("uint8", T.max(T.min(T.q_multiply_shift(T.Cast("int32", T.Cast("uint8", T.max(T.min(p7[()] + T.Cast("int32", T.shift_right(T.Cast("int64", conv2d_nhwc_reindex_shared[v0, v1] - p2[0, 0, 0, v1] + p3[0, 0, 0, v1]) * p4[0, 0, 0, v1] + p5[0, 0, 0, v1], p6[0, 0, 0, v1])), 255), 0))) - p8[0], 1098990753, 31, 1) + p9[v0 // 3136, v0 % 3136 // 56, v0 % 56, v1], 255), 0)), T.uint8(255)), T.uint8(0))
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Conv2dInt8_NCHWc:
     @T.prim_func
     def main(p0: T.Buffer((1, 32, 7, 7, 16), "uint8"), p1: T.Buffer((128, 32, 1, 1, 4, 16, 4), "int8"), p2: T.Buffer((1, 128, 1, 1, 16), "int32"), p3: T.Buffer((1, 128, 1, 1, 16), "float32"), p4: T.Buffer(1, "float32"), p5: T.Buffer((1, 128, 7, 7, 16), "int32"), compute: T.Buffer((1, 128, 7, 7, 16), "uint8")) -> None:
@@ -893,7 +893,7 @@ class Conv2dInt8_NCHWc:
                 compute[i0_5, i1_5, i2_5, i3_5, i4_5] = T.max(T.min(T_cast_5[i0_5, i1_5, i2_5, i3_5, i4_5], T.uint8(255)), T.uint8(0))
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Conv2dInt8_NCHWc_target:
     @T.prim_func
     def main(p0: T.Buffer((1, 32, 7, 7, 16), "uint8"), p1: T.Buffer((128, 32, 1, 1, 4, 16, 4), "int8"), p2: T.Buffer((1, 128, 1, 1, 16), "int32"), p3: T.Buffer((1, 128, 1, 1, 16), "float32"), p4: T.Buffer(1, "float32"), p5: T.Buffer((1, 128, 7, 7, 16), "uint8"), T_cast: T.Buffer((1, 128, 7, 7, 16), "int32")) -> None:
@@ -1111,7 +1111,7 @@ class Conv2dInt8_NCHWc_target:
 
 
 def get_conv2d_vnni_mod(intrin_id):
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Conv2dInt8_NCHWc_scheduled:
         @T.prim_func
         def main(p0: T.Buffer((1, 32, 7, 7, 16), "uint8"), p1: T.Buffer((128, 32, 1, 1, 4, 16, 4), "int8"), p2: T.Buffer((1, 128, 1, 1, 16), "int32"), p3: T.Buffer((1, 128, 1, 1, 16), "float32"), p4: T.Buffer(1, "float32"), p5: T.Buffer((1, 128, 7, 7, 16), "uint8"), T_cast: T.Buffer((1, 128, 7, 7, 16), "int32")) -> None:
@@ -1174,7 +1174,7 @@ def get_conv2d_vnni_mod(intrin_id):
     return Conv2dInt8_NCHWc_scheduled
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Conv2dWinogradAddRelu:
     @T.prim_func
     def main(p0: T.Buffer((1, 56, 56, 64), "float32"), p1: T.Buffer((6, 6, 64, 64), "float32"), p2: T.Buffer((1, 1, 1, 64), "float32"), T_relu: T.Buffer((1, 56, 56, 64), "float32")) -> None:
@@ -1266,7 +1266,7 @@ class Conv2dWinogradAddRelu:
                 T_relu[ax0, ax1, ax2, ax3] = T.max(T_add[ax0, ax1, ax2, ax3], T.float32(0))
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Conv2dWinogradAddResidualRelu:
     @T.prim_func
     def main(p0: T.Buffer((1, 56, 56, 64), "float32"), p1: T.Buffer((6, 6, 64, 64), "float32"), p2: T.Buffer((1, 1, 1, 64), "float32"), p3: T.Buffer((1, 56, 56, 64), "float32"), T_relu: T.Buffer((1, 56, 56, 64), "float32")) -> None:
@@ -1365,7 +1365,7 @@ class Conv2dWinogradAddResidualRelu:
                 T_relu[ax0, ax1, ax2, ax3] = T.max(T_add_1[ax0, ax1, ax2, ax3], T.float32(0))
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Conv2dWinogradAddResidualRelu_scheduled:
     @T.prim_func
     def main(p0: T.Buffer((1, 56, 56, 64), "float32"), p1: T.Buffer((6, 6, 64, 64), "float32"), p2: T.Buffer((1, 1, 1, 64), "float32"), p3: T.Buffer((1, 56, 56, 64), "float32"), T_relu: T.Buffer((1, 56, 56, 64), "float32")) -> None:
@@ -1505,7 +1505,7 @@ class Conv2dWinogradAddResidualRelu_scheduled:
                     T_relu[n, h, w, co] = T.max(inverse[h % 4, w % 4, n * 196 + h // 4 * 14 + w // 4, co] + p2[n, 0, 0, co] + p3[n, h, w, co], T.float32(0))
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Conv2dInt8_with_predicate:
     @T.prim_func
     def main(p0: T.Buffer((16, 56, 56, 64), "int8"), p1: T.Buffer((256, 1, 1, 64), "int8"), p2: T.Buffer((1, 1, 1, 256), "int32"), p3: T.Buffer((1, 1, 1, 256), "int32"), p4: T.Buffer(256, "int32"), p5: T.Buffer(256, "int32"), p6: T.Buffer(256, "int32"), p7: T.Buffer((), "int32"), p8: T.Buffer(1, "int32"), compute: T.Buffer((16, 56, 56, 256), "int32")) -> None:
@@ -1579,7 +1579,7 @@ class Conv2dInt8_with_predicate:
                 compute[i0_8, i1_8, i2_8, i3_8] = T.q_multiply_shift(T_subtract_1[i0_8, i1_8, i2_8, i3_8], 1963325822, 31, 1, dtype="int32")
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Conv2dInt8_with_predicate_target:
     @T.prim_func
     def main(p0: T.Buffer((16, 56, 56, 64), "int8"), p1: T.Buffer((256, 1, 1, 64), "int8"), p2: T.Buffer((1, 1, 1, 256), "int32"), p3: T.Buffer((1, 1, 1, 256), "int32"), p4: T.Buffer(256, "int32"), p5: T.Buffer(256, "int32"), p6: T.Buffer(256, "int32"), p7: T.Buffer((), "int32"), p8: T.Buffer(1, "int32"), p9: T.Buffer((16, 56, 56, 256), "int32"), compute: T.Buffer((16, 56, 56, 256), "int32")) -> None:
@@ -1674,7 +1674,7 @@ class Conv2dInt8_with_predicate_target:
                 compute[i0_13, i1_13, i2_13, i3_13] = T.max(T.min(T_add_2[i0_13, i1_13, i2_13, i3_13], 255), 0)
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Conv2dInt8_with_predicate_scheduled:
     @T.prim_func
     def main(p0: T.Buffer((16, 56, 56, 64), "int8"), p1: T.Buffer((256, 1, 1, 64), "int8"), p2: T.Buffer((1, 1, 1, 256), "int32"), p3: T.Buffer((1, 1, 1, 256), "int32"), p4: T.Buffer((256,), "int32"), p5: T.Buffer((256,), "int32"), p6: T.Buffer((256,), "int32"), p7: T.Buffer((), "int32"), p8: T.Buffer((1,), "int32"), p9: T.Buffer((16, 56, 56, 256), "int32"), compute: T.Buffer((16, 56, 56, 256), "int32")):
@@ -1796,7 +1796,7 @@ def verify(anchor_mod, anchor_trace_fun, target_mod, target, ref):
 
     ms.trace_apply.schedule_using_anchor_trace(sch, anchor_trace, Target(target))
 
-    gsmDataGen.ir.assert_structural_equal(ref, sch.mod)
+    gsm_data_generator.ir.assert_structural_equal(ref, sch.mod)
 
 
 def test_dense_add_cpu():
@@ -1850,7 +1850,7 @@ def test_dense_add_cpu():
         sch.transform_layout(
             block=b58,
             buffer=("read", 2),
-            index_map=gsmDataGen.tir.IndexMap.from_func(
+            index_map=gsm_data_generator.tir.IndexMap.from_func(
                 lambda i0, i1: (
                     floordiv(i0, 64),
                     i1,
@@ -1917,7 +1917,7 @@ def test_dense_add_cpu_no_write_cache():
         sch.transform_layout(
             block=b49,
             buffer=("read", 2),
-            index_map=gsmDataGen.tir.IndexMap.from_func(
+            index_map=gsm_data_generator.tir.IndexMap.from_func(
                 lambda i0, i1: (
                     floordiv(i1, 16),
                     floordiv(i0, 32),
@@ -3350,4 +3350,4 @@ def test_inline_order():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

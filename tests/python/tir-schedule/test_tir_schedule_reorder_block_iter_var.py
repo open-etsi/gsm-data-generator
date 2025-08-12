@@ -16,11 +16,11 @@
 # under the License.
 
 import pytest
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import tir
-from gsmDataGen.script import tir as T
-from gsmDataGen.tir.schedule.testing import verify_trace_roundtrip
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import tir
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.tir.schedule.testing import verify_trace_roundtrip
 
 
 @T.prim_func
@@ -57,7 +57,7 @@ def test_reorder_block_iter_var():
     sch = tir.Schedule(matmul, debug_mask="all")
     C = sch.get_block("C")
     sch.reorder_block_iter_var(C, [2, 1, 0])
-    gsmDataGen.ir.assert_structural_equal(
+    gsm_data_generator.ir.assert_structural_equal(
         matmul_after_reorder_block_iter_var.with_attr("global_symbol", "matmul"), sch.mod["main"]
     )
     verify_trace_roundtrip(sch=sch, mod=matmul)
@@ -66,23 +66,23 @@ def test_reorder_block_iter_var():
 def test_reorder_block_iter_var_fail_not_full():
     sch = tir.Schedule(matmul, debug_mask="all")
     C = sch.get_block("C")
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         sch.reorder_block_iter_var(C, [2, 1])
 
 
 def test_reorder_block_iter_var_fail_not_within_bound():
     sch = tir.Schedule(matmul, debug_mask="all")
     C = sch.get_block("C")
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         sch.reorder_block_iter_var(C, [-1, 3, 2])
 
 
 def test_reorder_block_iter_var_fail_not_unique():
     sch = tir.Schedule(matmul, debug_mask="all")
     C = sch.get_block("C")
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         sch.reorder_block_iter_var(C, [0, 0, 2])
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

@@ -21,13 +21,13 @@ import json
 import pytest
 import torch
 
-import gsmDataGen.testing
-from gsmDataGen.contrib.msc.pipeline import MSCManager, TorchDynamic
-from gsmDataGen.contrib.msc.core.utils.namespace import MSCFramework
-from gsmDataGen.contrib.msc.core import utils as msc_utils
+import gsm_data_generator.testing
+from gsm_data_generator.contrib.msc.pipeline import MSCManager, TorchDynamic
+from gsm_data_generator.contrib.msc.core.utils.namespace import MSCFramework
+from gsm_data_generator.contrib.msc.core import utils as msc_utils
 
 requires_tensorrt = pytest.mark.skipif(
-    gsmDataGen.get_global_func("relax.ext.tensorrt", True) is None,
+    gsm_data_generator.get_global_func("relax.ext.tensorrt", True) is None,
     reason="TENSORRT is not enabled",
 )
 
@@ -211,4 +211,4 @@ def test_tensorrt_pipeline(dynamic):
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

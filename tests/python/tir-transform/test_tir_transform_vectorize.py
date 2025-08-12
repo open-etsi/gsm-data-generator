@@ -16,14 +16,14 @@
 # under the License.
 import pytest
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import te
-from gsmDataGen.script import ir as I
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import te
+from gsm_data_generator.script import ir as I
+from gsm_data_generator.script import tir as T
 
-simple_target = gsmDataGen.target.Target("llvm -mtriple=x86_64-linux-gnu")
-sve_target = gsmDataGen.target.Target("llvm -device=arm_cpu -mtriple=aarch64-linux-gnu -mattr=+v8.2a,+sve")
+simple_target = gsm_data_generator.target.Target("llvm -mtriple=x86_64-linux-gnu")
+sve_target = gsm_data_generator.target.Target("llvm -device=arm_cpu -mtriple=aarch64-linux-gnu -mattr=+v8.2a,+sve")
 
 
 @pytest.mark.parametrize("extent, target", [(4, simple_target), (T.vscale() * 4, sve_target)])
@@ -41,29 +41,29 @@ def test_vectorize_loop(extent, target):
         def main(A: T.Buffer((16,), "float32")):
             A[T.Ramp(0, 1, extent)] = T.Broadcast(1, extent)
 
-    with gsmDataGen.target.Target(target):
-        mod = gsmDataGen.tir.transform.VectorizeLoop()(Before)
-        gsmDataGen.ir.assert_structural_equal(mod, After)
+    with gsm_data_generator.target.Target(target):
+        mod = gsm_data_generator.tir.transform.VectorizeLoop()(Before)
+        gsm_data_generator.ir.assert_structural_equal(mod, After)
 
 
 def test_vectorize_vector():
     n = te.var("n")
-    ib = gsmDataGen.tir.ir_builder.create()
+    ib = gsm_data_generator.tir.ir_builder.create()
     A = ib.pointer("float32x4", name="A")
     with ib.for_range(0, n) as i:
         with ib.for_range(0, 4, kind="vectorize") as j:
-            A[j] = gsmDataGen.tir.const(1, A.dtype)
+            A[j] = gsm_data_generator.tir.const(1, A.dtype)
     stmt = ib.get()
-    assert isinstance(stmt.body, gsmDataGen.tir.For)
+    assert isinstance(stmt.body, gsm_data_generator.tir.For)
 
-    mod = gsmDataGen.IRModule.from_expr(gsmDataGen.tir.PrimFunc([A, n], stmt))
-    stmt = gsmDataGen.tir.transform.VectorizeLoop()(mod)["main"].body
+    mod = gsm_data_generator.IRModule.from_expr(gsm_data_generator.tir.PrimFunc([A, n], stmt))
+    stmt = gsm_data_generator.tir.transform.VectorizeLoop()(mod)["main"].body
 
-    assert isinstance(stmt, gsmDataGen.tir.For)
-    assert not isinstance(stmt.body, gsmDataGen.tir.For)
+    assert isinstance(stmt, gsm_data_generator.tir.For)
+    assert not isinstance(stmt.body, gsm_data_generator.tir.For)
     assert len(stmt.body.indices) == 1
-    assert isinstance(stmt.body.indices[0], gsmDataGen.tir.Ramp)
-    assert isinstance(stmt.body.value, gsmDataGen.tir.Broadcast)
+    assert isinstance(stmt.body.indices[0], gsm_data_generator.tir.Ramp)
+    assert isinstance(stmt.body.value, gsm_data_generator.tir.Broadcast)
 
 
 def test_vectorize_vector_scalable_error():
@@ -75,9 +75,9 @@ def test_vectorize_vector_scalable_error():
                 A[j * 4 : j * 4 + 4] = T.Broadcast(T.float32(1), 4)
 
     error_msg = f"Creating scalable vectors from existing vectors is not supported."
-    with gsmDataGen.target.Target(sve_target):
-        with pytest.raises(gsmDataGen.error.InternalError, match=error_msg):
-            gsmDataGen.tir.transform.VectorizeLoop()(Module)
+    with gsm_data_generator.target.Target(sve_target):
+        with pytest.raises(gsm_data_generator.error.InternalError, match=error_msg):
+            gsm_data_generator.tir.transform.VectorizeLoop()(Module)
 
 
 def test_vectorize_vector_scalable_error2():
@@ -89,8 +89,8 @@ def test_vectorize_vector_scalable_error2():
                 A[j] = T.Broadcast(T.float32(1), T.vscale() * 4)
 
     error_msg = f"Vectorizing over scalable buffer elements is not supported in vectorizer."
-    with pytest.raises(gsmDataGen.error.InternalError, match=error_msg):
-        gsmDataGen.tir.transform.VectorizeLoop()(Module)
+    with pytest.raises(gsm_data_generator.error.InternalError, match=error_msg):
+        gsm_data_generator.tir.transform.VectorizeLoop()(Module)
 
 
 def test_vectorize_vector_scalable_error3():
@@ -104,9 +104,9 @@ def test_vectorize_vector_scalable_error3():
                 )
 
     error_msg = f"Vectorizing over existing scalable vectors is not supported."
-    with pytest.raises(gsmDataGen.error.InternalError, match=error_msg):
-        with gsmDataGen.target.Target(sve_target):
-            gsmDataGen.tir.transform.VectorizeLoop()(Module)
+    with pytest.raises(gsm_data_generator.error.InternalError, match=error_msg):
+        with gsm_data_generator.target.Target(sve_target):
+            gsm_data_generator.tir.transform.VectorizeLoop()(Module)
 
 
 def test_vectorize_vector_scalable_error4():
@@ -120,9 +120,9 @@ def test_vectorize_vector_scalable_error4():
                 )
 
     error_msg = f"Creating scalable vectors from existing vectors is not supported."
-    with pytest.raises(gsmDataGen.error.InternalError, match=error_msg):
-        with gsmDataGen.target.Target(sve_target):
-            gsmDataGen.tir.transform.VectorizeLoop()(Module)
+    with pytest.raises(gsm_data_generator.error.InternalError, match=error_msg):
+        with gsm_data_generator.target.Target(sve_target):
+            gsm_data_generator.tir.transform.VectorizeLoop()(Module)
 
 
 def test_vectorize_with_if():
@@ -155,9 +155,9 @@ def test_vectorize_with_if():
                     if i_s < n:
                         A[i_s] = T.float32(2)
 
-    with gsmDataGen.target.Target(target):
-        mod = gsmDataGen.tir.transform.VectorizeLoop()(Before)
-        gsmDataGen.ir.assert_structural_equal(mod, After)
+    with gsm_data_generator.target.Target(target):
+        mod = gsm_data_generator.tir.transform.VectorizeLoop()(Before)
+        gsm_data_generator.ir.assert_structural_equal(mod, After)
 
 
 def test_vectorize_if_scalable_extent():
@@ -192,9 +192,9 @@ def test_vectorize_if_scalable_extent():
                     predicate=T.get_active_lane_mask("uint1xvscalex4", 0, n),
                 )
 
-    with gsmDataGen.target.Target(target):
-        mod = gsmDataGen.tir.transform.VectorizeLoop()(Before)
-        gsmDataGen.ir.assert_structural_equal(mod, After)
+    with gsm_data_generator.target.Target(target):
+        mod = gsm_data_generator.tir.transform.VectorizeLoop()(Before)
+        gsm_data_generator.ir.assert_structural_equal(mod, After)
 
 
 @pytest.mark.parametrize("extent, target", [(4, simple_target), (T.vscale() * 4, sve_target)])
@@ -214,47 +214,47 @@ def test_vectorize_let(extent, target):
             v = A[T.Ramp(0, 1, extent)] + T.Broadcast(T.float32(1), extent)
             A[T.Ramp(0, 1, extent)] = v + T.Broadcast(T.float32(2), extent)
 
-    with gsmDataGen.target.Target(target):
-        mod = gsmDataGen.tir.transform.VectorizeLoop()(Before)
-        gsmDataGen.ir.assert_structural_equal(mod, After)
+    with gsm_data_generator.target.Target(target):
+        mod = gsm_data_generator.tir.transform.VectorizeLoop()(Before)
+        gsm_data_generator.ir.assert_structural_equal(mod, After)
 
 
-@pytest.mark.parametrize("extent, target", [(4, simple_target), (gsmDataGen.tir.vscale() * 4, sve_target)])
+@pytest.mark.parametrize("extent, target", [(4, simple_target), (gsm_data_generator.tir.vscale() * 4, sve_target)])
 def test_vectorize_with_le_cond(extent, target):
     n = te.var("n")
-    ib = gsmDataGen.tir.ir_builder.create()
+    ib = gsm_data_generator.tir.ir_builder.create()
     A = ib.pointer("float32", name="A")
     with ib.for_range(0, extent, kind="vectorize") as i:
         with ib.if_scope(i <= n):
             A[i] = A[i] + 1
     stmt = ib.get()
 
-    mod = gsmDataGen.IRModule.from_expr(gsmDataGen.tir.PrimFunc([A, n], stmt))
+    mod = gsm_data_generator.IRModule.from_expr(gsm_data_generator.tir.PrimFunc([A, n], stmt))
 
-    with gsmDataGen.target.Target(target):
-        stmt = gsmDataGen.tir.transform.VectorizeLoop()(mod)["main"].body
+    with gsm_data_generator.target.Target(target):
+        stmt = gsm_data_generator.tir.transform.VectorizeLoop()(mod)["main"].body
 
         # Check that the loop was't vectorised
-        assert isinstance(stmt, gsmDataGen.tir.For)
+        assert isinstance(stmt, gsm_data_generator.tir.For)
 
 
-@pytest.mark.parametrize("extent, target", [(4, simple_target), (gsmDataGen.tir.vscale() * 4, sve_target)])
+@pytest.mark.parametrize("extent, target", [(4, simple_target), (gsm_data_generator.tir.vscale() * 4, sve_target)])
 def test_vectorize_with_ge_cond(extent, target):
     n = te.var("n")
-    ib = gsmDataGen.tir.ir_builder.create()
+    ib = gsm_data_generator.tir.ir_builder.create()
     A = ib.pointer("float32", name="A")
     with ib.for_range(0, extent, kind="vectorize") as i:
         with ib.if_scope(i >= n):
             A[i] = A[i] + 1
     stmt = ib.get()
 
-    mod = gsmDataGen.IRModule.from_expr(gsmDataGen.tir.PrimFunc([A, n], stmt))
+    mod = gsm_data_generator.IRModule.from_expr(gsm_data_generator.tir.PrimFunc([A, n], stmt))
 
-    with gsmDataGen.target.Target(target):
-        stmt = gsmDataGen.tir.transform.VectorizeLoop()(mod)["main"].body
+    with gsm_data_generator.target.Target(target):
+        stmt = gsm_data_generator.tir.transform.VectorizeLoop()(mod)["main"].body
 
         # Check that the loop wasn't vectorised
-        assert isinstance(stmt, gsmDataGen.tir.For)
+        assert isinstance(stmt, gsm_data_generator.tir.For)
 
 
 @pytest.mark.parametrize("extent, target", [(4, simple_target), (T.vscale() * 4, sve_target)])
@@ -273,9 +273,9 @@ def test_vectorize_if_then_else_scalarize(extent, target):
             for i_s in range(extent):
                 A[i_s] = T.if_then_else(i_s > 0, A[i_s] + T.float32(1), A[i_s])
 
-    with gsmDataGen.target.Target(target):
-        mod = gsmDataGen.tir.transform.VectorizeLoop()(Before)
-        gsmDataGen.ir.assert_structural_equal(mod, After)
+    with gsm_data_generator.target.Target(target):
+        mod = gsm_data_generator.tir.transform.VectorizeLoop()(Before)
+        gsm_data_generator.ir.assert_structural_equal(mod, After)
 
 
 @pytest.mark.parametrize("extent, target", [(4, simple_target), (T.vscale() * 4, sve_target)])
@@ -297,9 +297,9 @@ def test_vectorize_if_then_else_vector(extent, target):
                     i > 0, A[T.Ramp(i * extent, 1, extent)], T.Broadcast(0, extent)
                 )
 
-    with gsmDataGen.target.Target(target):
-        mod = gsmDataGen.tir.transform.VectorizeLoop()(Before)
-        gsmDataGen.ir.assert_structural_equal(mod, After)
+    with gsm_data_generator.target.Target(target):
+        mod = gsm_data_generator.tir.transform.VectorizeLoop()(Before)
+        gsm_data_generator.ir.assert_structural_equal(mod, After)
 
 
 def test_vectorize_let_if_then_else():
@@ -320,9 +320,9 @@ def test_vectorize_let_if_then_else():
                     result: T.int32 = T.if_then_else(i_s < 1, 1, 2)
                     T.evaluate(0)
 
-    with gsmDataGen.target.Target(simple_target):
-        mod = gsmDataGen.tir.transform.VectorizeLoop()(Before)
-        gsmDataGen.ir.assert_structural_equal(mod, After)
+    with gsm_data_generator.target.Target(simple_target):
+        mod = gsm_data_generator.tir.transform.VectorizeLoop()(Before)
+        gsm_data_generator.ir.assert_structural_equal(mod, After)
 
 
 def test_vectorize_while_fail():
@@ -332,7 +332,7 @@ def test_vectorize_while_fail():
     num_iter = 10
 
     def test_ir(A, B, C):
-        ib = gsmDataGen.tir.ir_builder.create()
+        ib = gsm_data_generator.tir.ir_builder.create()
         n = C.shape[0]
         A = ib.buffer_ptr(A)
         B = ib.buffer_ptr(B)
@@ -363,9 +363,9 @@ def test_vectorize_while_fail():
     )
 
     try:
-        gsmDataGen.compile(te.create_prim_func([A, B, C]), target="llvm")
+        gsm_data_generator.compile(te.create_prim_func([A, B, C]), target="llvm")
         assert False
-    except gsmDataGen.error.TVMError as e:
+    except gsm_data_generator.error.TVMError as e:
         error_msg = str(e).split("\n")[-1]
         expected = "A while loop inside a vectorized loop not supported"
         assert expected in error_msg
@@ -389,9 +389,9 @@ def test_vectorize_with_reinterpret(extent, vec_str, target):
         def main(A: T.Buffer((16,), "int32"), B: T.Buffer((16,), "float32")):
             B[T.Ramp(0, 1, extent)] = T.reinterpret(vec_str, A[T.Ramp(0, 1, extent)])
 
-    with gsmDataGen.target.Target(target):
-        mod = gsmDataGen.tir.transform.VectorizeLoop()(Before)
-        gsmDataGen.ir.assert_structural_equal(mod, After)
+    with gsm_data_generator.target.Target(target):
+        mod = gsm_data_generator.tir.transform.VectorizeLoop()(Before)
+        gsm_data_generator.ir.assert_structural_equal(mod, After)
 
 
 @pytest.mark.parametrize("extent, target", [(4, simple_target), (T.vscale() * 4, sve_target)])
@@ -429,9 +429,9 @@ def test_vectorize_binary(op, extent, target):
         def main(A: T.Buffer((25,), "float32"), B: T.Buffer((25,), "float32")):
             A[T.Ramp(0, 1, extent)] = op(T.Broadcast(T.float32(3), extent), B[T.Ramp(0, 1, extent)])
 
-    with gsmDataGen.target.Target(target):
-        mod = gsmDataGen.tir.transform.VectorizeLoop()(Before)
-        gsmDataGen.ir.assert_structural_equal(mod, After)
+    with gsm_data_generator.target.Target(target):
+        mod = gsm_data_generator.tir.transform.VectorizeLoop()(Before)
+        gsm_data_generator.ir.assert_structural_equal(mod, After)
 
 
 @pytest.mark.parametrize("extent, target", [(4, simple_target), (T.vscale() * 4, sve_target)])
@@ -450,9 +450,9 @@ def test_vectorize_logical(op, extent, target):
         def main(A: T.Buffer((25,), "bool"), B: T.Buffer((25,), "bool")):
             A[T.Ramp(0, 1, extent)] = op(T.Broadcast(T.bool(1), extent), B[T.Ramp(0, 1, extent)])
 
-    with gsmDataGen.target.Target(target):
-        mod = gsmDataGen.tir.transform.VectorizeLoop()(Before)
-        gsmDataGen.ir.assert_structural_equal(mod, After)
+    with gsm_data_generator.target.Target(target):
+        mod = gsm_data_generator.tir.transform.VectorizeLoop()(Before)
+        gsm_data_generator.ir.assert_structural_equal(mod, After)
 
 
 @pytest.mark.parametrize("extent, target", [(4, simple_target), (T.vscale() * 4, sve_target)])
@@ -474,9 +474,9 @@ def test_vectorize_select(extent, target):
                 B[T.Ramp(0, 1, extent)],
             )
 
-    with gsmDataGen.target.Target(target):
-        mod = gsmDataGen.tir.transform.VectorizeLoop()(Before)
-        gsmDataGen.ir.assert_structural_equal(mod, After)
+    with gsm_data_generator.target.Target(target):
+        mod = gsm_data_generator.tir.transform.VectorizeLoop()(Before)
+        gsm_data_generator.ir.assert_structural_equal(mod, After)
 
 
 @pytest.mark.parametrize(
@@ -497,9 +497,9 @@ def test_vectorize_cast(extent, vec_str, target):
         def main(A: T.Buffer((25,), "int32"), B: T.Buffer((25,), "float32")):
             A[T.Ramp(0, 1, extent)] = T.Cast(vec_str, B[T.Ramp(0, 1, extent)])
 
-    with gsmDataGen.target.Target(target):
-        mod = gsmDataGen.tir.transform.VectorizeLoop()(Before)
-        gsmDataGen.ir.assert_structural_equal(mod, After)
+    with gsm_data_generator.target.Target(target):
+        mod = gsm_data_generator.tir.transform.VectorizeLoop()(Before)
+        gsm_data_generator.ir.assert_structural_equal(mod, After)
 
 
 def test_illegal_extent():
@@ -512,8 +512,8 @@ def test_illegal_extent():
                 A[j] = 3
 
     error_msg = f"Failed to vectorize loop with extent n for target \\(nullptr\\)"
-    with pytest.raises(gsmDataGen.error.InternalError, match=error_msg):
-        gsmDataGen.tir.transform.VectorizeLoop()(Mod)
+    with pytest.raises(gsm_data_generator.error.InternalError, match=error_msg):
+        gsm_data_generator.tir.transform.VectorizeLoop()(Mod)
 
 
 def test_illegal_vscale_in_non_sve_compilation():
@@ -528,9 +528,9 @@ def test_illegal_vscale_in_non_sve_compilation():
         f"Failed to vectorize loop with extent T.vscale\\(\\) \\* 4 for target "
         f"llvm -keys=cpu -mtriple=x86_64-linux-gnu"
     )
-    with gsmDataGen.target.Target(simple_target):
-        with pytest.raises(gsmDataGen.error.InternalError, match=msg):
-            gsmDataGen.tir.transform.VectorizeLoop()(Mod)
+    with gsm_data_generator.target.Target(simple_target):
+        with pytest.raises(gsm_data_generator.error.InternalError, match=msg):
+            gsm_data_generator.tir.transform.VectorizeLoop()(Mod)
 
 
 def test_vectorize_and_predicate_all_buffer_loads_stores():
@@ -563,10 +563,10 @@ def test_vectorize_and_predicate_all_buffer_loads_stores():
                 predicate=T.get_active_lane_mask("uint1x4", i_0 * 4, 14),
             )
 
-    mod = gsmDataGen.IRModule.from_expr(before)
-    with gsmDataGen.transform.PassContext(config={"tir.enable_buffer_level_predication": True}):
-        after = gsmDataGen.tir.transform.VectorizeLoop()(mod)["main"]
-    gsmDataGen.ir.assert_structural_equal(after, expected)
+    mod = gsm_data_generator.IRModule.from_expr(before)
+    with gsm_data_generator.transform.PassContext(config={"tir.enable_buffer_level_predication": True}):
+        after = gsm_data_generator.tir.transform.VectorizeLoop()(mod)["main"]
+    gsm_data_generator.ir.assert_structural_equal(after, expected)
 
 
 def test_vectorize_and_predicate_some_buffer_loads_stores():
@@ -591,10 +591,10 @@ def test_vectorize_and_predicate_some_buffer_loads_stores():
             if i_0 * 4 + i_1_s < 14:
                 B[i_0 * 4 + i_1_s] = A[i_0] + T.float32(1)
 
-    mod = gsmDataGen.IRModule.from_expr(before)
-    with gsmDataGen.transform.PassContext(config={"tir.enable_buffer_level_predication": True}):
-        after = gsmDataGen.tir.transform.VectorizeLoop()(mod)["main"]
-    gsmDataGen.ir.assert_structural_equal(after, expected)
+    mod = gsm_data_generator.IRModule.from_expr(before)
+    with gsm_data_generator.transform.PassContext(config={"tir.enable_buffer_level_predication": True}):
+        after = gsm_data_generator.tir.transform.VectorizeLoop()(mod)["main"]
+    gsm_data_generator.ir.assert_structural_equal(after, expected)
 
 
 def test_vectorize_and_predicate_multiple_access_statements():
@@ -626,10 +626,10 @@ def test_vectorize_and_predicate_multiple_access_statements():
                 predicate=T.get_active_lane_mask("uint1x4", i_0 * 4, 14),
             )
 
-    before_mod = gsmDataGen.IRModule.from_expr(before)
-    with gsmDataGen.transform.PassContext(config={"tir.enable_buffer_level_predication": True}):
-        after = gsmDataGen.tir.transform.VectorizeLoop()(before_mod)["main"]
-    gsmDataGen.ir.assert_structural_equal(after, expected)
+    before_mod = gsm_data_generator.IRModule.from_expr(before)
+    with gsm_data_generator.transform.PassContext(config={"tir.enable_buffer_level_predication": True}):
+        after = gsm_data_generator.tir.transform.VectorizeLoop()(before_mod)["main"]
+    gsm_data_generator.ir.assert_structural_equal(after, expected)
 
 
 def test_vectorize_and_predicate_invalid_conditions():
@@ -663,10 +663,10 @@ def test_vectorize_and_predicate_invalid_conditions():
                 if i_0 * 4 + i_1_s < i_0 * 4 + i_1_s:
                     A[i_0 * 4 + i_1_s] = T.float32(2)
 
-    before_mod = gsmDataGen.IRModule.from_expr(before)
-    with gsmDataGen.transform.PassContext(config={"tir.enable_buffer_level_predication": True}):
-        after = gsmDataGen.tir.transform.VectorizeLoop()(before_mod)["main"]
-    gsmDataGen.ir.assert_structural_equal(after, expected)
+    before_mod = gsm_data_generator.IRModule.from_expr(before)
+    with gsm_data_generator.transform.PassContext(config={"tir.enable_buffer_level_predication": True}):
+        after = gsm_data_generator.tir.transform.VectorizeLoop()(before_mod)["main"]
+    gsm_data_generator.ir.assert_structural_equal(after, expected)
 
 
 def test_vectorize_with_explicitly_disabled_buffer_level_predication():
@@ -692,11 +692,11 @@ def test_vectorize_with_explicitly_disabled_buffer_level_predication():
             if i_0 * 4 + i_1_s < 14:
                 B[i_0 * 4 + i_1_s] = A[i_0 * 4 + i_1_s] + T.float32(1)
 
-    mod = gsmDataGen.IRModule.from_expr(before)
-    with gsmDataGen.transform.PassContext(config={"tir.enable_buffer_level_predication": False}):
-        with gsmDataGen.target.Target(sve_target):
-            after = gsmDataGen.tir.transform.VectorizeLoop()(mod)["main"]
-    gsmDataGen.ir.assert_structural_equal(after, expected)
+    mod = gsm_data_generator.IRModule.from_expr(before)
+    with gsm_data_generator.transform.PassContext(config={"tir.enable_buffer_level_predication": False}):
+        with gsm_data_generator.target.Target(sve_target):
+            after = gsm_data_generator.tir.transform.VectorizeLoop()(mod)["main"]
+    gsm_data_generator.ir.assert_structural_equal(after, expected)
 
 
 def test_vectorize_and_predicate_buffer_load_stores_with_sve_func_attr_target():
@@ -729,9 +729,9 @@ def test_vectorize_and_predicate_buffer_load_stores_with_sve_func_attr_target():
                 predicate=T.get_active_lane_mask("uint1x4", i_0 * 4, 14),
             )
 
-    mod = gsmDataGen.IRModule.from_expr(before)
-    after = gsmDataGen.tir.transform.VectorizeLoop()(mod)["main"]
-    gsmDataGen.ir.assert_structural_equal(after, expected)
+    mod = gsm_data_generator.IRModule.from_expr(before)
+    after = gsm_data_generator.tir.transform.VectorizeLoop()(mod)["main"]
+    gsm_data_generator.ir.assert_structural_equal(after, expected)
 
 
 def test_vectorize_and_predicate_buffer_load_stores_with_sve_attr_scope_target():
@@ -766,9 +766,9 @@ def test_vectorize_and_predicate_buffer_load_stores_with_sve_attr_scope_target()
                     predicate=T.get_active_lane_mask("uint1x4", i_0 * 4, 14),
                 )
 
-    mod = gsmDataGen.IRModule.from_expr(before)
-    after = gsmDataGen.tir.transform.VectorizeLoop()(mod)["main"]
-    gsmDataGen.ir.assert_structural_equal(after, expected)
+    mod = gsm_data_generator.IRModule.from_expr(before)
+    after = gsm_data_generator.tir.transform.VectorizeLoop()(mod)["main"]
+    gsm_data_generator.ir.assert_structural_equal(after, expected)
 
 
 @pytest.mark.parametrize(
@@ -782,7 +782,7 @@ def test_vectorize_llvm_pure_intrin(extent, vec_str, target):
         def main(A: T.Buffer((25,), "float32"), B: T.Buffer((25,), "float32")):
             for j in T.vectorized(extent):
                 A[j] = T.call_llvm_pure_intrin(
-                    "float32", "llvm.sqrt", gsmDataGen.tir.const(1, "uint"), B[j]
+                    "float32", "llvm.sqrt", gsm_data_generator.tir.const(1, "uint"), B[j]
                 )
 
     @I.ir_module
@@ -790,13 +790,13 @@ def test_vectorize_llvm_pure_intrin(extent, vec_str, target):
         @T.prim_func
         def main(A: T.Buffer((25,), "float32"), B: T.Buffer((25,), "float32")):
             A[T.Ramp(0, 1, extent)] = T.call_llvm_pure_intrin(
-                vec_str, "llvm.sqrt", gsmDataGen.tir.const(1, "uint"), B[T.Ramp(0, 1, extent)]
+                vec_str, "llvm.sqrt", gsm_data_generator.tir.const(1, "uint"), B[T.Ramp(0, 1, extent)]
             )
 
-    with gsmDataGen.target.Target(target):
-        mod = gsmDataGen.tir.transform.VectorizeLoop()(Before)
-        gsmDataGen.ir.assert_structural_equal(mod, After)
-        mod = gsmDataGen.compile(mod, target=target)
+    with gsm_data_generator.target.Target(target):
+        mod = gsm_data_generator.tir.transform.VectorizeLoop()(Before)
+        gsm_data_generator.ir.assert_structural_equal(mod, After)
+        mod = gsm_data_generator.compile(mod, target=target)
 
 
 @pytest.mark.parametrize(
@@ -810,7 +810,7 @@ def test_vectorize_llvm_pure_intrin_fail(extent, vec_str, target):
         def main(A: T.Buffer((25,), "int32"), B: T.Buffer((25,), "float32")):
             for j in T.vectorized(extent):
                 A[j] = T.call_llvm_pure_intrin(
-                    "int32", "llvm.lround", gsmDataGen.tir.const(1, "uint"), B[j]
+                    "int32", "llvm.lround", gsm_data_generator.tir.const(1, "uint"), B[j]
                 )
 
     @I.ir_module
@@ -818,16 +818,16 @@ def test_vectorize_llvm_pure_intrin_fail(extent, vec_str, target):
         @T.prim_func
         def main(A: T.Buffer((25,), "int32"), B: T.Buffer((25,), "float32")):
             A[T.Ramp(0, 1, extent)] = T.call_llvm_pure_intrin(
-                vec_str, "llvm.lround", gsmDataGen.tir.const(1, "uint"), B[T.Ramp(0, 1, extent)]
+                vec_str, "llvm.lround", gsm_data_generator.tir.const(1, "uint"), B[T.Ramp(0, 1, extent)]
             )
 
     with pytest.raises(Exception) as e_info:
-        with gsmDataGen.target.Target(target):
-            mod = gsmDataGen.tir.transform.VectorizeLoop()(Before)
-            ex = gsmDataGen.compile(mod, target=target)
-    gsmDataGen.ir.assert_structural_equal(mod, After)
+        with gsm_data_generator.target.Target(target):
+            mod = gsm_data_generator.tir.transform.VectorizeLoop()(Before)
+            ex = gsm_data_generator.compile(mod, target=target)
+    gsm_data_generator.ir.assert_structural_equal(mod, After)
     assert "Intrinsic does not support vectors" in e_info.value.args[0]
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

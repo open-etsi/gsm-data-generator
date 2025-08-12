@@ -15,11 +15,11 @@
 # specific language governing permissions and limitations
 # under the License.
 # pylint: disable=missing-module-docstring,missing-function-docstring,missing-class-docstring
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import meta_schedule as ms
-from gsmDataGen import tir
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import meta_schedule as ms
+from gsm_data_generator import tir
+from gsm_data_generator.script import tir as T
 
 
 def _create_context(mod, target) -> ms.TuneContext:
@@ -39,7 +39,7 @@ def _create_context(mod, target) -> ms.TuneContext:
 # fmt: off
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Conv2dNCHWcVTCM:
     @T.prim_func
     def main(p0: T.Buffer((T.int64(1), T.int64(2), T.int64(56), T.int64(56), T.int64(32)), "uint8"), p1: T.Buffer((T.int64(2), T.int64(2), T.int64(3), T.int64(3), T.int64(8), T.int64(32), T.int64(4)), "uint8"), conv2d_NCHWc_int8: T.Buffer((T.int64(1), T.int64(2), T.int64(54), T.int64(54), T.int64(32)), "int32")):
@@ -111,8 +111,8 @@ class Conv2dNCHWcVTCM:
 
 def test_conv2d_vtcm():
     def get_target(vtcm_cap):
-        target = gsmDataGen.target.hexagon("v68", vtcm_capacity=vtcm_cap)
-        return gsmDataGen.target.Target(target, host=target)
+        target = gsm_data_generator.target.hexagon("v68", vtcm_capacity=vtcm_cap)
+        return gsm_data_generator.target.Target(target, host=target)
 
     sch = tir.Schedule(Conv2dNCHWcVTCM, debug_mask="all")
 
@@ -124,4 +124,4 @@ def test_conv2d_vtcm():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

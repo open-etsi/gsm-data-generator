@@ -16,11 +16,11 @@
 # under the License.
 import numpy as np
 
-import gsmDataGen
-import gsmDataGen.testing
-import gsmDataGen.tir as tir
-from gsmDataGen import te
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+import gsm_data_generator.tir as tir
+from gsm_data_generator import te
+from gsm_data_generator.script import tir as T
 
 try:
     from ml_dtypes import (
@@ -68,7 +68,7 @@ def fp8_unary(dtype: str):
     return func
 
 
-np_dtype, dtype_str = gsmDataGen.testing.parameters(
+np_dtype, dtype_str = gsm_data_generator.testing.parameters(
     (float8_e3m4, "float8_e3m4"),
     (float8_e4m3, "float8_e4m3"),
     (float8_e4m3b11fnuz, "float8_e4m3b11fnuz"),
@@ -85,14 +85,14 @@ def test_create_nv_fp8_nd_array(np_dtype, dtype_str):
         """Skip test if ml_dtypes is not installed"""
         return
     x = np.random.rand(128, 128).astype(np_dtype)
-    x_nd = gsmDataGen.nd.array(x)
+    x_nd = gsm_data_generator.nd.array(x)
     assert x_nd.dtype == dtype_str
     np.testing.assert_equal(x_nd.numpy(), x)
 
 
 def test_fp8_unary_op(np_dtype, dtype_str):
     func = fp8_unary(dtype_str)
-    if not gsmDataGen.testing.device_enabled("llvm"):
+    if not gsm_data_generator.testing.device_enabled("llvm"):
         return
     if np_dtype is None:
         """Skip test if ml_dtypes is not installed"""
@@ -101,7 +101,7 @@ def test_fp8_unary_op(np_dtype, dtype_str):
         # float8_e8m0fnu does not support arithmetic operations, and unsigned arithmetic is not tested here
         return
 
-    f = gsmDataGen.compile(func, target="llvm")
+    f = gsm_data_generator.compile(func, target="llvm")
     a = np.random.randn(128).astype(np_dtype)
     b = np.random.randn(128).astype(np_dtype)
     a_add_b = np.zeros(128).astype(np_dtype)
@@ -110,7 +110,7 @@ def test_fp8_unary_op(np_dtype, dtype_str):
     a_fp32 = np.zeros(128).astype(np.float32)
     a_roundtrip = np.zeros(128).astype(np_dtype)
     args = list(
-        map(lambda _: gsmDataGen.nd.array(_), [a, b, a_add_b, a_sub_b, a_mul_b, a_fp32, a_roundtrip])
+        map(lambda _: gsm_data_generator.nd.array(_), [a, b, a_add_b, a_sub_b, a_mul_b, a_fp32, a_roundtrip])
     )
     f(*args)
     expected_a_fp32 = a.astype(np.float32)
@@ -121,9 +121,9 @@ def test_fp8_unary_op(np_dtype, dtype_str):
 def test_nv_fp8_buffer(np_dtype, dtype_str):
     m = te.size_var("m")
     n = te.size_var("n")
-    A = gsmDataGen.tir.decl_buffer((m, n), dtype_str)
+    A = gsm_data_generator.tir.decl_buffer((m, n), dtype_str)
     assert A.dtype == dtype_str
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

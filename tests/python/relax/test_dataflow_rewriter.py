@@ -16,8 +16,8 @@
 # under the License.
 
 
-import gsmDataGen.testing
-from gsmDataGen.script import ir as I, relax as R, tir as T
+import gsm_data_generator.testing
+from gsm_data_generator.script import ir as I, relax as R, tir as T
 
 import pytest
 
@@ -58,7 +58,7 @@ def test_rewrite_defined_by_ir_module():
         return out
 
     after = Rewriter(before)
-    gsmDataGen.ir.assert_structural_equal(expected, after)
+    gsm_data_generator.ir.assert_structural_equal(expected, after)
 
 
 def test_missing_pattern_raises_error():
@@ -192,7 +192,7 @@ def test_rewriter_may_be_applied_to_ir_module():
             return out
 
     After = Rewriter(Before)
-    gsmDataGen.ir.assert_structural_equal(Expected, After)
+    gsm_data_generator.ir.assert_structural_equal(Expected, After)
 
 
 def test_rewriter_may_be_used_as_ir_transform():
@@ -228,8 +228,8 @@ def test_rewriter_may_be_used_as_ir_transform():
             )
             return out
 
-    After = gsmDataGen.ir.transform.Sequential([Rewriter])(Before)
-    gsmDataGen.ir.assert_structural_equal(Expected, After)
+    After = gsm_data_generator.ir.transform.Sequential([Rewriter])(Before)
+    gsm_data_generator.ir.assert_structural_equal(Expected, After)
 
 
 def test_same_pattern_applied_multiple_times():
@@ -262,7 +262,7 @@ def test_same_pattern_applied_multiple_times():
         return z
 
     after = Rewriter(before)
-    gsmDataGen.ir.assert_structural_equal(expected, after)
+    gsm_data_generator.ir.assert_structural_equal(expected, after)
 
 
 def test_composition_of_rewrite_rules():
@@ -319,7 +319,7 @@ def test_composition_of_rewrite_rules():
     rewriter = RewriteAdd | RewriteMultiply
 
     after = rewriter(before)
-    gsmDataGen.ir.assert_structural_equal(expected, after)
+    gsm_data_generator.ir.assert_structural_equal(expected, after)
 
 
 def test_recursive_rewrite_rules():
@@ -374,7 +374,7 @@ def test_recursive_rewrite_rules():
     rewriter = RewriteAdd | RewriteMultiply
 
     after = rewriter(before)
-    gsmDataGen.ir.assert_structural_equal(expected, after)
+    gsm_data_generator.ir.assert_structural_equal(expected, after)
 
 
 def test_rewrite_of_arbitrary_dtype():
@@ -516,7 +516,7 @@ def test_rewrite_of_arbitrary_dtype():
             return (A_slice_1d, B_slice_1d, C_slice_1d)
 
     after = Rewriter(Before)
-    gsmDataGen.ir.assert_structural_equal(Expected, after)
+    gsm_data_generator.ir.assert_structural_equal(Expected, after)
 
 
 def test_rewrite_may_introduce_private_relax_subroutines():
@@ -557,7 +557,7 @@ def test_rewrite_may_introduce_private_relax_subroutines():
             return A * R.const(2.0, "float32")
 
     After = Rewriter(Before)
-    gsmDataGen.ir.assert_structural_equal(Expected, After)
+    gsm_data_generator.ir.assert_structural_equal(Expected, After)
 
 
 def test_rewrite_only_introduces_private_subroutines_when_required():
@@ -621,7 +621,7 @@ def test_rewrite_only_introduces_private_subroutines_when_required():
     rewriter = RewriteAdd | RewriteMul
 
     After = rewriter(Before)
-    gsmDataGen.ir.assert_structural_equal(Expected, After)
+    gsm_data_generator.ir.assert_structural_equal(Expected, After)
 
 
 def test_rewriter_may_not_introduce_public_subroutines():
@@ -704,7 +704,7 @@ def test_rewrite_branches_may_reuse_subroutine_name():
     rewriter = RewriteAdd | RewriteMul
 
     After = rewriter(Before)
-    gsmDataGen.ir.assert_structural_equal(Expected, After)
+    gsm_data_generator.ir.assert_structural_equal(Expected, After)
 
 
 def test_rewrite_of_explicit_relax_tuple():
@@ -765,7 +765,7 @@ def test_rewrite_of_explicit_relax_tuple():
         return out
 
     after = Rewriter(before)
-    gsmDataGen.ir.assert_structural_equal(expected, after)
+    gsm_data_generator.ir.assert_structural_equal(expected, after)
 
 
 def test_rewrite_of_output_relax_tuple():
@@ -825,7 +825,7 @@ def test_rewrite_of_output_relax_tuple():
         return proj_tuple
 
     after = Rewriter(before)
-    gsmDataGen.ir.assert_structural_equal(expected, after)
+    gsm_data_generator.ir.assert_structural_equal(expected, after)
 
 
 def test_rewrite_of_implicit_tuple():
@@ -893,7 +893,7 @@ def test_rewrite_of_implicit_tuple():
         return out
 
     after = Rewriter(before)
-    gsmDataGen.ir.assert_structural_equal(expected, after)
+    gsm_data_generator.ir.assert_structural_equal(expected, after)
 
 
 def test_rewrite_of_implicit_tuple_with_shared_wildcard():
@@ -967,7 +967,7 @@ def test_rewrite_of_implicit_tuple_with_shared_wildcard():
         return out
 
     after = Rewriter(before)
-    gsmDataGen.ir.assert_structural_equal(expected, after)
+    gsm_data_generator.ir.assert_structural_equal(expected, after)
 
 
 def test_no_rewrite_of_implicit_tuple_when_shared_wildcard_is_mismatched():
@@ -1026,7 +1026,7 @@ def test_no_rewrite_of_implicit_tuple_when_shared_wildcard_is_mismatched():
     expected = before
 
     after = Rewriter(before)
-    gsmDataGen.ir.assert_structural_equal(expected, after)
+    gsm_data_generator.ir.assert_structural_equal(expected, after)
 
 
 def test_implicit_tuple_may_not_introduce_extra_compute():
@@ -1091,7 +1091,7 @@ def test_implicit_tuple_may_not_introduce_extra_compute():
     expected = before
 
     after = Rewriter(before)
-    gsmDataGen.ir.assert_structural_equal(expected, after)
+    gsm_data_generator.ir.assert_structural_equal(expected, after)
 
 
 def test_rewrite_of_implicit_tuple_with_three_elements():
@@ -1182,7 +1182,7 @@ def test_rewrite_of_implicit_tuple_with_three_elements():
         return attention
 
     after = Rewriter(before)
-    gsmDataGen.ir.assert_structural_equal(expected, after)
+    gsm_data_generator.ir.assert_structural_equal(expected, after)
 
 
 def test_pattern_matching_may_not_reorder_across_impure_functions():
@@ -1242,7 +1242,7 @@ def test_pattern_matching_may_not_reorder_across_impure_functions():
     expected = before
 
     after = Rewriter(before)
-    gsmDataGen.ir.assert_structural_equal(expected, after)
+    gsm_data_generator.ir.assert_structural_equal(expected, after)
 
 
 def test_pattern_matching_may_occur_between_impure_functions():
@@ -1316,7 +1316,7 @@ def test_pattern_matching_may_occur_between_impure_functions():
         return state
 
     after = Rewriter(before)
-    gsmDataGen.ir.assert_structural_equal(expected, after)
+    gsm_data_generator.ir.assert_structural_equal(expected, after)
 
 
 def test_rewrite_may_apply_within_conditional():
@@ -1364,7 +1364,7 @@ def test_rewrite_may_apply_within_conditional():
         return out
 
     after = Rewriter(before)
-    gsmDataGen.ir.assert_structural_equal(expected, after)
+    gsm_data_generator.ir.assert_structural_equal(expected, after)
 
 
 def test_match_dynamic_shape():
@@ -1440,7 +1440,7 @@ def test_match_dynamic_shape():
         return out
 
     after = Rewriter(before)
-    gsmDataGen.ir.assert_structural_equal(expected, after)
+    gsm_data_generator.ir.assert_structural_equal(expected, after)
 
 
 def test_match_dynamic_pattern_against_dynamic_shape():
@@ -1505,8 +1505,8 @@ def test_match_dynamic_pattern_against_dynamic_shape():
         return F
 
     after = Rewriter(before)
-    gsmDataGen.ir.assert_structural_equal(expected, after)
+    gsm_data_generator.ir.assert_structural_equal(expected, after)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

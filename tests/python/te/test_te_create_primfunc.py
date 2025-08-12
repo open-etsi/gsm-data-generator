@@ -16,10 +16,10 @@
 # under the License.
 # pylint: disable=missing-function-docstring,missing-module-docstring
 import numpy as np
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import te, tir, topi
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import te, tir, topi
+from gsm_data_generator.script import tir as T
 import pytest
 
 
@@ -49,9 +49,9 @@ def _check_workload(te_workload, tir_workload, index_dtype_override=None, do_sim
     func = te.create_prim_func(te_workload(), index_dtype_override)
     if do_simplify:
         simplify = tir.transform.Simplify()
-        func = simplify(gsmDataGen.IRModule.from_expr(func))["main"]
-        tir_workload = simplify(gsmDataGen.IRModule.from_expr(tir_workload))["main"]
-    gsmDataGen.ir.assert_structural_equal(func, tir_workload)
+        func = simplify(gsm_data_generator.IRModule.from_expr(func))["main"]
+        tir_workload = simplify(gsm_data_generator.IRModule.from_expr(tir_workload))["main"]
+    gsm_data_generator.ir.assert_structural_equal(func, tir_workload)
     # make sure that we can create schedule from the func
     s = tir.Schedule(func, debug_mask="all")
     assert s
@@ -142,8 +142,8 @@ def te_conv2d():
     W = te.placeholder((in_channel, kernel, kernel, out_channel), name="W")
     Apad = te.compute(
         (batch, in_channel, size + 2, size + 2),
-        lambda nn, cc, yy, xx: gsmDataGen.tir.if_then_else(
-            gsmDataGen.tir.all(yy >= 1, yy - 1 < size, xx >= 1, xx - 1 < size),
+        lambda nn, cc, yy, xx: gsm_data_generator.tir.if_then_else(
+            gsm_data_generator.tir.all(yy >= 1, yy - 1 < size, xx >= 1, xx - 1 < size),
             A[nn, cc, yy - 1, xx - 1],
             0.0,
         ),
@@ -229,7 +229,7 @@ def te_extern():
     C = te.extern(
         (128, 128),
         [A, B],
-        lambda ins, outs: gsmDataGen.tir.call_packed(
+        lambda ins, outs: gsm_data_generator.tir.call_packed(
             "tvm.contrib.cblas.matmul", ins[0], ins[1], outs[0], 0, 0
         ),
         name="C",
@@ -325,7 +325,7 @@ def te_scan():
     s_state = te.placeholder((m, n))
     s_init = te.compute((1, n), lambda _, i: X[0, i])
     s_update = te.compute((m, n), lambda t, i: s_state[t - 1, i] + X[t, i])
-    s_scan = gsmDataGen.te.scan(s_init, s_update, s_state, inputs=[X])
+    s_scan = gsm_data_generator.te.scan(s_init, s_update, s_state, inputs=[X])
     return [X, s_scan]
 
 
@@ -346,15 +346,15 @@ def test_constant():
     B = te.compute(tuple(), lambda: 2, name="B")
     # Manually craft ProducerLoad because `B[]` is not allowed.
     C = te.compute(
-        (M,), lambda x: A[x] + gsmDataGen.tir.expr.ProducerLoad(B, []), name="C", tag="broadcast"
+        (M,), lambda x: A[x] + gsm_data_generator.tir.expr.ProducerLoad(B, []), name="C", tag="broadcast"
     )
 
     func = te.create_prim_func([C, A])
-    func = gsmDataGen.compile(func)
+    func = gsm_data_generator.compile(func)
     a_np = np.random.uniform(size=(M,)).astype(A.dtype)
-    c = gsmDataGen.nd.array(np.zeros(M, dtype=C.dtype))
-    x = func(c, gsmDataGen.nd.array(a_np))
-    gsmDataGen.testing.assert_allclose(a_np + 2, c.numpy())
+    c = gsm_data_generator.nd.array(np.zeros(M, dtype=C.dtype))
+    x = func(c, gsm_data_generator.nd.array(a_np))
+    gsm_data_generator.testing.assert_allclose(a_np + 2, c.numpy())
 
 
 def test_data_dependent_access():
@@ -363,13 +363,13 @@ def test_data_dependent_access():
     C = te.compute((10,), lambda i: A[B[i]])
 
     func = te.create_prim_func([C, A, B])
-    func = gsmDataGen.compile(func)
+    func = gsm_data_generator.compile(func)
 
     a_np = np.random.uniform(size=(10,)).astype(A.dtype)
     b_np = np.arange(10, dtype=B.dtype)
-    c = gsmDataGen.nd.array(np.zeros(10, dtype=C.dtype))
-    func(c, gsmDataGen.nd.array(a_np), gsmDataGen.nd.array(b_np))
-    gsmDataGen.testing.assert_allclose(a_np[b_np], c.numpy())
+    c = gsm_data_generator.nd.array(np.zeros(10, dtype=C.dtype))
+    func(c, gsm_data_generator.nd.array(a_np), gsm_data_generator.nd.array(b_np))
+    gsm_data_generator.testing.assert_allclose(a_np[b_np], c.numpy())
 
 
 def test_select_simplify():
@@ -394,8 +394,8 @@ def test_tensor_attr():
         attrs={"layout_free_placeholders": [B]},
     )
     func = te.create_prim_func([A, B, C])
-    rt_func = gsmDataGen.script.from_source(func.script())
-    gsmDataGen.ir.assert_structural_equal(func, rt_func)
+    rt_func = gsm_data_generator.script.from_source(func.script())
+    gsm_data_generator.ir.assert_structural_equal(func, rt_func)
 
 
 @T.prim_func
@@ -465,17 +465,17 @@ def test_tensor_layout_attr(index_dtype_override, expected):
         attrs={"layout_free_placeholders": [C]},
     )
     func = te.create_prim_func([A, B, D], index_dtype_override=index_dtype_override)
-    gsmDataGen.ir.assert_structural_equal(func, expected)
+    gsm_data_generator.ir.assert_structural_equal(func, expected)
 
 
 def te_argmax_idx_val():
     def f_combine(x, y):
-        lhs = gsmDataGen.tir.Select((x[1] >= y[1]), x[0], y[0])
-        rhs = gsmDataGen.tir.Select((x[1] >= y[1]), x[1], y[1])
+        lhs = gsm_data_generator.tir.Select((x[1] >= y[1]), x[0], y[0])
+        rhs = gsm_data_generator.tir.Select((x[1] >= y[1]), x[1], y[1])
         return lhs, rhs
 
-    def f_identity(dtype0: gsmDataGen.DataType, dtype1: gsmDataGen.DataType):
-        return gsmDataGen.tir.const(-1, dtype0), gsmDataGen.te.min_value(dtype1)
+    def f_identity(dtype0: gsm_data_generator.DataType, dtype1: gsm_data_generator.DataType):
+        return gsm_data_generator.tir.const(-1, dtype0), gsm_data_generator.te.min_value(dtype1)
 
     argmax = te.comm_reducer(f_combine, f_identity, name="argmax")
 
@@ -517,12 +517,12 @@ def tir_argmax_idx_val(
 
 def te_argmax_val_idx():
     def f_combine(x, y):
-        lhs = gsmDataGen.tir.Select((x[0] >= y[0]), x[0], y[0])
-        rhs = gsmDataGen.tir.Select((x[0] >= y[0]), x[1], y[1])
+        lhs = gsm_data_generator.tir.Select((x[0] >= y[0]), x[0], y[0])
+        rhs = gsm_data_generator.tir.Select((x[0] >= y[0]), x[1], y[1])
         return lhs, rhs
 
-    def f_identity(dtype0: gsmDataGen.DataType, dtype1: gsmDataGen.DataType):
-        return gsmDataGen.te.min_value(dtype0), gsmDataGen.tir.const(-1, dtype1)
+    def f_identity(dtype0: gsm_data_generator.DataType, dtype1: gsm_data_generator.DataType):
+        return gsm_data_generator.te.min_value(dtype0), gsm_data_generator.tir.const(-1, dtype1)
 
     argmax = te.comm_reducer(f_combine, f_identity, name="argmax")
 
@@ -609,7 +609,7 @@ def test_zero_dim_add():
 
 def te_reshape():
     # The following is possible to be generated by TOPI. So we test this case.
-    A = te.placeholder((gsmDataGen.tir.IntImm("int64", 2), gsmDataGen.tir.IntImm("int64", 4)), name="A")
+    A = te.placeholder((gsm_data_generator.tir.IntImm("int64", 2), gsm_data_generator.tir.IntImm("int64", 4)), name="A")
     B = topi.reshape(A, (4, 2))
     return [A, B]
 
@@ -714,7 +714,7 @@ def test_extern_with_explicit_buffer_access():
         C = te.extern(
             (128, 128),
             [A, B, P],
-            lambda ins, outs: gsmDataGen.tir.call_extern(
+            lambda ins, outs: gsm_data_generator.tir.call_extern(
                 "", "myfunc", ins[0].data, ins[1].data, outs[0].data, ins[2][0]
             ),
             name="C",
@@ -931,8 +931,8 @@ def test_nested_reduce_domain_dependency():
         x = te.placeholder([8, 8, 8, 8, 8], "float32", "x")
 
         def fcompute(*axes):
-            r1 = te.reduce_axis(gsmDataGen.ir.Range.from_min_extent(0, axes[1]))
-            r2 = te.reduce_axis(gsmDataGen.ir.Range.from_min_extent(0, r1))
+            r1 = te.reduce_axis(gsm_data_generator.ir.Range.from_min_extent(0, axes[1]))
+            r2 = te.reduce_axis(gsm_data_generator.ir.Range.from_min_extent(0, r1))
             all_axes = [*axes, r1, r2]
             return te.sum(x(*all_axes), [r1, r2])
 
@@ -944,4 +944,4 @@ def test_nested_reduce_domain_dependency():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

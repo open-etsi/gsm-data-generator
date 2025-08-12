@@ -18,24 +18,24 @@ import numpy as np  # type: ignore
 
 
 import pytest
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import relax, tir
-from gsmDataGen import TVMError
-from gsmDataGen.ir import Op
-from gsmDataGen.script import relax as R
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import relax, tir
+from gsm_data_generator import TVMError
+from gsm_data_generator.ir import Op
+from gsm_data_generator.script import relax as R
 
 
 def test_op_correctness():
     x = relax.Var("x", R.Tensor((2, 3), "float32"))
-    c = relax.Constant(gsmDataGen.nd.array(np.array([1, 2, 3], dtype="float16")))
+    c = relax.Constant(gsm_data_generator.nd.array(np.array([1, 2, 3], dtype="float16")))
     assert relax.op.astype(x, "float16").op == Op.get("relax.astype")
     assert relax.op.wrap_param(c, "float32").op == Op.get("relax.wrap_param")
 
 
 def _check_inference(bb: relax.BlockBuilder, call: relax.Call, expected_sinfo: relax.StructInfo):
     ret = bb.normalize(call)
-    gsmDataGen.ir.assert_structural_equal(ret.struct_info, expected_sinfo)
+    gsm_data_generator.ir.assert_structural_equal(ret.struct_info, expected_sinfo)
 
 
 def test_astype_infer_struct_info():
@@ -108,8 +108,8 @@ def test_astype_infer_struct_info_wrong_input_type():
 
 def test_wrap_param_infer_struct_info():
     bb = relax.BlockBuilder()
-    x0 = relax.Constant(gsmDataGen.nd.array(np.zeros([1, 2, 3], dtype="float16")))
-    x1 = relax.Constant(gsmDataGen.nd.array(np.zeros([1, 2, 3], dtype="int8")))
+    x0 = relax.Constant(gsm_data_generator.nd.array(np.zeros([1, 2, 3], dtype="float16")))
+    x1 = relax.Constant(gsm_data_generator.nd.array(np.zeros([1, 2, 3], dtype="int8")))
     _check_inference(
         bb, relax.op.wrap_param(x0, "float32"), relax.TensorStructInfo((1, 2, 3), "float32")
     )
@@ -119,4 +119,4 @@ def test_wrap_param_infer_struct_info():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

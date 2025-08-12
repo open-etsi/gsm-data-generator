@@ -21,15 +21,15 @@ from typing import Tuple, Callable
 import numpy as np
 import pytest
 
-import gsmDataGen
-import gsmDataGen.script
-import gsmDataGen.testing
-from gsmDataGen import relax, rpc, te, tir, topi
-from gsmDataGen.contrib import utils, cc, popen_pool
-from gsmDataGen.relax.testing import nn
-from gsmDataGen.script import relax as R, tir as T, ir as I
-from gsmDataGen.relax.testing.vm import check_saved_func
-from gsmDataGen.runtime import ShapeTuple
+import gsm_data_generator
+import gsm_data_generator.script
+import gsm_data_generator.testing
+from gsm_data_generator import relax, rpc, te, tir, topi
+from gsm_data_generator.contrib import utils, cc, popen_pool
+from gsm_data_generator.relax.testing import nn
+from gsm_data_generator.script import relax as R, tir as T, ir as I
+from gsm_data_generator.relax.testing.vm import check_saved_func
+from gsm_data_generator.runtime import ShapeTuple
 
 EXEC_MODE = ["bytecode", "compiled"]
 
@@ -40,7 +40,7 @@ def exec_mode(request):
 
 
 def test_vm_compile_simple(exec_mode):
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class TestVMCompileStage0:
         @R.function
         def foo(x: R.Tensor((3, 4), "float32"), y: R.Tensor((3, 4), "float32")):
@@ -50,19 +50,19 @@ def test_vm_compile_simple(exec_mode):
             return y
 
     mod = TestVMCompileStage0
-    target = gsmDataGen.target.Target("llvm", host="llvm")
+    target = gsm_data_generator.target.Target("llvm", host="llvm")
     ex = relax.build(mod, target, exec_mode=exec_mode)
-    inp1 = gsmDataGen.nd.array(np.random.rand(3, 4).astype(np.float32))
-    inp2 = gsmDataGen.nd.array(np.random.rand(3, 4).astype(np.float32))
-    vm = relax.VirtualMachine(ex, gsmDataGen.cpu())
+    inp1 = gsm_data_generator.nd.array(np.random.rand(3, 4).astype(np.float32))
+    inp2 = gsm_data_generator.nd.array(np.random.rand(3, 4).astype(np.float32))
+    vm = relax.VirtualMachine(ex, gsm_data_generator.cpu())
     vm["foo"](inp1, inp2)
-    gsmDataGen.testing.assert_allclose(inp2.numpy(), inp1.numpy(), rtol=1e-7, atol=1e-7)
+    gsm_data_generator.testing.assert_allclose(inp2.numpy(), inp1.numpy(), rtol=1e-7, atol=1e-7)
 
 
 def test_vm_compile_without_target_arg(exec_mode):
     """Like test_vm_compile_simple, but with a default target"""
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class mod:
         @R.function
         def foo(x: R.Tensor((3, 4), "float32"), y: R.Tensor((3, 4), "float32")):
@@ -72,28 +72,28 @@ def test_vm_compile_without_target_arg(exec_mode):
             return y
 
     ex = relax.build(mod, exec_mode=exec_mode)
-    inp1 = gsmDataGen.nd.array(np.random.rand(3, 4).astype(np.float32))
-    inp2 = gsmDataGen.nd.array(np.random.rand(3, 4).astype(np.float32))
-    vm = relax.VirtualMachine(ex, gsmDataGen.cpu())
+    inp1 = gsm_data_generator.nd.array(np.random.rand(3, 4).astype(np.float32))
+    inp2 = gsm_data_generator.nd.array(np.random.rand(3, 4).astype(np.float32))
+    vm = relax.VirtualMachine(ex, gsm_data_generator.cpu())
     vm["foo"](inp1, inp2)
-    gsmDataGen.testing.assert_allclose(inp2.numpy(), inp1.numpy(), rtol=1e-7, atol=1e-7)
+    gsm_data_generator.testing.assert_allclose(inp2.numpy(), inp1.numpy(), rtol=1e-7, atol=1e-7)
 
 
 def test_match_check(exec_mode):
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class TestMatchCheck:
         @R.function
         def foo(x: R.Tensor(["n", "m"], "int32"), y: R.Object) -> R.Tensor(["m", "n"], dtype=None):
             return y
 
     mod = TestMatchCheck
-    target = gsmDataGen.target.Target("llvm", host="llvm")
+    target = gsm_data_generator.target.Target("llvm", host="llvm")
     ex = relax.build(mod, target, exec_mode=exec_mode)
-    vm = relax.VirtualMachine(ex, gsmDataGen.cpu())
-    x0 = gsmDataGen.nd.array(np.zeros((1, 2)).astype("int32"))
-    y0 = gsmDataGen.nd.array(np.zeros((2, 1)).astype("float32"))
-    y1 = gsmDataGen.nd.array(np.zeros((1, 2)).astype("float32"))
-    y2 = gsmDataGen.nd.array(np.zeros((2, 1, 1)).astype("float32"))
+    vm = relax.VirtualMachine(ex, gsm_data_generator.cpu())
+    x0 = gsm_data_generator.nd.array(np.zeros((1, 2)).astype("int32"))
+    y0 = gsm_data_generator.nd.array(np.zeros((2, 1)).astype("float32"))
+    y1 = gsm_data_generator.nd.array(np.zeros((1, 2)).astype("float32"))
+    y2 = gsm_data_generator.nd.array(np.zeros((2, 1, 1)).astype("float32"))
 
     vm["foo"](x0, y0)
 
@@ -105,7 +105,7 @@ def test_match_check(exec_mode):
 
 
 def test_vm_compile_stage2(exec_mode):
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class TestVMCompileStage2:
         @R.function
         def foo(x: R.Tensor(dtype="float32")) -> R.Shape:
@@ -114,23 +114,23 @@ def test_vm_compile_stage2(exec_mode):
             return R.shape([n * 2, m * 3])
 
     mod = TestVMCompileStage2
-    target = gsmDataGen.target.Target("llvm", host="llvm")
+    target = gsm_data_generator.target.Target("llvm", host="llvm")
     ex = relax.build(mod, target, exec_mode=exec_mode)
-    vm = relax.VirtualMachine(ex, gsmDataGen.cpu())
+    vm = relax.VirtualMachine(ex, gsm_data_generator.cpu())
 
     shape = (32, 16)
-    arr = gsmDataGen.nd.array(np.random.rand(*shape).astype("float32"))
+    arr = gsm_data_generator.nd.array(np.random.rand(*shape).astype("float32"))
     res = vm["foo"](arr)
     assert res[0] == shape[0] * 2
     assert res[1] == shape[1] * 3
 
     # dtype mismatch
     with pytest.raises(ValueError, match=".*dtype.*"):
-        vm["foo"](gsmDataGen.nd.array(np.zeros((1, 2)).astype("int32")))
+        vm["foo"](gsm_data_generator.nd.array(np.zeros((1, 2)).astype("int32")))
 
     # ndim mismatch
     with pytest.raises(ValueError, match=".*match_cast.*ndim.*"):
-        vm["foo"](gsmDataGen.nd.array(np.zeros((1,)).astype("float32")))
+        vm["foo"](gsm_data_generator.nd.array(np.zeros((1,)).astype("float32")))
 
     # type mismach
     with pytest.raises(TypeError):
@@ -138,7 +138,7 @@ def test_vm_compile_stage2(exec_mode):
 
 
 def test_vm_compile_stage3(exec_mode):
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class TestVMCompileStage3:
         @R.function
         def foo(x: R.Tensor((32, 16), "float32")) -> R.Tensor:
@@ -148,18 +148,18 @@ def test_vm_compile_stage3(exec_mode):
             return y
 
     mod = TestVMCompileStage3
-    target = gsmDataGen.target.Target("llvm", host="llvm")
+    target = gsm_data_generator.target.Target("llvm", host="llvm")
     ex = relax.build(mod, target, exec_mode=exec_mode)
-    vm = relax.VirtualMachine(ex, gsmDataGen.cpu())
+    vm = relax.VirtualMachine(ex, gsm_data_generator.cpu())
 
     shape = (32, 16)
-    inp = gsmDataGen.nd.array(np.random.rand(*shape).astype(np.float32))
+    inp = gsm_data_generator.nd.array(np.random.rand(*shape).astype(np.float32))
     res = vm["foo"](inp)
-    gsmDataGen.testing.assert_allclose(res.numpy(), inp.numpy(), rtol=1e-7, atol=1e-7)
+    gsm_data_generator.testing.assert_allclose(res.numpy(), inp.numpy(), rtol=1e-7, atol=1e-7)
 
 
 def test_vm_compile_e2e(exec_mode):
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class TestVMCompileE2E:
         @R.function
         def foo(x: R.Tensor(dtype="float32")) -> R.Tensor:
@@ -172,18 +172,18 @@ def test_vm_compile_e2e(exec_mode):
 
     mod = TestVMCompileE2E
 
-    target = gsmDataGen.target.Target("llvm", host="llvm")
+    target = gsm_data_generator.target.Target("llvm", host="llvm")
     ex = relax.build(mod, target, exec_mode=exec_mode)
-    vm = relax.VirtualMachine(ex, gsmDataGen.cpu())
+    vm = relax.VirtualMachine(ex, gsm_data_generator.cpu())
 
     shape = (32, 16)
-    inp = gsmDataGen.nd.array(np.random.rand(*shape).astype(np.float32))
+    inp = gsm_data_generator.nd.array(np.random.rand(*shape).astype(np.float32))
     res = check_saved_func(vm, "foo", inp)
-    gsmDataGen.testing.assert_allclose(res.numpy(), np.tile(inp.numpy(), (1, 2)), rtol=1e-7, atol=1e-7)
+    gsm_data_generator.testing.assert_allclose(res.numpy(), np.tile(inp.numpy(), (1, 2)), rtol=1e-7, atol=1e-7)
 
 
 def test_vm_compile_e2e_func_param_with_shape(exec_mode):
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class TestVMCompileE2E2:
         @T.prim_func
         def tir_matmul(x: T.handle, y: T.handle, z: T.handle) -> None:
@@ -213,19 +213,19 @@ def test_vm_compile_e2e_func_param_with_shape(exec_mode):
 
     mod = TestVMCompileE2E2
 
-    target = gsmDataGen.target.Target("llvm", host="llvm")
+    target = gsm_data_generator.target.Target("llvm", host="llvm")
     ex = relax.build(mod, target, exec_mode=exec_mode)
-    vm = relax.VirtualMachine(ex, gsmDataGen.cpu())
+    vm = relax.VirtualMachine(ex, gsm_data_generator.cpu())
 
-    data = gsmDataGen.nd.array(np.random.rand(32, 16).astype(np.float32))
-    weight = gsmDataGen.nd.array(np.random.rand(16, 32).astype(np.float32))
+    data = gsm_data_generator.nd.array(np.random.rand(32, 16).astype(np.float32))
+    weight = gsm_data_generator.nd.array(np.random.rand(16, 32).astype(np.float32))
     res = check_saved_func(vm, "func", data, weight)
     expected = np.dot(data.numpy(), weight.numpy())
-    gsmDataGen.testing.assert_allclose(res.numpy(), expected, rtol=1e-6, atol=1e-6)
+    gsm_data_generator.testing.assert_allclose(res.numpy(), expected, rtol=1e-6, atol=1e-6)
 
 
 def test_call_tir_inplace_e2e_simple(exec_mode):
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class TestCallTIRInplaceE2ESimple:
         @T.prim_func
         def copy(
@@ -261,13 +261,13 @@ def test_call_tir_inplace_e2e_simple(exec_mode):
 
     mod = TestCallTIRInplaceE2ESimple
 
-    target = gsmDataGen.target.Target("llvm", host="llvm")
+    target = gsm_data_generator.target.Target("llvm", host="llvm")
     ex = relax.build(mod, target, exec_mode=exec_mode)
-    vm = relax.VirtualMachine(ex, gsmDataGen.cpu())
+    vm = relax.VirtualMachine(ex, gsm_data_generator.cpu())
 
-    x = gsmDataGen.nd.array(np.zeros((2, 3)).astype(np.int32))
-    y = gsmDataGen.nd.array(np.zeros((2, 3)).astype(np.int32))
-    z = gsmDataGen.nd.array(np.ones((2, 3)).astype(np.int32))
+    x = gsm_data_generator.nd.array(np.zeros((2, 3)).astype(np.int32))
+    y = gsm_data_generator.nd.array(np.zeros((2, 3)).astype(np.int32))
+    z = gsm_data_generator.nd.array(np.ones((2, 3)).astype(np.int32))
     vm.set_input("main", x, y, z)
     vm.invoke_stateful("main")
     outs = vm.get_outputs("main")
@@ -277,14 +277,14 @@ def test_call_tir_inplace_e2e_simple(exec_mode):
     assert x != y
     assert x != outs[2]
     assert y != outs[2]
-    gsmDataGen.testing.assert_allclose(x.numpy(), z.numpy(), rtol=1e-7, atol=1e-7)
-    gsmDataGen.testing.assert_allclose(y.numpy(), z.numpy(), rtol=1e-7, atol=1e-7)
-    gsmDataGen.testing.assert_allclose(outs[2].numpy(), z.numpy(), rtol=1e-7, atol=1e-7)
+    gsm_data_generator.testing.assert_allclose(x.numpy(), z.numpy(), rtol=1e-7, atol=1e-7)
+    gsm_data_generator.testing.assert_allclose(y.numpy(), z.numpy(), rtol=1e-7, atol=1e-7)
+    gsm_data_generator.testing.assert_allclose(outs[2].numpy(), z.numpy(), rtol=1e-7, atol=1e-7)
 
 
 def test_call_tir_inplace_e2e_rw(exec_mode):
     # read and write from the same tensor
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class TestCallTIRInplaceE2ERW:
         @T.prim_func
         def inplace_add(A: T.Buffer((2, 3), "int32"), B: T.Buffer((2, 3), "int32")):
@@ -308,23 +308,23 @@ def test_call_tir_inplace_e2e_rw(exec_mode):
 
     mod = TestCallTIRInplaceE2ERW
 
-    target = gsmDataGen.target.Target("llvm", host="llvm")
+    target = gsm_data_generator.target.Target("llvm", host="llvm")
     ex = relax.build(mod, target, exec_mode=exec_mode)
-    vm = relax.VirtualMachine(ex, gsmDataGen.cpu())
+    vm = relax.VirtualMachine(ex, gsm_data_generator.cpu())
 
-    x = gsmDataGen.nd.array(np.ones((2, 3)).astype(np.int32))
-    y = gsmDataGen.nd.array(np.ones((2, 3)).astype(np.int32))
+    x = gsm_data_generator.nd.array(np.ones((2, 3)).astype(np.int32))
+    y = gsm_data_generator.nd.array(np.ones((2, 3)).astype(np.int32))
     vm.set_input("main", x, y)
     vm.invoke_stateful("main")
     out = vm.get_outputs("main")
-    expected = gsmDataGen.nd.array(np.full((2, 3), 2).astype(np.int32))
+    expected = gsm_data_generator.nd.array(np.full((2, 3), 2).astype(np.int32))
 
     assert x == out
-    gsmDataGen.testing.assert_allclose(out.numpy(), expected.numpy(), rtol=1e-7, atol=1e-7)
+    gsm_data_generator.testing.assert_allclose(out.numpy(), expected.numpy(), rtol=1e-7, atol=1e-7)
 
 
 def test_vm_emit_te_extern(exec_mode):
-    if not gsmDataGen.get_global_func("tvm.contrib.cblas.matmul", True):
+    if not gsm_data_generator.get_global_func("tvm.contrib.cblas.matmul", True):
         print("skip because extern function is not available")
         return
     bb = relax.BlockBuilder()
@@ -333,20 +333,20 @@ def test_vm_emit_te_extern(exec_mode):
     y = relax.Var("y", R.Tensor([m, n], "float32"))
 
     with bb.function("rx_cblas_matmul", [x, y]):
-        out = bb.emit_te(gsmDataGen.contrib.cblas.matmul, x, y, transa=False, transb=False)
+        out = bb.emit_te(gsm_data_generator.contrib.cblas.matmul, x, y, transa=False, transb=False)
         bb.emit_func_output(out)
 
     mod = bb.get()
 
-    target = gsmDataGen.target.Target("llvm", host="llvm")
+    target = gsm_data_generator.target.Target("llvm", host="llvm")
     ex = relax.build(mod, target, exec_mode=exec_mode)
-    vm = relax.VirtualMachine(ex, gsmDataGen.cpu())
+    vm = relax.VirtualMachine(ex, gsm_data_generator.cpu())
 
-    data = gsmDataGen.nd.array(np.random.rand(16, 32).astype(np.float32))
-    weight = gsmDataGen.nd.array(np.random.rand(32, 16).astype(np.float32))
+    data = gsm_data_generator.nd.array(np.random.rand(16, 32).astype(np.float32))
+    weight = gsm_data_generator.nd.array(np.random.rand(32, 16).astype(np.float32))
     res = check_saved_func(vm, "rx_cblas_matmul", data, weight)
     expected = np.dot(data.numpy(), weight.numpy())
-    gsmDataGen.testing.assert_allclose(res.numpy(), expected, rtol=1e-6, atol=1e-6)
+    gsm_data_generator.testing.assert_allclose(res.numpy(), expected, rtol=1e-6, atol=1e-6)
 
 
 def test_vm_emit_te_concat(exec_mode):
@@ -357,7 +357,7 @@ def test_vm_emit_te_concat(exec_mode):
     y = relax.Var("y", R.Tensor([m], "float32"))
 
     def te_func(A, B):
-        C = te.compute((n + m), lambda i: gsmDataGen.tir.if_then_else(i < n, A[i], B[i - n]))
+        C = te.compute((n + m), lambda i: gsm_data_generator.tir.if_then_else(i < n, A[i], B[i - n]))
         return C
 
     with bb.function("rx_func", [x, y]):
@@ -366,22 +366,22 @@ def test_vm_emit_te_concat(exec_mode):
 
     mod = bb.get()
 
-    target = gsmDataGen.target.Target("llvm", host="llvm")
+    target = gsm_data_generator.target.Target("llvm", host="llvm")
     ex = relax.build(mod, target, exec_mode=exec_mode)
 
-    vm = relax.VirtualMachine(ex, gsmDataGen.cpu())
-    inp = gsmDataGen.nd.array(
+    vm = relax.VirtualMachine(ex, gsm_data_generator.cpu())
+    inp = gsm_data_generator.nd.array(
         np.random.rand(
             1,
         ).astype(np.float32)
     )
-    inp2 = gsmDataGen.nd.array(
+    inp2 = gsm_data_generator.nd.array(
         np.random.rand(
             2,
         ).astype(np.float32)
     )
     res = check_saved_func(vm, "rx_func", inp, inp2)
-    gsmDataGen.testing.assert_allclose(
+    gsm_data_generator.testing.assert_allclose(
         res.numpy(), np.append(inp.numpy(), inp2.numpy()), rtol=1e-7, atol=1e-7
     )
 
@@ -402,11 +402,11 @@ def test_vm_emit_te_dtype_change(exec_mode):
 
     mod = bb.get()
 
-    target = gsmDataGen.target.Target("llvm", host="llvm")
+    target = gsm_data_generator.target.Target("llvm", host="llvm")
     ex = relax.build(mod, target, exec_mode=exec_mode)
 
-    vm = relax.VirtualMachine(ex, gsmDataGen.cpu())
-    inp = gsmDataGen.nd.array(
+    vm = relax.VirtualMachine(ex, gsm_data_generator.cpu())
+    inp = gsm_data_generator.nd.array(
         np.random.rand(
             1,
         ).astype(np.float32)
@@ -430,19 +430,19 @@ def test_vm_emit_te_floor_symbolic_shape(exec_mode):
 
     mod = bb.get()
 
-    target = gsmDataGen.target.Target("llvm", host="llvm")
+    target = gsm_data_generator.target.Target("llvm", host="llvm")
     ex = relax.build(mod, target, exec_mode=exec_mode)
 
-    vm = relax.VirtualMachine(ex, gsmDataGen.cpu())
+    vm = relax.VirtualMachine(ex, gsm_data_generator.cpu())
     shape = (9,)
-    inp = gsmDataGen.nd.array(np.random.rand(*shape).astype(np.float32))
+    inp = gsm_data_generator.nd.array(np.random.rand(*shape).astype(np.float32))
     res = check_saved_func(vm, "rx_func", inp)
 
     def expected_output():
         output_shape = (shape[0] // 2,)
         return inp.numpy()[: output_shape[0]] + 1
 
-    gsmDataGen.testing.assert_allclose(res.numpy(), expected_output(), rtol=1e-7, atol=1e-7)
+    gsm_data_generator.testing.assert_allclose(res.numpy(), expected_output(), rtol=1e-7, atol=1e-7)
 
 
 def test_vm_emit_te_constant_param_cpu(exec_mode):
@@ -460,14 +460,14 @@ def test_vm_emit_te_constant_param_cpu(exec_mode):
 
     mod = bb.get()
     exec = relax.build(mod, "llvm", exec_mode=exec_mode)
-    dev = gsmDataGen.cpu()
+    dev = gsm_data_generator.cpu()
     vm = relax.VirtualMachine(exec, dev)
 
-    add_res = check_saved_func(vm, "main", gsmDataGen.nd.array(x_np, dev))
-    gsmDataGen.testing.assert_allclose(add_res.numpy(), x_np + c_np, rtol=1e-7, atol=1e-7)
+    add_res = check_saved_func(vm, "main", gsm_data_generator.nd.array(x_np, dev))
+    gsm_data_generator.testing.assert_allclose(add_res.numpy(), x_np + c_np, rtol=1e-7, atol=1e-7)
 
 
-@gsmDataGen.testing.requires_gpu
+@gsm_data_generator.testing.requires_gpu
 def test_vm_emit_te_constant_param_gpu(exec_mode):
     x_np = np.random.rand(2, 2).astype("float32")
     c_np = np.random.rand(2, 2).astype("float32")
@@ -482,16 +482,16 @@ def test_vm_emit_te_constant_param_gpu(exec_mode):
         bb.emit_func_output(gv)
 
     mod = bb.get()
-    sch = gsmDataGen.tir.Schedule(mod, debug_mask="all")
+    sch = gsm_data_generator.tir.Schedule(mod, debug_mask="all")
     loops = sch.get_loops(sch.get_block(name="T_add", func_name="add"))
     sch.bind(loops[0], "threadIdx.x")
 
     exec = relax.build(sch.mod, "cuda", exec_mode=exec_mode)
-    dev = gsmDataGen.cuda()
+    dev = gsm_data_generator.cuda()
     vm = relax.VirtualMachine(exec, dev)
 
-    add_res = check_saved_func(vm, "main", gsmDataGen.nd.array(x_np, dev))
-    gsmDataGen.testing.assert_allclose(add_res.numpy(), x_np + c_np, rtol=1e-7, atol=1e-7)
+    add_res = check_saved_func(vm, "main", gsm_data_generator.nd.array(x_np, dev))
+    gsm_data_generator.testing.assert_allclose(add_res.numpy(), x_np + c_np, rtol=1e-7, atol=1e-7)
 
 
 def test_vm_relax_symbolic_shape(exec_mode):
@@ -510,20 +510,20 @@ def test_vm_relax_symbolic_shape(exec_mode):
 
     mod = bb.get()
 
-    target = gsmDataGen.target.Target("llvm", host="llvm")
+    target = gsm_data_generator.target.Target("llvm", host="llvm")
     ex = relax.build(mod, target, exec_mode=exec_mode)
 
-    vm = relax.VirtualMachine(ex, gsmDataGen.cpu())
+    vm = relax.VirtualMachine(ex, gsm_data_generator.cpu())
     shape1 = (5,)
     shape2 = (3,)
-    inp = gsmDataGen.nd.array(np.random.rand(*shape1).astype(np.float32))
-    inp2 = gsmDataGen.nd.array(np.random.rand(*shape2).astype(np.float32))
+    inp = gsm_data_generator.nd.array(np.random.rand(*shape1).astype(np.float32))
+    inp2 = gsm_data_generator.nd.array(np.random.rand(*shape2).astype(np.float32))
     res = check_saved_func(vm, "rx_func", inp, inp2)
 
     def expected_output():
         return inp.numpy() + np.repeat(inp2.numpy(), 2)[:5]
 
-    gsmDataGen.testing.assert_allclose(res.numpy(), expected_output(), rtol=1e-7, atol=1e-7)
+    gsm_data_generator.testing.assert_allclose(res.numpy(), expected_output(), rtol=1e-7, atol=1e-7)
 
 
 def test_vm_relax_symbolic_shape_tuple(exec_mode):
@@ -535,9 +535,9 @@ def test_vm_relax_symbolic_shape_tuple(exec_mode):
             n = T.int64()
             return R.shape([2 * m, 3 * n])
 
-    target = gsmDataGen.target.Target("llvm", host="llvm")
+    target = gsm_data_generator.target.Target("llvm", host="llvm")
     ex = relax.build(mod, target, exec_mode=exec_mode)
-    vm = relax.VirtualMachine(ex, gsmDataGen.cpu())
+    vm = relax.VirtualMachine(ex, gsm_data_generator.cpu())
 
     func = vm["main"]
 
@@ -558,9 +558,9 @@ def test_vm_relax_symbolic_prim_value(exec_mode):
             n = T.int64()
             return R.prim_value(n * n)
 
-    target = gsmDataGen.target.Target("llvm", host="llvm")
+    target = gsm_data_generator.target.Target("llvm", host="llvm")
     ex = relax.build(mod, target, exec_mode=exec_mode)
-    vm = relax.VirtualMachine(ex, gsmDataGen.cpu())
+    vm = relax.VirtualMachine(ex, gsm_data_generator.cpu())
 
     func = vm["main"]
 
@@ -589,9 +589,9 @@ def test_vm_relax_multiple_symbolic_prim_value(exec_mode):
             m = T.int64()
             return R.shape([n * n, m + 1])
 
-    target = gsmDataGen.target.Target("llvm", host="llvm")
+    target = gsm_data_generator.target.Target("llvm", host="llvm")
     ex = relax.build(mod, target, exec_mode=exec_mode)
-    vm = relax.VirtualMachine(ex, gsmDataGen.cpu())
+    vm = relax.VirtualMachine(ex, gsm_data_generator.cpu())
 
     func = vm["main"]
 
@@ -600,7 +600,7 @@ def test_vm_relax_multiple_symbolic_prim_value(exec_mode):
     with pytest.raises(RuntimeError):
         func(2, ShapeTuple([4, 12]), 1)
 
-    with pytest.raises(gsmDataGen.TVMError):
+    with pytest.raises(gsm_data_generator.TVMError):
         func(ShapeTuple([2]))
 
 
@@ -630,11 +630,11 @@ def test_vm_relax_prim_value_fp32(exec_mode):
             # though these are semantically the same.
             return R.full(shape=[16, 16], fill_value=R.prim_value(2 * half_fill_value))
 
-    target = gsmDataGen.target.Target("llvm", host="llvm")
+    target = gsm_data_generator.target.Target("llvm", host="llvm")
     # Third failure occurs here.  The current codegen assumes that all
     # symbolic variables are int64.
     ex = relax.build(mod, target, exec_mode=exec_mode)
-    vm = relax.VirtualMachine(ex, gsmDataGen.cpu())
+    vm = relax.VirtualMachine(ex, gsm_data_generator.cpu())
 
     func = vm["main"]
 
@@ -660,19 +660,19 @@ def test_vm_relax_dyn_tir_shape(exec_mode):
 
     mod = bb.get()
 
-    target = gsmDataGen.target.Target("llvm", host="llvm")
+    target = gsm_data_generator.target.Target("llvm", host="llvm")
     ex = relax.build(mod, target, exec_mode=exec_mode)
 
     with utils.tempdir() as temp:
         ex.export_library(temp.relpath("exec.so"))
-        vm = relax.VirtualMachine(gsmDataGen.runtime.load_module(temp.relpath("exec.so")), gsmDataGen.cpu())
+        vm = relax.VirtualMachine(gsm_data_generator.runtime.load_module(temp.relpath("exec.so")), gsm_data_generator.cpu())
 
-    inp = gsmDataGen.nd.array(np.random.rand(2).astype(np.float32))
-    inp2 = gsmDataGen.nd.array(np.random.rand(3).astype(np.float32))
+    inp = gsm_data_generator.nd.array(np.random.rand(2).astype(np.float32))
+    inp2 = gsm_data_generator.nd.array(np.random.rand(3).astype(np.float32))
 
     res = check_saved_func(vm, "rx_func", inp, inp2)
 
-    gsmDataGen.testing.assert_allclose(res.numpy(), inp2.numpy(), rtol=1e-7, atol=1e-7)
+    gsm_data_generator.testing.assert_allclose(res.numpy(), inp2.numpy(), rtol=1e-7, atol=1e-7)
 
 
 def test_vm_tuple(exec_mode):
@@ -688,22 +688,22 @@ def test_vm_tuple(exec_mode):
 
     mod = bb.get()
 
-    target = gsmDataGen.target.Target("llvm", host="llvm")
+    target = gsm_data_generator.target.Target("llvm", host="llvm")
     ex = relax.build(mod, target, exec_mode=exec_mode)
 
-    vm = relax.VirtualMachine(ex, gsmDataGen.cpu())
+    vm = relax.VirtualMachine(ex, gsm_data_generator.cpu())
     shape = (5,)
-    inp = gsmDataGen.nd.array(np.random.rand(*shape).astype(np.float32))
-    inp2 = gsmDataGen.nd.array(np.random.rand(*shape).astype(np.float32))
+    inp = gsm_data_generator.nd.array(np.random.rand(*shape).astype(np.float32))
+    inp2 = gsm_data_generator.nd.array(np.random.rand(*shape).astype(np.float32))
     (res1, res2), res3 = vm["rx_func"](inp, inp2)
 
-    gsmDataGen.testing.assert_allclose(res1.numpy(), inp.numpy(), rtol=1e-7, atol=1e-7)
-    gsmDataGen.testing.assert_allclose(res2.numpy(), inp2.numpy(), rtol=1e-7, atol=1e-7)
-    gsmDataGen.testing.assert_allclose(res3.numpy(), inp.numpy(), rtol=1e-7, atol=1e-7)
+    gsm_data_generator.testing.assert_allclose(res1.numpy(), inp.numpy(), rtol=1e-7, atol=1e-7)
+    gsm_data_generator.testing.assert_allclose(res2.numpy(), inp2.numpy(), rtol=1e-7, atol=1e-7)
+    gsm_data_generator.testing.assert_allclose(res3.numpy(), inp.numpy(), rtol=1e-7, atol=1e-7)
 
 
 def test_vm_tuplegetitem(exec_mode):
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class TestVMTupleGetItem:
         @R.function
         def tuple_get_item(
@@ -719,17 +719,17 @@ def test_vm_tuplegetitem(exec_mode):
             return c
 
     mod = TestVMTupleGetItem
-    target = gsmDataGen.target.Target("llvm", host="llvm")
+    target = gsm_data_generator.target.Target("llvm", host="llvm")
     ex = relax.build(mod, target, exec_mode=exec_mode)
-    vm = relax.VirtualMachine(ex, gsmDataGen.cpu())
-    x_inp = gsmDataGen.nd.array(np.random.rand(2, 3).astype("float32"))
-    y_inp = gsmDataGen.nd.array(np.random.rand(2, 3).astype("float32"))
+    vm = relax.VirtualMachine(ex, gsm_data_generator.cpu())
+    x_inp = gsm_data_generator.nd.array(np.random.rand(2, 3).astype("float32"))
+    y_inp = gsm_data_generator.nd.array(np.random.rand(2, 3).astype("float32"))
     res = check_saved_func(vm, "tuple_get_item", x_inp, y_inp)
-    gsmDataGen.testing.assert_allclose(res.numpy(), x_inp.numpy() + y_inp.numpy(), rtol=1e-7, atol=1e-7)
+    gsm_data_generator.testing.assert_allclose(res.numpy(), x_inp.numpy() + y_inp.numpy(), rtol=1e-7, atol=1e-7)
 
 
 def test_lower_memory_alloc_storage_tensor(exec_mode):
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class TestMemoryAllocStorageTensor:
         @R.function
         def main(x: R.Tensor((2, 3), dtype="float32")):
@@ -751,16 +751,16 @@ def test_lower_memory_alloc_storage_tensor(exec_mode):
                     B[vi0, vi1] = A[vi0, vi1]
 
     mod = TestMemoryAllocStorageTensor
-    target = gsmDataGen.target.Target("llvm", host="llvm")
+    target = gsm_data_generator.target.Target("llvm", host="llvm")
     ex = relax.build(mod, target, exec_mode=exec_mode)
-    vm = relax.VirtualMachine(ex, gsmDataGen.cpu())
-    x = gsmDataGen.nd.array(np.random.rand(2, 3).astype("float32"))
+    vm = relax.VirtualMachine(ex, gsm_data_generator.cpu())
+    x = gsm_data_generator.nd.array(np.random.rand(2, 3).astype("float32"))
     y = vm["main"](x)
-    gsmDataGen.testing.assert_allclose(y.numpy(), x.numpy(), rtol=1e-7, atol=1e-7)
+    gsm_data_generator.testing.assert_allclose(y.numpy(), x.numpy(), rtol=1e-7, atol=1e-7)
 
 
 def test_sub_func_call(exec_mode):
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class TestVMSubFunction:
         @T.prim_func
         def tir_matmul(x: T.handle, y: T.handle, z: T.handle) -> None:
@@ -805,19 +805,19 @@ def test_sub_func_call(exec_mode):
             gv1 = cls.relax_matmul_packed(gv0, gv0)
             return gv1
 
-    target = gsmDataGen.target.Target("llvm", host="llvm")
+    target = gsm_data_generator.target.Target("llvm", host="llvm")
     ex = relax.build(TestVMSubFunction, target, exec_mode=exec_mode)
-    vm = relax.VirtualMachine(ex, gsmDataGen.cpu())
-    x_inp = gsmDataGen.nd.array(np.random.rand(32, 32).astype(np.float32))
-    y_inp = gsmDataGen.nd.array(np.random.rand(32, 32).astype(np.float32))
+    vm = relax.VirtualMachine(ex, gsm_data_generator.cpu())
+    x_inp = gsm_data_generator.nd.array(np.random.rand(32, 32).astype(np.float32))
+    y_inp = gsm_data_generator.nd.array(np.random.rand(32, 32).astype(np.float32))
     res = check_saved_func(vm, "main", x_inp, y_inp)
     product = np.dot(x_inp.numpy(), y_inp.numpy())
     expected = product * product
-    gsmDataGen.testing.assert_allclose(res.numpy(), expected, rtol=1e-6, atol=1e-6)
+    gsm_data_generator.testing.assert_allclose(res.numpy(), expected, rtol=1e-6, atol=1e-6)
 
 
 def test_recursion(exec_mode):
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class TestVMRecursion:
         @R.function
         def recursion(n: R.Tensor((1,), "float32")) -> R.Tensor:
@@ -836,54 +836,54 @@ def test_recursion(exec_mode):
                 )
             return res
 
-    target = gsmDataGen.target.Target("llvm", host="llvm")
+    target = gsm_data_generator.target.Target("llvm", host="llvm")
     ex = relax.build(TestVMRecursion, target, exec_mode=exec_mode)
-    vm = relax.VirtualMachine(ex, gsmDataGen.cpu())
+    vm = relax.VirtualMachine(ex, gsm_data_generator.cpu())
 
     inp = np.empty(1).astype("float32")
     recursion_runs = np.random.randint(1, 10)
     inp.fill(recursion_runs)
-    inp = gsmDataGen.nd.array(inp)
+    inp = gsm_data_generator.nd.array(inp)
     res = check_saved_func(vm, "recursion", inp)
-    gsmDataGen.testing.assert_allclose(res.numpy(), np.power(2.0, recursion_runs), rtol=1e-7, atol=1e-7)
+    gsm_data_generator.testing.assert_allclose(res.numpy(), np.power(2.0, recursion_runs), rtol=1e-7, atol=1e-7)
 
 
-@gsmDataGen.testing.requires_gpu
+@gsm_data_generator.testing.requires_gpu
 def test_vm_to_device(exec_mode):
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class TestToVDevice:
         @R.function
         def foo1(
             x: R.Tensor((2, 3), "float32"),
         ) -> R.Tensor((2, 3), "float32"):
-            copied = R.to_vdevice(x, gsmDataGen.ir.VDevice("cuda", 0, "global"))
+            copied = R.to_vdevice(x, gsm_data_generator.ir.VDevice("cuda", 0, "global"))
             return copied
 
         @R.function
         def foo2(
             x: R.Tensor((2, 3), "float32"),
         ) -> R.Tensor((2, 3), "float32"):
-            copied = R.to_vdevice(x, gsmDataGen.ir.VDevice("llvm", 0, "global"))
+            copied = R.to_vdevice(x, gsm_data_generator.ir.VDevice("llvm", 0, "global"))
             return copied
 
     mod = TestToVDevice
-    target = gsmDataGen.target.Target("llvm", host="llvm")
+    target = gsm_data_generator.target.Target("llvm", host="llvm")
     ex = relax.build(mod, target, exec_mode=exec_mode)
-    vm = relax.VirtualMachine(ex, gsmDataGen.cpu())
-    x_inp = gsmDataGen.nd.array(np.random.rand(2, 3).astype("float32"))
+    vm = relax.VirtualMachine(ex, gsm_data_generator.cpu())
+    x_inp = gsm_data_generator.nd.array(np.random.rand(2, 3).astype("float32"))
     res_1 = check_saved_func(vm, "foo1", x_inp)
     res_2 = check_saved_func(vm, "foo2", x_inp)
 
     # check the copied tensor's device
-    assert res_1.device == gsmDataGen.cuda(0)
-    assert res_2.device == gsmDataGen.cpu(0)
+    assert res_1.device == gsm_data_generator.cuda(0)
+    assert res_2.device == gsm_data_generator.cpu(0)
 
-    gsmDataGen.testing.assert_allclose(res_1.numpy(), x_inp.numpy())
-    gsmDataGen.testing.assert_allclose(res_2.numpy(), x_inp.numpy())
+    gsm_data_generator.testing.assert_allclose(res_1.numpy(), x_inp.numpy())
+    gsm_data_generator.testing.assert_allclose(res_2.numpy(), x_inp.numpy())
 
 
 def test_vm_closure(exec_mode):
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class TestClosure:
         @R.function
         def lifted_func_1(x: R.Tensor((2, 3), "float32"), env: R.Tensor((2, 3), "float32")):
@@ -900,17 +900,17 @@ def test_vm_closure(exec_mode):
             return res
 
     mod = TestClosure
-    target = gsmDataGen.target.Target("llvm", host="llvm")
+    target = gsm_data_generator.target.Target("llvm", host="llvm")
     ex = relax.build(mod, target, exec_mode=exec_mode)
-    vm = relax.VirtualMachine(ex, gsmDataGen.cpu())
-    x_inp = gsmDataGen.nd.array(np.random.rand(2, 3).astype("float32"))
-    y_inp = gsmDataGen.nd.array(np.array([[3.1, 4.0, 5.0], [6.0, 7.1, 9.0]], dtype="float32"))
+    vm = relax.VirtualMachine(ex, gsm_data_generator.cpu())
+    x_inp = gsm_data_generator.nd.array(np.random.rand(2, 3).astype("float32"))
+    y_inp = gsm_data_generator.nd.array(np.array([[3.1, 4.0, 5.0], [6.0, 7.1, 9.0]], dtype="float32"))
     res = check_saved_func(vm, "main", x_inp, y_inp)
-    gsmDataGen.testing.assert_allclose(res.numpy(), x_inp.numpy() + y_inp.numpy())
+    gsm_data_generator.testing.assert_allclose(res.numpy(), x_inp.numpy() + y_inp.numpy())
 
 
 def test_time_evaluator(exec_mode):
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class TestTimeEvaluator:
         @R.function
         def main(x: R.Tensor((1,), "float32"), y: R.Tensor((1,), "float32")):
@@ -918,25 +918,25 @@ def test_time_evaluator(exec_mode):
                 "test.vm.add", x, y, sinfo_args=(R.Tensor(ndim=1, dtype="float32"))
             )
 
-    target = gsmDataGen.target.Target("llvm", host="llvm")
+    target = gsm_data_generator.target.Target("llvm", host="llvm")
     ex = relax.build(TestTimeEvaluator, target, exec_mode=exec_mode)
-    vm = relax.VirtualMachine(ex, gsmDataGen.cpu())
-    x = gsmDataGen.nd.array(np.random.rand(1).astype("float32"))
-    y = gsmDataGen.nd.array(np.random.rand(1).astype("float32"))
+    vm = relax.VirtualMachine(ex, gsm_data_generator.cpu())
+    x = gsm_data_generator.nd.array(np.random.rand(1).astype("float32"))
+    y = gsm_data_generator.nd.array(np.random.rand(1).astype("float32"))
 
     # ensure we can use time_evaluator with the stateful API
     vm.set_input("main", x, y)
-    timing_res = vm.time_evaluator("invoke_stateful", gsmDataGen.cpu())("main")
+    timing_res = vm.time_evaluator("invoke_stateful", gsm_data_generator.cpu())("main")
     # just checking that it has some results at all
     assert timing_res.results
 
     # ensure we can use it with a closure
     vm.save_function("main", "saved_main", x, y)
-    timing_res = vm.time_evaluator("saved_main", gsmDataGen.cpu())()
+    timing_res = vm.time_evaluator("saved_main", gsm_data_generator.cpu())()
     assert timing_res.results
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class TestVMSetInput:
     @T.prim_func
     def test_vm_mul(x: T.handle, y: T.handle, z: T.handle):
@@ -985,7 +985,7 @@ class TestVMSetInput:
 
 
 def test_multi_systemlib(exec_mode):
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class ModA:
         I.module_attrs({"system_lib_prefix": "libA_"})
 
@@ -1002,7 +1002,7 @@ def test_multi_systemlib(exec_mode):
             gv0 = R.call_tir(ModA.tir_init, (), R.Tensor((m + 1,), dtype="float32"))
             return gv0
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class ModB:
         I.module_attrs({"system_lib_prefix": "libB_"})
 
@@ -1019,7 +1019,7 @@ def test_multi_systemlib(exec_mode):
             gv0 = R.call_tir(ModB.tir_init, (), R.Tensor((m,), dtype="float32"))
             return gv0
 
-    target = gsmDataGen.target.Target("llvm", host="llvm")
+    target = gsm_data_generator.target.Target("llvm", host="llvm")
     libA = relax.build(ModA, target, exec_mode=exec_mode)
     libB = relax.build(ModB, target, exec_mode=exec_mode)
 
@@ -1040,11 +1040,11 @@ def test_multi_systemlib(exec_mode):
         # Load dll, will trigger system library registration
         ctypes.CDLL(path_dso)
         # Load the system wide library
-        vmA = relax.VirtualMachine(gsmDataGen.runtime.system_lib("libA_"), gsmDataGen.cpu())
-        vmB = relax.VirtualMachine(gsmDataGen.runtime.system_lib("libB_"), gsmDataGen.cpu())
+        vmA = relax.VirtualMachine(gsm_data_generator.runtime.system_lib("libA_"), gsm_data_generator.cpu())
+        vmB = relax.VirtualMachine(gsm_data_generator.runtime.system_lib("libB_"), gsm_data_generator.cpu())
 
-        retA = vmA["main"](gsmDataGen.runtime.ShapeTuple([1]))
-        retB = vmB["main"](gsmDataGen.runtime.ShapeTuple([2]))
+        retA = vmA["main"](gsm_data_generator.runtime.ShapeTuple([1]))
+        retB = vmB["main"](gsm_data_generator.runtime.ShapeTuple([2]))
         np.testing.assert_equal(retA.numpy(), np.array([0, 0]).astype("float32"))
         np.testing.assert_equal(retB.numpy(), np.array([1, 1]).astype("float32"))
 
@@ -1053,9 +1053,9 @@ def test_multi_systemlib(exec_mode):
     worker.send(popen_check)
 
 
-def set_input_trial(vm: relax.VirtualMachine, device: gsmDataGen.runtime.Device) -> None:
-    a = gsmDataGen.nd.array(np.random.rand(32, 32).astype("float32"), device)
-    b = gsmDataGen.nd.array(np.random.rand(32, 32).astype("float32"), device)
+def set_input_trial(vm: relax.VirtualMachine, device: gsm_data_generator.runtime.Device) -> None:
+    a = gsm_data_generator.nd.array(np.random.rand(32, 32).astype("float32"), device)
+    b = gsm_data_generator.nd.array(np.random.rand(32, 32).astype("float32"), device)
     vm.set_input("main", a, b)
     vm.invoke_stateful("main")
     res0 = vm.get_outputs("main")
@@ -1064,12 +1064,12 @@ def set_input_trial(vm: relax.VirtualMachine, device: gsmDataGen.runtime.Device)
     vm.set_input("main", **data_dict)
     vm.invoke_stateful("main")
     res1 = vm.get_outputs("main")
-    gsmDataGen.testing.assert_allclose(res0.numpy(), a.numpy() * b.numpy(), rtol=1e-7, atol=1e-7)
-    gsmDataGen.testing.assert_allclose(res0.numpy(), res1.numpy(), rtol=1e-7, atol=1e-7)
+    gsm_data_generator.testing.assert_allclose(res0.numpy(), a.numpy() * b.numpy(), rtol=1e-7, atol=1e-7)
+    gsm_data_generator.testing.assert_allclose(res0.numpy(), res1.numpy(), rtol=1e-7, atol=1e-7)
 
     # bug! If you don't bind the NDArray to a var, the memory will get corrupted.
     # Possibly due to object lifecycles and other FFI issues
-    a = gsmDataGen.nd.array(np.array(2).astype("int32"), device)
+    a = gsm_data_generator.nd.array(np.array(2).astype("int32"), device)
     vm.set_input("test_vm_tuple", a)
     vm.invoke_stateful("test_vm_tuple")
     res2 = vm.get_outputs("test_vm_tuple")
@@ -1077,7 +1077,7 @@ def set_input_trial(vm: relax.VirtualMachine, device: gsmDataGen.runtime.Device)
     # so we have to get the scalar out of the NDArray
     assert tuple(map(lambda a: int(a.numpy()), res2)) == (2, 2)
 
-    b = gsmDataGen.nd.array(np.array(1).astype("int32"), device)
+    b = gsm_data_generator.nd.array(np.array(1).astype("int32"), device)
     vm.set_input("test_vm_nested_tuple", b)
     vm.invoke_stateful("test_vm_nested_tuple")
     res3 = vm.get_outputs("test_vm_nested_tuple")
@@ -1086,49 +1086,49 @@ def set_input_trial(vm: relax.VirtualMachine, device: gsmDataGen.runtime.Device)
     assert result_cast == ((1, (1,)), 1)
 
 
-def set_input_attempt_stateless(vm: relax.VirtualMachine, device: gsmDataGen.runtime.Device) -> None:
+def set_input_attempt_stateless(vm: relax.VirtualMachine, device: gsm_data_generator.runtime.Device) -> None:
     # this should fail: once you set inputs, you cannot run statelessly
-    a = gsmDataGen.nd.array(np.random.rand(32, 32).astype("float32"), device)
-    b = gsmDataGen.nd.array(np.random.rand(32, 32).astype("float32"), device)
+    a = gsm_data_generator.nd.array(np.random.rand(32, 32).astype("float32"), device)
+    b = gsm_data_generator.nd.array(np.random.rand(32, 32).astype("float32"), device)
     vm.set_input("main", a, b)
     # must use invoke stateful!
     vm["main"]()
 
 
-def set_input_attempt_invoke(vm: relax.VirtualMachine, device: gsmDataGen.runtime.Device) -> None:
+def set_input_attempt_invoke(vm: relax.VirtualMachine, device: gsm_data_generator.runtime.Device) -> None:
     # this should fail: if the function needs inputs, you can't invoke directly
     vm.invoke_stateful("main")
 
 
-def set_input_attempt_get(vm: relax.VirtualMachine, device: gsmDataGen.runtime.Device) -> None:
+def set_input_attempt_get(vm: relax.VirtualMachine, device: gsm_data_generator.runtime.Device) -> None:
     # this should fail: you can't get outputs without invoking the function first
-    a = gsmDataGen.nd.array(np.random.rand(32, 32).astype("float32"), device)
-    b = gsmDataGen.nd.array(np.random.rand(32, 32).astype("float32"), device)
+    a = gsm_data_generator.nd.array(np.random.rand(32, 32).astype("float32"), device)
+    b = gsm_data_generator.nd.array(np.random.rand(32, 32).astype("float32"), device)
     vm.set_input("main", a, b)
     _ = vm.get_outputs("main")
 
 
-def make_vm(mod, exec_mode, temp) -> Tuple[relax.VirtualMachine, gsmDataGen.runtime.Device]:
+def make_vm(mod, exec_mode, temp) -> Tuple[relax.VirtualMachine, gsm_data_generator.runtime.Device]:
     """Returns a local VM for the given mod and the device"""
-    target = gsmDataGen.target.Target("llvm", host="llvm")
+    target = gsm_data_generator.target.Target("llvm", host="llvm")
     exec = relax.build(mod, target, exec_mode=exec_mode)
     libname = temp.relpath("exec.so")
     exec.export_library(libname)
-    exec_loaded = gsmDataGen.runtime.load_module(libname)
-    device = gsmDataGen.cpu()
+    exec_loaded = gsm_data_generator.runtime.load_module(libname)
+    device = gsm_data_generator.cpu()
     return relax.VirtualMachine(exec_loaded, device), device
 
 
 def run_on_rpc(
-    mod: gsmDataGen.IRModule,
-    trial_func: Callable[[relax.VirtualMachine, gsmDataGen.runtime.Device], None],
+    mod: gsm_data_generator.IRModule,
+    trial_func: Callable[[relax.VirtualMachine, gsm_data_generator.runtime.Device], None],
     exec_mode: str,
 ):
     """
     Sets up a VM over localhost using the given mod and runs the given trial function.
     The trial function should take a VM and a device
     """
-    target = gsmDataGen.target.Target("llvm", host="llvm")
+    target = gsm_data_generator.target.Target("llvm", host="llvm")
     exec = relax.build(mod, target, exec_mode=exec_mode)
     temp = utils.tempdir()
     path = temp.relpath("vm_library.so")
@@ -1159,7 +1159,7 @@ def test_set_input(exec_mode):
 
 
 def test_set_input_tuple(exec_mode):
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class MyMod:
         @R.function
         def main(x: R.Tuple([R.Tensor((32,), "float32"), R.Tensor((32,), "float32")])) -> R.Tensor:
@@ -1168,20 +1168,20 @@ def test_set_input_tuple(exec_mode):
 
     temp = utils.tempdir()
     vm, device = make_vm(MyMod, exec_mode, temp)
-    device = gsmDataGen.cpu(0)
-    a = gsmDataGen.nd.empty((32,), "float32", device=device)
-    b = gsmDataGen.nd.empty((32,), "float32", device=device)
+    device = gsm_data_generator.cpu(0)
+    a = gsm_data_generator.nd.empty((32,), "float32", device=device)
+    b = gsm_data_generator.nd.empty((32,), "float32", device=device)
     vm.set_input("main", (a, b))
     vm.invoke_stateful("main")
 
 
-def save_function_kwargs_trial(vm: relax.VirtualMachine, device: gsmDataGen.runtime.Device) -> None:
+def save_function_kwargs_trial(vm: relax.VirtualMachine, device: gsm_data_generator.runtime.Device) -> None:
     # just checking that we can use kwargs for the args when saving a function
-    a = gsmDataGen.nd.array(np.random.rand(32, 32).astype("float32"), device)
-    b = gsmDataGen.nd.array(np.random.rand(32, 32).astype("float32"), device)
+    a = gsm_data_generator.nd.array(np.random.rand(32, 32).astype("float32"), device)
+    b = gsm_data_generator.nd.array(np.random.rand(32, 32).astype("float32"), device)
     vm.save_function("main", "saved_main", x=a, w=b)
     res0 = vm["saved_main"]()
-    gsmDataGen.testing.assert_allclose(res0.numpy(), a.numpy() * b.numpy(), rtol=1e-7, atol=1e-7)
+    gsm_data_generator.testing.assert_allclose(res0.numpy(), a.numpy() * b.numpy(), rtol=1e-7, atol=1e-7)
 
 
 def test_save_function_kwargs(exec_mode):
@@ -1194,11 +1194,11 @@ def test_save_function_kwargs_rpc(exec_mode):
 
 
 def save_function_time_evaluator_trial(
-    vm: relax.VirtualMachine, device: gsmDataGen.runtime.Device
+    vm: relax.VirtualMachine, device: gsm_data_generator.runtime.Device
 ) -> None:
     # just checking that the saved function can be called in the time evaluator
-    a = gsmDataGen.nd.array(np.random.rand(32, 32).astype("float32"), device)
-    b = gsmDataGen.nd.array(np.random.rand(32, 32).astype("float32"), device)
+    a = gsm_data_generator.nd.array(np.random.rand(32, 32).astype("float32"), device)
+    b = gsm_data_generator.nd.array(np.random.rand(32, 32).astype("float32"), device)
     vm.save_function("main", "saved_main", a, b)
     vm.time_evaluator("saved_main", device)()
 
@@ -1251,7 +1251,7 @@ def test_set_input_get_failure_rpc(exec_mode):
         run_on_rpc(TestVMSetInput, set_input_attempt_get, exec_mode)
 
 
-@gsmDataGen.testing.requires_gpu
+@gsm_data_generator.testing.requires_gpu
 def test_relax_module_with_multiple_targets(exec_mode):
     """Relax functions may contain kernels for multiple targets
 
@@ -1276,39 +1276,39 @@ def test_relax_module_with_multiple_targets(exec_mode):
             C = R.add(A, B)
             return C
 
-    seq = gsmDataGen.ir.transform.Sequential(
+    seq = gsm_data_generator.ir.transform.Sequential(
         [
-            gsmDataGen.relax.transform.LegalizeOps(),
-            gsmDataGen.dlight.ApplyDefaultSchedule(gsmDataGen.dlight.gpu.Fallback()),
+            gsm_data_generator.relax.transform.LegalizeOps(),
+            gsm_data_generator.dlight.ApplyDefaultSchedule(gsm_data_generator.dlight.gpu.Fallback()),
         ],
         name="LegalizeAndSchedule",
     )
-    with gsmDataGen.target.Target("cuda"):
-        built = gsmDataGen.relax.build(seq(Module))
+    with gsm_data_generator.target.Target("cuda"):
+        built = gsm_data_generator.relax.build(seq(Module))
 
     np_A = np.random.random([32, 32]).astype("float32")
     np_B = np.random.random([32, 32]).astype("float32")
 
-    dev_llvm = gsmDataGen.device("llvm")
-    vm_llvm = gsmDataGen.relax.VirtualMachine(built, device=dev_llvm)
+    dev_llvm = gsm_data_generator.device("llvm")
+    vm_llvm = gsm_data_generator.relax.VirtualMachine(built, device=dev_llvm)
     llvm_output = vm_llvm["func_llvm"](
-        gsmDataGen.nd.array(np_A, dev_llvm),
-        gsmDataGen.nd.array(np_B, dev_llvm),
+        gsm_data_generator.nd.array(np_A, dev_llvm),
+        gsm_data_generator.nd.array(np_B, dev_llvm),
     )
 
-    dev_cuda = gsmDataGen.device("cuda")
-    vm_cuda = gsmDataGen.relax.VirtualMachine(built, device=dev_cuda)
+    dev_cuda = gsm_data_generator.device("cuda")
+    vm_cuda = gsm_data_generator.relax.VirtualMachine(built, device=dev_cuda)
 
     cuda_output = vm_cuda["func_cuda"](
-        gsmDataGen.nd.array(np_A, dev_cuda),
-        gsmDataGen.nd.array(np_B, dev_cuda),
+        gsm_data_generator.nd.array(np_A, dev_cuda),
+        gsm_data_generator.nd.array(np_B, dev_cuda),
     )
 
     np_C = np_A + np_B
 
-    gsmDataGen.testing.assert_allclose(llvm_output.numpy(), np_C)
-    gsmDataGen.testing.assert_allclose(cuda_output.numpy(), np_C)
+    gsm_data_generator.testing.assert_allclose(llvm_output.numpy(), np_C)
+    gsm_data_generator.testing.assert_allclose(cuda_output.numpy(), np_C)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

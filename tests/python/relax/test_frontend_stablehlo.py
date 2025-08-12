@@ -22,13 +22,13 @@ from typing import Union, Tuple, List
 import pytest
 import numpy as np
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import relax
-from gsmDataGen.script import ir as I
-from gsmDataGen.script import tir as T
-from gsmDataGen.script import relax as R
-from gsmDataGen.relax.frontend.stablehlo import from_stablehlo
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import relax
+from gsm_data_generator.script import ir as I
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.script import relax as R
+from gsm_data_generator.relax.frontend.stablehlo import from_stablehlo
 
 
 def generate_np_inputs(
@@ -117,28 +117,28 @@ def check_correctness(
 
     # TODO (yongwww): support multiple targets,
     # "llvm" should be good for this check
-    target = gsmDataGen.target.Target("llvm", host="llvm")
+    target = gsm_data_generator.target.Target("llvm", host="llvm")
     # Compile and run
-    ex = gsmDataGen.compile(ir_mod, target)
-    vm = relax.VirtualMachine(ex, gsmDataGen.cpu())
+    ex = gsm_data_generator.compile(ir_mod, target)
+    vm = relax.VirtualMachine(ex, gsm_data_generator.cpu())
     vm.set_input("main", *inputs_np)
     vm.invoke_stateful("main")
     tvm_output = vm.get_outputs("main")
 
     # Single ouput
-    if isinstance(tvm_output, gsmDataGen.nd.NDArray):
-        gsmDataGen.testing.assert_allclose(tvm_output.numpy(), jax_output, rtol=1e-5, atol=1e-5)
+    if isinstance(tvm_output, gsm_data_generator.nd.NDArray):
+        gsm_data_generator.testing.assert_allclose(tvm_output.numpy(), jax_output, rtol=1e-5, atol=1e-5)
         return
 
     # Multiple ouputs
     assert len(tvm_output) == len(jax_output), "numbers of outputs mismatch"
     for tvm_out, jax_out in zip(tvm_output, jax_output):
-        gsmDataGen.testing.assert_allclose(tvm_out.numpy(), jax_out, rtol=1e-5, atol=1e-5)
+        gsm_data_generator.testing.assert_allclose(tvm_out.numpy(), jax_out, rtol=1e-5, atol=1e-5)
 
 
 def get_vm_res(
-    ir_mod: gsmDataGen.IRModule, weights: Union[np.ndarray, List[np.ndarray]]
-) -> Union[gsmDataGen.nd.NDArray, List[gsmDataGen.nd.NDArray]]:
+    ir_mod: gsm_data_generator.IRModule, weights: Union[np.ndarray, List[np.ndarray]]
+) -> Union[gsm_data_generator.nd.NDArray, List[gsm_data_generator.nd.NDArray]]:
     """Compile and run an ir_module on Relax VM
 
     Parameters
@@ -154,17 +154,17 @@ def get_vm_res(
     out: Union[tvm.nd.NDArray, List[tvm.nd.NDArray]]
         inference result
     """
-    target = gsmDataGen.target.Target("llvm", host="llvm")
+    target = gsm_data_generator.target.Target("llvm", host="llvm")
     # Compile and run
-    ex = gsmDataGen.compile(ir_mod, target)
-    vm = relax.VirtualMachine(ex, gsmDataGen.cpu())
+    ex = gsm_data_generator.compile(ir_mod, target)
+    vm = relax.VirtualMachine(ex, gsm_data_generator.cpu())
     vm.set_input("main", *weights)
     vm.invoke_stateful("main")
     tvm_output = vm.get_outputs("main")
     return tvm_output
 
 
-@gsmDataGen.testing.requires_gpu
+@gsm_data_generator.testing.requires_gpu
 def test_add_dynamic():
     add_dyn = """
     func.func @test(%arg0: tensor<?x?xf32>, %arg1: tensor<?x?xf32>) -> tensor<?x?xf32> {
@@ -192,10 +192,10 @@ def test_add_dynamic():
                 R.output(gv)
             return gv
 
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
-@gsmDataGen.testing.requires_gpu
+@gsm_data_generator.testing.requires_gpu
 def test_unary():
     import jax
 
@@ -228,7 +228,7 @@ def test_unary():
         check_correctness(jax.jit(fn), input_shapes)
 
 
-@gsmDataGen.testing.requires_gpu
+@gsm_data_generator.testing.requires_gpu
 def test_binary():
     import jax
 
@@ -249,7 +249,7 @@ def test_binary():
     check_correctness(jit_fn, input_shapes)
 
 
-@gsmDataGen.testing.requires_gpu
+@gsm_data_generator.testing.requires_gpu
 def test_const():
     import jax
 
@@ -259,7 +259,7 @@ def test_const():
     check_correctness(jax.jit(fn), (2,))
 
 
-@gsmDataGen.testing.requires_gpu
+@gsm_data_generator.testing.requires_gpu
 def test_maximum():
     import jax
     import jax.numpy as jnp
@@ -270,7 +270,7 @@ def test_maximum():
     check_correctness(jax.jit(fn), ((2, 3), (2, 3)))
 
 
-@gsmDataGen.testing.requires_gpu
+@gsm_data_generator.testing.requires_gpu
 def test_minimum():
     import jax
     import jax.numpy as jnp
@@ -281,7 +281,7 @@ def test_minimum():
     check_correctness(jax.jit(fn), ((2, 3), (2, 3)))
 
 
-@gsmDataGen.testing.requires_gpu
+@gsm_data_generator.testing.requires_gpu
 @pytest.mark.skip(
     reason="jaxlib.xla_extension.XlaRuntimeError: FAILED_PRECONDITION: DNN library initialization failed."
 )
@@ -296,7 +296,7 @@ def test_reduce():
     check_correctness(jax.jit(fn), (2, 3, 4, 5))
 
 
-@gsmDataGen.testing.requires_gpu
+@gsm_data_generator.testing.requires_gpu
 @pytest.mark.skip(
     reason="jaxlib.xla_extension.XlaRuntimeError: FAILED_PRECONDITION: DNN library initialization failed."
 )
@@ -311,7 +311,7 @@ def test_reduce_window():
     check_correctness(jax.jit(fn), (2, 3, 4))
 
 
-@gsmDataGen.testing.requires_gpu
+@gsm_data_generator.testing.requires_gpu
 def test_dot_general():
     import jax
 
@@ -322,7 +322,7 @@ def test_dot_general():
     check_correctness(jax.jit(fn), input_shapes)
 
 
-@gsmDataGen.testing.requires_gpu
+@gsm_data_generator.testing.requires_gpu
 @pytest.mark.skip(
     reason="jaxlib.xla_extension.XlaRuntimeError: FAILED_PRECONDITION: DNN library initialization failed."
 )
@@ -356,8 +356,8 @@ def test_conv():
     # compile and run
     tvm_output = get_vm_res(ir_mod, inputs_np)
     # verify accuracy
-    gsmDataGen.testing.assert_allclose(tvm_output.numpy(), jax_output, rtol=1e-5, atol=1e-5)
+    gsm_data_generator.testing.assert_allclose(tvm_output.numpy(), jax_output, rtol=1e-5, atol=1e-5)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

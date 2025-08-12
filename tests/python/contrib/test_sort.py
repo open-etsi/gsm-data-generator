@@ -17,9 +17,9 @@
 """Configure pytest"""
 # pylint: disable=invalid-name
 import numpy as np
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import te
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import te
 
 
 def test_sort():
@@ -34,7 +34,7 @@ def test_sort():
     out = te.extern(
         data.shape,
         [data, sort_num],
-        lambda ins, outs: gsmDataGen.tir.call_packed(
+        lambda ins, outs: gsm_data_generator.tir.call_packed(
             "tvm.contrib.sort.argsort_nms", ins[0], ins[1], outs[0], axis, is_ascend
         ),
         dtype="int32",
@@ -50,14 +50,14 @@ def test_sort():
         [[3, 4, 4], [2, 3, 3], [1, 2, 2], [0, 1, 1], [4, 0, 0]],
     ]
 
-    dev = gsmDataGen.cpu(0)
+    dev = gsm_data_generator.cpu(0)
     target = "llvm"
-    f = gsmDataGen.compile(te.create_prim_func([data, sort_num, out]), target=target)
-    a = gsmDataGen.nd.array(np.array(input_data).astype(data.dtype), dev)
-    b = gsmDataGen.nd.array(np.array(sort_num_input).astype(sort_num.dtype), dev)
-    c = gsmDataGen.nd.array(np.zeros(a.shape, dtype=out.dtype), dev)
+    f = gsm_data_generator.compile(te.create_prim_func([data, sort_num, out]), target=target)
+    a = gsm_data_generator.nd.array(np.array(input_data).astype(data.dtype), dev)
+    b = gsm_data_generator.nd.array(np.array(sort_num_input).astype(sort_num.dtype), dev)
+    c = gsm_data_generator.nd.array(np.zeros(a.shape, dtype=out.dtype), dev)
     f(a, b, c)
-    gsmDataGen.testing.assert_allclose(c.numpy(), np.array(sorted_index).astype(out.dtype), rtol=1e-5)
+    gsm_data_generator.testing.assert_allclose(c.numpy(), np.array(sorted_index).astype(out.dtype), rtol=1e-5)
 
 
 def test_sort_np():
@@ -71,25 +71,25 @@ def test_sort_np():
     out = te.extern(
         data.shape,
         [data, sort_num],
-        lambda ins, outs: gsmDataGen.tir.call_packed(
+        lambda ins, outs: gsm_data_generator.tir.call_packed(
             "tvm.contrib.sort.argsort_nms", ins[0], ins[1], outs[0], axis, is_ascend
         ),
         dtype="int32",
         name="sort_tensor",
     )
 
-    dev = gsmDataGen.cpu(0)
+    dev = gsm_data_generator.cpu(0)
     target = "llvm"
-    f = gsmDataGen.compile(te.create_prim_func([data, sort_num, out]), target=target)
+    f = gsm_data_generator.compile(te.create_prim_func([data, sort_num, out]), target=target)
 
     np_data = np.random.uniform(size=dshape)
     np_out = np.argsort(np_data, axis=axis)
     sort_num_input = np.full(reduced_shape, dshape[axis])
-    a = gsmDataGen.nd.array(np.array(np_data).astype(data.dtype), dev)
-    b = gsmDataGen.nd.array(np.array(sort_num_input).astype(sort_num.dtype), dev)
-    c = gsmDataGen.nd.array(np.zeros(a.shape, dtype=out.dtype), dev)
+    a = gsm_data_generator.nd.array(np.array(np_data).astype(data.dtype), dev)
+    b = gsm_data_generator.nd.array(np.array(sort_num_input).astype(sort_num.dtype), dev)
+    c = gsm_data_generator.nd.array(np.zeros(a.shape, dtype=out.dtype), dev)
     f(a, b, c)
-    gsmDataGen.testing.assert_allclose(c.numpy(), np_out, rtol=1e-5)
+    gsm_data_generator.testing.assert_allclose(c.numpy(), np_out, rtol=1e-5)
 
 
 if __name__ == "__main__":

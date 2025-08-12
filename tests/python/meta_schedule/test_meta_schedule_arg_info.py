@@ -16,8 +16,8 @@
 # under the License.
 # pylint: disable=missing-module-docstring,missing-function-docstring,missing-class-docstring
 
-from gsmDataGen.meta_schedule.arg_info import ArgInfo, TensorInfo
-from gsmDataGen.script import tir as T
+from gsm_data_generator.meta_schedule.arg_info import ArgInfo, TensorInfo
+from gsm_data_generator.script import tir as T
 
 # pylint: disable=invalid-name,no-member,line-too-long,too-many-nested-blocks,no-self-argument
 # fmt: off

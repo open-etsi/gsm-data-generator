@@ -21,14 +21,14 @@ from typing import List, Tuple
 import numpy as np
 import pytest
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import DataType, DataTypeCode, IRModule
-from gsmDataGen import dlight as dl
-from gsmDataGen import relax, te, tir, topi
-from gsmDataGen.script import ir as I
-from gsmDataGen.script import relax as R
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import DataType, DataTypeCode, IRModule
+from gsm_data_generator import dlight as dl
+from gsm_data_generator import relax, te, tir, topi
+from gsm_data_generator.script import ir as I
+from gsm_data_generator.script import relax as R
+from gsm_data_generator.script import tir as T
 
 try:
     import ml_dtypes
@@ -43,7 +43,7 @@ except ImportError:
         ("float8_e5m2", "__nv_fp8_e5m2"),
     ],
 )
-@gsmDataGen.testing.requires_cuda_compute_version(10)
+@gsm_data_generator.testing.requires_cuda_compute_version(10)
 def test_fp8_conversions(input):
     dtype, nv_dtype = input
 
@@ -61,7 +61,7 @@ def test_fp8_conversions(input):
                 T.writes(C[v_i])
                 C[v_i] = T.Cast(dtype, T.Cast("float16", A[v_i]) + T.Cast("float16", B[v_i]))
 
-    sch = gsmDataGen.tir.Schedule(add)
+    sch = gsm_data_generator.tir.Schedule(add)
     block = sch.get_block("C")
     b = sch.get_loops(block)
     bx, tx = sch.split(b[0], factors=[None, 32])
@@ -69,19 +69,19 @@ def test_fp8_conversions(input):
     sch.bind(tx, "threadIdx.x")
 
     target = "cuda"
-    fadd = gsmDataGen.tir.build(sch.mod, target=target)
+    fadd = gsm_data_generator.tir.build(sch.mod, target=target)
 
     cuda_src = fadd.imported_modules[0].get_source()
     assert nv_dtype in cuda_src, f"{nv_dtype} datatype not found in generated CUDA"
 
-    dev = gsmDataGen.device(target, 0)
+    dev = gsm_data_generator.device(target, 0)
 
-    a = gsmDataGen.nd.array(np.random.uniform(low=0, high=5, size=64).astype(dtype), dev)
-    b = gsmDataGen.nd.array(np.random.uniform(low=0, high=5, size=64).astype(dtype), dev)
-    c = gsmDataGen.nd.array(np.zeros(64, dtype=dtype), dev)
+    a = gsm_data_generator.nd.array(np.random.uniform(low=0, high=5, size=64).astype(dtype), dev)
+    b = gsm_data_generator.nd.array(np.random.uniform(low=0, high=5, size=64).astype(dtype), dev)
+    c = gsm_data_generator.nd.array(np.zeros(64, dtype=dtype), dev)
     fadd(a, b, c)
 
-    gsmDataGen.testing.assert_allclose(
+    gsm_data_generator.testing.assert_allclose(
         c.numpy().astype("float16"), (a.numpy() + b.numpy()).astype("float16")
     )
 
@@ -90,7 +90,7 @@ def test_fp8_conversions(input):
     "dtype",
     ["float8_e4m3fn", "float8_e5m2", "float8_e8m0fnu"],
 )
-@gsmDataGen.testing.requires_cuda_compute_version(10)
+@gsm_data_generator.testing.requires_cuda_compute_version(10)
 def test_fp8_packing(dtype):
     length = 64
     vector_length = 4
@@ -117,7 +117,7 @@ def test_fp8_packing(dtype):
                 T.writes(B[v_i])
                 B[v_i] = T.reinterpret(native_dtype, R[v_i])
 
-    sch = gsmDataGen.tir.Schedule(add)
+    sch = gsm_data_generator.tir.Schedule(add)
     block = sch.get_block("R")
     b = sch.get_loops(block)
     bx, tx = sch.split(b[0], factors=[None, 32])
@@ -130,20 +130,20 @@ def test_fp8_packing(dtype):
     sch.bind(tx, "threadIdx.x")
 
     target = "cuda"
-    f = gsmDataGen.compile(sch.mod, target=target)
-    dev = gsmDataGen.device(target, 0)
+    f = gsm_data_generator.compile(sch.mod, target=target)
+    dev = gsm_data_generator.device(target, 0)
 
     np_shape = (length, vector_length)
     a_np = np.random.uniform(low=0, high=5, size=np_shape).astype(dtype)
-    a = gsmDataGen.nd.empty(shape=(length,), dtype=native_dtype, device=dev)
-    r = gsmDataGen.nd.empty(shape=(length,), dtype=packed_dtype, device=dev)
-    b = gsmDataGen.nd.empty(shape=(length,), dtype=native_dtype, device=dev)
+    a = gsm_data_generator.nd.empty(shape=(length,), dtype=native_dtype, device=dev)
+    r = gsm_data_generator.nd.empty(shape=(length,), dtype=packed_dtype, device=dev)
+    b = gsm_data_generator.nd.empty(shape=(length,), dtype=native_dtype, device=dev)
     a.copyfrom(a_np)
     f(a, r, b)
-    gsmDataGen.testing.assert_allclose(a.numpy().astype("float16"), b.numpy().astype("float16"))
+    gsm_data_generator.testing.assert_allclose(a.numpy().astype("float16"), b.numpy().astype("float16"))
 
 
-native_dtype, promoted_dtype, numpytype = gsmDataGen.testing.parameters(
+native_dtype, promoted_dtype, numpytype = gsm_data_generator.testing.parameters(
     ("float8_e4m3fn", "float32", "float8_e4m3fn"),
     ("float8_e4m3fn", "float16", "float8_e4m3fn"),
     ("float8_e4m3fnx2", "float32x2", "float8_e4m3fn"),
@@ -160,7 +160,7 @@ native_dtype, promoted_dtype, numpytype = gsmDataGen.testing.parameters(
 )
 
 
-@gsmDataGen.testing.requires_cuda_compute_version(10)
+@gsm_data_generator.testing.requires_cuda_compute_version(10)
 def test_fp8_vector_conversions(native_dtype, promoted_dtype, numpytype):
     vector_length = 64
 
@@ -181,7 +181,7 @@ def test_fp8_vector_conversions(native_dtype, promoted_dtype, numpytype):
                     native_dtype, T.Cast(promoted_dtype, A[v_i]) + T.Cast(promoted_dtype, B[v_i])
                 )
 
-    sch = gsmDataGen.tir.Schedule(add)
+    sch = gsm_data_generator.tir.Schedule(add)
     block = sch.get_block("C")
     b = sch.get_loops(block)
     bx, tx = sch.split(b[0], factors=[None, 32])
@@ -189,9 +189,9 @@ def test_fp8_vector_conversions(native_dtype, promoted_dtype, numpytype):
     sch.bind(tx, "threadIdx.x")
 
     target = "cuda"
-    fadd = gsmDataGen.tir.build(sch.mod, target=target)
+    fadd = gsm_data_generator.tir.build(sch.mod, target=target)
     cuda_src = fadd.imported_modules[0].get_source()
-    dev = gsmDataGen.device(target, 0)
+    dev = gsm_data_generator.device(target, 0)
 
     if "x" in native_dtype:
         lanes = int(native_dtype.split("x")[-1])
@@ -205,23 +205,23 @@ def test_fp8_vector_conversions(native_dtype, promoted_dtype, numpytype):
 
     np_shape = (vector_length, lanes) if lanes > 1 else (vector_length,)
     a_np = np.random.uniform(low=0, high=5, size=np_shape).astype(numpytype)
-    a = gsmDataGen.nd.empty(shape=(vector_length,), dtype=native_dtype, device=dev)
+    a = gsm_data_generator.nd.empty(shape=(vector_length,), dtype=native_dtype, device=dev)
     a.copyfrom(a_np)
     b_np = np.random.uniform(low=0, high=5, size=np_shape).astype(numpytype)
-    b = gsmDataGen.nd.empty(shape=(vector_length,), dtype=native_dtype, device=dev)
+    b = gsm_data_generator.nd.empty(shape=(vector_length,), dtype=native_dtype, device=dev)
     b.copyfrom(b_np)
-    c = gsmDataGen.nd.empty(shape=(vector_length,), dtype=native_dtype, device=dev)
+    c = gsm_data_generator.nd.empty(shape=(vector_length,), dtype=native_dtype, device=dev)
     fadd(a, b, c)
 
-    gsmDataGen.testing.assert_allclose(
+    gsm_data_generator.testing.assert_allclose(
         c.numpy().astype(promoted_base_dtype), (a_np + b_np).astype(promoted_base_dtype)
     )
 
 
-bcast_length = gsmDataGen.testing.parameter(2, 4, 6, 8)
+bcast_length = gsm_data_generator.testing.parameter(2, 4, 6, 8)
 
 
-@gsmDataGen.testing.requires_cuda_compute_version(8)
+@gsm_data_generator.testing.requires_cuda_compute_version(8)
 def test_half_broadcast(bcast_length):
     dtype = "float16"
 
@@ -231,7 +231,7 @@ def test_half_broadcast(bcast_length):
             with T.block("broadcast"):
                 vec[0:bcast_length] = T.broadcast(a[()], bcast_length)
 
-    sch = gsmDataGen.tir.Schedule(vector_broadcast)
+    sch = gsm_data_generator.tir.Schedule(vector_broadcast)
     block = sch.get_block("broadcast")
     b = sch.get_loops(block)
     bx, tx = sch.split(b[0], factors=[None, 1])
@@ -239,24 +239,24 @@ def test_half_broadcast(bcast_length):
     sch.bind(tx, "threadIdx.x")
 
     target = "cuda"
-    func = gsmDataGen.compile(sch.mod, target=target)
-    dev = gsmDataGen.device(target, 0)
+    func = gsm_data_generator.compile(sch.mod, target=target)
+    dev = gsm_data_generator.device(target, 0)
 
     a_np = np.random.uniform(low=0, high=4, size=()).astype(dtype)
-    a = gsmDataGen.nd.array(a_np, device=dev)
-    b = gsmDataGen.nd.empty((bcast_length,), dtype=dtype, device=dev)
+    a = gsm_data_generator.nd.array(a_np, device=dev)
+    b = gsm_data_generator.nd.empty((bcast_length,), dtype=dtype, device=dev)
 
     func(a, b)
 
     b_np = np.full((bcast_length,), a_np)
 
-    gsmDataGen.testing.assert_allclose(b.numpy(), b_np)
+    gsm_data_generator.testing.assert_allclose(b.numpy(), b_np)
 
 
-vector_length = gsmDataGen.testing.parameter(2, 4)
+vector_length = gsm_data_generator.testing.parameter(2, 4)
 
 
-@gsmDataGen.testing.requires_cuda_compute_version(8)
+@gsm_data_generator.testing.requires_cuda_compute_version(8)
 def test_half_misaligned_vector_load(vector_length):
     dtype = "float16"
     vec_dtype = dtype + "x" + str(vector_length)
@@ -272,13 +272,13 @@ def test_half_misaligned_vector_load(vector_length):
                 B[i] = A[vec_index]
 
     target = "cuda"
-    f = gsmDataGen.compile(vector_load, target=target)
+    f = gsm_data_generator.compile(vector_load, target=target)
 
-    dev = gsmDataGen.device(target, 0)
+    dev = gsm_data_generator.device(target, 0)
     a_np = np.random.uniform(low=0, high=1, size=(length,)).astype(dtype)
-    a = gsmDataGen.nd.array(a_np, device=dev)
+    a = gsm_data_generator.nd.array(a_np, device=dev)
 
-    b = gsmDataGen.nd.empty((length // vector_length,), dtype=vec_dtype, device=dev)
+    b = gsm_data_generator.nd.empty((length // vector_length,), dtype=vec_dtype, device=dev)
 
     f(a, b)
 
@@ -288,10 +288,10 @@ def test_half_misaligned_vector_load(vector_length):
         start_index = (i + 1) * vector_length - 1
         b_np[i, :] = a_np[start_index - vector_length + 1 : start_index + 1][::-1]
 
-    gsmDataGen.testing.assert_allclose(b.numpy(), b_np)
+    gsm_data_generator.testing.assert_allclose(b.numpy(), b_np)
 
 
-@gsmDataGen.testing.requires_cuda_compute_version(8)
+@gsm_data_generator.testing.requires_cuda_compute_version(8)
 def test_half4_vector_add():
     dtype = "float16"
     length = 64
@@ -313,7 +313,7 @@ def test_half4_vector_add():
                 T.writes(C[v_i])
                 C[v_i] = A[v_i] + B[v_i]
 
-    sch = gsmDataGen.tir.Schedule(add)
+    sch = gsm_data_generator.tir.Schedule(add)
     block = sch.get_block("C")
     b = sch.get_loops(block)
     bx, tx = sch.split(b[0], factors=[None, 32])
@@ -321,20 +321,20 @@ def test_half4_vector_add():
     sch.bind(tx, "threadIdx.x")
 
     target = "cuda"
-    fadd = gsmDataGen.compile(sch.mod, target=target)
-    dev = gsmDataGen.device(target, 0)
+    fadd = gsm_data_generator.compile(sch.mod, target=target)
+    dev = gsm_data_generator.device(target, 0)
 
     a_np = np.random.uniform(-1, 1, (length, vector_length)).astype(dtype)
-    a = gsmDataGen.nd.empty(shape=(length,), dtype=vec_dtype, device=dev)
+    a = gsm_data_generator.nd.empty(shape=(length,), dtype=vec_dtype, device=dev)
     a.copyfrom(a_np)
     b_np = np.random.uniform(-1, 1, (length, vector_length)).astype(dtype)
-    b = gsmDataGen.nd.empty(shape=(length,), dtype=vec_dtype, device=dev)
+    b = gsm_data_generator.nd.empty(shape=(length,), dtype=vec_dtype, device=dev)
     b.copyfrom(b_np)
-    c = gsmDataGen.nd.empty(shape=(length,), dtype=vec_dtype, device=dev)
+    c = gsm_data_generator.nd.empty(shape=(length,), dtype=vec_dtype, device=dev)
 
     fadd(a, b, c)
     c_expected = a_np + b_np
-    gsmDataGen.testing.assert_allclose(c.numpy(), c_expected, atol=1e-5, rtol=1e-5)
+    gsm_data_generator.testing.assert_allclose(c.numpy(), c_expected, atol=1e-5, rtol=1e-5)
 
 
 class BaseFP8E4M3QuantScaleOnly:
@@ -672,14 +672,14 @@ class BaseFP8E4M3QuantScaleOnly:
         )
         # quant_mod.show()
 
-        target = gsmDataGen.target.Target(target_str)
+        target = gsm_data_generator.target.Target(target_str)
         with target:
             quant_mod = dl.ApplyDefaultSchedule(
                 dl.gpu.Reduction(),
                 dl.gpu.GeneralReduction(),
                 dl.gpu.Fallback(),
             )(quant_mod)
-        ex_1 = gsmDataGen.compile(quant_mod, target=target)
+        ex_1 = gsm_data_generator.compile(quant_mod, target=target)
         vm_1 = relax.VirtualMachine(ex_1, dev)
 
         dequant_mod = cls.create_dequantize_func(
@@ -703,13 +703,13 @@ class BaseFP8E4M3QuantScaleOnly:
             )(dequant_mod)
         dequant_mod.show()
 
-        ex_2 = gsmDataGen.compile(dequant_mod, target=target)
+        ex_2 = gsm_data_generator.compile(dequant_mod, target=target)
         vm_2 = relax.VirtualMachine(ex_2, dev)
 
         def print_cuda(target, mod, name=None):
             if name:
                 mod = mod[name]
-            f = gsmDataGen.tir.build(mod, target=target)
+            f = gsm_data_generator.tir.build(mod, target=target)
             cuda_src = f.imported_modules[0].get_source()
             print(cuda_src)
 
@@ -720,55 +720,55 @@ class BaseFP8E4M3QuantScaleOnly:
 
 class TestFP8e4x4QuantDequantScale(BaseFP8E4M3QuantScaleOnly):
     # weight_shape = tvm.testing.parameter((32000, 4096), (4096, 14336))
-    weight_shape = gsmDataGen.testing.parameter((128, 256), (128, 64))
+    weight_shape = gsm_data_generator.testing.parameter((128, 256), (128, 64))
 
-    @gsmDataGen.testing.fixture
+    @gsm_data_generator.testing.fixture
     def group_size(self):
         return 64
 
-    @gsmDataGen.testing.fixture
+    @gsm_data_generator.testing.fixture
     def axis(self):
         return 1
 
-    @gsmDataGen.testing.fixture
+    @gsm_data_generator.testing.fixture
     def model_dtype(self):
         return "float16"
 
-    @gsmDataGen.testing.fixture
+    @gsm_data_generator.testing.fixture
     def storage_dtype(self):
         return "uint32"
 
-    @gsmDataGen.testing.fixture
+    @gsm_data_generator.testing.fixture
     def quantize_dtype(self):
         return "float8_e4m3fn"
 
-    @gsmDataGen.testing.fixture
+    @gsm_data_generator.testing.fixture
     def num_el_per_storage(self):
         return 4
 
-    @gsmDataGen.testing.fixture
+    @gsm_data_generator.testing.fixture
     def max_int_value(self):
         return 448
 
-    @gsmDataGen.testing.fixture
+    @gsm_data_generator.testing.fixture
     def target_str(self):
         return "cuda"
 
-    @gsmDataGen.testing.fixture
+    @gsm_data_generator.testing.fixture
     def scale_shape(self, weight_shape, group_size, axis):
         return [
             (d + group_size - 1) // group_size if axis == i else d
             for i, d in enumerate(weight_shape)
         ]
 
-    @gsmDataGen.testing.fixture
+    @gsm_data_generator.testing.fixture
     def quant_weight_shape(self, weight_shape, num_el_per_storage, axis):
         return [
             (d + num_el_per_storage - 1) // num_el_per_storage if axis == i else d
             for i, d in enumerate(weight_shape)
         ]
 
-    @gsmDataGen.testing.fixture
+    @gsm_data_generator.testing.fixture
     def compiled_functions(
         self,
         weight_shape,
@@ -783,7 +783,7 @@ class TestFP8e4x4QuantDequantScale(BaseFP8E4M3QuantScaleOnly):
         axis,
         target_str,
     ):
-        dev = gsmDataGen.device(target_str, 0)
+        dev = gsm_data_generator.device(target_str, 0)
         return self.compile_quant_and_dequant_by_scale(
             weight_shape,
             scale_shape,
@@ -799,22 +799,22 @@ class TestFP8e4x4QuantDequantScale(BaseFP8E4M3QuantScaleOnly):
             dev,
         )
 
-    @gsmDataGen.testing.requires_cuda_compute_version(8, 9)
+    @gsm_data_generator.testing.requires_cuda_compute_version(8, 9)
     def test_main(self, weight_shape, model_dtype, target_str, compiled_functions):
         quant, dequant = compiled_functions
-        dev = gsmDataGen.device(target_str, 0)
+        dev = gsm_data_generator.device(target_str, 0)
 
         weight_np = np.random.uniform(-100, 100, weight_shape).astype(model_dtype)
-        weight = gsmDataGen.nd.array(weight_np, device=dev)
+        weight = gsm_data_generator.nd.array(weight_np, device=dev)
         quant_weight, scales = quant(weight)
         quant_weight_np, scales_np = quant_weight.numpy(), scales.numpy()
 
         dequant_weight = dequant(quant_weight, scales)
         dequant_weight_np = dequant_weight.numpy()
-        gsmDataGen.testing.assert_allclose(weight_np, dequant_weight_np, atol=10, rtol=5e-2)
+        gsm_data_generator.testing.assert_allclose(weight_np, dequant_weight_np, atol=10, rtol=5e-2)
 
 
-@gsmDataGen.testing.requires_cuda_compute_version(10)
+@gsm_data_generator.testing.requires_cuda_compute_version(10)
 @pytest.mark.parametrize("dtype", ["float8_e5m2", "float8_e4m3fn", "float8_e8m0fnu"])
 def test_const(dtype):
     @T.prim_func
@@ -825,11 +825,11 @@ def test_const(dtype):
                 A_local[i] = T.float32(1.0).astype(dtype)
             A[tx] = A_local[tx]
 
-    mod = gsmDataGen.IRModule({"main": func})
-    gsmDataGen.compile(mod, target="cuda")
+    mod = gsm_data_generator.IRModule({"main": func})
+    gsm_data_generator.compile(mod, target="cuda")
 
 
-@gsmDataGen.testing.requires_cuda_compute_version(8, 9)
+@gsm_data_generator.testing.requires_cuda_compute_version(8, 9)
 @pytest.mark.parametrize("dtype", ["float8_e5m2", "float8_e4m3fn"])
 @pytest.mark.parametrize("vec_len", [2, 4, 8, 16])
 def test_copy(dtype, vec_len):
@@ -854,8 +854,8 @@ def test_copy(dtype, vec_len):
             for i in T.vectorized(vec_len):
                 B[tx, i] = A[tx, i]
 
-    mod = gsmDataGen.IRModule({"main": func})
-    rtmod = gsmDataGen.compile(mod, target="cuda")
+    mod = gsm_data_generator.IRModule({"main": func})
+    rtmod = gsm_data_generator.compile(mod, target="cuda")
 
 
 num_experts = 8
@@ -863,7 +863,7 @@ reduce_size = 1792
 spatial_size = 4096
 
 
-@gsmDataGen.testing.requires_cuda_compute_version(9)
+@gsm_data_generator.testing.requires_cuda_compute_version(9)
 @pytest.mark.skipif(ml_dtypes is None, reason="Requires ml_dtypes to be installed")
 def test_moe_gemv_shfl_down_illegal_instr():
     global num_experts
@@ -930,16 +930,16 @@ def test_moe_gemv_shfl_down_illegal_instr():
                 R.output(gv)
             return gv
 
-    def _pipeline(mod: gsmDataGen.ir.IRModule) -> gsmDataGen.ir.IRModule:
-        seq = gsmDataGen.transform.Sequential(
+    def _pipeline(mod: gsm_data_generator.ir.IRModule) -> gsm_data_generator.ir.IRModule:
+        seq = gsm_data_generator.transform.Sequential(
             [
-                gsmDataGen.relax.transform.LegalizeOps(),
-                gsmDataGen.dlight.ApplyDefaultSchedule(
-                    gsmDataGen.dlight.gpu.Matmul(),
-                    gsmDataGen.dlight.gpu.GEMV(),
-                    gsmDataGen.dlight.gpu.Reduction(),
-                    gsmDataGen.dlight.gpu.GeneralReduction(),
-                    gsmDataGen.dlight.gpu.Fallback(),
+                gsm_data_generator.relax.transform.LegalizeOps(),
+                gsm_data_generator.dlight.ApplyDefaultSchedule(
+                    gsm_data_generator.dlight.gpu.Matmul(),
+                    gsm_data_generator.dlight.gpu.GEMV(),
+                    gsm_data_generator.dlight.gpu.Reduction(),
+                    gsm_data_generator.dlight.gpu.GeneralReduction(),
+                    gsm_data_generator.dlight.gpu.Fallback(),
                 ),
             ]
         )
@@ -948,23 +948,23 @@ def test_moe_gemv_shfl_down_illegal_instr():
 
     mod = SingleBatchMoE_float8_e4m3
 
-    target = gsmDataGen.target.Target("cuda")
-    with gsmDataGen.transform.PassContext(config={"relax.backend.use_cuda_graph": False}) and target:
+    target = gsm_data_generator.target.Target("cuda")
+    with gsm_data_generator.transform.PassContext(config={"relax.backend.use_cuda_graph": False}) and target:
         mod = _pipeline(mod)
-        rt_mod = gsmDataGen.compile(mod, target=target)
-    dev = gsmDataGen.cuda(0)
+        rt_mod = gsm_data_generator.compile(mod, target=target)
+    dev = gsm_data_generator.cuda(0)
 
     x_data = np.zeros((1, reduce_size), dtype=np.float16)
-    x = gsmDataGen.nd.array(x_data, device=dev)
+    x = gsm_data_generator.nd.array(x_data, device=dev)
 
     indptr_data = np.zeros((1, 2), dtype=np.int32)
-    indptr = gsmDataGen.nd.array(indptr_data, device=dev)
+    indptr = gsm_data_generator.nd.array(indptr_data, device=dev)
 
     weight_data = np.zeros((num_experts, spatial_size, reduce_size), dtype="float8_e4m3fn")
-    weight = gsmDataGen.nd.array(weight_data, device=dev)
+    weight = gsm_data_generator.nd.array(weight_data, device=dev)
 
     scale_data = np.zeros((1,), dtype=np.float32)
-    scale = gsmDataGen.nd.array(scale_data, device=dev)
+    scale = gsm_data_generator.nd.array(scale_data, device=dev)
 
     vm = relax.VirtualMachine(rt_mod, dev)
     # Ensure this runs without failure. Utilizing dlight thread extents TS, TR = 4, 64
@@ -974,7 +974,7 @@ def test_moe_gemv_shfl_down_illegal_instr():
 
 @pytest.mark.parametrize("vec_length", [2, 4])
 @pytest.mark.parametrize("dtype", ["float16", "bfloat16"])
-@gsmDataGen.testing.requires_cuda_compute_version(8, 9)
+@gsm_data_generator.testing.requires_cuda_compute_version(8, 9)
 def test_fp8_fp16_bf16_vectorize_arith(vec_length, dtype):
     @T.prim_func
     def func_vectorize(
@@ -993,16 +993,16 @@ def test_fp8_fp16_bf16_vectorize_arith(vec_length, dtype):
     sch.bind(lo, "threadIdx.x")
     sch.vectorize(li)
 
-    device = gsmDataGen.cuda()
-    target = gsmDataGen.target.Target.from_device(device)
+    device = gsm_data_generator.cuda()
+    target = gsm_data_generator.target.Target.from_device(device)
     f = tir.build(sch.mod, target=target)
 
     a_np = np.random.rand(128).astype("float8_e4m3fn")
     b_np = np.random.rand(128).astype(dtype)
     c_np = (a_np.astype(dtype) * b_np) + 3
-    a_tvm = gsmDataGen.nd.array(a_np, device=device)
-    b_tvm = gsmDataGen.nd.array(b_np, device=device)
-    c_tvm = gsmDataGen.nd.empty((128,), dtype=dtype, device=device)
+    a_tvm = gsm_data_generator.nd.array(a_np, device=device)
+    b_tvm = gsm_data_generator.nd.array(b_np, device=device)
+    c_tvm = gsm_data_generator.nd.empty((128,), dtype=dtype, device=device)
     f(a_tvm, b_tvm, c_tvm)
     c_tvm = c_tvm.numpy()
     np.testing.assert_allclose(
@@ -1011,4 +1011,4 @@ def test_fp8_fp16_bf16_vectorize_arith(vec_length, dtype):
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

@@ -15,13 +15,13 @@
 # specific language governing permissions and limitations
 # under the License.
 # pylint: disable=missing-module-docstring,missing-function-docstring,missing-class-docstring
-import gsmDataGen
-from gsmDataGen import meta_schedule as ms
-from gsmDataGen.script import tir as T
-from gsmDataGen.tir.tensor_intrin import cuda, rocm, x86
+import gsm_data_generator
+from gsm_data_generator import meta_schedule as ms
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.tir.tensor_intrin import cuda, rocm, x86
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Conv2dNCHWcVNNIModuleTiled:
     @T.prim_func
     def main(
@@ -141,7 +141,7 @@ class Conv2dNCHWcVNNIModuleTiled:
                         )
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Conv2dNCHWcVNNIModuleTensorized:
     @T.prim_func
     def main(
@@ -244,7 +244,7 @@ class Conv2dNCHWcVNNIModuleTensorized:
                     )
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class DenseDP4ATiled:
     @T.prim_func
     def main(
@@ -330,7 +330,7 @@ class DenseDP4ATiled:
                             compute[v0, v1] = compute_local[v0, v1]
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class DenseDP4ATensorized:
     @T.prim_func
     def main(
@@ -467,7 +467,7 @@ def _create_context(mod, target, postprocs) -> ms.TuneContext:
 
 def test_rewrite_tensorize_conv2d_nchwc_vnni():
     mod = Conv2dNCHWcVNNIModuleTiled
-    target = gsmDataGen.target.Target("llvm -mcpu=cascadelake -num-cores 4")
+    target = gsm_data_generator.target.Target("llvm -mcpu=cascadelake -num-cores 4")
     ctx = _create_context(
         mod,
         target,
@@ -476,18 +476,18 @@ def test_rewrite_tensorize_conv2d_nchwc_vnni():
             ms.postproc.RewriteTensorize(True),
         ],
     )
-    sch = gsmDataGen.tir.Schedule(mod, debug_mask="all")
+    sch = gsm_data_generator.tir.Schedule(mod, debug_mask="all")
     sch.enter_postproc()
 
     for proc in ctx.space_generator.postprocs:
         proc.apply(sch)
 
-    gsmDataGen.ir.assert_structural_equal(sch.mod, Conv2dNCHWcVNNIModuleTensorized)
+    gsm_data_generator.ir.assert_structural_equal(sch.mod, Conv2dNCHWcVNNIModuleTensorized)
 
 
 def test_rewrite_tensorize_dense_dp4a():
     mod = DenseDP4ATiled
-    target = gsmDataGen.target.Target("nvidia/geforce-rtx-3070")
+    target = gsm_data_generator.target.Target("nvidia/geforce-rtx-3070")
     ctx = _create_context(
         mod,
         target,
@@ -497,13 +497,13 @@ def test_rewrite_tensorize_dense_dp4a():
             ms.postproc.RewriteTensorize(),
         ],
     )
-    sch = gsmDataGen.tir.Schedule(mod, debug_mask="all")
+    sch = gsm_data_generator.tir.Schedule(mod, debug_mask="all")
     sch.enter_postproc()
 
     for proc in ctx.space_generator.postprocs:
         proc.apply(sch)
 
-    gsmDataGen.ir.assert_structural_equal(sch.mod, DenseDP4ATensorized)
+    gsm_data_generator.ir.assert_structural_equal(sch.mod, DenseDP4ATensorized)
 
 
 if __name__ == "__main__":

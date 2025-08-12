@@ -15,24 +15,24 @@
 # specific language governing permissions and limitations
 # under the License.
 
-import gsmDataGen
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+from gsm_data_generator.script import tir as T
 
 
-@gsmDataGen.register_func("tvm.info.mem.global.test_with_head_address")
+@gsm_data_generator.register_func("tvm.info.mem.global.test_with_head_address")
 def mem_info_with_head_address():
-    return gsmDataGen.ir.make_node(
+    return gsm_data_generator.ir.make_node(
         "target.MemoryInfo",
         unit_bits=8,
         max_simd_bits=32,
         max_num_bits=128,
-        head_address=gsmDataGen.tir.call_extern("handle", "dummy_head_address"),
+        head_address=gsm_data_generator.tir.call_extern("handle", "dummy_head_address"),
     )
 
 
-@gsmDataGen.register_func("tvm.info.mem.global.test_without_head_address")
+@gsm_data_generator.register_func("tvm.info.mem.global.test_without_head_address")
 def mem_info_without_head_address():
-    return gsmDataGen.ir.make_node(
+    return gsm_data_generator.ir.make_node(
         "target.MemoryInfo",
         unit_bits=8,
         max_simd_bits=32,
@@ -41,8 +41,8 @@ def mem_info_without_head_address():
     )
 
 
-class BaseCompare(gsmDataGen.testing.CompareBeforeAfter):
-    transform = gsmDataGen.tir.transform.LowerDeviceStorageAccessInfo()
+class BaseCompare(gsm_data_generator.testing.CompareBeforeAfter):
+    transform = gsm_data_generator.tir.transform.LowerDeviceStorageAccessInfo()
 
 
 class TestLowerCPUAccessibleScope(BaseCompare):
@@ -115,4 +115,4 @@ class TestLowerCPUInaccessibleScopeWithDeclBuffer(BaseCompare):
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

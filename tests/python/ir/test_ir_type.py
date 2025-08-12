@@ -15,26 +15,26 @@
 # specific language governing permissions and limitations
 # under the License.
 """Test type nodes in the IR"""
-import gsmDataGen
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+from gsm_data_generator.script import tir as T
 
 
 def check_json_roundtrip(node):
-    json_str = gsmDataGen.ir.save_json(node)
-    back = gsmDataGen.ir.load_json(json_str)
-    gsmDataGen.ir.assert_structural_equal(back, node, map_free_vars=True)
+    json_str = gsm_data_generator.ir.save_json(node)
+    back = gsm_data_generator.ir.load_json(json_str)
+    gsm_data_generator.ir.assert_structural_equal(back, node, map_free_vars=True)
 
 
 def test_prim_type():
-    x = gsmDataGen.ir.PrimType("int32")
-    assert isinstance(x, gsmDataGen.ir.PrimType)
+    x = gsm_data_generator.ir.PrimType("int32")
+    assert isinstance(x, gsm_data_generator.ir.PrimType)
     assert x.dtype == "int32"
 
 
 def test_func_type():
-    arg_types = gsmDataGen.runtime.convert([])
-    ret_type = gsmDataGen.ir.PrimType("float32")
-    tf = gsmDataGen.ir.FuncType(arg_types, ret_type)
+    arg_types = gsm_data_generator.runtime.convert([])
+    ret_type = gsm_data_generator.ir.PrimType("float32")
+    tf = gsm_data_generator.ir.FuncType(arg_types, ret_type)
     assert tf.arg_types == arg_types
     assert tf.ret_type == ret_type
     assert tf.span == None
@@ -44,11 +44,11 @@ def test_func_type():
 
 
 def test_tuple_type():
-    tf = gsmDataGen.ir.FuncType([], gsmDataGen.ir.TupleType([]))
-    tt = gsmDataGen.ir.PrimType("float32")
-    fields = gsmDataGen.runtime.convert([tf, tt])
+    tf = gsm_data_generator.ir.FuncType([], gsm_data_generator.ir.TupleType([]))
+    tt = gsm_data_generator.ir.PrimType("float32")
+    fields = gsm_data_generator.runtime.convert([tf, tt])
 
-    tup_ty = gsmDataGen.ir.TupleType(fields)
+    tup_ty = gsm_data_generator.ir.TupleType(fields)
     assert tup_ty.fields == fields
     str(tup_ty)
     check_json_roundtrip(tup_ty)

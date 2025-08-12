@@ -16,13 +16,13 @@
 # under the License.
 import pytest
 
-import gsmDataGen
-from gsmDataGen.script import tir as T, ir as I
-import gsmDataGen.testing
+import gsm_data_generator
+from gsm_data_generator.script import tir as T, ir as I
+import gsm_data_generator.testing
 
 
 def test_annotate_entry_func_single_primfunc():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class MockModule:
         @T.prim_func(private=True)
         def func1(A: T.Buffer((16,), "float32")):
@@ -34,7 +34,7 @@ def test_annotate_entry_func_single_primfunc():
     mod = MockModule
     assert mod
     assert not mod["func1"].attrs
-    after = gsmDataGen.tir.transform.AnnotateEntryFunc()(mod)
+    after = gsm_data_generator.tir.transform.AnnotateEntryFunc()(mod)
     assert (
         after["func1"].attrs
         and "tir.is_entry_func" in after["func1"].attrs
@@ -43,7 +43,7 @@ def test_annotate_entry_func_single_primfunc():
 
 
 # Test module
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class MockModule:
     @T.prim_func(private=True)
     def func1(A: T.Buffer((16,), "float32")):
@@ -67,17 +67,17 @@ def test_annotate_entry_func_multiple_primfunc():
     assert not mod["func1"].attrs
     assert not mod["func2"].attrs
     # This should fail
-    after = gsmDataGen.tir.transform.AnnotateEntryFunc()(mod)
+    after = gsm_data_generator.tir.transform.AnnotateEntryFunc()(mod)
 
 
 def test_bind_target():
     mod = MockModule
     assert mod
 
-    target = gsmDataGen.target.Target("cuda")
+    target = gsm_data_generator.target.Target("cuda")
     assert not mod["func1"].attrs
     assert not mod["func2"].attrs
-    after = gsmDataGen.tir.transform.BindTarget(target)(mod)
+    after = gsm_data_generator.tir.transform.BindTarget(target)(mod)
 
     assert "target" in after["func1"].attrs
     assert after["func1"].attrs["target"] == target
@@ -85,10 +85,10 @@ def test_bind_target():
     assert after["func2"].attrs["target"] == target
 
 
-class TestBindTarget(gsmDataGen.testing.CompareBeforeAfter):
+class TestBindTarget(gsm_data_generator.testing.CompareBeforeAfter):
     """BindTarget adds the "target" attribute"""
 
-    transform = gsmDataGen.tir.transform.BindTarget(gsmDataGen.target.Target("cuda"))
+    transform = gsm_data_generator.tir.transform.BindTarget(gsm_data_generator.target.Target("cuda"))
 
     def before():
         T.evaluate(0)
@@ -98,10 +98,10 @@ class TestBindTarget(gsmDataGen.testing.CompareBeforeAfter):
         T.evaluate(0)
 
 
-class TestBindTargetWithHostToExposedFunction(gsmDataGen.testing.CompareBeforeAfter):
+class TestBindTargetWithHostToExposedFunction(gsm_data_generator.testing.CompareBeforeAfter):
     """BindTarget adds the host target to externally-exposed functions"""
 
-    transform = gsmDataGen.tir.transform.BindTarget(gsmDataGen.target.Target("cuda", host="llvm"))
+    transform = gsm_data_generator.tir.transform.BindTarget(gsm_data_generator.target.Target("cuda", host="llvm"))
 
     def before():
         T.func_attr({"global_symbol": "main"})
@@ -112,7 +112,7 @@ class TestBindTargetWithHostToExposedFunction(gsmDataGen.testing.CompareBeforeAf
         T.evaluate(0)
 
 
-class TestBindTargetWithHostToInternalFunction(gsmDataGen.testing.CompareBeforeAfter):
+class TestBindTargetWithHostToInternalFunction(gsm_data_generator.testing.CompareBeforeAfter):
     """Internal functions have a target annotation, but without the host
 
     The host portion of the target annotation provides host
@@ -122,7 +122,7 @@ class TestBindTargetWithHostToInternalFunction(gsmDataGen.testing.CompareBeforeA
     used.
     """
 
-    transform = gsmDataGen.tir.transform.BindTarget(gsmDataGen.target.Target("cuda", host="llvm"))
+    transform = gsm_data_generator.tir.transform.BindTarget(gsm_data_generator.target.Target("cuda", host="llvm"))
 
     def before(self):
         @I.ir_module
@@ -144,10 +144,10 @@ class TestBindTargetWithHostToInternalFunction(gsmDataGen.testing.CompareBeforeA
         return module
 
 
-class TestBindTargetIgnoresExisting(gsmDataGen.testing.CompareBeforeAfter):
+class TestBindTargetIgnoresExisting(gsm_data_generator.testing.CompareBeforeAfter):
     """BindTarget should not replace existing annotations"""
 
-    transform = gsmDataGen.tir.transform.BindTarget(gsmDataGen.target.Target("cuda"))
+    transform = gsm_data_generator.tir.transform.BindTarget(gsm_data_generator.target.Target("cuda"))
 
     def before():
         T.func_attr({"target": T.target("nvptx")})
@@ -156,10 +156,10 @@ class TestBindTargetIgnoresExisting(gsmDataGen.testing.CompareBeforeAfter):
     expected = before
 
 
-class TestBindTargetUpdatesHost(gsmDataGen.testing.CompareBeforeAfter):
+class TestBindTargetUpdatesHost(gsm_data_generator.testing.CompareBeforeAfter):
     """BindTarget should update host for existing annotations"""
 
-    transform = gsmDataGen.tir.transform.BindTarget(gsmDataGen.target.Target("cuda", host="llvm -opt-level=0"))
+    transform = gsm_data_generator.tir.transform.BindTarget(gsm_data_generator.target.Target("cuda", host="llvm -opt-level=0"))
 
     def before():
         T.func_attr({"global_symbol": "func", "target": T.target("nvptx")})
@@ -175,13 +175,13 @@ class TestBindTargetUpdatesHost(gsmDataGen.testing.CompareBeforeAfter):
         T.evaluate(0)
 
 
-class TestBindTargetMultipleFunctions(gsmDataGen.testing.CompareBeforeAfter):
+class TestBindTargetMultipleFunctions(gsm_data_generator.testing.CompareBeforeAfter):
     """BindTarget may apply to multiple functions in a module"""
 
-    transform = gsmDataGen.tir.transform.BindTarget(gsmDataGen.target.Target("cuda"))
+    transform = gsm_data_generator.tir.transform.BindTarget(gsm_data_generator.target.Target("cuda"))
 
     def before(self):
-        @gsmDataGen.script.ir_module
+        @gsm_data_generator.script.ir_module
         class mod:
             @T.prim_func
             def func1():
@@ -194,7 +194,7 @@ class TestBindTargetMultipleFunctions(gsmDataGen.testing.CompareBeforeAfter):
         return mod
 
     def expected(self):
-        @gsmDataGen.script.ir_module
+        @gsm_data_generator.script.ir_module
         class mod:
             @T.prim_func
             def func1():
@@ -209,10 +209,10 @@ class TestBindTargetMultipleFunctions(gsmDataGen.testing.CompareBeforeAfter):
         return mod
 
 
-class TestBindTargetWithDeviceHostCallSameFunc(gsmDataGen.testing.CompareBeforeAfter):
+class TestBindTargetWithDeviceHostCallSameFunc(gsm_data_generator.testing.CompareBeforeAfter):
     """BindTarget should bind the device target to the function if it is called from device"""
 
-    transform = gsmDataGen.tir.transform.BindTarget(gsmDataGen.target.Target("cuda", host="llvm -opt-level=0"))
+    transform = gsm_data_generator.tir.transform.BindTarget(gsm_data_generator.target.Target("cuda", host="llvm -opt-level=0"))
 
     def before(self):
         @I.ir_module
@@ -273,33 +273,33 @@ def test_filter_primfunc():
     mod["func2"] = mod["func2"].with_attr("temp", "test2")
 
     # Test condition that does not filter out anything
-    def checker_filter_out_none(func: gsmDataGen.tir.PrimFunc):
+    def checker_filter_out_none(func: gsm_data_generator.tir.PrimFunc):
         return "temp" in func.attrs
 
-    after = gsmDataGen.tir.transform.Filter(checker_filter_out_none)(mod)
+    after = gsm_data_generator.tir.transform.Filter(checker_filter_out_none)(mod)
     assert len(after.functions) == 2
     # Filtered functions should satisfy the given condition.
     assert checker_filter_out_none(after["func1"])
     assert checker_filter_out_none(after["func2"])
 
     # Test condition that selectively filters out primfuncs
-    def checker_filter_out_one(func: gsmDataGen.tir.PrimFunc):
+    def checker_filter_out_one(func: gsm_data_generator.tir.PrimFunc):
         return ("temp" in func.attrs) and func.attrs["temp"] == "test1"
 
-    after = gsmDataGen.tir.transform.Filter(checker_filter_out_one)(mod)
+    after = gsm_data_generator.tir.transform.Filter(checker_filter_out_one)(mod)
     assert len(after.functions) == 1
     # Filtered functions should satisfy the given condition.
     assert checker_filter_out_one(after["func1"])
 
     # Test condition that filters out everything
-    def checker_filter_out_both(func: gsmDataGen.tir.PrimFunc):
+    def checker_filter_out_both(func: gsm_data_generator.tir.PrimFunc):
         return "invalid_attr" in func.attrs
 
-    after = gsmDataGen.tir.transform.Filter(checker_filter_out_both)(mod)
+    after = gsm_data_generator.tir.transform.Filter(checker_filter_out_both)(mod)
     assert len(after.functions) == 0
 
 
-class TestFilterRemovesGlobalVarMap(gsmDataGen.testing.CompareBeforeAfter):
+class TestFilterRemovesGlobalVarMap(gsm_data_generator.testing.CompareBeforeAfter):
     """Filtering out a function should be identical to never adding it
 
     This test is to guard against hidden state in the IRModule that
@@ -308,7 +308,7 @@ class TestFilterRemovesGlobalVarMap(gsmDataGen.testing.CompareBeforeAfter):
     filtered-out functions.
     """
 
-    transform = gsmDataGen.tir.transform.Filter(lambda prim_func: False)
+    transform = gsm_data_generator.tir.transform.Filter(lambda prim_func: False)
 
     def before(self):
         @I.ir_module
@@ -328,4 +328,4 @@ class TestFilterRemovesGlobalVarMap(gsmDataGen.testing.CompareBeforeAfter):
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

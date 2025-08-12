@@ -16,16 +16,16 @@
 # under the License.
 import pytest
 import numpy as np
-import gsmDataGen
-import gsmDataGen.testing
+import gsm_data_generator
+import gsm_data_generator.testing
 
-from gsmDataGen import relax
-from gsmDataGen.script import relax as R
-from gsmDataGen.relax.dpl import make_fused_bias_activation_pattern
-from gsmDataGen.contrib.pickle_memoize import memoize
+from gsm_data_generator import relax
+from gsm_data_generator.script import relax as R
+from gsm_data_generator.relax.dpl import make_fused_bias_activation_pattern
+from gsm_data_generator.contrib.pickle_memoize import memoize
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Conv2dReLUx2:
     @R.function
     def main(
@@ -41,7 +41,7 @@ class Conv2dReLUx2:
         return conv2
 
 
-has_dnnl = gsmDataGen.get_global_func("relax.ext.dnnl", True)
+has_dnnl = gsm_data_generator.get_global_func("relax.ext.dnnl", True)
 
 dnnl_enabled = pytest.mark.skipif(
     not has_dnnl,
@@ -52,12 +52,12 @@ pytestmark = [dnnl_enabled]
 
 
 def build_and_run(mod, inputs, legalize=False):
-    target = gsmDataGen.target.Target("llvm")
-    dev = gsmDataGen.cpu()
-    inputs = [gsmDataGen.nd.array(inp, dev) for inp in inputs]
+    target = gsm_data_generator.target.Target("llvm")
+    dev = gsm_data_generator.cpu()
+    inputs = [gsm_data_generator.nd.array(inp, dev) for inp in inputs]
 
-    with gsmDataGen.transform.PassContext(config={"relax.transform.apply_legalize_ops": legalize}):
-        ex = gsmDataGen.compile(mod, target)
+    with gsm_data_generator.transform.PassContext(config={"relax.transform.apply_legalize_ops": legalize}):
+        ex = gsm_data_generator.compile(mod, target)
     vm = relax.VirtualMachine(ex, dev)
     f = vm["main"]
     return f(*inputs).numpy()
@@ -68,7 +68,7 @@ def test_dnnl_offload():
         "relax.nn.conv2d", with_bias=False, activation="relax.nn.relu"
     )
 
-    seq = gsmDataGen.transform.Sequential(
+    seq = gsm_data_generator.transform.Sequential(
         [
             relax.transform.FuseOpsByPattern([("dnnl.conv2d_relu", pat)]),
             relax.transform.MergeCompositeFunctions(),
@@ -89,7 +89,7 @@ def test_dnnl_offload():
 
     out = build_and_run(seq(Conv2dReLUx2), inputs)
 
-    gsmDataGen.testing.assert_allclose(out, ref, rtol=1e-3, atol=1e-3)
+    gsm_data_generator.testing.assert_allclose(out, ref, rtol=1e-3, atol=1e-3)
 
 
 if __name__ == "__main__":

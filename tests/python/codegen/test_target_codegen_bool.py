@@ -16,32 +16,32 @@
 # under the License.
 """codegen related to bool types"""
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import te
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import te
 import numpy as np
-import gsmDataGen.testing
+import gsm_data_generator.testing
 
-arr_size = gsmDataGen.testing.parameter(32)
+arr_size = gsm_data_generator.testing.parameter(32)
 
 
-@gsmDataGen.testing.fixture
+@gsm_data_generator.testing.fixture
 def compute(arr_size):
     A = te.placeholder((arr_size,), name="A")
     B = te.placeholder((arr_size,), name="B")
     C = te.compute(A.shape, lambda *i: A(*i) > B(*i), name="C")
-    D = te.compute(C.shape, lambda *i: gsmDataGen.tir.all(C(*i), A(*i) > 1).astype("float32"), name="D")
+    D = te.compute(C.shape, lambda *i: gsm_data_generator.tir.all(C(*i), A(*i) > 1).astype("float32"), name="D")
     return [A, B, C, D]
 
 
-@gsmDataGen.testing.fixture
+@gsm_data_generator.testing.fixture
 def get_module(target, compute):
-    target = gsmDataGen.target.Target(target)
+    target = gsm_data_generator.target.Target(target)
     A, B, C, D = compute
     if target.kind.name == "llvm":
-        return gsmDataGen.IRModule.from_expr(te.create_prim_func([A, B, D]))
+        return gsm_data_generator.IRModule.from_expr(te.create_prim_func([A, B, D]))
 
-    sch = gsmDataGen.tir.Schedule(te.create_prim_func([A, B, D]))
+    sch = gsm_data_generator.tir.Schedule(te.create_prim_func([A, B, D]))
     for stage in ["C", "D"]:
         xo, xi = sch.split(sch.get_loops(stage)[0], factors=[None, 4])
         sch.bind(xo, "blockIdx.x")
@@ -49,16 +49,16 @@ def get_module(target, compute):
     return sch.mod
 
 
-@gsmDataGen.testing.uses_gpu
+@gsm_data_generator.testing.uses_gpu
 def test_cmp_load_store(target, dev, arr_size, compute, get_module):
     A, B, _, D = compute
-    f = gsmDataGen.compile(get_module, target=target)
+    f = gsm_data_generator.compile(get_module, target=target)
 
     a_np = np.random.uniform(size=arr_size).astype(A.dtype)
     b_np = np.random.uniform(size=arr_size).astype(B.dtype)
-    a = gsmDataGen.nd.array(a_np, dev)
-    b = gsmDataGen.nd.array(b_np, dev)
-    d = gsmDataGen.nd.array(np.zeros(arr_size, dtype=D.dtype), dev)
+    a = gsm_data_generator.nd.array(a_np, dev)
+    b = gsm_data_generator.nd.array(b_np, dev)
+    d = gsm_data_generator.nd.array(np.zeros(arr_size, dtype=D.dtype), dev)
     f(a, b, d)
     np.testing.assert_equal(
         d.numpy(),
@@ -67,4 +67,4 @@ def test_cmp_load_store(target, dev, arr_size, compute, get_module):
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

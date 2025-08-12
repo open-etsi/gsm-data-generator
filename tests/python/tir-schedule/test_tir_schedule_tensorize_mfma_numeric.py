@@ -15,9 +15,9 @@
 # specific language governing permissions and limitations
 # under the License.
 # pylint: disable=missing-docstring
-import gsmDataGen
-from gsmDataGen import te
-from gsmDataGen.tir.tensor_intrin.rocm import (
+import gsm_data_generator
+from gsm_data_generator import te
+from gsm_data_generator.tir.tensor_intrin.rocm import (
     shared_16x4_to_local_64x1_layout_A,
     shared_4x16_to_local_64x1_layout_B,
     shared_16x16_to_local_64x4_layout_A,
@@ -38,9 +38,9 @@ from gsmDataGen.tir.tensor_intrin.rocm import (
     ROCM_MFMA_s8s8s32_INTRIN,
     ROCM_MFMA_STORE_16x16_s32_INTRIN,
 )
-import gsmDataGen.testing
+import gsm_data_generator.testing
 import numpy as np
-from gsmDataGen.testing.tir import mfma_schedule
+from gsm_data_generator.testing.tir import mfma_schedule
 
 
 M = 1024
@@ -58,7 +58,7 @@ def matmul(m, n, k, in_dtype, out_dtype, b_transposed):
 
     def maybe_cast(v):
         if in_dtype != out_dtype:
-            return gsmDataGen.tir.Cast(out_dtype, v)
+            return gsm_data_generator.tir.Cast(out_dtype, v)
         return v
 
     def maybe_swap(i, j):
@@ -109,9 +109,9 @@ def run_test(
         mma_store_intrin,
     )
 
-    f = gsmDataGen.compile(sch.mod["main"], target="rocm")
+    f = gsm_data_generator.compile(sch.mod["main"], target="rocm")
 
-    dev = gsmDataGen.device("rocm", 0)
+    dev = gsm_data_generator.device("rocm", 0)
     if in_dtype == "float32":
         a_np = np.random.uniform(size=(M, K)).astype("float32")
 
@@ -146,21 +146,21 @@ def run_test(
             b_np = np.random.randint(-128, 128, (K, N)).astype("int8")
             c_np = np.dot(a_np.astype("float32"), b_np.astype("float32")).astype("int32")
 
-    a = gsmDataGen.nd.array(a_np, dev)
-    b = gsmDataGen.nd.array(b_np, dev)
-    c = gsmDataGen.nd.array(np.zeros((M, N), dtype=out_dtype), dev)
+    a = gsm_data_generator.nd.array(a_np, dev)
+    b = gsm_data_generator.nd.array(b_np, dev)
+    c = gsm_data_generator.nd.array(np.zeros((M, N), dtype=out_dtype), dev)
 
     f(a, b, c)
 
     if in_dtype != "float16":
         # The numpy reference is computed with fp32 precision (otherwise too slow).
         # So there is non-trivial accuracy difference if TVM result is computed with fp16 accumulation.
-        gsmDataGen.testing.assert_allclose(c.numpy(), c_np, rtol=1e-2, atol=1e-2)
+        gsm_data_generator.testing.assert_allclose(c.numpy(), c_np, rtol=1e-2, atol=1e-2)
 
     return lambda: f.time_evaluator(f.entry_name, dev, number=500)(a, b, c)
 
 
-@gsmDataGen.testing.requires_matrixcore
+@gsm_data_generator.testing.requires_matrixcore
 def test_i8i8i32_m16n16k16():
     def index_map_A(i, j):
         return (
@@ -210,7 +210,7 @@ def test_i8i8i32_m16n16k16():
         print("test_i8i8i32_m16n16k16: %f GFLOPS" % (gflops / (timer().mean)))
 
 
-@gsmDataGen.testing.requires_matrixcore
+@gsm_data_generator.testing.requires_matrixcore
 def test_f16f16f32_m16n16k16():
     def index_map_A(i, j):
         return (
@@ -260,7 +260,7 @@ def test_f16f16f32_m16n16k16():
         print("f16f16f32_m16n16k16: %f GFLOPS" % (gflops / (timer().mean)))
 
 
-@gsmDataGen.testing.requires_matrixcore
+@gsm_data_generator.testing.requires_matrixcore
 def test_f32f32f32_m16n16k4():
     def index_map_A(i, j):
         return (
@@ -311,4 +311,4 @@ def test_f32f32f32_m16n16k4():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

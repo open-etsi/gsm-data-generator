@@ -23,30 +23,30 @@ import traceback
 
 import pytest
 
-import gsmDataGen
-import gsmDataGen.testing
+import gsm_data_generator
+import gsm_data_generator.testing
 
 
 def test_op_translation_to_not_implemented():
     try:
-        gsmDataGen.testing.test_raise_error("OpNotImplemented", "myop")
+        gsm_data_generator.testing.test_raise_error("OpNotImplemented", "myop")
         assert False
-    except gsmDataGen.error.OpNotImplemented as e:
+    except gsm_data_generator.error.OpNotImplemented as e:
         assert isinstance(e, NotImplementedError)
 
 
 def test_op_translation_to_internal_error():
-    fchk_eq = gsmDataGen.testing.test_check_eq_callback("InternalError: myop")
+    fchk_eq = gsm_data_generator.testing.test_check_eq_callback("InternalError: myop")
     try:
         fchk_eq(0, 1)
         assert False
-    except gsmDataGen.error.InternalError as e:
+    except gsm_data_generator.error.InternalError as e:
         pass
 
 
 def test_op_translation_to_value_error():
     try:
-        gsmDataGen.testing.ErrorTest(0, 1)
+        gsm_data_generator.testing.ErrorTest(0, 1)
         assert False
     except ValueError as e:
         pass
@@ -68,17 +68,17 @@ def test_deep_callback():
     def error_callback():
         raise ValueError("callback error")
 
-    wrap1 = gsmDataGen.testing.test_wrap_callback(error_callback)
+    wrap1 = gsm_data_generator.testing.test_wrap_callback(error_callback)
 
     def flevel2():
         wrap1()
 
-    wrap2 = gsmDataGen.testing.test_wrap_callback(flevel2)
+    wrap2 = gsm_data_generator.testing.test_wrap_callback(flevel2)
 
     def flevel3():
         wrap2()
 
-    wrap3 = gsmDataGen.testing.test_wrap_callback(flevel3)
+    wrap3 = gsm_data_generator.testing.test_wrap_callback(flevel3)
 
     try:
         wrap3()
@@ -92,7 +92,7 @@ def test_deep_callback():
 
 @functools.lru_cache()
 def _has_debug_symbols():
-    lib = gsmDataGen.base._LIB
+    lib = gsm_data_generator.base._LIB
     headers = subprocess.check_output(["objdump", "--section-headers", lib._name], encoding="utf-8")
     return ".debug" in headers
 
@@ -107,7 +107,7 @@ def test_cpp_frames_in_stack_trace_from_python_error():
     def error_callback():
         raise ValueError("callback error")
 
-    wrapped = gsmDataGen.testing.test_wrap_callback(error_callback)
+    wrapped = gsm_data_generator.testing.test_wrap_callback(error_callback)
 
     try:
         wrapped()
@@ -134,7 +134,7 @@ def test_cpp_frames_in_stack_trace_from_python_error():
 def test_stack_trace_from_cpp_error():
     """A python exception originating in C++ should have C++ stack frames"""
     try:
-        gsmDataGen.testing.ErrorTest(0, 1)
+        gsm_data_generator.testing.ErrorTest(0, 1)
         assert False
     except ValueError as err:
         frames = traceback.extract_tb(err.__traceback__)
@@ -152,4 +152,4 @@ def test_stack_trace_from_cpp_error():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

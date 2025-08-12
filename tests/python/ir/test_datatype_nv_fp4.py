@@ -16,11 +16,11 @@
 # under the License.
 import numpy as np
 
-import gsmDataGen
-import gsmDataGen.testing
-import gsmDataGen.tir as tir
-from gsmDataGen import te
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+import gsm_data_generator.tir as tir
+from gsm_data_generator import te
+from gsm_data_generator.script import tir as T
 
 try:
     from ml_dtypes import float4_e2m1fn
@@ -28,7 +28,7 @@ except ImportError:
     float4_e2m1fn = None
 
 
-np_dtype, dtype_str = gsmDataGen.testing.parameters((float4_e2m1fn, "float4_e2m1fn"))
+np_dtype, dtype_str = gsm_data_generator.testing.parameters((float4_e2m1fn, "float4_e2m1fn"))
 
 
 def test_create_nv_fp4_nd_array(np_dtype, dtype_str):
@@ -36,7 +36,7 @@ def test_create_nv_fp4_nd_array(np_dtype, dtype_str):
         """Skip test if ml_dtypes is not installed"""
         return
     x = np.random.rand(128, 128).astype(np_dtype)
-    x_nd = gsmDataGen.nd.array(x)
+    x_nd = gsm_data_generator.nd.array(x)
     assert x_nd.dtype == dtype_str
     np.testing.assert_equal(x_nd.numpy(), x)
 
@@ -44,9 +44,9 @@ def test_create_nv_fp4_nd_array(np_dtype, dtype_str):
 def test_nv_fp4_buffer(np_dtype, dtype_str):
     m = te.size_var("m")
     n = te.size_var("n")
-    A = gsmDataGen.tir.decl_buffer((m, n), dtype_str)
+    A = gsm_data_generator.tir.decl_buffer((m, n), dtype_str)
     assert A.dtype == dtype_str
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

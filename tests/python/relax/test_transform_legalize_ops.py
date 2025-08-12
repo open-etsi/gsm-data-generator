@@ -17,19 +17,19 @@
 
 import pytest
 
-import gsmDataGen
-from gsmDataGen import relax
-from gsmDataGen.relax.transform import LegalizeOps
-from gsmDataGen.relax.transform.legalize_ops.common import register_legalize
-from gsmDataGen.script import relax as R, tir as T, ir as I
-import gsmDataGen.testing
+import gsm_data_generator
+from gsm_data_generator import relax
+from gsm_data_generator.relax.transform import LegalizeOps
+from gsm_data_generator.relax.transform.legalize_ops.common import register_legalize
+from gsm_data_generator.script import relax as R, tir as T, ir as I
+import gsm_data_generator.testing
 
 import pytest
 
 
 def test_customize_legalize():
     # fmt: off
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Add:
         @R.function
         def main(x: R.Tensor((1, 2, 3), "float32"), y: R.Tensor((4, 3, 2, 1), "float32")) -> R.Tensor((4, 3, 2, 3), "float32"):
@@ -37,7 +37,7 @@ def test_customize_legalize():
             return gv
 
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(x: R.Tensor((1, 2, 3), "float32"), y: R.Tensor((4, 3, 2, 1), "float32")) -> R.Tensor((4, 3, 2, 3), "float32"):
@@ -57,17 +57,17 @@ def test_customize_legalize():
     # fmt: on
 
     def customize_legalize_add(bb: relax.BlockBuilder, call: relax.Call):
-        from gsmDataGen import topi  # pylint: disable=import-outside-toplevel
+        from gsm_data_generator import topi  # pylint: disable=import-outside-toplevel
 
         return bb.call_te(topi.add, call.args[1], call.args[0])
 
     mod = LegalizeOps({"relax.add": customize_legalize_add})(Add)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_legalize_multiple_types_of_call():
     # fmt: off
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Before:
         @R.function
         def mul2(x: R.Tensor((3, 3), "float32")):
@@ -91,7 +91,7 @@ def test_legalize_multiple_types_of_call():
             gv2 = R.multiply(gv1, R.const(2.0, "float32"))
             return gv2
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def mul2(x: R.Tensor((3, 3), dtype="float32")) -> R.Tensor((3, 3), dtype="float32"):
@@ -128,17 +128,17 @@ def test_legalize_multiple_types_of_call():
     # fmt: on
 
     After = LegalizeOps()(Before)
-    gsmDataGen.ir.assert_structural_equal(After, Expected)
+    gsm_data_generator.ir.assert_structural_equal(After, Expected)
 
 
 def test_can_not_legalize():
     # case 1: does't have legalization
-    add_legalize = gsmDataGen.ir.Op.get("relax.add").get_attr("FLegalize")
+    add_legalize = gsm_data_generator.ir.Op.get("relax.add").get_attr("FLegalize")
     # reset it for test
-    gsmDataGen.ir.Op.get("relax.add").reset_attr("FLegalize")
+    gsm_data_generator.ir.Op.get("relax.add").reset_attr("FLegalize")
 
     # fmt: off
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Before0:
         @R.function
         def main(x: R.Tensor((3, 3), "float32")):
@@ -146,7 +146,7 @@ def test_can_not_legalize():
             return gv
     # fmt: on
     After0 = LegalizeOps()(Before0)
-    gsmDataGen.ir.assert_structural_equal(After0, Before0)
+    gsm_data_generator.ir.assert_structural_equal(After0, Before0)
 
     register_legalize("relax.add", add_legalize)
 
@@ -161,33 +161,33 @@ def test_can_not_legalize():
         bb.emit_func_output(gv)
     Before1 = bb.get()
     After1 = LegalizeOps()(Before1)
-    gsmDataGen.ir.assert_structural_equal(After1, Before1)
+    gsm_data_generator.ir.assert_structural_equal(After1, Before1)
 
 
 def test_legalize_scalar_data_type_preserve():
     # fmt: off
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Before0:
         @R.function
         def main(x: R.Tensor((3, 3), "float16")):
             gv: R.Tensor((3, 3), "float16") = R.multiply(x, R.const(1.14514, "float16"))
             return gv
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Before1:
         @R.function
         def main(x: R.Tensor((3, 3), "uint8")):
             gv: R.Tensor((3, 3), "uint8") = R.multiply(x, R.const(2, "uint8"))
             return gv
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Before2:
         @R.function
         def main(x: R.Tensor((3, 3), "bool")):
             gv: R.Tensor((3, 3), "bool") = R.equal(x, R.const(True, "bool"))
             return gv
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected0:
         @T.prim_func(private=True)
         def multiply(
@@ -211,7 +211,7 @@ def test_legalize_scalar_data_type_preserve():
             gv = R.call_tir(cls.multiply, (x,), out_sinfo=R.Tensor((3, 3), dtype="float16"))
             return gv
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected1:
         @T.prim_func(private=True)
         def multiply(
@@ -233,7 +233,7 @@ def test_legalize_scalar_data_type_preserve():
             gv = R.call_tir(cls.multiply, (x,), out_sinfo=R.Tensor((3, 3), dtype="uint8"))
             return gv
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected2:
         @T.prim_func(private=True)
         def equal(
@@ -247,7 +247,7 @@ def test_legalize_scalar_data_type_preserve():
                     v_ax0, v_ax1 = T.axis.remap("SS", [ax0, ax1])
                     T.reads(rxplaceholder[v_ax0, v_ax1])
                     T.writes(T_equal[v_ax0, v_ax1])
-                    T_equal[v_ax0, v_ax1] = rxplaceholder[v_ax0, v_ax1] == gsmDataGen.tir.const(True, "bool")
+                    T_equal[v_ax0, v_ax1] = rxplaceholder[v_ax0, v_ax1] == gsm_data_generator.tir.const(True, "bool")
 
         @R.function
         def main(x: R.Tensor((3, 3), dtype="bool")) -> R.Tensor((3, 3), dtype="bool"):
@@ -257,11 +257,11 @@ def test_legalize_scalar_data_type_preserve():
     # fmt: on
 
     After0 = LegalizeOps()(Before0)
-    gsmDataGen.ir.assert_structural_equal(After0, Expected0)
+    gsm_data_generator.ir.assert_structural_equal(After0, Expected0)
     After1 = LegalizeOps()(Before1)
-    gsmDataGen.ir.assert_structural_equal(After1, Expected1)
+    gsm_data_generator.ir.assert_structural_equal(After1, Expected1)
     After2 = LegalizeOps()(Before2)
-    gsmDataGen.ir.assert_structural_equal(After2, Expected2)
+    gsm_data_generator.ir.assert_structural_equal(After2, Expected2)
 
 
 def test_matmul_legalization_requires_known_dtype():
@@ -284,7 +284,7 @@ def test_matmul_legalization_requires_known_dtype():
     assert err_message.startswith("To legalize R.matmul")
 
 
-emit_legalization_through_builder = gsmDataGen.testing.parameter(
+emit_legalization_through_builder = gsm_data_generator.testing.parameter(
     by_dict={
         "return_relax_expr": False,
         "return_relax_var": True,
@@ -300,13 +300,13 @@ def custom_op(emit_legalization_through_builder):
         activations, weight, bias = call.args
 
         matmul_call = relax.op.matmul(activations, weight)
-        matmul_sinfo = gsmDataGen.ir.Op.get("relax.matmul").get_attr("FInferStructInfo")(
+        matmul_sinfo = gsm_data_generator.ir.Op.get("relax.matmul").get_attr("FInferStructInfo")(
             matmul_call, context
         )
 
         matmul_var = relax.Var("dummy_var", matmul_sinfo)
         add_call = matmul_var + bias
-        add_sinfo = gsmDataGen.ir.Op.get("relax.add").get_attr("FInferStructInfo")(add_call, context)
+        add_sinfo = gsm_data_generator.ir.Op.get("relax.add").get_attr("FInferStructInfo")(add_call, context)
 
         return add_sinfo
 
@@ -324,9 +324,9 @@ def custom_op(emit_legalization_through_builder):
     }
 
     for key, value in op_attrs.items():
-        gsmDataGen.ir.register_op_attr(op_name, key, value)
+        gsm_data_generator.ir.register_op_attr(op_name, key, value)
 
-    op = gsmDataGen.ir.Op.get(op_name)
+    op = gsm_data_generator.ir.Op.get(op_name)
     yield op
 
     for key in op_attrs:
@@ -353,7 +353,7 @@ def test_recursive_legalization(custom_op):
     # `R.matmul` and `R.add`, which should in turn be replaced with
     # TIR implementations.  Therefore, the second application of
     # LegalizeOps() should be a no-op.
-    gsmDataGen.ir.assert_structural_equal(AfterFirstIter, AfterSecondIter)
+    gsm_data_generator.ir.assert_structural_equal(AfterFirstIter, AfterSecondIter)
 
 
 def test_legalize_with_vdevice():
@@ -431,11 +431,11 @@ def test_legalize_with_vdevice():
                     ax0, ax1 = T.axis.remap("SS", iters)
                     C[ax0, ax1] = A[ax0, ax1] + B[ax0, ax1]
 
-    with gsmDataGen.target.Target("cuda"):
-        After = gsmDataGen.relax.transform.LegalizeOps()(Before)
+    with gsm_data_generator.target.Target("cuda"):
+        After = gsm_data_generator.relax.transform.LegalizeOps()(Before)
 
-    gsmDataGen.ir.assert_structural_equal(Expected, After)
+    gsm_data_generator.ir.assert_structural_equal(Expected, After)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

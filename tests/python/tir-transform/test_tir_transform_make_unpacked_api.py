@@ -16,51 +16,51 @@
 # under the License.
 import pytest
 
-import gsmDataGen
-from gsmDataGen import te, tir
-from gsmDataGen.script import tir as T, ir as I
+import gsm_data_generator
+from gsm_data_generator import te, tir
+from gsm_data_generator.script import tir as T, ir as I
 import numpy
 
 
 @pytest.fixture
 def mod_without_attrs():
-    ib = gsmDataGen.tir.ir_builder.create()
-    A = gsmDataGen.tir.decl_buffer(name="A", shape=[1])
+    ib = gsm_data_generator.tir.ir_builder.create()
+    A = gsm_data_generator.tir.decl_buffer(name="A", shape=[1])
     stmt = ib.get()
-    return gsmDataGen.IRModule.from_expr(gsmDataGen.tir.PrimFunc([A], stmt))
+    return gsm_data_generator.IRModule.from_expr(gsm_data_generator.tir.PrimFunc([A], stmt))
 
 
 @pytest.fixture
 def mod(mod_without_attrs):
-    mod = gsmDataGen.tir.transform.Apply(lambda f: f.with_attr("target", gsmDataGen.target.Target("llvm")))(
+    mod = gsm_data_generator.tir.transform.Apply(lambda f: f.with_attr("target", gsm_data_generator.target.Target("llvm")))(
         mod_without_attrs
     )
-    mod = gsmDataGen.tir.transform.Apply(lambda f: f.with_attr("global_symbol", "main"))(mod)
+    mod = gsm_data_generator.tir.transform.Apply(lambda f: f.with_attr("global_symbol", "main"))(mod)
 
     return mod
 
 
 def test_noop_if_not_global_symbol(mod_without_attrs):
-    target = gsmDataGen.target.Target("llvm", host="llvm")
-    before = gsmDataGen.tir.transform.Apply(lambda f: f.with_attr("target", target))(mod_without_attrs)
-    after = gsmDataGen.tir.transform.MakeUnpackedAPI()(before)
-    gsmDataGen.ir.assert_structural_equal(before, after)
+    target = gsm_data_generator.target.Target("llvm", host="llvm")
+    before = gsm_data_generator.tir.transform.Apply(lambda f: f.with_attr("target", target))(mod_without_attrs)
+    after = gsm_data_generator.tir.transform.MakeUnpackedAPI()(before)
+    gsm_data_generator.ir.assert_structural_equal(before, after)
 
 
 def test_fails_if_no_target(mod_without_attrs):
-    mod = gsmDataGen.tir.transform.Apply(lambda f: f.with_attr("global_symbol", "main"))(mod_without_attrs)
+    mod = gsm_data_generator.tir.transform.Apply(lambda f: f.with_attr("global_symbol", "main"))(mod_without_attrs)
     with pytest.raises(
-        gsmDataGen.TVMError,
+        gsm_data_generator.TVMError,
         match="MakeUnpackedAPI required the function to be annotated with tvm::attr::kTarget",
     ):
-        f = gsmDataGen.tir.transform.MakeUnpackedAPI()(mod)["main"]
+        f = gsm_data_generator.tir.transform.MakeUnpackedAPI()(mod)["main"]
 
 
-@gsmDataGen.testing.parametrize_targets("c", "llvm", "cuda")
+@gsm_data_generator.testing.parametrize_targets("c", "llvm", "cuda")
 def test_device_setup(mod, target, dev):
-    target = gsmDataGen.target.Target(target, host="llvm")
-    mod = gsmDataGen.tir.transform.Apply(lambda f: f.with_attr("target", target))(mod)
-    f = gsmDataGen.tir.transform.MakeUnpackedAPI()(mod)["main"]
+    target = gsm_data_generator.target.Target(target, host="llvm")
+    mod = gsm_data_generator.tir.transform.Apply(lambda f: f.with_attr("target", target))(mod)
+    f = gsm_data_generator.tir.transform.MakeUnpackedAPI()(mod)["main"]
     assert len(f.params) == 1
     assert f.params[0].name == "A"
     assert f.body.node == "default"
@@ -72,73 +72,73 @@ def test_device_setup(mod, target, dev):
 
 
 def test_no_buffers_no_device_setup():
-    ib = gsmDataGen.tir.ir_builder.create()
+    ib = gsm_data_generator.tir.ir_builder.create()
     A = ib.pointer("float32", name="A")
     stmt = ib.get()
-    mod = gsmDataGen.IRModule.from_expr(gsmDataGen.tir.PrimFunc([A], stmt))
-    mod = gsmDataGen.tir.transform.Apply(lambda f: f.with_attr("target", gsmDataGen.target.Target("llvm")))(mod)
-    mod = gsmDataGen.tir.transform.Apply(lambda f: f.with_attr("global_symbol", "main"))(mod)
+    mod = gsm_data_generator.IRModule.from_expr(gsm_data_generator.tir.PrimFunc([A], stmt))
+    mod = gsm_data_generator.tir.transform.Apply(lambda f: f.with_attr("target", gsm_data_generator.target.Target("llvm")))(mod)
+    mod = gsm_data_generator.tir.transform.Apply(lambda f: f.with_attr("global_symbol", "main"))(mod)
 
-    f = gsmDataGen.tir.transform.MakeUnpackedAPI()(mod)["main"]
+    f = gsm_data_generator.tir.transform.MakeUnpackedAPI()(mod)["main"]
     assert len(f.params) == 1
     assert f.params[0].name == "A"
 
 
 def test_argument_mapping(mod):
-    f = gsmDataGen.tir.transform.MakeUnpackedAPI()(mod)["main"]
+    f = gsm_data_generator.tir.transform.MakeUnpackedAPI()(mod)["main"]
     assert len(f.params) == 1
     assert f.params[0].name == "A"
 
 
 def test_argument_mapping_multiple():
-    ib = gsmDataGen.tir.ir_builder.create()
-    A = gsmDataGen.tir.decl_buffer(name="A", shape=[1])
-    B = gsmDataGen.tir.decl_buffer(name="B", shape=[1])
+    ib = gsm_data_generator.tir.ir_builder.create()
+    A = gsm_data_generator.tir.decl_buffer(name="A", shape=[1])
+    B = gsm_data_generator.tir.decl_buffer(name="B", shape=[1])
 
     stmt = ib.get()
-    mod = gsmDataGen.IRModule.from_expr(gsmDataGen.tir.PrimFunc([A, B], stmt))
-    mod = gsmDataGen.tir.transform.Apply(lambda f: f.with_attr("target", gsmDataGen.target.Target("llvm")))(mod)
-    mod = gsmDataGen.tir.transform.Apply(lambda f: f.with_attr("global_symbol", "main"))(mod)
+    mod = gsm_data_generator.IRModule.from_expr(gsm_data_generator.tir.PrimFunc([A, B], stmt))
+    mod = gsm_data_generator.tir.transform.Apply(lambda f: f.with_attr("target", gsm_data_generator.target.Target("llvm")))(mod)
+    mod = gsm_data_generator.tir.transform.Apply(lambda f: f.with_attr("global_symbol", "main"))(mod)
 
-    f = gsmDataGen.tir.transform.MakeUnpackedAPI()(mod)["main"]
+    f = gsm_data_generator.tir.transform.MakeUnpackedAPI()(mod)["main"]
     assert len(f.params) == 2
     assert f.params[0].name == "A"
     assert f.params[1].name == "B"
 
 
 def test_argument_mapping_multiple_matching():
-    ib = gsmDataGen.tir.ir_builder.create()
-    A = gsmDataGen.tir.decl_buffer(name="A", shape=[1])
-    B = gsmDataGen.tir.decl_buffer(name="B", shape=[1])
+    ib = gsm_data_generator.tir.ir_builder.create()
+    A = gsm_data_generator.tir.decl_buffer(name="A", shape=[1])
+    B = gsm_data_generator.tir.decl_buffer(name="B", shape=[1])
     stmt = ib.get()
-    mod = gsmDataGen.IRModule.from_expr(gsmDataGen.tir.PrimFunc([A, A], stmt))
-    mod = gsmDataGen.tir.transform.Apply(lambda f: f.with_attr("target", gsmDataGen.target.Target("llvm")))(mod)
-    mod = gsmDataGen.tir.transform.Apply(lambda f: f.with_attr("global_symbol", "main"))(mod)
+    mod = gsm_data_generator.IRModule.from_expr(gsm_data_generator.tir.PrimFunc([A, A], stmt))
+    mod = gsm_data_generator.tir.transform.Apply(lambda f: f.with_attr("target", gsm_data_generator.target.Target("llvm")))(mod)
+    mod = gsm_data_generator.tir.transform.Apply(lambda f: f.with_attr("global_symbol", "main"))(mod)
 
-    f = gsmDataGen.tir.transform.MakeUnpackedAPI()(mod)["main"]
+    f = gsm_data_generator.tir.transform.MakeUnpackedAPI()(mod)["main"]
     assert len(f.params) == 2
     assert f.params[0].name == "A"
     assert f.params[1].name == "A"
 
 
 def test_body():
-    ib = gsmDataGen.tir.ir_builder.create()
-    A = gsmDataGen.tir.decl_buffer(name="A", shape=[1])
-    B = gsmDataGen.tir.decl_buffer(name="B", shape=[1])
+    ib = gsm_data_generator.tir.ir_builder.create()
+    A = gsm_data_generator.tir.decl_buffer(name="A", shape=[1])
+    B = gsm_data_generator.tir.decl_buffer(name="B", shape=[1])
     C = ib.buffer_ptr(A)
 
     stmt = ib.get()
-    mod = gsmDataGen.IRModule.from_expr(gsmDataGen.tir.PrimFunc([A, B, C], stmt))
-    mod = gsmDataGen.tir.transform.Apply(lambda f: f.with_attr("target", gsmDataGen.target.Target("llvm")))(mod)
-    mod = gsmDataGen.tir.transform.Apply(lambda f: f.with_attr("global_symbol", "main"))(mod)
-    f = gsmDataGen.tir.transform.MakeUnpackedAPI()(mod)["main"]
+    mod = gsm_data_generator.IRModule.from_expr(gsm_data_generator.tir.PrimFunc([A, B, C], stmt))
+    mod = gsm_data_generator.tir.transform.Apply(lambda f: f.with_attr("target", gsm_data_generator.target.Target("llvm")))(mod)
+    mod = gsm_data_generator.tir.transform.Apply(lambda f: f.with_attr("global_symbol", "main"))(mod)
+    f = gsm_data_generator.tir.transform.MakeUnpackedAPI()(mod)["main"]
     assert len(f.params) == 3
     assert f.params[0].name == "A"
     assert f.params[1].name == "B"
     assert f.params[2].name == "A"
 
 
-class TestTargetHostRemoved(gsmDataGen.testing.CompareBeforeAfter):
+class TestTargetHostRemoved(gsm_data_generator.testing.CompareBeforeAfter):
     """After MakeUnpackedAPI, host-side target should be the host
 
     MakeUnpackedAPI is the last transform that requires both the device
@@ -146,7 +146,7 @@ class TestTargetHostRemoved(gsmDataGen.testing.CompareBeforeAfter):
     only contain the host-side target.
     """
 
-    transform = gsmDataGen.tir.transform.MakeUnpackedAPI()
+    transform = gsm_data_generator.tir.transform.MakeUnpackedAPI()
 
     def before(self):
         @I.ir_module
@@ -182,7 +182,7 @@ class TestTargetHostRemoved(gsmDataGen.testing.CompareBeforeAfter):
         return mod
 
 
-class TestInternalSubroutineCall(gsmDataGen.testing.CompareBeforeAfter):
+class TestInternalSubroutineCall(gsm_data_generator.testing.CompareBeforeAfter):
     """Internal subroutines do not require modification
 
     A subroutine without the "global_symbol" attribute is an internal
@@ -190,7 +190,7 @@ class TestInternalSubroutineCall(gsmDataGen.testing.CompareBeforeAfter):
     `runtime.Module`.
     """
 
-    transform = gsmDataGen.tir.transform.MakeUnpackedAPI()
+    transform = gsm_data_generator.tir.transform.MakeUnpackedAPI()
 
     def before(self):
         @I.ir_module
@@ -226,14 +226,14 @@ class TestInternalSubroutineCall(gsmDataGen.testing.CompareBeforeAfter):
         return mod
 
 
-class TestSubroutineCallToExternallyVisibleSubroutine(gsmDataGen.testing.CompareBeforeAfter):
+class TestSubroutineCallToExternallyVisibleSubroutine(gsm_data_generator.testing.CompareBeforeAfter):
     """Externally-visible subroutines should be updated
 
     Subroutines that are exposed externally should be updated by
     MakeUnpackedAPI.
     """
 
-    transform = gsmDataGen.tir.transform.MakeUnpackedAPI()
+    transform = gsm_data_generator.tir.transform.MakeUnpackedAPI()
 
     def before(self):
         @I.ir_module
@@ -272,7 +272,7 @@ class TestSubroutineCallToExternallyVisibleSubroutine(gsmDataGen.testing.Compare
         return mod
 
 
-class TestCallExternallyVisibleSubroutineWithDLTensor(gsmDataGen.testing.CompareBeforeAfter):
+class TestCallExternallyVisibleSubroutineWithDLTensor(gsm_data_generator.testing.CompareBeforeAfter):
     """Callsites of externally-visible subroutines may require updates
 
     The MakeUnpackedAPI transform lowers all buffers into a data
@@ -282,7 +282,7 @@ class TestCallExternallyVisibleSubroutineWithDLTensor(gsmDataGen.testing.Compare
     data pointer directly.
     """
 
-    transform = gsmDataGen.tir.transform.MakeUnpackedAPI()
+    transform = gsm_data_generator.tir.transform.MakeUnpackedAPI()
 
     def before(self):
         @I.ir_module
@@ -334,4 +334,4 @@ class TestCallExternallyVisibleSubroutineWithDLTensor(gsmDataGen.testing.Compare
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

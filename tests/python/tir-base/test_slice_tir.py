@@ -15,9 +15,9 @@
 # specific language governing permissions and limitations
 # under the License.
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator.script import tir as T
 import pytest
 
 # ---------------------------------------------------------------------------------------------------
@@ -87,7 +87,7 @@ import pytest
 #      fail, because the specified callee doesn't exist.  This test should be updated
 #      to once again expect failure.
 @pytest.mark.xfail(reason="Awaiting TVMScript support for 'call_tir' token.", strict=True)
-class TestParseCallTIR(gsmDataGen.testing.CompareBeforeAfter):
+class TestParseCallTIR(gsm_data_generator.testing.CompareBeforeAfter):
     """
     Simply confirm that the TIR node `call_tir` doesn't interfere with
     the successful parsing of the TVMScript.
@@ -102,7 +102,7 @@ class TestParseCallTIR(gsmDataGen.testing.CompareBeforeAfter):
 
     # Provide a trivial 'transform' pass to satisfy the requirements of
     # tvm.testing.CompareBeforeAfter.
-    transform = gsmDataGen.tir.transform.prim_func_pass(lambda func, _mod, _ctx: func, 0)
+    transform = gsm_data_generator.tir.transform.prim_func_pass(lambda func, _mod, _ctx: func, 0)
 
 
 # ---------------------------------------------------------------------------------------------------
@@ -117,7 +117,7 @@ class TestParseCallTIR(gsmDataGen.testing.CompareBeforeAfter):
     reason="Awaiting TVMScript support for 'call_tir' and T.annotation(\"extract_as_subroutine\").",
     strict=True,
 )
-class TestAnnotateAndSliceTIR(gsmDataGen.testing.CompareBeforeAfter):
+class TestAnnotateAndSliceTIR(gsm_data_generator.testing.CompareBeforeAfter):
     # def test_annotate_and_slice():
     #    @tvm.script.ir_module
     #    class irmod_before:
@@ -153,7 +153,7 @@ class TestAnnotateAndSliceTIR(gsmDataGen.testing.CompareBeforeAfter):
     reason="Awaiting TVMScript support for lowering of 'T.call_tir' to 'T.call_packed'.",
     strict=True,
 )
-class TestLowerCallTir(gsmDataGen.testing.CompareBeforeAfter):
+class TestLowerCallTir(gsm_data_generator.testing.CompareBeforeAfter):
     # @tvm.script.ir_module
     # class test_lower_before:
     #    @T.prim_func
@@ -193,7 +193,7 @@ class TestLowerCallTir(gsmDataGen.testing.CompareBeforeAfter):
 
 
 @pytest.mark.xfail(reason="Awaiting end-to-end support for Primfunc slicing.", strict=True)
-class TestPrimfuncSlicingEndToEnd(gsmDataGen.testing.CompareBeforeAfter):
+class TestPrimfuncSlicingEndToEnd(gsm_data_generator.testing.CompareBeforeAfter):
     # @tvm.script.ir_module
     # class test_annotate_before:
     #    @T.prim_func

@@ -15,11 +15,11 @@
 # specific language governing permissions and limitations
 # under the License.
 import pytest
-import gsmDataGen.testing
-from gsmDataGen import TVMError
-from gsmDataGen.ir.base import assert_structural_equal
-from gsmDataGen.script import relax as R, ir as I
-from gsmDataGen.relax.training import AppendLoss
+import gsm_data_generator.testing
+from gsm_data_generator import TVMError
+from gsm_data_generator.ir.base import assert_structural_equal
+from gsm_data_generator.script import relax as R, ir as I
+from gsm_data_generator.relax.training import AppendLoss
 
 
 def test_simple():
@@ -324,4 +324,4 @@ def test_loss_return_value():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

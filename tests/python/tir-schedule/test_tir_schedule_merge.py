@@ -16,11 +16,11 @@
 # under the License.
 # pylint: disable=missing-function-docstring,missing-module-docstring
 import pytest
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import tir
-from gsmDataGen.script import tir as T
-from gsmDataGen.tir.schedule.testing import (
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import tir
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.tir.schedule.testing import (
     verify_trace_roundtrip,
     assert_structural_equal_ignore_global_symbol,
 )
@@ -163,7 +163,7 @@ def test_merge_fail_not_only_child():
     _, _, b = sch.get_loops(block_b)
     block_c = sch.get_block("C")
     _, _, c = sch.get_loops(block_c)
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         sch.merge(b, c)
 
 
@@ -189,7 +189,7 @@ def test_merge_fail_not_start_with_zero():
     _, _, b = sch.get_loops(block_b)
     block_c = sch.get_block("C")
     _, _, c = sch.get_loops(block_c)
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         sch.merge(b, c)
 
 
@@ -215,7 +215,7 @@ def test_merge_fail_not_same_extent():
     _, _, b = sch.get_loops(block_b)
     block_c = sch.get_block("C")
     _, _, c = sch.get_loops(block_c)
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         sch.merge(b, c)
 
 
@@ -241,7 +241,7 @@ def test_merge_fail_not_same_level():
     _, b, _ = sch.get_loops(block_b)
     block_c = sch.get_block("C")
     _, _, c = sch.get_loops(block_c)
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         sch.merge(b, c)
 
 
@@ -268,9 +268,9 @@ def test_merge_fail_with_different_scope():
     _, _, b = sch.get_loops(block_b)
     block_c = sch.get_block("C")
     _, _, c = sch.get_loops(block_c)
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         sch.merge(b, c)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

@@ -15,14 +15,14 @@
 # specific language governing permissions and limitations
 # under the License.
 
-import gsmDataGen
-from gsmDataGen import te
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+from gsm_data_generator import te
+from gsm_data_generator.script import tir as T
 import sys
 import pytest
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Transpose:
     @T.prim_func
     def main(a: T.handle, b: T.handle) -> None:
@@ -43,7 +43,7 @@ class Transpose:
                             B[ax1, ax0] = A_shared_dyn[ax1, ax0]
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class GlobalToShared:
     @T.prim_func
     def main(a: T.handle, b: T.handle) -> None:
@@ -67,7 +67,7 @@ class GlobalToShared:
                                     B[bx * 128 + ax0, by * 128 + ax1] = A_shared_dyn[ax0, ax1]
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class SharedToGlobal:
     @T.prim_func
     def main(a: T.handle, b: T.handle) -> None:
@@ -91,7 +91,7 @@ class SharedToGlobal:
                                     B[bx * 128 + ax0, by * 128 + ax1] = A_shared_dyn[ax1, ax0]
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class GlobalToSharedWithLocalStage:
     @T.prim_func
     def main(a: T.handle, b: T.handle) -> None:
@@ -117,7 +117,7 @@ class GlobalToSharedWithLocalStage:
                                     B[bx * 128 + ax0, by * 128 + ax1] = A_shared_dyn[ax0, ax1]
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class SharedToWmma:
     @T.prim_func
     def main() -> None:
@@ -139,7 +139,7 @@ class SharedToWmma:
                                     A_wmma[ax0, ax1] = A_shared_dyn[ax0, ax1]
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class WmmaToShared:
     @T.prim_func
     def main() -> None:
@@ -161,7 +161,7 @@ class WmmaToShared:
                                     C_shared[ax0, ax1] = C_accum[ax0, ax1]
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class WmmaToGlobal:
     @T.prim_func
     def main(c: T.handle) -> None:
@@ -181,7 +181,7 @@ class WmmaToGlobal:
                                     C[bx * 128 + ax0, by * 128 + ax1] = C_accum[ax0, ax1]
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class WmmaToGlobalWithFusion:
     @T.prim_func
     def main(a: T.handle, c: T.handle) -> None:
@@ -204,7 +204,7 @@ class WmmaToGlobalWithFusion:
                                     )
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class MmaToGlobal:
     @T.prim_func
     def main(c: T.handle) -> None:
@@ -224,7 +224,7 @@ class MmaToGlobal:
                                     C[bx * 128 + ax0, by * 128 + ax1] = C_accum[ax0, ax1]
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class TransformedGlobalToShared:
     @T.prim_func
     def main(a: T.handle, b: T.handle) -> None:
@@ -265,7 +265,7 @@ class TransformedGlobalToShared:
                                     B[bx * 128 + ax0, by * 128 + ax1] = A_shared_dyn[ax0, ax1]
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class TransformedSharedToGlobal:
     @T.prim_func
     def main(a: T.handle, b: T.handle) -> None:
@@ -308,7 +308,7 @@ class TransformedSharedToGlobal:
                                                 ]
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class TransformedGlobalToSharedWithLocalStage:
     @T.prim_func
     def main(a: T.handle, b: T.handle):
@@ -414,7 +414,7 @@ class TransformedGlobalToSharedWithLocalStage:
                                         B[bx * 128 + ax0, by * 128 + ax1] = A_shared_dyn[ax0, ax1]
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class TransformedSharedToWmma:
     @T.prim_func
     def main() -> None:
@@ -495,7 +495,7 @@ class TransformedSharedToWmma:
                                         )
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class TransformedWmmaToShared:
     @T.prim_func
     def main() -> None:
@@ -576,7 +576,7 @@ class TransformedWmmaToShared:
                                         )
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class TransformedWmmaToGlobal:
     @T.prim_func
     def main(C: T.Buffer((1024, 1024), "float32")):
@@ -773,7 +773,7 @@ class TransformedWmmaToGlobal:
                                                     ]
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class TransformedWmmaToGlobalWithFusion:
     @T.prim_func
     def main(A: T.Buffer((1024,), "float32"), C: T.Buffer((1024, 1024), "float32")) -> None:
@@ -998,7 +998,7 @@ class TransformedWmmaToGlobalWithFusion:
                                                     )
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class TransformedMmaToGlobal:
     @T.prim_func
     def main(C: T.Buffer((1024, 1024), "float32")):
@@ -1099,8 +1099,8 @@ class TransformedMmaToGlobal:
 
 
 def _check(original, transformed):
-    mod = gsmDataGen.tir.transform.LowerAutoCopy()(original)
-    gsmDataGen.ir.assert_structural_equal(mod, transformed, True)
+    mod = gsm_data_generator.tir.transform.LowerAutoCopy()(original)
+    gsm_data_generator.ir.assert_structural_equal(mod, transformed, True)
 
 
 def test_coalesce_vectorize():
@@ -1133,7 +1133,7 @@ def verify_single_allocation(stmt, alloc_size=None):
 
     def verify(n):
         if (
-            isinstance(n, gsmDataGen.tir.Block)
+            isinstance(n, gsm_data_generator.tir.Block)
             and n.alloc_buffers is not None
             and (True in ((buf.scope() == "shared.dyn") for buf in n.alloc_buffers))
         ):
@@ -1141,7 +1141,7 @@ def verify_single_allocation(stmt, alloc_size=None):
             for buf in n.alloc_buffers:
                 alloc_extents.append(buf.shape)
 
-    gsmDataGen.tir.stmt_functor.post_order_visit(stmt, verify)
+    gsm_data_generator.tir.stmt_functor.post_order_visit(stmt, verify)
     assert num_alloc[0] == 1
 
     if alloc_size:
@@ -1156,8 +1156,8 @@ def verify_single_allocation(stmt, alloc_size=None):
 
 
 def test_auto_padding():
-    mod = gsmDataGen.tir.transform.LowerAutoCopy()(Transpose)
-    mod = gsmDataGen.tir.transform.FlattenBuffer()(mod)
+    mod = gsm_data_generator.tir.transform.LowerAutoCopy()(Transpose)
+    mod = gsm_data_generator.tir.transform.FlattenBuffer()(mod)
     verify_single_allocation(mod["main"].body, 16 * 130)
 
 

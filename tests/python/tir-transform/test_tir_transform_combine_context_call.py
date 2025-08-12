@@ -15,21 +15,21 @@
 # specific language governing permissions and limitations
 # under the License.
 
-import gsmDataGen
-import gsmDataGen.testing
+import gsm_data_generator
+import gsm_data_generator.testing
 
-from gsmDataGen.script import tir as T, ir as I
+from gsm_data_generator.script import tir as T, ir as I
 
 
 def _device_context(dev_type, dev_id):
-    ctx = gsmDataGen.tir.call_extern("handle", "device_context", dev_type, dev_id)
-    return gsmDataGen.tir.Call("handle", "tir.tvm_thread_context", [ctx])
+    ctx = gsm_data_generator.tir.call_extern("handle", "device_context", dev_type, dev_id)
+    return gsm_data_generator.tir.Call("handle", "tir.tvm_thread_context", [ctx])
 
 
-class TestCombineContextsInLoop(gsmDataGen.testing.CompareBeforeAfter):
+class TestCombineContextsInLoop(gsm_data_generator.testing.CompareBeforeAfter):
     """Device contexts should be hoisted and merged"""
 
-    transform = gsmDataGen.tir.transform.CombineContextCall()
+    transform = gsm_data_generator.tir.transform.CombineContextCall()
 
     def before(self):
         @T.prim_func
@@ -105,4 +105,4 @@ class TestCombineContextsInLoopWithoutTarget(TestCombineContextsInLoop):
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

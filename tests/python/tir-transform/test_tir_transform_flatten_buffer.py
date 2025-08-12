@@ -14,17 +14,17 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import te
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import te
+from gsm_data_generator.script import tir as T
 
 
-class BaseCompare(gsmDataGen.testing.CompareBeforeAfter):
-    transform = gsmDataGen.transform.Sequential(
+class BaseCompare(gsm_data_generator.testing.CompareBeforeAfter):
+    transform = gsm_data_generator.transform.Sequential(
         [
-            gsmDataGen.tir.transform.FlattenBuffer(),
-            gsmDataGen.tir.transform.Simplify(),
+            gsm_data_generator.tir.transform.FlattenBuffer(),
+            gsm_data_generator.tir.transform.Simplify(),
         ]
     )
 
@@ -323,4 +323,4 @@ class TestFlattenDeclBufferWithAxisSeparators(BaseCompare):
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

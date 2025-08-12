@@ -19,8 +19,8 @@
 import logging
 import time
 import multiprocessing
-import gsmDataGen
-from gsmDataGen import rpc
+import gsm_data_generator
+from gsm_data_generator import rpc
 
 
 def rpc_proxy_check():
@@ -36,13 +36,13 @@ def rpc_proxy_check():
 
     try:
         # pylint: disable=import-outside-toplevel
-        from gsmDataGen.rpc import proxy
+        from gsm_data_generator.rpc import proxy
 
         web_port = 8888
         prox = proxy.Proxy("127.0.0.1", web_port=web_port)
 
         def check():
-            if not gsmDataGen.runtime.enabled("rpc"):
+            if not gsm_data_generator.runtime.enabled("rpc"):
                 return
 
             server = multiprocessing.Process(

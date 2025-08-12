@@ -19,8 +19,8 @@
 
 import numpy as np
 import pytest
-import gsmDataGen
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+from gsm_data_generator.script import tir as T
 
 VRMPY_SIZE_B = 128
 VRMPY_SIZE_INT32 = 32
@@ -258,7 +258,7 @@ def conv_approximation(size_a, size_w):
             )
         )
 
-    return gsmDataGen.tir.Schedule(operator)
+    return gsm_data_generator.tir.Schedule(operator)
 
 
 def evaluate(
@@ -271,23 +271,23 @@ def evaluate(
     use_async_copy=0,
 ):
     """Evaluate function."""
-    target_hexagon = gsmDataGen.target.hexagon("v68", link_params=True)
-    with gsmDataGen.transform.PassContext(
+    target_hexagon = gsm_data_generator.target.hexagon("v68", link_params=True)
+    with gsm_data_generator.transform.PassContext(
         config={
             "tir.use_async_copy": use_async_copy,
             "tir.experimental_dma_bypass_cache": 1,
         }
     ):
-        func_tir = gsmDataGen.compile(
-            sch.mod["main"], target=gsmDataGen.target.Target(target_hexagon, host=target_hexagon)
+        func_tir = gsm_data_generator.compile(
+            sch.mod["main"], target=gsm_data_generator.target.Target(target_hexagon, host=target_hexagon)
         )
     module = hexagon_session.load_module(func_tir)
 
-    a_hexagon = gsmDataGen.runtime.ndarray.array(a_data, device=hexagon_session.device)
-    b_hexagon = gsmDataGen.runtime.ndarray.array(b_data, device=hexagon_session.device)
-    c_hexagon = gsmDataGen.runtime.ndarray.array(c_data, device=hexagon_session.device)
+    a_hexagon = gsm_data_generator.runtime.ndarray.array(a_data, device=hexagon_session.device)
+    b_hexagon = gsm_data_generator.runtime.ndarray.array(b_data, device=hexagon_session.device)
+    c_hexagon = gsm_data_generator.runtime.ndarray.array(c_data, device=hexagon_session.device)
 
-    if gsmDataGen.testing.utils.IS_IN_CI:
+    if gsm_data_generator.testing.utils.IS_IN_CI:
         # Run with reduced number and repeat for CI
         timer = module.time_evaluator("__tvm_main__", hexagon_session.device, number=1, repeat=1)
     else:
@@ -295,7 +295,7 @@ def evaluate(
 
     time = timer(a_hexagon, b_hexagon, c_hexagon)
     if expected_output is not None:
-        gsmDataGen.testing.assert_allclose(c_hexagon.numpy(), expected_output)
+        gsm_data_generator.testing.assert_allclose(c_hexagon.numpy(), expected_output)
     return round(time.mean * 1000, 4)
 
 
@@ -355,30 +355,30 @@ class TestAsyncDMAPipeline:
     """Async DMA pipeline test class."""
 
     # Removed most of these to speedup CI.
-    size_a = gsmDataGen.testing.parameter(
+    size_a = gsm_data_generator.testing.parameter(
         1024,
         64 * 64,
         # 128 * 64, # Only works on 8Gen1 HDK's
     )
 
-    size_w = gsmDataGen.testing.parameter(
+    size_w = gsm_data_generator.testing.parameter(
         1 * 1,
         3 * 3,
         9 * 9,
     )
 
-    @gsmDataGen.testing.fixture
+    @gsm_data_generator.testing.fixture
     def input_a(self, size_a):
         return np.random.randint(0, 8, (size_a, VRMPY_SIZE_B), dtype="uint8")
 
-    @gsmDataGen.testing.fixture
+    @gsm_data_generator.testing.fixture
     def input_w(self, size_w):
         return np.random.randint(0, 8, (size_w, VRMPY_SIZE_B), dtype="uint8")
 
-    @gsmDataGen.testing.fixture
+    @gsm_data_generator.testing.fixture
     def expected_output(self, size_a, size_w, input_a, input_w):
         """Generate expected output."""
-        if gsmDataGen.testing.utils.IS_IN_CI and (size_a > 1024 or size_w > 1):
+        if gsm_data_generator.testing.utils.IS_IN_CI and (size_a > 1024 or size_w > 1):
             pytest.skip("Skipping test since it takes too long in CI.")
         expected_result = np.zeros((size_a, VRMPY_SIZE_INT32), dtype="int32")
         for n in range(size_a):
@@ -390,7 +390,7 @@ class TestAsyncDMAPipeline:
                         ) * np.uint32(input_w[x, index_0 * 4 + r_index])
         return expected_result
 
-    @gsmDataGen.testing.requires_hexagon
+    @gsm_data_generator.testing.requires_hexagon
     def test_loading_vtcm_for_vrmpy(
         self,
         hexagon_session,
@@ -402,7 +402,7 @@ class TestAsyncDMAPipeline:
     ):
         """VTCM for VRMPY test."""
 
-        if gsmDataGen.testing.utils.IS_IN_CI and (size_a > 1024 or size_w > 1):
+        if gsm_data_generator.testing.utils.IS_IN_CI and (size_a > 1024 or size_w > 1):
             pytest.skip("Skipping test since it takes too long in CI.")
 
         sch = conv_approximation(size_a, size_w)
@@ -529,7 +529,7 @@ class TestAsyncDMAPipeline:
 
 
 # from tvm.script import tir as T
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class ModulePipelined:
     """Pipelined module class."""
 
@@ -681,7 +681,7 @@ class ModulePipelined:
 
 
 # from tvm.script import tir as T
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class ModuleBase:
     """Base module test class."""
 
@@ -835,20 +835,20 @@ class ModuleBase:
                                 ]
 
 
-@gsmDataGen.testing.requires_hexagon
+@gsm_data_generator.testing.requires_hexagon
 def test_meta(hexagon_session):
     """Test meta."""
-    if gsmDataGen.testing.utils.IS_IN_CI:
+    if gsm_data_generator.testing.utils.IS_IN_CI:
         pytest.skip("Skipping test since it takes too long in CI.")
 
     a_data = np.random.randint(1, 8, (1, 1, 230, 230, 4), dtype="uint8")
     w_data = np.random.randint(1, 8, (2, 1, 7, 7, 1, 32, 4), dtype="int8")
     c_data = np.zeros((1, 2, 112, 112, 32), dtype="int32")
 
-    sch = gsmDataGen.tir.Schedule(ModuleBase)
+    sch = gsm_data_generator.tir.Schedule(ModuleBase)
     base_runtime = evaluate(hexagon_session, sch, a_data, w_data, c_data)
 
-    sch = gsmDataGen.tir.Schedule(ModulePipelined)
+    sch = gsm_data_generator.tir.Schedule(ModulePipelined)
     compute_block = sch.get_block("conv2d_NCHWc_int8_o_update")
     outer = sch.get_loops(compute_block)[0]
 
@@ -856,7 +856,7 @@ def test_meta(hexagon_session):
         hexagon_session, sch, a_data, w_data, c_data, use_async_copy=1
     )
 
-    sch = gsmDataGen.tir.Schedule(ModulePipelined)
+    sch = gsm_data_generator.tir.Schedule(ModulePipelined)
     compute_block = sch.get_block("conv2d_NCHWc_int8_o_update")
     outer = sch.get_loops(compute_block)[0]
 
@@ -881,4 +881,4 @@ def test_meta(hexagon_session):
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

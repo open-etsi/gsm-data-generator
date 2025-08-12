@@ -15,16 +15,16 @@
 # specific language governing permissions and limitations
 # under the License.
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen.script import ir as I, relax as R, tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator.script import ir as I, relax as R, tir as T
 
 import numpy as np
 
-axis = gsmDataGen.testing.parameter(0, 1)
+axis = gsm_data_generator.testing.parameter(0, 1)
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_take_scalar_tensor_as_index(target, dev, axis):
     """The index of R.take may be a scalar tensor
 
@@ -40,18 +40,18 @@ def test_take_scalar_tensor_as_index(target, dev, axis):
             output = R.take(A, R.const(1), axis=axis)
             return output
 
-    built = gsmDataGen.compile(Module, target=target)
-    vm = gsmDataGen.relax.VirtualMachine(built, dev)
+    built = gsm_data_generator.compile(Module, target=target)
+    vm = gsm_data_generator.relax.VirtualMachine(built, dev)
 
     np_input = np.random.random(size=[16, 16]).astype("float16")
-    tvm_input = gsmDataGen.nd.array(np_input, dev)
+    tvm_input = gsm_data_generator.nd.array(np_input, dev)
     tvm_output = vm["main"](tvm_input)
     np_expected = np_input.take(1, axis=axis)
 
-    gsmDataGen.testing.assert_allclose(tvm_output.numpy(), np_expected)
+    gsm_data_generator.testing.assert_allclose(tvm_output.numpy(), np_expected)
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_take_1d_tensor_as_index(target, dev, axis):
     """The index of R.take may be a non-scalar tensor
 
@@ -66,18 +66,18 @@ def test_take_1d_tensor_as_index(target, dev, axis):
             output = R.take(A, R.const([1]), axis=axis)
             return output
 
-    built = gsmDataGen.compile(Module, target=target)
-    vm = gsmDataGen.relax.VirtualMachine(built, dev)
+    built = gsm_data_generator.compile(Module, target=target)
+    vm = gsm_data_generator.relax.VirtualMachine(built, dev)
 
     np_input = np.random.random(size=[16, 16]).astype("float16")
-    tvm_input = gsmDataGen.nd.array(np_input, dev)
+    tvm_input = gsm_data_generator.nd.array(np_input, dev)
     tvm_output = vm["main"](tvm_input)
     np_expected = np_input.take([1], axis=axis)
 
-    gsmDataGen.testing.assert_allclose(tvm_output.numpy(), np_expected)
+    gsm_data_generator.testing.assert_allclose(tvm_output.numpy(), np_expected)
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_take_2d_tensor_as_index(target, dev, axis):
     """The index of R.take may be a 2-d tensor"""
 
@@ -88,18 +88,18 @@ def test_take_2d_tensor_as_index(target, dev, axis):
             output = R.take(A, R.const([[1, 3], [5, 7]]), axis=axis)
             return output
 
-    built = gsmDataGen.compile(Module, target=target)
-    vm = gsmDataGen.relax.VirtualMachine(built, dev)
+    built = gsm_data_generator.compile(Module, target=target)
+    vm = gsm_data_generator.relax.VirtualMachine(built, dev)
 
     np_input = np.random.random(size=[16, 16]).astype("float16")
-    tvm_input = gsmDataGen.nd.array(np_input, dev)
+    tvm_input = gsm_data_generator.nd.array(np_input, dev)
     tvm_output = vm["main"](tvm_input)
     np_expected = np_input.take([[1, 3], [5, 7]], axis=axis)
 
-    gsmDataGen.testing.assert_allclose(tvm_output.numpy(), np_expected)
+    gsm_data_generator.testing.assert_allclose(tvm_output.numpy(), np_expected)
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_take_constant_prim_value_as_index(target, dev, axis):
     """The index of R.take may be a R.prim_value
 
@@ -115,18 +115,18 @@ def test_take_constant_prim_value_as_index(target, dev, axis):
             output = R.take(A, R.prim_value(1), axis=axis)
             return output
 
-    built = gsmDataGen.compile(Module, target=target)
-    vm = gsmDataGen.relax.VirtualMachine(built, dev)
+    built = gsm_data_generator.compile(Module, target=target)
+    vm = gsm_data_generator.relax.VirtualMachine(built, dev)
 
     np_input = np.random.random(size=[16, 16]).astype("float16")
-    tvm_input = gsmDataGen.nd.array(np_input, dev)
+    tvm_input = gsm_data_generator.nd.array(np_input, dev)
     tvm_output = vm["main"](tvm_input)
     np_expected = np_input.take(1, axis=axis)
 
-    gsmDataGen.testing.assert_allclose(tvm_output.numpy(), np_expected)
+    gsm_data_generator.testing.assert_allclose(tvm_output.numpy(), np_expected)
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_take_dynamic_prim_value_as_index(target, dev, axis):
     """The index of R.take may be a dynamic R.prim_value
 
@@ -143,18 +143,18 @@ def test_take_dynamic_prim_value_as_index(target, dev, axis):
             output = R.take(A, R.prim_value(n - 1), axis=axis)
             return output
 
-    built = gsmDataGen.compile(Module, target=target)
-    vm = gsmDataGen.relax.VirtualMachine(built, dev)
+    built = gsm_data_generator.compile(Module, target=target)
+    vm = gsm_data_generator.relax.VirtualMachine(built, dev)
 
     np_input = np.random.random(size=[16, 16]).astype("float16")
-    tvm_input = gsmDataGen.nd.array(np_input, dev)
+    tvm_input = gsm_data_generator.nd.array(np_input, dev)
     tvm_output = vm["main"](tvm_input)
     np_expected = np_input.take(15, axis=axis)
 
-    gsmDataGen.testing.assert_allclose(tvm_output.numpy(), np_expected)
+    gsm_data_generator.testing.assert_allclose(tvm_output.numpy(), np_expected)
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_take_nan_mode_OOB_indices(target, dev, axis):
     """Test R.take with mode="nan" and out-of-bounds indices.
     This test checks that out-of-bounds indices produce NaN values in the output tensor.
@@ -167,11 +167,11 @@ def test_take_nan_mode_OOB_indices(target, dev, axis):
             output = R.take(A, R.const([0, 1, 2, 3]), axis=axis, mode="nan")
             return output
 
-    built = gsmDataGen.compile(Module, target=target)
-    vm = gsmDataGen.relax.VirtualMachine(built, dev)
+    built = gsm_data_generator.compile(Module, target=target)
+    vm = gsm_data_generator.relax.VirtualMachine(built, dev)
 
     np_input = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]], dtype="float16")
-    tvm_input = gsmDataGen.nd.array(np_input, dev)
+    tvm_input = gsm_data_generator.nd.array(np_input, dev)
     tvm_output = vm["main"](tvm_input)
     if axis == 0:
         np_expected = np.array(
@@ -184,10 +184,10 @@ def test_take_nan_mode_OOB_indices(target, dev, axis):
             dtype="float16",
         )
 
-    gsmDataGen.testing.assert_allclose(tvm_output.numpy(), np_expected)
+    gsm_data_generator.testing.assert_allclose(tvm_output.numpy(), np_expected)
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_take_wrap_mode_OOB_indices(target, dev, axis):
     """Test R.take with mode="wrap" and out-of-bounds indices.
     This test checks that out-of-bounds indices wrap around to the valid range.
@@ -200,18 +200,18 @@ def test_take_wrap_mode_OOB_indices(target, dev, axis):
             output = R.take(A, R.const([0, 1, 2, 3]), axis=axis, mode="wrap")
             return output
 
-    built = gsmDataGen.compile(Module, target=target)
-    vm = gsmDataGen.relax.VirtualMachine(built, dev)
+    built = gsm_data_generator.compile(Module, target=target)
+    vm = gsm_data_generator.relax.VirtualMachine(built, dev)
 
     np_input = np.random.random(size=[3, 3]).astype("float16")
-    tvm_input = gsmDataGen.nd.array(np_input, dev)
+    tvm_input = gsm_data_generator.nd.array(np_input, dev)
     tvm_output = vm["main"](tvm_input)
     np_expected = np.take(np_input, [0, 1, 2, 3], axis=axis, mode="wrap")
 
-    gsmDataGen.testing.assert_allclose(tvm_output.numpy(), np_expected)
+    gsm_data_generator.testing.assert_allclose(tvm_output.numpy(), np_expected)
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_take_clip_mode_OOB_indices(target, dev, axis):
     """Test R.take with mode="clip" and out-of-bounds indices.
     This test checks that out-of-bounds indices are clipped to the valid range.
@@ -224,15 +224,15 @@ def test_take_clip_mode_OOB_indices(target, dev, axis):
             output = R.take(A, R.const([0, 1, 2, 3]), axis=axis, mode="clip")
             return output
 
-    built = gsmDataGen.compile(Module, target=target)
-    vm = gsmDataGen.relax.VirtualMachine(built, dev)
+    built = gsm_data_generator.compile(Module, target=target)
+    vm = gsm_data_generator.relax.VirtualMachine(built, dev)
     np_input = np.random.random(size=[3, 3]).astype("float16")
-    tvm_input = gsmDataGen.nd.array(np_input, dev)
+    tvm_input = gsm_data_generator.nd.array(np_input, dev)
     tvm_output = vm["main"](tvm_input)
     np_expected = np.take(np_input, [0, 1, 2, 3], axis=axis, mode="clip")
 
-    gsmDataGen.testing.assert_allclose(tvm_output.numpy(), np_expected)
+    gsm_data_generator.testing.assert_allclose(tvm_output.numpy(), np_expected)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

@@ -15,12 +15,12 @@
 # specific language governing permissions and limitations
 # under the License.
 import pytest
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import relax, tir
-from gsmDataGen import TVMError
-from gsmDataGen.ir import Op, VDevice
-from gsmDataGen.script import relax as R
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import relax, tir
+from gsm_data_generator import TVMError
+from gsm_data_generator.ir import Op, VDevice
+from gsm_data_generator.script import relax as R
 
 
 def test_conv1d_op_correctness():
@@ -45,7 +45,7 @@ def test_conv3d_op_correctness():
 
 def _check_inference(bb: relax.BlockBuilder, call: relax.Call, expected_sinfo: relax.StructInfo):
     ret = bb.normalize(call)
-    gsmDataGen.ir.assert_structural_equal(ret.struct_info, expected_sinfo)
+    gsm_data_generator.ir.assert_structural_equal(ret.struct_info, expected_sinfo)
 
 
 def test_conv1d_infer_struct_info():
@@ -173,7 +173,7 @@ def test_conv1d_infer_struct_info_shape_symbolic():
         bb,
         relax.op.nn.conv1d(x0, w0, strides=2, padding=1, dilation=2),
         relax.TensorStructInfo(
-            (n, ko, gsmDataGen.tir.floordiv(iw + 3, 2) + 1 - kw),
+            (n, ko, gsm_data_generator.tir.floordiv(iw + 3, 2) + 1 - kw),
             "float32",
         ),
     )
@@ -918,7 +918,7 @@ def test_conv2d_infer_struct_info_shape_symbolic():
         bb,
         relax.op.nn.conv2d(x0, w0, strides=(2, 2), padding=(1, 1), dilation=(2, 2)),
         relax.TensorStructInfo(
-            (n, ko, gsmDataGen.tir.floordiv(ih + 3, 2) + 1 - kh, gsmDataGen.tir.floordiv(iw + 3, 2) + 1 - kw),
+            (n, ko, gsm_data_generator.tir.floordiv(ih + 3, 2) + 1 - kh, gsm_data_generator.tir.floordiv(iw + 3, 2) + 1 - kw),
             "float32",
         ),
     )
@@ -1714,9 +1714,9 @@ def test_conv3d_infer_struct_info_shape_symbolic():
             (
                 n,
                 ko,
-                gsmDataGen.tir.floordiv(id + 3, 2) + 1 - kd,
-                gsmDataGen.tir.floordiv(ih + 3, 2) + 1 - kh,
-                gsmDataGen.tir.floordiv(iw + 3, 2) + 1 - kw,
+                gsm_data_generator.tir.floordiv(id + 3, 2) + 1 - kd,
+                gsm_data_generator.tir.floordiv(ih + 3, 2) + 1 - kh,
+                gsm_data_generator.tir.floordiv(iw + 3, 2) + 1 - kw,
             ),
             "float32",
         ),
@@ -1753,4 +1753,4 @@ def test_conv3d_infer_struct_info_shape_var():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

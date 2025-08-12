@@ -14,10 +14,10 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-import gsmDataGen
-from gsmDataGen import te
-import gsmDataGen.runtime._ffi_api
-import gsmDataGen.target._ffi_api
+import gsm_data_generator
+from gsm_data_generator import te
+import gsm_data_generator.runtime._ffi_api
+import gsm_data_generator.target._ffi_api
 
 
 def checker(mod, expected):
@@ -27,13 +27,13 @@ def checker(mod, expected):
 
 
 def create_csource_module():
-    return gsmDataGen.runtime._ffi_api.CSourceModuleCreate("", "cc", [], None)
+    return gsm_data_generator.runtime._ffi_api.CSourceModuleCreate("", "cc", [], None)
 
 
 def create_llvm_module():
     A = te.placeholder((1024,), name="A")
     B = te.compute(A.shape, lambda *i: A(*i) + 1.0, name="B")
-    return gsmDataGen.tir.build(te.create_prim_func([A, B]), target="llvm")
+    return gsm_data_generator.tir.build(te.create_prim_func([A, B]), target="llvm")
 
 
 def test_property():
@@ -49,4 +49,4 @@ def test_property():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

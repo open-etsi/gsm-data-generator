@@ -18,9 +18,9 @@
 
 import numpy as np
 
-import gsmDataGen
-from gsmDataGen.script import tir as T
-from gsmDataGen.contrib.hexagon import allocate_hexagon_array
+import gsm_data_generator
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.contrib.hexagon import allocate_hexagon_array
 
 from .infrastructure import get_hexagon_target
 
@@ -44,10 +44,10 @@ def generated_func(shape: tuple, dtype: str, axis_separators: list):
 class TestMemoryAlloc:
     """Memory allocation test."""
 
-    dtype = gsmDataGen.testing.parameter("int8")
-    shape = gsmDataGen.testing.parameter((128, 128))
+    dtype = gsm_data_generator.testing.parameter("int8")
+    shape = gsm_data_generator.testing.parameter((128, 128))
 
-    (scope, axis_separators,) = gsmDataGen.testing.parameters(
+    (scope, axis_separators,) = gsm_data_generator.testing.parameters(
         ("global", []),
         ("global.vtcm", []),
         ("global.vtcm", [1]),
@@ -57,7 +57,7 @@ class TestMemoryAlloc:
 
     def test_global_axis_separator(self, hexagon_session, shape, dtype, scope, axis_separators):
         """Test with global axis separator."""
-        mod1 = gsmDataGen.compile(
+        mod1 = gsm_data_generator.compile(
             generated_func(shape, dtype, axis_separators),
             target=get_hexagon_target("v69"),
         )
@@ -74,8 +74,8 @@ class TestMemoryAlloc:
         )
 
         mod2(a, b)
-        gsmDataGen.testing.assert_allclose(a.numpy() * 2, b.numpy(), atol=1e-4, rtol=1e-4)
+        gsm_data_generator.testing.assert_allclose(a.numpy() * 2, b.numpy(), atol=1e-4, rtol=1e-4)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

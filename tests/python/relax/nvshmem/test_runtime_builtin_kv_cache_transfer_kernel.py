@@ -17,11 +17,11 @@
 import numpy as np
 import pytest
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen.runtime import Device
-from gsmDataGen.runtime import ShapeTuple
-from gsmDataGen.runtime import disco as di
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator.runtime import Device
+from gsm_data_generator.runtime import ShapeTuple
+from gsm_data_generator.runtime import disco as di
 
 
 page_size = 4
@@ -44,16 +44,16 @@ def get_comm_rank():
 def test_kv_transfer_without_disco():
     comm, rank = get_comm_rank()
     layer_id = 1
-    dev = gsmDataGen.cuda(rank)
+    dev = gsm_data_generator.cuda(rank)
     if rank == 0:
-        f_init_nvshmem_uid = gsmDataGen.get_global_func("runtime.disco.nvshmem.init_nvshmem_uid")
+        f_init_nvshmem_uid = gsm_data_generator.get_global_func("runtime.disco.nvshmem.init_nvshmem_uid")
         uid = f_init_nvshmem_uid()
     else:
         uid = None
     uid = comm.bcast(uid, root=0)
-    init_func = gsmDataGen.get_global_func("runtime.disco.nvshmem.init_nvshmem")
+    init_func = gsm_data_generator.get_global_func("runtime.disco.nvshmem.init_nvshmem")
     init_func(uid, 2, rank)
-    empty_func = gsmDataGen.get_global_func("runtime.disco.nvshmem.empty")
+    empty_func = gsm_data_generator.get_global_func("runtime.disco.nvshmem.empty")
     pages = empty_func(
         ShapeTuple((num_layers, num_pages, 2, num_kv_heads, page_size, head_dim)), "float16", dev
     )
@@ -62,13 +62,13 @@ def test_kv_transfer_without_disco():
     k_np = np.random.rand(ntokens, num_kv_heads, head_dim).astype(np.float16)
     v_np = np.random.rand(ntokens, num_kv_heads, head_dim).astype(np.float16)
     if rank == 0:
-        k = gsmDataGen.nd.array(k_np, dev)
-        v = gsmDataGen.nd.array(v_np, dev)
+        k = gsm_data_generator.nd.array(k_np, dev)
+        v = gsm_data_generator.nd.array(v_np, dev)
         remote_position_map_np = np.array(position_map_array, dtype=np.int32)
-        remote_position_map = gsmDataGen.nd.array(remote_position_map_np, dev)
+        remote_position_map = gsm_data_generator.nd.array(remote_position_map_np, dev)
         remote_tp_group_pe_offset_np = np.array([1] * len(position_map_array), dtype=np.int32)
-        remote_tp_group_pe_offset = gsmDataGen.nd.array(remote_tp_group_pe_offset_np, dev)
-        transfer_func = gsmDataGen.get_global_func("nvshmem.KVTransfer")
+        remote_tp_group_pe_offset = gsm_data_generator.nd.array(remote_tp_group_pe_offset_np, dev)
+        transfer_func = gsm_data_generator.get_global_func("nvshmem.KVTransfer")
         layer_view = pages._create_view(
             [num_pages, 2, num_kv_heads, page_size, head_dim],
             "float16",
@@ -89,7 +89,7 @@ def test_kv_transfer_without_disco():
             original_v = v_np[i]
             transferred_v = pages_np[layer_id, page_id, 1, :, offset_in_page, :]
             np.testing.assert_allclose(original_v, transferred_v)
-    finalize_func = gsmDataGen.get_global_func("runtime.disco.nvshmem.finalize_nvshmem")
+    finalize_func = gsm_data_generator.get_global_func("runtime.disco.nvshmem.finalize_nvshmem")
     finalize_func()
     comm.Barrier()
 
@@ -98,16 +98,16 @@ def test_kv_transfer_without_disco():
 def test_kv_transfer_page_to_page_without_disco():
     comm, rank = get_comm_rank()
     layer_id = 1
-    dev = gsmDataGen.cuda(rank)
+    dev = gsm_data_generator.cuda(rank)
     if rank == 0:
-        f_init_nvshmem_uid = gsmDataGen.get_global_func("runtime.disco.nvshmem.init_nvshmem_uid")
+        f_init_nvshmem_uid = gsm_data_generator.get_global_func("runtime.disco.nvshmem.init_nvshmem_uid")
         uid = f_init_nvshmem_uid()
     else:
         uid = None
     uid = comm.bcast(uid, root=0)
-    init_func = gsmDataGen.get_global_func("runtime.disco.nvshmem.init_nvshmem")
+    init_func = gsm_data_generator.get_global_func("runtime.disco.nvshmem.init_nvshmem")
     init_func(uid, 2, rank)
-    empty_func = gsmDataGen.get_global_func("runtime.disco.nvshmem.empty")
+    empty_func = gsm_data_generator.get_global_func("runtime.disco.nvshmem.empty")
     pages = empty_func(
         ShapeTuple((num_layers, num_pages, 2, num_kv_heads, page_size, head_dim)), "float16", dev
     )
@@ -120,14 +120,14 @@ def test_kv_transfer_page_to_page_without_disco():
     if rank == 0:
         pages.copyfrom(pages_np)
         remote_position_map_np = np.array(rank_1_position_map_array, dtype=np.int32)
-        remote_position_map = gsmDataGen.nd.array(remote_position_map_np, dev)
+        remote_position_map = gsm_data_generator.nd.array(remote_position_map_np, dev)
         local_position_map_np = np.array(rank_0_position_map_array, dtype=np.int32)
-        local_position_map = gsmDataGen.nd.array(local_position_map_np, dev)
+        local_position_map = gsm_data_generator.nd.array(local_position_map_np, dev)
         remote_tp_group_pe_offset_np = np.array(
             [1] * len(rank_0_position_map_array), dtype=np.int32
         )
-        remote_tp_group_pe_offset = gsmDataGen.nd.array(remote_tp_group_pe_offset_np, dev)
-        transfer_func = gsmDataGen.get_global_func("nvshmem.KVTransferPageToPage")
+        remote_tp_group_pe_offset = gsm_data_generator.nd.array(remote_tp_group_pe_offset_np, dev)
+        transfer_func = gsm_data_generator.get_global_func("nvshmem.KVTransferPageToPage")
         layer_view = pages._create_view(
             [num_pages, 2, num_kv_heads, page_size, head_dim],
             "float16",
@@ -155,7 +155,7 @@ def test_kv_transfer_page_to_page_without_disco():
             rank_0_entry = pages_np[layer_id, rank_0_page_id, :, :, rank_0_offset_in_page, :]
             transferred_entry = new_pages_np[layer_id, page_id, :, :, offset_in_page, :]
             np.testing.assert_allclose(rank_0_entry, transferred_entry)
-    finalize_func = gsmDataGen.get_global_func("runtime.disco.nvshmem.finalize_nvshmem")
+    finalize_func = gsm_data_generator.get_global_func("runtime.disco.nvshmem.finalize_nvshmem")
     finalize_func()
     comm.Barrier()
 
@@ -165,7 +165,7 @@ def test_kv_transfer_with_disco():
     comm, rank = get_comm_rank()
     layer_id = 1
     if rank == 0:
-        f_init_nvshmem_uid = gsmDataGen.get_global_func("runtime.disco.nvshmem.init_nvshmem_uid")
+        f_init_nvshmem_uid = gsm_data_generator.get_global_func("runtime.disco.nvshmem.init_nvshmem_uid")
         uid = f_init_nvshmem_uid()
     else:
         uid = None
@@ -213,7 +213,7 @@ def test_kv_transfer_with_disco():
         for i in range(2):
             sess._sync_worker(i)
         for i in range(2):
-            gsmDataGen.cuda(i).sync()
+            gsm_data_generator.cuda(i).sync()
         comm.Barrier()
     else:
         comm.Barrier()

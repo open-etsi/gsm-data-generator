@@ -14,32 +14,32 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-import gsmDataGen
-from gsmDataGen import te
+import gsm_data_generator
+from gsm_data_generator import te
 
 
 def test_rewrite_Select():
-    ib = gsmDataGen.tir.ir_builder.create()
+    ib = gsm_data_generator.tir.ir_builder.create()
     A = ib.allocate("float32", 100, name="A", scope="global")
     i = te.var("i")
-    y = gsmDataGen.tir.Select(i > 1, A[i - 1], 1.0)
+    y = gsm_data_generator.tir.Select(i > 1, A[i - 1], 1.0)
 
-    mod = gsmDataGen.IRModule.from_expr(gsmDataGen.tir.PrimFunc([i], gsmDataGen.tir.Evaluate(y)))
-    yy = gsmDataGen.tir.transform.RewriteUnsafeSelect()(mod)["main"].body.value
+    mod = gsm_data_generator.IRModule.from_expr(gsm_data_generator.tir.PrimFunc([i], gsm_data_generator.tir.Evaluate(y)))
+    yy = gsm_data_generator.tir.transform.RewriteUnsafeSelect()(mod)["main"].body.value
 
-    z = gsmDataGen.tir.Select(gsmDataGen.tir.Select(i > 1, A[i - 1], 1.0) > 0.0, A[i], 0.1)
-    mod = gsmDataGen.IRModule.from_expr(gsmDataGen.tir.PrimFunc([i], gsmDataGen.tir.Evaluate(z)))
-    zz = gsmDataGen.tir.transform.RewriteUnsafeSelect()(mod)["main"].body.value
+    z = gsm_data_generator.tir.Select(gsm_data_generator.tir.Select(i > 1, A[i - 1], 1.0) > 0.0, A[i], 0.1)
+    mod = gsm_data_generator.IRModule.from_expr(gsm_data_generator.tir.PrimFunc([i], gsm_data_generator.tir.Evaluate(z)))
+    zz = gsm_data_generator.tir.transform.RewriteUnsafeSelect()(mod)["main"].body.value
 
-    a = gsmDataGen.tir.Select(gsmDataGen.tir.floordiv(i, 4) > 10, y, z)
+    a = gsm_data_generator.tir.Select(gsm_data_generator.tir.floordiv(i, 4) > 10, y, z)
 
-    mod = gsmDataGen.IRModule.from_expr(gsmDataGen.tir.PrimFunc([i], gsmDataGen.tir.Evaluate(a)))
-    aa = gsmDataGen.tir.transform.RewriteUnsafeSelect()(mod)["main"].body.value
-    builtin_if_then_else = gsmDataGen.ir.Op.get("tir.if_then_else")
+    mod = gsm_data_generator.IRModule.from_expr(gsm_data_generator.tir.PrimFunc([i], gsm_data_generator.tir.Evaluate(a)))
+    aa = gsm_data_generator.tir.transform.RewriteUnsafeSelect()(mod)["main"].body.value
+    builtin_if_then_else = gsm_data_generator.ir.Op.get("tir.if_then_else")
 
     assert yy.op.same_as(builtin_if_then_else)
     assert yy.op.same_as(builtin_if_then_else)
-    assert isinstance(aa, gsmDataGen.tir.Select)
+    assert isinstance(aa, gsm_data_generator.tir.Select)
 
 
 if __name__ == "__main__":

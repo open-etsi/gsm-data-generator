@@ -16,11 +16,11 @@
 # under the License.
 # pylint: disable=missing-function-docstring,missing-module-docstring
 import numpy as np
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import tir
-from gsmDataGen.tir.schedule.testing import assert_structural_equal_ignore_global_symbol
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import tir
+from gsm_data_generator.tir.schedule.testing import assert_structural_equal_ignore_global_symbol
+from gsm_data_generator.script import tir as T
 
 # pylint: disable=no-member,invalid-name,unused-variable,unexpected-keyword-arg
 
@@ -32,14 +32,14 @@ def check_decompose_padding(origin, scheduled, expected, check_run=False):
         out_buffer = origin.buffer_map[origin.params[1]]
         in_shape = [int(_) for _ in in_buffer.shape]
         out_shape = [int(_) for _ in out_buffer.shape]
-        x = gsmDataGen.nd.array(np.random.uniform(0, 64, in_shape).astype(in_buffer.dtype))
-        y0 = gsmDataGen.nd.array(np.zeros(out_shape).astype(out_buffer.dtype))
-        y1 = gsmDataGen.nd.array(np.zeros(out_shape).astype(out_buffer.dtype))
-        f_origin = gsmDataGen.compile(origin)
-        f_scheduled = gsmDataGen.compile(scheduled)
+        x = gsm_data_generator.nd.array(np.random.uniform(0, 64, in_shape).astype(in_buffer.dtype))
+        y0 = gsm_data_generator.nd.array(np.zeros(out_shape).astype(out_buffer.dtype))
+        y1 = gsm_data_generator.nd.array(np.zeros(out_shape).astype(out_buffer.dtype))
+        f_origin = gsm_data_generator.compile(origin)
+        f_scheduled = gsm_data_generator.compile(scheduled)
         f_origin(x, y0)
         f_scheduled(x, y1)
-        gsmDataGen.testing.assert_allclose(y0.numpy(), y1.numpy())
+        gsm_data_generator.testing.assert_allclose(y0.numpy(), y1.numpy())
 
 
 def test_int64_indices_batch_decompose_padding():
@@ -416,4 +416,4 @@ def test_not_to_decompose_trivial_predicate():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

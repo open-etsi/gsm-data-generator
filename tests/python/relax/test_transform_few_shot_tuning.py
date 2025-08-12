@@ -18,20 +18,20 @@
 from typing import List, Tuple
 import numpy as np
 
-import gsmDataGen
-from gsmDataGen.script import tir as T
-from gsmDataGen.tir.tensor_intrin.cuda import *  # pylint: disable=wildcard-import,unused-wildcard-import
-from gsmDataGen.tir.tensor_intrin.x86 import *  # pylint: disable=wildcard-import,unused-wildcard-import
-from gsmDataGen.meta_schedule.testing.tune_utils import generate_input_data
-from gsmDataGen.meta_schedule.arg_info import ArgInfo
-from gsmDataGen.relax.transform import FewShotTuning
-import gsmDataGen.testing
+import gsm_data_generator
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.tir.tensor_intrin.cuda import *  # pylint: disable=wildcard-import,unused-wildcard-import
+from gsm_data_generator.tir.tensor_intrin.x86 import *  # pylint: disable=wildcard-import,unused-wildcard-import
+from gsm_data_generator.meta_schedule.testing.tune_utils import generate_input_data
+from gsm_data_generator.meta_schedule.arg_info import ArgInfo
+from gsm_data_generator.relax.transform import FewShotTuning
+import gsm_data_generator.testing
 
 import pytest
 
 # pylint: disable=no-self-argument,missing-class-docstring,line-too-long
 # fmt: off
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class MatMul:
     @T.prim_func
     def matmul(
@@ -50,7 +50,7 @@ class MatMul:
                     C[v_i, v_j] = T.float16(0)
                 C[v_i, v_j] = C[v_i, v_j] + A[v_i, v_k] * B[v_k, v_j]
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Softmax:
     @T.prim_func
     def softmax(rxplaceholder: T.Buffer((T.int64(8), T.int64(3456), T.int64(3456)), "float32"), T_softmax_norm: T.Buffer((T.int64(8), T.int64(3456), T.int64(3456)), "float32")):
@@ -89,7 +89,7 @@ class Softmax:
                 T.block_attr({"axis": 2})
                 T_softmax_norm[v_i0, v_i1, v_i2] = T_softmax_exp[v_i0, v_i1, v_i2] / T_softmax_expsum[v_i0, v_i1]
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Fused_Variance_Cast1:
     @T.prim_func
     def main(lv3: T.Buffer((T.int64(1), T.int64(32), T.int64(34560)), "float32"), compute: T.Buffer((T.int64(1), T.int64(32), T.int64(1)), "float16")):
@@ -148,7 +148,7 @@ class Fused_Variance_Cast1:
                 T.writes(compute[v_i0, v_i1, v_i2])
                 compute[v_i0, v_i1, v_i2] = T.Cast("float16", T_divide_1[v_i0, v_i1, v_i2])
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Fuse_Mean_Cast1:
     @T.prim_func
     def main(lv: T.Buffer((T.int64(1), T.int64(32), T.int64(34560)), "float32"), compute: T.Buffer((T.int64(1), T.int64(32), T.int64(1)), "float16")):
@@ -177,7 +177,7 @@ class Fuse_Mean_Cast1:
                 T.writes(compute[v_i0, v_i1, v_i2])
                 compute[v_i0, v_i1, v_i2] = T.Cast("float16", T_divide[v_i0, v_i1, v_i2])
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Module:
     @T.prim_func
     def main(lv26: T.Buffer((T.int64(1), T.int64(3456), T.int64(2560)), "float16"), T_multiply: T.Buffer((T.int64(1), T.int64(3456), T.int64(1280)), "float16")):
@@ -312,8 +312,8 @@ class Module:
 # pylint: enable=no-self-argument,missing-class-docstring,line-too-long
 
 
-def _target() -> gsmDataGen.target.Target:
-    return gsmDataGen.target.Target("llvm -num-cores=4")
+def _target() -> gsm_data_generator.target.Target:
+    return gsm_data_generator.target.Target("llvm -num-cores=4")
     # for local testing only
     # return tvm.target.Target("nvidia/geforce-rtx-3070")
 
@@ -322,13 +322,13 @@ def _acc() -> float:
     return 1e-2 if _target().kind.name == "cuda" else 1e-7
 
 
-def _get_single_prim_func(mod: gsmDataGen.ir.IRModule) -> gsmDataGen.tir.PrimFunc:
+def _get_single_prim_func(mod: gsm_data_generator.ir.IRModule) -> gsm_data_generator.tir.PrimFunc:
     funcs = [func for func in mod.functions.values()]
     assert len(funcs) == 1, "Only one function is supported."
     return funcs[0]
 
 
-def _get_input_output_info(func: gsmDataGen.tir.PrimFunc) -> Tuple[List[np.ndarray], Tuple, str]:
+def _get_input_output_info(func: gsm_data_generator.tir.PrimFunc) -> Tuple[List[np.ndarray], Tuple, str]:
     args = ArgInfo.from_prim_func(func)
     inputs = [generate_input_data(x.shape, x.dtype) for x in args[:-1]]
     output_shape = args[-1].shape
@@ -337,13 +337,13 @@ def _get_input_output_info(func: gsmDataGen.tir.PrimFunc) -> Tuple[List[np.ndarr
 
 
 def _expected_results(
-    mod: gsmDataGen.ir.IRModule, inputs: List[np.ndarray], output_shape: Tuple, output_dtype: str
+    mod: gsm_data_generator.ir.IRModule, inputs: List[np.ndarray], output_shape: Tuple, output_dtype: str
 ) -> np.ndarray:
     func = _get_single_prim_func(mod)
     func = func.with_attr("global_symbol", "main")
-    rt_mod = gsmDataGen.compile(func, target="llvm")
+    rt_mod = gsm_data_generator.compile(func, target="llvm")
     data = [
-        gsmDataGen.nd.array(x)
+        gsm_data_generator.nd.array(x)
         for x in [
             *inputs,
             np.zeros(output_shape, dtype=output_dtype),
@@ -354,12 +354,12 @@ def _expected_results(
 
 
 def _actual_results(
-    actual: gsmDataGen.ir.IRModule, inputs: List[np.ndarray], output_shape: Tuple, output_dtype: str
+    actual: gsm_data_generator.ir.IRModule, inputs: List[np.ndarray], output_shape: Tuple, output_dtype: str
 ):
     target = _target()
-    actual_rt_mod = gsmDataGen.compile(actual, target=target)
+    actual_rt_mod = gsm_data_generator.compile(actual, target=target)
     actual_data = [
-        gsmDataGen.nd.array(x, device=gsmDataGen.cuda() if target.kind.name == "cuda" else gsmDataGen.cpu())
+        gsm_data_generator.nd.array(x, device=gsm_data_generator.cuda() if target.kind.name == "cuda" else gsm_data_generator.cpu())
         for x in [
             *inputs,
             np.zeros(output_shape, dtype=output_dtype),
@@ -369,23 +369,23 @@ def _actual_results(
     return actual_data[-1].numpy()
 
 
-def _assert_allclose(mod: gsmDataGen.ir.IRModule, actual: gsmDataGen.ir.IRModule) -> None:
+def _assert_allclose(mod: gsm_data_generator.ir.IRModule, actual: gsm_data_generator.ir.IRModule) -> None:
     inputs, output_shape, output_dtype = _get_input_output_info(_get_single_prim_func(mod))
     expected_output = _expected_results(mod, inputs, output_shape, output_dtype)
     actual_output = _actual_results(actual, inputs, output_shape, output_dtype)
-    gsmDataGen.testing.assert_allclose(expected_output, actual_output, rtol=1e-3, atol=1e-3)
+    gsm_data_generator.testing.assert_allclose(expected_output, actual_output, rtol=1e-3, atol=1e-3)
 
 
 # Fused_Variance_Cast1 not added due to https://github.com/apache/tvm/issues/14791
 @pytest.mark.parametrize("mod", [Softmax, MatMul, Fuse_Mean_Cast1, Module])
 @pytest.mark.parametrize("benchmark", [False, True])
-def test_funcs(mod: gsmDataGen.ir.IRModule, benchmark: bool) -> None:
+def test_funcs(mod: gsm_data_generator.ir.IRModule, benchmark: bool) -> None:
     valid_count = 10 if benchmark else 1
-    with _target(), gsmDataGen.transform.PassContext(opt_level=3):
+    with _target(), gsm_data_generator.transform.PassContext(opt_level=3):
         actual = FewShotTuning(valid_count=valid_count)(mod)
     assert _get_single_prim_func(actual).attrs["tir.is_scheduled"], "Schedule is not applied."
     _assert_allclose(mod, actual)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

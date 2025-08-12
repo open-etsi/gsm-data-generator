@@ -15,13 +15,13 @@
 # specific language governing permissions and limitations
 # under the License.
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen.script import tir as T, ir as I
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator.script import tir as T, ir as I
 
 
-class BaseCompare(gsmDataGen.testing.CompareBeforeAfter):
-    transform = gsmDataGen.tir.transform.LowerDeviceKernelLaunch()
+class BaseCompare(gsm_data_generator.testing.CompareBeforeAfter):
+    transform = gsm_data_generator.tir.transform.LowerDeviceKernelLaunch()
 
 
 class TestLowerDeviceKernelLaunch(BaseCompare):
@@ -239,4 +239,4 @@ class TestSameDeviceDifferentTarget(BaseCompare):
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

@@ -14,15 +14,15 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-import gsmDataGen
-from gsmDataGen import te
+import gsm_data_generator
+from gsm_data_generator import te
 
 
 def test_decorate_device():
     x = te.var("x")
-    mod = gsmDataGen.IRModule.from_expr(gsmDataGen.tir.PrimFunc([x], gsmDataGen.tir.Evaluate(x)))
+    mod = gsm_data_generator.IRModule.from_expr(gsm_data_generator.tir.PrimFunc([x], gsm_data_generator.tir.Evaluate(x)))
 
-    stmt = gsmDataGen.tir.transform.DecorateDeviceScope()(mod)["main"].body
+    stmt = gsm_data_generator.tir.transform.DecorateDeviceScope()(mod)["main"].body
     assert stmt.attr_key == "device_scope"
 
 

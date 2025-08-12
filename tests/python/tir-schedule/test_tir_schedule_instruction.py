@@ -19,8 +19,8 @@
 import sys
 
 import pytest
-import gsmDataGen.testing
-from gsmDataGen.tir.schedule import BlockRV, Instruction, InstructionKind, LoopRV
+import gsm_data_generator.testing
+from gsm_data_generator.tir.schedule import BlockRV, Instruction, InstructionKind, LoopRV
 
 
 def test_inst_kind_get():
@@ -66,4 +66,4 @@ def test_inst_construct_2():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

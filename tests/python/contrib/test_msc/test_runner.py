@@ -23,15 +23,15 @@ import numpy as np
 import torch
 from torch import fx
 
-import gsmDataGen.testing
-from gsmDataGen.relax.frontend.torch import from_fx
-from gsmDataGen.contrib.msc.framework.tvm.runtime import TVMRunner
-from gsmDataGen.contrib.msc.framework.torch.runtime import TorchRunner
-from gsmDataGen.contrib.msc.framework.tensorrt.runtime import TensorRTRunner
-from gsmDataGen.contrib.msc.core import utils as msc_utils
+import gsm_data_generator.testing
+from gsm_data_generator.relax.frontend.torch import from_fx
+from gsm_data_generator.contrib.msc.framework.tvm.runtime import TVMRunner
+from gsm_data_generator.contrib.msc.framework.torch.runtime import TorchRunner
+from gsm_data_generator.contrib.msc.framework.tensorrt.runtime import TensorRTRunner
+from gsm_data_generator.contrib.msc.core import utils as msc_utils
 
 requires_tensorrt = pytest.mark.skipif(
-    gsmDataGen.get_global_func("relax.ext.tensorrt", True) is None,
+    gsm_data_generator.get_global_func("relax.ext.tensorrt", True) is None,
     reason="TENSORRT is not enabled",
 )
 
@@ -68,7 +68,7 @@ def _test_from_torch(runner_cls, device, training=False, atol=1e-1, rtol=1e-1):
         torch_datas = [torch.from_numpy(d) for d in datas]
         graph_model = fx.symbolic_trace(torch_model)
         if training:
-            input_info = [([gsmDataGen.tir.Var("bz", "int64"), 3, 224, 224], "float32")]
+            input_info = [([gsm_data_generator.tir.Var("bz", "int64"), 3, 224, 224], "float32")]
         with torch.no_grad():
             golden = torch_model(*torch_datas)
             mod = from_fx(graph_model, input_info)
@@ -78,7 +78,7 @@ def _test_from_torch(runner_cls, device, training=False, atol=1e-1, rtol=1e-1):
         golden = [msc_utils.cast_array(golden)]
         workspace.destory()
         for gol_r, out_r in zip(golden, outputs):
-            gsmDataGen.testing.assert_allclose(gol_r, msc_utils.cast_array(out_r), atol=atol, rtol=rtol)
+            gsm_data_generator.testing.assert_allclose(gol_r, msc_utils.cast_array(out_r), atol=atol, rtol=rtol)
 
 
 @pytest.mark.parametrize("training", [True, False])
@@ -88,7 +88,7 @@ def test_tvm_runner_cpu(training):
     _test_from_torch(TVMRunner, "cpu", training=training)
 
 
-@gsmDataGen.testing.requires_cuda
+@gsm_data_generator.testing.requires_cuda
 @pytest.mark.parametrize("training", [True, False])
 def test_tvm_runner_cuda(training):
     """Test runner for tvm on cuda"""
@@ -103,7 +103,7 @@ def test_torch_runner_cpu(training):
     _test_from_torch(TorchRunner, "cpu", training=training)
 
 
-@gsmDataGen.testing.requires_cuda
+@gsm_data_generator.testing.requires_cuda
 @pytest.mark.parametrize("training", [True, False])
 def test_torch_runner_cuda(training):
     """Test runner for torch on cuda"""
@@ -119,4 +119,4 @@ def test_tensorrt_runner():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

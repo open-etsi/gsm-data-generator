@@ -22,10 +22,10 @@ import numpy as np
 import pytest
 import scipy.special
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import dlight as dl
-from gsmDataGen.relax.frontend.nn.llm.kv_cache import (
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import dlight as dl
+from gsm_data_generator.relax.frontend.nn.llm.kv_cache import (
     AttnKind,
     _attention_decode_cpu,
     _attention_prefill_cpu,
@@ -39,7 +39,7 @@ from gsmDataGen.relax.frontend.nn.llm.kv_cache import (
     tree_attn_cpu,
     tree_attn_with_paged_kv_cache_cpu,
 )
-from gsmDataGen.runtime import ShapeTuple
+from gsm_data_generator.runtime import ShapeTuple
 
 reserved_nseq = 32
 maximum_total_seq_length = 2048
@@ -54,7 +54,7 @@ rope_scale = 1.0
 rope_theta = 1e4
 rope_scaling = {}
 dtype = None
-device = gsmDataGen.cpu()
+device = gsm_data_generator.cpu()
 
 fclear = None
 fadd_sequence = None
@@ -94,26 +94,26 @@ def set_global_func(head_dim, dtype):
     global fattn_prefill_sliding_window, fattn_decode_sliding_window
     global fmerge_state, fsplit_rotary, fattention_rotary, fcopy_single_page, fcompact_copy
 
-    fclear = gsmDataGen.get_global_func("vm.builtin.kv_state_clear")
-    fadd_sequence = gsmDataGen.get_global_func("vm.builtin.kv_state_add_sequence")
-    fremove_sequence = gsmDataGen.get_global_func("vm.builtin.kv_state_remove_sequence")
-    ffork_sequence = gsmDataGen.get_global_func("vm.builtin.kv_state_fork_sequence")
-    fenable_sliding_window_for_seq = gsmDataGen.get_global_func(
+    fclear = gsm_data_generator.get_global_func("vm.builtin.kv_state_clear")
+    fadd_sequence = gsm_data_generator.get_global_func("vm.builtin.kv_state_add_sequence")
+    fremove_sequence = gsm_data_generator.get_global_func("vm.builtin.kv_state_remove_sequence")
+    ffork_sequence = gsm_data_generator.get_global_func("vm.builtin.kv_state_fork_sequence")
+    fenable_sliding_window_for_seq = gsm_data_generator.get_global_func(
         "vm.builtin.attention_kv_cache_enable_sliding_window_for_seq"
     )
-    fpopn = gsmDataGen.get_global_func("vm.builtin.kv_state_popn")
-    fbegin_forward = gsmDataGen.get_global_func("vm.builtin.kv_state_begin_forward")
-    fend_forward = gsmDataGen.get_global_func("vm.builtin.kv_state_end_forward")
-    fcommit_accepted_token_tree_nodes = gsmDataGen.get_global_func(
+    fpopn = gsm_data_generator.get_global_func("vm.builtin.kv_state_popn")
+    fbegin_forward = gsm_data_generator.get_global_func("vm.builtin.kv_state_begin_forward")
+    fend_forward = gsm_data_generator.get_global_func("vm.builtin.kv_state_end_forward")
+    fcommit_accepted_token_tree_nodes = gsm_data_generator.get_global_func(
         "vm.builtin.attention_kv_cache_commit_accepted_token_tree_nodes"
     )
-    fattention_with_fuse_qkv = gsmDataGen.get_global_func(
+    fattention_with_fuse_qkv = gsm_data_generator.get_global_func(
         "vm.builtin.attention_kv_cache_attention_with_fused_qkv"
     )
-    fis_empty = gsmDataGen.get_global_func("vm.builtin.attention_kv_cache_empty")
-    fdebug_get_kv = gsmDataGen.get_global_func("vm.builtin.attention_kv_cache_debug_get_kv")
+    fis_empty = gsm_data_generator.get_global_func("vm.builtin.attention_kv_cache_empty")
+    fdebug_get_kv = gsm_data_generator.get_global_func("vm.builtin.attention_kv_cache_debug_get_kv")
 
-    target = gsmDataGen.target.Target.from_device(device)
+    target = gsm_data_generator.target.Target.from_device(device)
     builts = []
     for tir_func in [
         _kv_cache_transpose_append(num_kv_heads, head_dim, dtype),
@@ -136,10 +136,10 @@ def set_global_func(head_dim, dtype):
         _copy_single_page_cpu(num_kv_heads, page_size, head_dim, dtype),
         _compact_kv_copy_cpu(num_kv_heads, head_dim, dtype),
     ]:
-        mod = gsmDataGen.IRModule({"main": tir_func})
+        mod = gsm_data_generator.IRModule({"main": tir_func})
         with target:
             mod = dl.ApplyDefaultSchedule(dl.gpu.Fallback())(mod)
-        f = gsmDataGen.tir.build(mod["main"], target=target)
+        f = gsm_data_generator.tir.build(mod["main"], target=target)
         builts.append(f.entry_func)
 
     (
@@ -160,9 +160,9 @@ def set_global_func(head_dim, dtype):
 
 
 def create_kv_cache(head_dim, dtype, rope_mode, support_sliding_window):
-    fcreate = gsmDataGen.get_global_func("vm.builtin.paged_attention_kv_cache_create")
+    fcreate = gsm_data_generator.get_global_func("vm.builtin.paged_attention_kv_cache_create")
     cache = fcreate(
-        gsmDataGen.runtime.ShapeTuple(
+        gsm_data_generator.runtime.ShapeTuple(
             [
                 reserved_nseq,
                 maximum_total_seq_length,
@@ -171,18 +171,18 @@ def create_kv_cache(head_dim, dtype, rope_mode, support_sliding_window):
                 int(support_sliding_window),
             ]
         ),
-        gsmDataGen.runtime.ShapeTuple([0, num_layers]),
+        gsm_data_generator.runtime.ShapeTuple([0, num_layers]),
         num_qo_heads,
         num_kv_heads,
         head_dim,
         head_dim,  # v_head_dim
-        gsmDataGen.runtime.ShapeTuple([int(AttnKind.MHA) for _ in range(num_layers)]),
+        gsm_data_generator.runtime.ShapeTuple([int(AttnKind.MHA) for _ in range(num_layers)]),
         False,  # enable_kv_transfer
         rope_mode,
         rope_scale,
         rope_theta,
         None,  # rope_ext_factors
-        gsmDataGen.nd.empty((), dtype, device=device),
+        gsm_data_generator.nd.empty((), dtype, device=device),
         ftranspose_append,
         None,  # f_transpose_append_mla
         ["tir", fattn_prefill_ragged],
@@ -244,11 +244,11 @@ def verify_cached_kv(kv_cache, seq_ids, expected_k, expected_v):
         values_expected = expected_v[seq_id]
         assert keys_expected.shape == values_expected.shape
         seq_length = expected_k[seq_id].shape[1]
-        keys = gsmDataGen.nd.empty(keys_expected.shape, dtype=dtype, device=device)
-        values = gsmDataGen.nd.empty(values_expected.shape, dtype=dtype, device=device)
+        keys = gsm_data_generator.nd.empty(keys_expected.shape, dtype=dtype, device=device)
+        values = gsm_data_generator.nd.empty(values_expected.shape, dtype=dtype, device=device)
         fdebug_get_kv(kv_cache, seq_id, 0, seq_length, keys, values)
-        gsmDataGen.testing.assert_allclose(keys.numpy(), keys_expected, rtol=1e-3, atol=1e-3)
-        gsmDataGen.testing.assert_allclose(values.numpy(), values_expected, rtol=1e-3, atol=1e-3)
+        gsm_data_generator.testing.assert_allclose(keys.numpy(), keys_expected, rtol=1e-3, atol=1e-3)
+        gsm_data_generator.testing.assert_allclose(values.numpy(), values_expected, rtol=1e-3, atol=1e-3)
 
 
 def f_apply_rotary(x, offset, scale, theta, offset_list: Optional[List[int]] = None):
@@ -395,8 +395,8 @@ def apply_attention(
         queries_np = global_new_q[layer_id]
         keys_np = global_new_k[layer_id]
         values_np = global_new_v[layer_id]
-        qkv = gsmDataGen.nd.array(np.concatenate([queries_np, keys_np, values_np], axis=1), device)
-        outputs = gsmDataGen.nd.empty(queries_np.shape, dtype, device=device)
+        qkv = gsm_data_generator.nd.array(np.concatenate([queries_np, keys_np, values_np], axis=1), device)
+        outputs = gsm_data_generator.nd.empty(queries_np.shape, dtype, device=device)
         fattention_with_fuse_qkv(kv_cache, layer_id, sm_scale, qkv, outputs)
 
         # Compute attention expected results.
@@ -476,7 +476,7 @@ def apply_attention(
                 axis=0,
             ).astype(dtype)
 
-            gsmDataGen.testing.assert_allclose(
+            gsm_data_generator.testing.assert_allclose(
                 outputs[:, sum_length : sum_length + append_length, ...],
                 results,
                 rtol=1e-3,

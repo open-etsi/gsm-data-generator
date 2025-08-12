@@ -15,19 +15,19 @@
 # specific language governing permissions and limitations
 # under the License.
 # pylint: disable=missing-module-docstring,missing-function-docstring,missing-class-docstring
-import gsmDataGen
-from gsmDataGen import meta_schedule as ms
-from gsmDataGen.meta_schedule.testing.space_generation import (
+import gsm_data_generator
+from gsm_data_generator import meta_schedule as ms
+from gsm_data_generator.meta_schedule.testing.space_generation import (
     check_sketches,
     generate_design_space,
 )
-from gsmDataGen.script import tir as T
-from gsmDataGen.target import Target
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.target import Target
 
 # fmt: off
 # pylint: disable=no-member,invalid-name,unused-variable,no-self-argument,line-too-long,chained-comparison,not-callable,too-many-nested-blocks
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Matmul:
     @T.prim_func
     def main(a: T.handle, b: T.handle, c: T.handle) -> None:
@@ -43,7 +43,7 @@ class Matmul:
                 C[vi, vj] = C[vi, vj] + A[vi, vk] * B[vk, vj]
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class ParallelizeVectorizeUnroll:
     @T.prim_func
     def main(a: T.handle, b: T.handle, c: T.handle) -> None:
@@ -64,7 +64,7 @@ class ParallelizeVectorizeUnroll:
 
 
 # from tvm.script import tir as T
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class PureSpatial:
     @T.prim_func
     def main(placeholder: T.Buffer((1, 13, 13, 3, 85), "float32"), placeholder_1: T.Buffer((1, 26, 26, 3, 85), "float32"), placeholder_2: T.Buffer((1, 52, 52, 3, 85), "float32"), T_expand_dims: T.Buffer((1, 80, 10647), "float32")) -> None:

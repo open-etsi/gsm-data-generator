@@ -14,14 +14,14 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import te
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import te
 import numpy as np
-from gsmDataGen.contrib import mps
+from gsm_data_generator.contrib import mps
 
 
-@gsmDataGen.testing.requires_metal
+@gsm_data_generator.testing.requires_metal
 def test_matmul():
     n = 1024
     l = 128
@@ -31,21 +31,21 @@ def test_matmul():
     C = mps.matmul(A, B)
 
     def verify(A, B, C):
-        if not gsmDataGen.get_global_func("tvm.contrib.mps.matmul", True):
+        if not gsm_data_generator.get_global_func("tvm.contrib.mps.matmul", True):
             print("skip because extern function is not available")
             return
-        dev = gsmDataGen.metal(0)
-        f = gsmDataGen.compile(te.create_prim_func([A, B, C]), target="metal")
-        a = gsmDataGen.nd.array(np.random.uniform(size=(n, l)).astype(A.dtype), dev)
-        b = gsmDataGen.nd.array(np.random.uniform(size=(l, m)).astype(B.dtype), dev)
-        c = gsmDataGen.nd.array(np.zeros((n, m), dtype=C.dtype), dev)
+        dev = gsm_data_generator.metal(0)
+        f = gsm_data_generator.compile(te.create_prim_func([A, B, C]), target="metal")
+        a = gsm_data_generator.nd.array(np.random.uniform(size=(n, l)).astype(A.dtype), dev)
+        b = gsm_data_generator.nd.array(np.random.uniform(size=(l, m)).astype(B.dtype), dev)
+        c = gsm_data_generator.nd.array(np.zeros((n, m), dtype=C.dtype), dev)
         f(a, b, c)
-        gsmDataGen.testing.assert_allclose(c.numpy(), np.dot(a.numpy(), b.numpy()), rtol=1e-5)
+        gsm_data_generator.testing.assert_allclose(c.numpy(), np.dot(a.numpy(), b.numpy()), rtol=1e-5)
 
     verify(A, B, C)
 
 
-@gsmDataGen.testing.requires_metal
+@gsm_data_generator.testing.requires_metal
 def test_conv2d():
     n = 1
     h = 14
@@ -60,14 +60,14 @@ def test_conv2d():
     C = mps.conv2d(A, B, "SAME", 2)
 
     def verify(A, B, C, target="llvm"):
-        if not gsmDataGen.get_global_func("tvm.contrib.mps.conv2d", True):
+        if not gsm_data_generator.get_global_func("tvm.contrib.mps.conv2d", True):
             print("skip because extern function is not available")
             return
-        dev = gsmDataGen.metal(0)
-        f = gsmDataGen.compile(te.create_prim_func([A, B, C]), target="metal")
-        a = gsmDataGen.nd.array(np.random.uniform(size=(n, h, w, ci)).astype(A.dtype), dev)
-        b = gsmDataGen.nd.array(np.random.uniform(size=(co, kh, kw, ci)).astype(B.dtype), dev)
-        c = gsmDataGen.nd.array(np.zeros((n, h // stride, w // stride, co), dtype=C.dtype), dev)
+        dev = gsm_data_generator.metal(0)
+        f = gsm_data_generator.compile(te.create_prim_func([A, B, C]), target="metal")
+        a = gsm_data_generator.nd.array(np.random.uniform(size=(n, h, w, ci)).astype(A.dtype), dev)
+        b = gsm_data_generator.nd.array(np.random.uniform(size=(co, kh, kw, ci)).astype(B.dtype), dev)
+        c = gsm_data_generator.nd.array(np.zeros((n, h // stride, w // stride, co), dtype=C.dtype), dev)
         f(a, b, c)
 
     verify(A, B, C, s1)

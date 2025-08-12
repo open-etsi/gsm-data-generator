@@ -19,8 +19,8 @@ import os
 import pytest
 import shutil
 import tempfile
-import gsmDataGen
-from gsmDataGen.contrib.cc import create_shared, create_executable, _is_linux_like, _is_windows_like
+import gsm_data_generator
+from gsm_data_generator.contrib.cc import create_shared, create_executable, _is_linux_like, _is_windows_like
 
 
 def _src_gen(text):
@@ -76,4 +76,4 @@ def test_executable():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

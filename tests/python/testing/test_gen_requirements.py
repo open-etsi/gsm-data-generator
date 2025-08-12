@@ -23,14 +23,14 @@ import contextlib
 import os
 import sys
 
-import gsmDataGen
-import gsmDataGen.testing
+import gsm_data_generator
+import gsm_data_generator.testing
 
 import pytest
 
 # Insert the parent dir to python/tvm into the import path, so that gen_requirements may be
 # imported.
-sys.path.insert(0, os.path.dirname(gsmDataGen.__file__))
+sys.path.insert(0, os.path.dirname(gsm_data_generator.__file__))
 try:
     import gen_requirements
 finally:
@@ -218,4 +218,4 @@ def test_semver():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

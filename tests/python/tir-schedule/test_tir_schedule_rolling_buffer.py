@@ -16,11 +16,11 @@
 # under the License.
 # pylint: disable=missing-function-docstring,missing-module-docstring
 import numpy as np
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import tir
-from gsmDataGen.script import tir as T
-from gsmDataGen.tir.schedule.testing import (
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import tir
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.tir.schedule.testing import (
     assert_structural_equal_ignore_global_symbol,
     verify_trace_roundtrip,
 )
@@ -38,14 +38,14 @@ def check_rolling_buffer(
         out_buffer = origin.buffer_map[origin.params[1]]
         in_shape = [int(_) for _ in in_buffer.shape]
         out_shape = [int(_) for _ in out_buffer.shape]
-        x = gsmDataGen.nd.array(np.random.uniform(0, 64, in_shape).astype(in_buffer.dtype))
-        y0 = gsmDataGen.nd.array(np.zeros(out_shape).astype(out_buffer.dtype))
-        y1 = gsmDataGen.nd.array(np.zeros(out_shape).astype(out_buffer.dtype))
-        f_origin = gsmDataGen.compile(origin)
-        f_scheduled = gsmDataGen.compile(scheduled)
+        x = gsm_data_generator.nd.array(np.random.uniform(0, 64, in_shape).astype(in_buffer.dtype))
+        y0 = gsm_data_generator.nd.array(np.zeros(out_shape).astype(out_buffer.dtype))
+        y1 = gsm_data_generator.nd.array(np.zeros(out_shape).astype(out_buffer.dtype))
+        f_origin = gsm_data_generator.compile(origin)
+        f_scheduled = gsm_data_generator.compile(scheduled)
         f_origin(x, y0)
         f_scheduled(x, y1)
-        gsmDataGen.testing.assert_allclose(y0.numpy(), y1.numpy())
+        gsm_data_generator.testing.assert_allclose(y0.numpy(), y1.numpy())
 
 
 def _tile_nd(s, tile, block_name):
@@ -521,7 +521,7 @@ def test_fail_rolling_buffer_multi_writers():
                     )
 
     sch = tir.Schedule(func_multi_writers, debug_mask="all")
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         sch.rolling_buffer(sch.get_block("B_writer_0"), 0)
 
 
@@ -559,7 +559,7 @@ def test_fail_rolling_buffer_not_match():
                     )
 
     sch = tir.Schedule(func_non_overlap, debug_mask="all")
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         sch.rolling_buffer(sch.get_block("B"), 0)
 
 
@@ -568,9 +568,9 @@ def test_fail_rolling_buffer_injection_invalid():
     # Block B is not compute_at to Block C, so rolling_buffer injection is invalid.
     _, _ = _tile_nd(sch, [1, 4, 8, 16], "C")
     _, _ = _tile_nd(sch, [1, 4, 8, 16], "B")
-    with pytest.raises(gsmDataGen.tir.ScheduleError):
+    with pytest.raises(gsm_data_generator.tir.ScheduleError):
         sch.rolling_buffer(sch.get_block("B"), 0)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

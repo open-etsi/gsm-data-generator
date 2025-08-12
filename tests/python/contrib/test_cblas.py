@@ -17,13 +17,13 @@
 """Configure pytest"""
 import pytest
 import numpy as np
-import gsmDataGen
-from gsmDataGen import te
-from gsmDataGen.contrib import cblas
-from gsmDataGen.contrib import mkl
-from gsmDataGen.contrib import dnnl
-import gsmDataGen.testing
-import gsmDataGen.topi.testing
+import gsm_data_generator
+from gsm_data_generator import te
+from gsm_data_generator.contrib import cblas
+from gsm_data_generator.contrib import mkl
+from gsm_data_generator.contrib import dnnl
+import gsm_data_generator.testing
+import gsm_data_generator.topi.testing
 
 
 def verify_matmul_add(
@@ -50,20 +50,20 @@ def verify_matmul_add(
     def compiling(f, name="test_matmul_add", ext=".so"):
         path = name + ext
         f.export_library(path)
-        mod = gsmDataGen.runtime.load_module(path)
+        mod = gsm_data_generator.runtime.load_module(path)
         f = mod[name]
         return f
 
     def verify(target="llvm"):
-        if not gsmDataGen.testing.device_enabled(target):
+        if not gsm_data_generator.testing.device_enabled(target):
             print("skip because %s is not enabled..." % target)
             return
-        if not gsmDataGen.get_global_func(lib.__name__ + ".matmul", True):
+        if not gsm_data_generator.get_global_func(lib.__name__ + ".matmul", True):
             print("skip because extern function is not available")
             return
-        dev = gsmDataGen.cpu(0)
+        dev = gsm_data_generator.cpu(0)
         name = "test_matmul_add"
-        f = gsmDataGen.compile(
+        f = gsm_data_generator.compile(
             te.create_prim_func([input1_data, input2_data, final_result, bias]).with_attr(
                 "global_symbol", name
             ),
@@ -71,12 +71,12 @@ def verify_matmul_add(
         )
         if target == "c":
             f = compiling(f, name)
-        matrix_input1 = gsmDataGen.nd.array(np.random.uniform(size=ashape).astype(input1_data.dtype), dev)
-        matrix_input2 = gsmDataGen.nd.array(np.random.uniform(size=bshape).astype(input2_data.dtype), dev)
-        matrix_result = gsmDataGen.nd.array(np.zeros((matrix_n, matrix_m), dtype=final_result.dtype), dev)
+        matrix_input1 = gsm_data_generator.nd.array(np.random.uniform(size=ashape).astype(input1_data.dtype), dev)
+        matrix_input2 = gsm_data_generator.nd.array(np.random.uniform(size=bshape).astype(input2_data.dtype), dev)
+        matrix_result = gsm_data_generator.nd.array(np.zeros((matrix_n, matrix_m), dtype=final_result.dtype), dev)
         matrix_bias = 10.0
         f(matrix_input1, matrix_input2, matrix_result, matrix_bias)
-        gsmDataGen.testing.assert_allclose(
+        gsm_data_generator.testing.assert_allclose(
             matrix_result.numpy(),
             get_numpy(matrix_input1.numpy(), matrix_input2.numpy(), matrix_bias, transa, transb),
             rtol=1e-5,
@@ -116,7 +116,7 @@ def test_matmul_add():
 
 def verify_quantized_matmul_add(matrix_m, matrix_l, matrix_n, transa=False, transb=False):
     """Tests quantized matmul+add op"""
-    if not gsmDataGen.get_global_func("tvm.contrib.mkl.matmul_u8s8s32", True):
+    if not gsm_data_generator.get_global_func("tvm.contrib.mkl.matmul_u8s8s32", True):
         pytest.skip("Quantized dense is supported only for MKL. TVM GPU CI uses openblas")
     data_dtype = "uint8"
     kernel_dtype = "int8"
@@ -139,26 +139,26 @@ def verify_quantized_matmul_add(matrix_m, matrix_l, matrix_n, transa=False, tran
         return np.dot(a, b) + matrix_bias
 
     def verify(target="llvm"):
-        if not gsmDataGen.testing.device_enabled(target):
+        if not gsm_data_generator.testing.device_enabled(target):
             print("skip because %s is not enabled..." % target)
             return
-        if not gsmDataGen.get_global_func("tvm.contrib.mkl.matmul_u8s8s32", True):
+        if not gsm_data_generator.get_global_func("tvm.contrib.mkl.matmul_u8s8s32", True):
             print("skip because extern function is not available")
             return
-        dev = gsmDataGen.cpu(0)
-        f = gsmDataGen.compile(
+        dev = gsm_data_generator.cpu(0)
+        f = gsm_data_generator.compile(
             te.create_prim_func([input1_data, input2_data, final_result, bias]), target=target
         )
-        matrix_input1 = gsmDataGen.nd.array(
+        matrix_input1 = gsm_data_generator.nd.array(
             np.random.randint(low=0, high=50, size=ashape).astype(input1_data.dtype), dev
         )
-        matrix_input2 = gsmDataGen.nd.array(
+        matrix_input2 = gsm_data_generator.nd.array(
             np.random.randint(low=0, high=50, size=bshape).astype(input2_data.dtype), dev
         )
-        matrix_result = gsmDataGen.nd.array(np.zeros((matrix_n, matrix_m), dtype=final_result.dtype), dev)
+        matrix_result = gsm_data_generator.nd.array(np.zeros((matrix_n, matrix_m), dtype=final_result.dtype), dev)
         matrix_bias = 10
         f(matrix_input1, matrix_input2, matrix_result, matrix_bias)
-        gsmDataGen.testing.assert_allclose(
+        gsm_data_generator.testing.assert_allclose(
             matrix_result.numpy(),
             get_numpy(
                 matrix_input1.numpy().astype("int32"),
@@ -212,36 +212,36 @@ def verify_batch_matmul(
             a = a.transpose(0, 2, 1)
         if not transb:
             b = b.transpose(0, 2, 1)
-        return gsmDataGen.topi.testing.batch_matmul(a, b)
+        return gsm_data_generator.topi.testing.batch_matmul(a, b)
 
     def compiling(f, name="test_batch_matmul", ext=".so"):
         path = name + ext
         f.export_library(path)
-        mod = gsmDataGen.runtime.load_module(path)
+        mod = gsm_data_generator.runtime.load_module(path)
         f = mod[name]
         return f
 
     def verify(target="llvm"):
-        if not gsmDataGen.testing.device_enabled(target):
+        if not gsm_data_generator.testing.device_enabled(target):
             print("skip because %s is not enabled..." % target)
             return
-        if not gsmDataGen.get_global_func(lib.__name__ + ".matmul", True):
+        if not gsm_data_generator.get_global_func(lib.__name__ + ".matmul", True):
             print("skip because extern function is not available")
             return
-        dev = gsmDataGen.cpu(0)
+        dev = gsm_data_generator.cpu(0)
         name = "test_batch_matmul"
-        f = gsmDataGen.compile(
+        f = gsm_data_generator.compile(
             te.create_prim_func([input1_data, input2_data, final_result]), target=target
         )
         if target == "c":
             f = compiling(f, name)
-        matrix_input1 = gsmDataGen.nd.array(np.random.uniform(size=ashape).astype(input1_data.dtype), dev)
-        matrix_input2 = gsmDataGen.nd.array(np.random.uniform(size=bshape).astype(input2_data.dtype), dev)
-        matrix_result = gsmDataGen.nd.array(
+        matrix_input1 = gsm_data_generator.nd.array(np.random.uniform(size=ashape).astype(input1_data.dtype), dev)
+        matrix_input2 = gsm_data_generator.nd.array(np.random.uniform(size=bshape).astype(input2_data.dtype), dev)
+        matrix_result = gsm_data_generator.nd.array(
             np.zeros((batch, matrix_n, matrix_m), dtype=final_result.dtype), dev
         )
         f(matrix_input1, matrix_input2, matrix_result)
-        gsmDataGen.testing.assert_allclose(
+        gsm_data_generator.testing.assert_allclose(
             matrix_result.numpy(),
             get_numpy(matrix_input1.numpy(), matrix_input2.numpy(), transa, transb),
             rtol=1e-5,

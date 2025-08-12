@@ -19,16 +19,16 @@
 import sys
 import pytest
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen.script import tir as T
-from gsmDataGen.target import Target
-from gsmDataGen.meta_schedule import TuneContext
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.target import Target
+from gsm_data_generator.meta_schedule import TuneContext
 
 # pylint: disable=invalid-name,no-member,line-too-long,too-many-nested-blocks,missing-docstring
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Matmul:
     @T.prim_func
     def main(a: T.handle, b: T.handle, c: T.handle) -> None:  # pylint: disable=no-self-argument
@@ -53,8 +53,8 @@ def test_tune_context_create():
     assert context.num_threads > 0
     assert context.rand_state != -1
     assert context.task_name == "Test Task"
-    assert context.mod == mod or gsmDataGen.ir.structural_equal(context.mod, mod)
+    assert context.mod == mod or gsm_data_generator.ir.structural_equal(context.mod, mod)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

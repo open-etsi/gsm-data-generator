@@ -15,12 +15,12 @@
 # specific language governing permissions and limitations
 # under the License.
 import pytest
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import relax, tir
-from gsmDataGen import TVMError
-from gsmDataGen.ir import Op, VDevice
-from gsmDataGen.script import relax as R
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import relax, tir
+from gsm_data_generator import TVMError
+from gsm_data_generator.ir import Op, VDevice
+from gsm_data_generator.script import relax as R
 
 
 def test_op_correctness():
@@ -40,7 +40,7 @@ def test_op_correctness():
 
 def _check_inference(bb: relax.BlockBuilder, call: relax.Call, expected_sinfo: relax.StructInfo):
     ret = bb.normalize(call)
-    gsmDataGen.ir.assert_structural_equal(ret.struct_info, expected_sinfo)
+    gsm_data_generator.ir.assert_structural_equal(ret.struct_info, expected_sinfo)
 
 
 def test_max_pool1d_infer_struct_info():
@@ -101,7 +101,7 @@ def test_max_pool1d_infer_struct_info_shape_symbolic():
             (
                 n,
                 c,
-                gsmDataGen.tir.floordiv(w - 1, 3) + 1,
+                gsm_data_generator.tir.floordiv(w - 1, 3) + 1,
             ),
             "float32",
         ),
@@ -164,7 +164,7 @@ def test_max_pool1d_infer_struct_info_ceil_mode_symbolic():
     _check_inference(
         bb,
         relax.op.nn.max_pool1d(x, pool_size=3, strides=2, padding=1, dilation=2, ceil_mode=True),
-        relax.TensorStructInfo((n, c, gsmDataGen.tir.floordiv(w, 2)), "float32"),
+        relax.TensorStructInfo((n, c, gsm_data_generator.tir.floordiv(w, 2)), "float32"),
     )
 
 
@@ -324,8 +324,8 @@ def test_max_pool2d_infer_struct_info_shape_symbolic():
             (
                 n,
                 c,
-                gsmDataGen.tir.floordiv(ih - 1, 3) + 1,
-                gsmDataGen.tir.floordiv(iw - 1, 3) + 1,
+                gsm_data_generator.tir.floordiv(ih - 1, 3) + 1,
+                gsm_data_generator.tir.floordiv(iw - 1, 3) + 1,
             ),
             "float32",
         ),
@@ -390,7 +390,7 @@ def test_max_pool2d_infer_struct_info_ceil_mode_symbolic():
         relax.op.nn.max_pool2d(
             x, pool_size=(3, 3), strides=(2, 2), padding=(1, 1), dilation=(2, 2), ceil_mode=True
         ),
-        relax.TensorStructInfo((n, c, gsmDataGen.tir.floordiv(ih, 2), gsmDataGen.tir.floordiv(iw, 2)), "float32"),
+        relax.TensorStructInfo((n, c, gsm_data_generator.tir.floordiv(ih, 2), gsm_data_generator.tir.floordiv(iw, 2)), "float32"),
     )
 
 
@@ -557,9 +557,9 @@ def test_max_pool3d_infer_struct_info_shape_symbolic():
             (
                 n,
                 c,
-                gsmDataGen.tir.floordiv(id - 1, 3) + 1,
-                gsmDataGen.tir.floordiv(ih - 1, 3) + 1,
-                gsmDataGen.tir.floordiv(iw - 1, 3) + 1,
+                gsm_data_generator.tir.floordiv(id - 1, 3) + 1,
+                gsm_data_generator.tir.floordiv(ih - 1, 3) + 1,
+                gsm_data_generator.tir.floordiv(iw - 1, 3) + 1,
             ),
             "float32",
         ),
@@ -632,7 +632,7 @@ def test_max_pool3d_infer_struct_info_ceil_mode_symbolic():
             ceil_mode=True,
         ),
         relax.TensorStructInfo(
-            (n, c, gsmDataGen.tir.floordiv(id_, 2), gsmDataGen.tir.floordiv(ih, 2), gsmDataGen.tir.floordiv(iw, 2)),
+            (n, c, gsm_data_generator.tir.floordiv(id_, 2), gsm_data_generator.tir.floordiv(ih, 2), gsm_data_generator.tir.floordiv(iw, 2)),
             "float32",
         ),
     )
@@ -792,7 +792,7 @@ def test_avg_pool1d_infer_struct_info_shape_symbolic():
             (
                 n,
                 c,
-                gsmDataGen.tir.floordiv(iw - 1, 3) + 1,
+                gsm_data_generator.tir.floordiv(iw - 1, 3) + 1,
             ),
             "float32",
         ),
@@ -855,7 +855,7 @@ def test_avg_pool1d_infer_struct_info_ceil_mode_symbolic():
         bb,
         relax.op.nn.avg_pool1d(x, pool_size=3, strides=2, padding=1, dilation=2, ceil_mode=True),
         relax.TensorStructInfo(
-            (n, c, gsmDataGen.tir.floordiv(iw, 2)),
+            (n, c, gsm_data_generator.tir.floordiv(iw, 2)),
             "float32",
         ),
     )
@@ -1013,8 +1013,8 @@ def test_avg_pool2d_infer_struct_info_shape_symbolic():
             (
                 n,
                 c,
-                gsmDataGen.tir.floordiv(ih - 1, 3) + 1,
-                gsmDataGen.tir.floordiv(iw - 1, 3) + 1,
+                gsm_data_generator.tir.floordiv(ih - 1, 3) + 1,
+                gsm_data_generator.tir.floordiv(iw - 1, 3) + 1,
             ),
             "float32",
         ),
@@ -1079,7 +1079,7 @@ def test_avg_pool2d_infer_struct_info_ceil_mode_symbolic():
         relax.op.nn.avg_pool2d(
             x, pool_size=(3, 3), strides=(2, 2), padding=(1, 1), dilation=(2, 2), ceil_mode=True
         ),
-        relax.TensorStructInfo((n, c, gsmDataGen.tir.floordiv(ih, 2), gsmDataGen.tir.floordiv(iw, 2)), "float32"),
+        relax.TensorStructInfo((n, c, gsm_data_generator.tir.floordiv(ih, 2), gsm_data_generator.tir.floordiv(iw, 2)), "float32"),
     )
 
 
@@ -1247,9 +1247,9 @@ def test_avg_pool3d_infer_struct_info_shape_symbolic():
             (
                 n,
                 c,
-                gsmDataGen.tir.floordiv(id_ - 1, 3) + 1,
-                gsmDataGen.tir.floordiv(ih - 1, 3) + 1,
-                gsmDataGen.tir.floordiv(iw - 1, 3) + 1,
+                gsm_data_generator.tir.floordiv(id_ - 1, 3) + 1,
+                gsm_data_generator.tir.floordiv(ih - 1, 3) + 1,
+                gsm_data_generator.tir.floordiv(iw - 1, 3) + 1,
             ),
             "float32",
         ),
@@ -1324,9 +1324,9 @@ def test_avg_pool3d_infer_struct_info_ceil_mode_symbolic():
             (
                 n,
                 c,
-                gsmDataGen.tir.floordiv(id_, 2),
-                gsmDataGen.tir.floordiv(ih, 2),
-                gsmDataGen.tir.floordiv(iw, 2),
+                gsm_data_generator.tir.floordiv(id_, 2),
+                gsm_data_generator.tir.floordiv(ih, 2),
+                gsm_data_generator.tir.floordiv(iw, 2),
             ),
             "float32",
         ),
@@ -1923,4 +1923,4 @@ def test_adaptive_avg_pool3d_infer_struct_info_wrong_input_type():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

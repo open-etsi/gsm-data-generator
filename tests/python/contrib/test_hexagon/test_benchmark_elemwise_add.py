@@ -24,10 +24,10 @@ import tempfile
 import numpy as np
 import pytest
 
-import gsmDataGen.script
-import gsmDataGen.testing
-from gsmDataGen.contrib.hexagon.session import Session
-from gsmDataGen.script import tir as T
+import gsm_data_generator.script
+import gsm_data_generator.testing
+from gsm_data_generator.contrib.hexagon.session import Session
+from gsm_data_generator.script import tir as T
 
 from . import benchmark_util as bu
 from .infrastructure import get_hexagon_target
@@ -89,7 +89,7 @@ print("-" * 80)
 print()
 
 
-def _get_irmod_elemwise_add(shape: list, dtype: str, mem_scope: str) -> gsmDataGen.ir.module.IRModule:
+def _get_irmod_elemwise_add(shape: list, dtype: str, mem_scope: str) -> gsm_data_generator.ir.module.IRModule:
     """
     Return an IRModule containing a single primfunc, expressed as NS-TIR.
 
@@ -136,7 +136,7 @@ def _get_irmod_elemwise_add(shape: list, dtype: str, mem_scope: str) -> gsmDataG
         # if estimated_vtcm_needed_bytes > estimated_vtcm_budget_bytes:
         #     raise bu.UnsupportedException("Expect to exceed VTCM budget.")
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class BenchmarkModule:
         """Elementwise STIR module for benchmarking"""
 
@@ -200,11 +200,11 @@ def _benchmark_hexagon_elementwise_add_kernel(
             ns_tir_module = _get_irmod_elemwise_add(shape, dtype, mem_scope)
 
             # Lower the primfunc's IRModule to Hexagon object code...
-            input1 = gsmDataGen.te.placeholder(shape, dtype=dtype)
-            input2 = gsmDataGen.te.placeholder(shape, dtype=dtype)
-            output = gsmDataGen.te.placeholder(shape, dtype=dtype)
+            input1 = gsm_data_generator.te.placeholder(shape, dtype=dtype)
+            input2 = gsm_data_generator.te.placeholder(shape, dtype=dtype)
+            output = gsm_data_generator.te.placeholder(shape, dtype=dtype)
 
-            built_module: gsmDataGen.driver.build_module.OperatorModule = gsmDataGen.compile(
+            built_module: gsm_data_generator.driver.build_module.OperatorModule = gsm_data_generator.compile(
                 ns_tir_module,
                 [
                     input1,
@@ -237,14 +237,14 @@ def _benchmark_hexagon_elementwise_add_kernel(
 
             # On the target device / simulator, make our Hexagon-native shared object
             # available for use...
-            loaded_hexagon_module: gsmDataGen.runtime.module.Module = hexagon_session.load_module(
+            loaded_hexagon_module: gsm_data_generator.runtime.module.Module = hexagon_session.load_module(
                 target_dso_binary_pathname
             )
 
             # Create the target-side tensors to hold the primfunc's inputs and outputs...
-            input1_data = gsmDataGen.nd.empty(shape, dtype, hexagon_session.device, mem_scope)
-            input2_data = gsmDataGen.nd.empty(shape, dtype, hexagon_session.device, mem_scope)
-            output_data = gsmDataGen.nd.empty(shape, dtype, hexagon_session.device, mem_scope)
+            input1_data = gsm_data_generator.nd.empty(shape, dtype, hexagon_session.device, mem_scope)
+            input2_data = gsm_data_generator.nd.empty(shape, dtype, hexagon_session.device, mem_scope)
+            output_data = gsm_data_generator.nd.empty(shape, dtype, hexagon_session.device, mem_scope)
 
             # Populate the primfunc's input tensors...
             input1_data.copyfrom(host_numpy_input1_data)
@@ -279,7 +279,7 @@ def _benchmark_hexagon_elementwise_add_kernel(
             # recorded as a failed benchmark run, vs. (b) more serious errors that should
             # kill the overall script.
             try:
-                gsmDataGen.testing.assert_allclose(
+                gsm_data_generator.testing.assert_allclose(
                     result, host_numpy_output_data_expected, rel_tolerance, abs_tolerance
                 )
             except AssertionError as err:
@@ -369,7 +369,7 @@ def _get_elemwise_add_reference_value_tensors(shape: list, dtype: str):
 
 
 @pytest.mark.skipif(_SHOULD_SKIP_BENCHMARKS, reason=_SKIP_BENCHMARKS_REASON)
-@gsmDataGen.testing.requires_hexagon
+@gsm_data_generator.testing.requires_hexagon
 def test_elemwise_add(hexagon_session: Session):
     """Main elementwise add test function"""
     for dtype in [
@@ -389,7 +389,7 @@ def test_elemwise_add(hexagon_session: Session):
                 512,
                 2048,
             ]:
-                dtype_bits = gsmDataGen.runtime.DataType(dtype).bits
+                dtype_bits = gsm_data_generator.runtime.DataType(dtype).bits
                 assert dtype_bits % 8 == 0
                 dtype_bytes = dtype_bits // 8
 
@@ -421,4 +421,4 @@ def test_elemwise_add(hexagon_session: Session):
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

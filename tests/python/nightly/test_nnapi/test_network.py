@@ -24,19 +24,19 @@ import pytest
 from test_nnapi.conftest import remote
 from test_nnapi.infrastructure import build_and_run  # , build_and_run_vm
 
-import gsmDataGen
-from gsmDataGen.contrib.download import download_testdata
-from gsmDataGen.relax.frontend.onnx import from_onnx
+import gsm_data_generator
+from gsm_data_generator.contrib.download import download_testdata
+from gsm_data_generator.relax.frontend.onnx import from_onnx
 
 
 def _build_and_run_network(remote_obj, tracker, mod, input_data):
     """Helper function to build and run a network."""
 
     def execute_on_host(mod, inputs):
-        with gsmDataGen.transform.PassContext(opt_level=3):
-            ex = gsmDataGen.compile(mod, target="llvm")
-        dev = gsmDataGen.cpu(0)
-        vm = gsmDataGen.relax.VirtualMachine(ex, device=dev)
+        with gsm_data_generator.transform.PassContext(opt_level=3):
+            ex = gsm_data_generator.compile(mod, target="llvm")
+        dev = gsm_data_generator.cpu(0)
+        vm = gsm_data_generator.relax.VirtualMachine(ex, device=dev)
         output = vm["main"](*inputs)
         return output.numpy()
 
@@ -114,7 +114,7 @@ def get_network(name, dtype, input_shape=(1, 3, 224, 224)):
         "float32",
     ],
 )
-@gsmDataGen.testing.requires_nnapi
+@gsm_data_generator.testing.requires_nnapi
 def test_network(name, dtype):
     remote_obj, tracker = remote()
     print(f"Network evaluating {name} with dtype {dtype}")
@@ -125,12 +125,12 @@ def test_network(name, dtype):
     for _name, (shape, _dtype) in inputs.items():
         input_data[_name] = np.random.uniform(-1.0, 1.0, shape).astype(_dtype)
 
-    inputs_tvm: List[gsmDataGen.nd.NDArray] = [gsmDataGen.nd.array(v) for k, v in input_data.items()]
+    inputs_tvm: List[gsm_data_generator.nd.NDArray] = [gsm_data_generator.nd.array(v) for k, v in input_data.items()]
     outputs = _build_and_run_network(remote_obj, tracker, mod, inputs_tvm)
     nnapi_out = outputs[0]
     expected_out = outputs[1]
-    gsmDataGen.testing.assert_allclose(nnapi_out, expected_out, rtol=1e-4, atol=1e-5)
+    gsm_data_generator.testing.assert_allclose(nnapi_out, expected_out, rtol=1e-4, atol=1e-5)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

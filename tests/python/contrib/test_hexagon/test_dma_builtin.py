@@ -20,14 +20,14 @@ Test relax vm builtin to enable DMA copy and wait operations.
 """
 
 import numpy as np
-import gsmDataGen
-import gsmDataGen.script
-from gsmDataGen import relax
-from gsmDataGen.script.parser import ir as I
-from gsmDataGen.script.parser import relax as R
-from gsmDataGen.script.parser import tir as T
-import gsmDataGen.contrib.hexagon
-import gsmDataGen.testing
+import gsm_data_generator
+import gsm_data_generator.script
+from gsm_data_generator import relax
+from gsm_data_generator.script.parser import ir as I
+from gsm_data_generator.script.parser import relax as R
+from gsm_data_generator.script.parser import tir as T
+import gsm_data_generator.contrib.hexagon
+import gsm_data_generator.testing
 
 # pylint: disable=invalid-name, missing-class-docstring, missing-function-docstring, no-self-argument
 
@@ -146,15 +146,15 @@ class Module_1D:
 class TestDMACopyWait:
     """Tests for Copy and wait"""
 
-    mode = gsmDataGen.testing.parameter("bytecode", "compiled")
-    module = gsmDataGen.testing.parameter(Module_1D)
+    mode = gsm_data_generator.testing.parameter("bytecode", "compiled")
+    module = gsm_data_generator.testing.parameter(Module_1D)
 
-    @gsmDataGen.testing.requires_hexagon
+    @gsm_data_generator.testing.requires_hexagon
     def test_vtcm_alloc_compute(self, hexagon_launcher, mode, module):
-        target_hexagon = gsmDataGen.target.hexagon("v69")
-        target = gsmDataGen.target.Target(target_hexagon, host=target_hexagon)
-        with gsmDataGen.transform.PassContext(opt_level=3, config=[]):
-            ex = gsmDataGen.compile(mod=module, target=target, exec_mode=mode)
+        target_hexagon = gsm_data_generator.target.hexagon("v69")
+        target = gsm_data_generator.target.Target(target_hexagon, host=target_hexagon)
+        with gsm_data_generator.transform.PassContext(opt_level=3, config=[]):
+            ex = gsm_data_generator.compile(mod=module, target=target, exec_mode=mode)
         with hexagon_launcher.create_session() as session:
             dev = session.device
             input_arg0_data = np.random.randint(0, 9, size=(12800,), dtype=data_type)
@@ -164,9 +164,9 @@ class TestDMACopyWait:
             vm_rt = relax.VirtualMachine(
                 vm_mod, dev, "naive"
             )  # Use naive allocator to exercise VTCM allocation in relax
-            data0 = gsmDataGen.nd.array(input_arg0_data, dev)
-            data1 = gsmDataGen.nd.array(input_arg1_data, dev)
+            data0 = gsm_data_generator.nd.array(input_arg0_data, dev)
+            data1 = gsm_data_generator.nd.array(input_arg1_data, dev)
             vm_rt.set_input("main", data0, data1)
             vm_rt.invoke_stateful("main")
             hexagon_output = vm_rt.get_outputs("main").numpy()
-            gsmDataGen.testing.assert_allclose(output_data, hexagon_output)
+            gsm_data_generator.testing.assert_allclose(output_data, hexagon_output)

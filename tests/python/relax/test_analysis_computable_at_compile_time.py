@@ -17,13 +17,13 @@
 
 from typing import List
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen.script import relax as R, tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator.script import relax as R, tir as T
 
 
-def _analyze_func(func: gsmDataGen.relax.Function) -> List[str]:
-    return [var.name_hint for var in gsmDataGen.relax.analysis.computable_at_compile_time(func)]
+def _analyze_func(func: gsm_data_generator.relax.Function) -> List[str]:
+    return [var.name_hint for var in gsm_data_generator.relax.analysis.computable_at_compile_time(func)]
 
 
 def test_no_num_input_attribute():
@@ -240,4 +240,4 @@ def test_compile_time_expressions_may_use_variables_from_match_cast():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

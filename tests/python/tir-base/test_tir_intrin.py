@@ -14,12 +14,12 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import te, tir
-from gsmDataGen import topi
-from gsmDataGen.contrib import utils, clang
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import te, tir
+from gsm_data_generator import topi
+from gsm_data_generator.contrib import utils, clang
+from gsm_data_generator.script import tir as T
 import numpy as np
 import ctypes
 import math
@@ -31,19 +31,19 @@ def test_nearbyint():
         "m",
     )
     A = te.placeholder((m,), name="A")
-    A_rounded = te.compute((m,), lambda *i: gsmDataGen.tir.nearbyint(A(*i)), name="A")
+    A_rounded = te.compute((m,), lambda *i: gsm_data_generator.tir.nearbyint(A(*i)), name="A")
 
     # Convert to TIR and create schedule
     mod = te.create_prim_func([A, A_rounded])
     sch = tir.Schedule(mod)
 
     # Build from scheduled TIR
-    func = gsmDataGen.compile(sch.mod, target="llvm")
+    func = gsm_data_generator.compile(sch.mod, target="llvm")
 
-    dev = gsmDataGen.cpu(0)
+    dev = gsm_data_generator.cpu(0)
     n = 10
-    a = gsmDataGen.nd.array(np.random.uniform(high=100, size=n).astype(A.dtype), dev)
-    a_rounded = gsmDataGen.nd.array(np.random.uniform(size=n).astype(A_rounded.dtype), dev)
+    a = gsm_data_generator.nd.array(np.random.uniform(high=100, size=n).astype(A.dtype), dev)
+    a_rounded = gsm_data_generator.nd.array(np.random.uniform(size=n).astype(A_rounded.dtype), dev)
     func(a, a_rounded)
     # Note that numpys rint rounds to nearest integer with
     # ties to halfway is broken by rounding to even.
@@ -51,34 +51,34 @@ def test_nearbyint():
     # This is the default rounding mode with libc as well.
     # However one can set a different rounding mode and in that
     # case numpy result might differ.
-    gsmDataGen.testing.assert_allclose(a_rounded.numpy(), np.rint(a.numpy()))
+    gsm_data_generator.testing.assert_allclose(a_rounded.numpy(), np.rint(a.numpy()))
 
 
 def test_round_intrinsics_on_int():
-    i = gsmDataGen.te.var("i", "int32")
-    for op in [gsmDataGen.tir.round, gsmDataGen.tir.trunc, gsmDataGen.tir.ceil, gsmDataGen.tir.floor, gsmDataGen.tir.nearbyint]:
-        assert op(gsmDataGen.tir.const(10, "int32")).value == 10
-        assert op(gsmDataGen.tir.const(True, "bool")).value == True
+    i = gsm_data_generator.te.var("i", "int32")
+    for op in [gsm_data_generator.tir.round, gsm_data_generator.tir.trunc, gsm_data_generator.tir.ceil, gsm_data_generator.tir.floor, gsm_data_generator.tir.nearbyint]:
+        assert op(gsm_data_generator.tir.const(10, "int32")).value == 10
+        assert op(gsm_data_generator.tir.const(True, "bool")).value == True
         assert op(i).same_as(i)
 
-    assert gsmDataGen.tir.isnan(gsmDataGen.tir.const(10, "int32")).value == False
+    assert gsm_data_generator.tir.isnan(gsm_data_generator.tir.const(10, "int32")).value == False
 
 
 def test_unary_intrin():
     test_funcs = [
-        (gsmDataGen.tir.exp10, lambda x: np.power(10, x)),
-        (gsmDataGen.tir.log2, lambda x: np.log2(x)),
-        (gsmDataGen.tir.log10, lambda x: np.log10(x)),
-        (gsmDataGen.tir.sinh, lambda x: np.sinh(x)),
-        (gsmDataGen.tir.cosh, lambda x: np.cosh(x)),
-        (gsmDataGen.tir.log1p, lambda x: np.log1p(x)),
-        (gsmDataGen.tir.asin, lambda x: np.arcsin(x)),
-        (gsmDataGen.tir.acos, lambda x: np.arccos(x)),
-        (gsmDataGen.tir.atan, lambda x: np.arctan(x)),
-        (gsmDataGen.tir.asinh, lambda x: np.arcsinh(x)),
-        (gsmDataGen.tir.acosh, lambda x: np.arccosh(x)),
-        (gsmDataGen.tir.atanh, lambda x: np.arctanh(x)),
-        (gsmDataGen.tir.erf, lambda x: scipy.special.erf(x)),
+        (gsm_data_generator.tir.exp10, lambda x: np.power(10, x)),
+        (gsm_data_generator.tir.log2, lambda x: np.log2(x)),
+        (gsm_data_generator.tir.log10, lambda x: np.log10(x)),
+        (gsm_data_generator.tir.sinh, lambda x: np.sinh(x)),
+        (gsm_data_generator.tir.cosh, lambda x: np.cosh(x)),
+        (gsm_data_generator.tir.log1p, lambda x: np.log1p(x)),
+        (gsm_data_generator.tir.asin, lambda x: np.arcsin(x)),
+        (gsm_data_generator.tir.acos, lambda x: np.arccos(x)),
+        (gsm_data_generator.tir.atan, lambda x: np.arctan(x)),
+        (gsm_data_generator.tir.asinh, lambda x: np.arcsinh(x)),
+        (gsm_data_generator.tir.acosh, lambda x: np.arccosh(x)),
+        (gsm_data_generator.tir.atanh, lambda x: np.arctanh(x)),
+        (gsm_data_generator.tir.erf, lambda x: scipy.special.erf(x)),
     ]
 
     def run_test(tvm_intrin, np_func, atol=1e-5, rtol=1e-5):
@@ -93,14 +93,14 @@ def test_unary_intrin():
         sch = tir.Schedule(mod)
 
         # Build from scheduled TIR
-        func = gsmDataGen.compile(sch.mod, target="llvm")
+        func = gsm_data_generator.compile(sch.mod, target="llvm")
 
-        dev = gsmDataGen.cpu(0)
+        dev = gsm_data_generator.cpu(0)
         n = 10
-        a = gsmDataGen.nd.array(np.random.uniform(0.1, 0.5, size=n).astype(A.dtype), dev)
-        b = gsmDataGen.nd.array(np.random.uniform(size=n).astype(A.dtype), dev)
+        a = gsm_data_generator.nd.array(np.random.uniform(0.1, 0.5, size=n).astype(A.dtype), dev)
+        b = gsm_data_generator.nd.array(np.random.uniform(size=n).astype(A.dtype), dev)
         func(a, b)
-        gsmDataGen.testing.assert_allclose(b.numpy(), np_func(a.numpy()), atol=atol, rtol=rtol)
+        gsm_data_generator.testing.assert_allclose(b.numpy(), np_func(a.numpy()), atol=atol, rtol=rtol)
 
         # Out‐of‐bounds test for asin/acos
         name = tvm_intrin.__name__
@@ -113,8 +113,8 @@ def test_unary_intrin():
                     np.random.uniform(-2.0, -1.1, size=n // 2),
                 ]
             ).astype(A.dtype)
-            a2 = gsmDataGen.nd.array(out_np, dev)
-            b2 = gsmDataGen.nd.array(np.empty_like(out_np), dev)
+            a2 = gsm_data_generator.nd.array(out_np, dev)
+            b2 = gsm_data_generator.nd.array(np.empty_like(out_np), dev)
             func(a2, b2)
             # all outputs should be NaN
             assert np.all(np.isnan(b2.numpy()))
@@ -126,10 +126,10 @@ def test_unary_intrin():
 
 def test_binary_intrin():
     test_funcs = [
-        (gsmDataGen.tir.atan2, lambda x1, x2: np.arctan2(x1, x2)),
-        (gsmDataGen.tir.nextafter, lambda x1, x2: np.nextafter(x1, x2)),
-        (gsmDataGen.tir.copysign, lambda x1, x2: np.copysign(x1, x2)),
-        (gsmDataGen.tir.hypot, lambda x1, x2: np.hypot(x1, x2)),
+        (gsm_data_generator.tir.atan2, lambda x1, x2: np.arctan2(x1, x2)),
+        (gsm_data_generator.tir.nextafter, lambda x1, x2: np.nextafter(x1, x2)),
+        (gsm_data_generator.tir.copysign, lambda x1, x2: np.copysign(x1, x2)),
+        (gsm_data_generator.tir.hypot, lambda x1, x2: np.hypot(x1, x2)),
     ]
 
     def run_test(tvm_intrin, np_func):
@@ -145,15 +145,15 @@ def test_binary_intrin():
         sch = tir.Schedule(mod)
 
         # Build from scheduled TIR
-        func = gsmDataGen.compile(sch.mod, target="llvm")
+        func = gsm_data_generator.compile(sch.mod, target="llvm")
 
-        dev = gsmDataGen.cpu(0)
+        dev = gsm_data_generator.cpu(0)
         n = 10
-        a = gsmDataGen.nd.array(np.random.uniform(0, 1, size=n).astype(A.dtype), dev)
-        b = gsmDataGen.nd.array(np.random.uniform(0, 1, size=n).astype(B.dtype), dev)
-        c = gsmDataGen.nd.array(np.random.uniform(size=n).astype(A.dtype), dev)
+        a = gsm_data_generator.nd.array(np.random.uniform(0, 1, size=n).astype(A.dtype), dev)
+        b = gsm_data_generator.nd.array(np.random.uniform(0, 1, size=n).astype(B.dtype), dev)
+        c = gsm_data_generator.nd.array(np.random.uniform(size=n).astype(A.dtype), dev)
         func(a, b, c)
-        gsmDataGen.testing.assert_allclose(c.numpy(), np_func(a.numpy(), b.numpy()), atol=1e-5, rtol=1e-5)
+        gsm_data_generator.testing.assert_allclose(c.numpy(), np_func(a.numpy(), b.numpy()), atol=1e-5, rtol=1e-5)
 
     for func in test_funcs:
         run_test(*func)
@@ -165,30 +165,30 @@ def test_ldexp():
     )
     A = te.placeholder((m,), name="A")
     B = te.placeholder((m,), name="B", dtype="int32")
-    C = te.compute((m,), lambda *i: gsmDataGen.tir.ldexp(A(*i), B(*i)), name="C")
+    C = te.compute((m,), lambda *i: gsm_data_generator.tir.ldexp(A(*i), B(*i)), name="C")
 
     # Convert to TIR and create schedule
     mod = te.create_prim_func([A, B, C])
     sch = tir.Schedule(mod)
 
     # Build from scheduled TIR
-    func = gsmDataGen.compile(sch.mod, target="llvm")
+    func = gsm_data_generator.compile(sch.mod, target="llvm")
 
-    dev = gsmDataGen.cpu(0)
+    dev = gsm_data_generator.cpu(0)
     n = 10
-    a = gsmDataGen.nd.array(np.random.uniform(0, 1, size=n).astype(A.dtype), dev)
-    b = gsmDataGen.nd.array(np.random.randint(0, 5, size=n).astype(B.dtype), dev)
-    c = gsmDataGen.nd.array(np.random.uniform(size=n).astype(A.dtype), dev)
+    a = gsm_data_generator.nd.array(np.random.uniform(0, 1, size=n).astype(A.dtype), dev)
+    b = gsm_data_generator.nd.array(np.random.randint(0, 5, size=n).astype(B.dtype), dev)
+    c = gsm_data_generator.nd.array(np.random.uniform(size=n).astype(A.dtype), dev)
     func(a, b, c)
-    gsmDataGen.testing.assert_allclose(c.numpy(), np.ldexp(a.numpy(), b.numpy()), atol=1e-5, rtol=1e-5)
+    gsm_data_generator.testing.assert_allclose(c.numpy(), np.ldexp(a.numpy(), b.numpy()), atol=1e-5, rtol=1e-5)
 
 
-dtype = gsmDataGen.testing.parameter("int32", "int64")
+dtype = gsm_data_generator.testing.parameter("int32", "int64")
 
 
-@gsmDataGen.testing.parametrize_targets("llvm", "vulkan -from_device=0")
+@gsm_data_generator.testing.parametrize_targets("llvm", "vulkan -from_device=0")
 def test_clz(target, dev, dtype):
-    target = gsmDataGen.target.Target(target)
+    target = gsm_data_generator.target.Target(target)
     if (
         target.kind.name == "vulkan"
         and dtype == "int64"
@@ -205,7 +205,7 @@ def test_clz(target, dev, dtype):
 
     m = te.var("m")
     A = te.placeholder((m,), name="A", dtype=dtype)
-    B = te.compute((m,), lambda *i: gsmDataGen.tir.clz(A(*i)), name="B")
+    B = te.compute((m,), lambda *i: gsm_data_generator.tir.clz(A(*i)), name="B")
 
     # Convert to TIR and create schedule
     mod = te.create_prim_func([A, B])
@@ -220,7 +220,7 @@ def test_clz(target, dev, dtype):
         sch.bind(tx, "threadIdx.x")
 
     # Build from scheduled TIR
-    func = gsmDataGen.compile(sch.mod, target=target)
+    func = gsm_data_generator.compile(sch.mod, target=target)
 
     n = 10
     highs = [10, 100, 1000, 10000, 100000, 1000000]
@@ -230,14 +230,14 @@ def test_clz(target, dev, dtype):
 
     for high in highs:
         a_np = np.random.randint(1, high=high, size=(n,), dtype=dtype)
-        a = gsmDataGen.nd.array(a_np, dev)
-        b = gsmDataGen.nd.array(np.zeros((n,)).astype("int32"), dev)
+        a = gsm_data_generator.nd.array(a_np, dev)
+        b = gsm_data_generator.nd.array(np.zeros((n,)).astype("int32"), dev)
         func(a, b)
         ref = clz_np(a_np, dtype)
         np.testing.assert_equal(b.numpy(), ref)
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Module:
     @T.prim_func
     def test_tir_fma(A: T.handle, B: T.handle, C: T.handle, d: T.handle) -> None:
@@ -290,10 +290,10 @@ class Module:
 
 
 def test_fma():
-    opt = gsmDataGen.transform.Sequential(
+    opt = gsm_data_generator.transform.Sequential(
         [
-            gsmDataGen.tir.transform.Apply(lambda f: f.with_attr("target", gsmDataGen.target.Target("llvm"))),
-            gsmDataGen.tir.transform.LowerIntrin(),
+            gsm_data_generator.tir.transform.Apply(lambda f: f.with_attr("target", gsm_data_generator.target.Target("llvm"))),
+            gsm_data_generator.tir.transform.LowerIntrin(),
         ]
     )
     mod = opt(Module)

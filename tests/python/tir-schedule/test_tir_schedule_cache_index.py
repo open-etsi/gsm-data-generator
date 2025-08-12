@@ -18,11 +18,11 @@
 import sys
 
 import pytest
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import tir
-from gsmDataGen.script import tir as T
-from gsmDataGen.tir.schedule.testing import verify_trace_roundtrip
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import tir
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.tir.schedule.testing import verify_trace_roundtrip
 
 # pylint: disable=no-member,invalid-name,unused-variable
 
@@ -453,24 +453,24 @@ def cached_bilinear_resize(
 
 
 def test_basic_cache_index():
-    sch = gsmDataGen.tir.Schedule(resize, debug_mask="all")
+    sch = gsm_data_generator.tir.Schedule(resize, debug_mask="all")
     block = sch.get_block("A")
     sch.cache_index(block, "global")
-    gsmDataGen.ir.assert_structural_equal(
+    gsm_data_generator.ir.assert_structural_equal(
         resize_cache_index, sch.mod["main"].with_attr("global_symbol", "resize_cache_index")
     )
     verify_trace_roundtrip(sch=sch, mod=resize)
 
 
 def test_resize_bilinear_cache_index():
-    sch = gsmDataGen.tir.Schedule(bilinear_resize, debug_mask="all")
+    sch = gsm_data_generator.tir.Schedule(bilinear_resize, debug_mask="all")
     block = sch.get_block("resize")
     sch.cache_index(block, "global", 4)
-    gsmDataGen.ir.assert_structural_equal(
+    gsm_data_generator.ir.assert_structural_equal(
         sch.mod["main"], cached_bilinear_resize.with_attr("global_symbol", "bilinear_resize")
     )
     verify_trace_roundtrip(sch=sch, mod=bilinear_resize)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

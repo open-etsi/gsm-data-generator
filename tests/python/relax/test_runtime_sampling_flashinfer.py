@@ -18,17 +18,17 @@
 
 import random
 import numpy as np
-import gsmDataGen
-import gsmDataGen.testing
+import gsm_data_generator
+import gsm_data_generator.testing
 import pytest
-from gsmDataGen import relax
-from gsmDataGen.contrib import utils
+from gsm_data_generator import relax
+from gsm_data_generator.contrib import utils
 from typing import List
 
 
 @pytest.mark.skip(reason="Requires FlashInfer enabled and proper setup")
 def test_sampling():
-    def load_module(name: str, static_modules: List[gsmDataGen.runtime.Module]):
+    def load_module(name: str, static_modules: List[gsm_data_generator.runtime.Module]):
         assert len(static_modules) > 0
         if len(static_modules) == 1:
             return static_modules[0]
@@ -38,7 +38,7 @@ def test_sampling():
         temp = utils.tempdir()
         mod_path = temp.relpath(f"{name}.so")
         static_mod.export_library(mod_path)
-        return gsmDataGen.runtime.load_module(mod_path)
+        return gsm_data_generator.runtime.load_module(mod_path)
 
     # Test configuration
     batch_size = 10
@@ -50,12 +50,12 @@ def test_sampling():
     # Probability tensor (each row sums to 1)
     probs_np = np.array([[0.1, 0.2, 0.3, 0.2, 0.2] for _ in range(batch_size)], dtype="float32")
 
-    dev = gsmDataGen.cuda(0)
-    prob_tvm = gsmDataGen.nd.array(probs_np, device=dev)
-    output_tvm = gsmDataGen.nd.empty((batch_size,), "int32", device=dev)
+    dev = gsm_data_generator.cuda(0)
+    prob_tvm = gsm_data_generator.nd.array(probs_np, device=dev)
+    output_tvm = gsm_data_generator.nd.empty((batch_size,), "int32", device=dev)
 
-    device = gsmDataGen.cuda()
-    target = gsmDataGen.target.Target.from_device(device)
+    device = gsm_data_generator.cuda()
+    target = gsm_data_generator.target.Target.from_device(device)
     sampling_mod = load_module(
         "flashinfer_sampling",
         relax.backend.cuda.flashinfer.gen_sampling_module(
@@ -85,7 +85,7 @@ def test_sampling():
 
     # For each row, check that the empirical frequency is close to the input probability.
     for row in range(batch_size):
-        gsmDataGen.testing.assert_allclose(frequencies[row], probs_np[row], rtol=tol_rtol, atol=tol_atol)
+        gsm_data_generator.testing.assert_allclose(frequencies[row], probs_np[row], rtol=tol_rtol, atol=tol_atol)
 
 
 if __name__ == "__main__":

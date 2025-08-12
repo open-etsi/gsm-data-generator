@@ -17,17 +17,17 @@
 """CLML integration operator tests."""
 import pytest
 import numpy as np
-import gsmDataGen
-import gsmDataGen.testing
+import gsm_data_generator
+import gsm_data_generator.testing
 import json
 
-from gsmDataGen import relax, rpc
-from gsmDataGen.script import relax as R
-from gsmDataGen.script import ir as I
-from gsmDataGen.script import tir as T
-from gsmDataGen.script.ir_builder import IRBuilder
-from gsmDataGen.script.ir_builder import relax as relax_builder
-from gsmDataGen.relax.backend.adreno import clml
+from gsm_data_generator import relax, rpc
+from gsm_data_generator.script import relax as R
+from gsm_data_generator.script import ir as I
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.script.ir_builder import IRBuilder
+from gsm_data_generator.script.ir_builder import relax as relax_builder
+from gsm_data_generator.relax.backend.adreno import clml
 from utils import run_compare
 
 from mod_utils import (
@@ -44,7 +44,7 @@ from mod_utils import (
 )
 
 
-@gsmDataGen.testing.requires_openclml
+@gsm_data_generator.testing.requires_openclml
 @pytest.mark.parametrize("dtype", ["float32"])
 @pytest.mark.parametrize(
     "kernel_h, kernel_w, padding, stride, dilation, out_channels, shape, has_bias, has_bn, has_activation, has_pad, is_depthwise",
@@ -120,7 +120,7 @@ def test_conv2d_offload(
     run_compare(mod, inputs, params_np, rpc)
 
 
-@gsmDataGen.testing.requires_openclml
+@gsm_data_generator.testing.requires_openclml
 @pytest.mark.parametrize("dtype", ["float32"])
 @pytest.mark.parametrize(
     "trials",
@@ -162,7 +162,7 @@ def test_batchnorm(dtype, trials, rpc):
     run_compare(mod, inputs, params_np, rpc)
 
 
-@gsmDataGen.testing.requires_openclml
+@gsm_data_generator.testing.requires_openclml
 @pytest.mark.parametrize("dtype", ["float32"])
 @pytest.mark.parametrize(
     "a_shape, b_shape, op",
@@ -181,13 +181,13 @@ def test_batchnorm(dtype, trials, rpc):
         ((1, 256), (1, 256), R.maximum),
     ],
 )
-@gsmDataGen.testing.requires_openclml
+@gsm_data_generator.testing.requires_openclml
 def test_binary_ops(a_shape, b_shape, op, rpc, dtype):
     (mod, inputs) = get_binary_op_mod(a_shape, b_shape, op, dtype)
     run_compare(mod, inputs, {}, rpc)
 
 
-@gsmDataGen.testing.requires_openclml
+@gsm_data_generator.testing.requires_openclml
 @pytest.mark.parametrize(
     "dtype",
     [
@@ -203,13 +203,13 @@ def test_binary_ops(a_shape, b_shape, op, rpc, dtype):
         ((1, 14, 14, 256), R.nn.relu),
     ],
 )
-@gsmDataGen.testing.requires_openclml
+@gsm_data_generator.testing.requires_openclml
 def test_unary_ops(a_shape, op, rpc, dtype):
     (mod, inputs) = get_unary_op_mod(a_shape, op, dtype)
     run_compare(mod, inputs, {}, rpc)
 
 
-@gsmDataGen.testing.requires_openclml
+@gsm_data_generator.testing.requires_openclml
 @pytest.mark.parametrize("dtype", ["float32"])
 @pytest.mark.parametrize(
     "trials",
@@ -233,7 +233,7 @@ def test_max_pool(dtype, trials, rpc):
     run_compare(mod, inputs, params_np, rpc)
 
 
-@gsmDataGen.testing.requires_openclml
+@gsm_data_generator.testing.requires_openclml
 @pytest.mark.parametrize("dtype", ["float32"])
 @pytest.mark.parametrize(
     "trials",
@@ -257,7 +257,7 @@ def test_avg_pool(dtype, trials, rpc):
     run_compare(mod, inputs, params_np, rpc)
 
 
-@gsmDataGen.testing.requires_openclml
+@gsm_data_generator.testing.requires_openclml
 @pytest.mark.parametrize("dtype", ["float32"])
 @pytest.mark.parametrize(
     "trials",
@@ -277,7 +277,7 @@ def test_reshape(dtype, trials, rpc):
     run_compare(mod, inputs, params_np, rpc)
 
 
-@gsmDataGen.testing.requires_openclml
+@gsm_data_generator.testing.requires_openclml
 @pytest.mark.parametrize("dtype", ["float32"])
 @pytest.mark.parametrize(
     "trials",
@@ -299,7 +299,7 @@ def test_global_avg_pool(dtype, trials, rpc):
     run_compare(mod, inputs, params_np, rpc)
 
 
-@gsmDataGen.testing.requires_openclml
+@gsm_data_generator.testing.requires_openclml
 @pytest.mark.parametrize("dtype", ["float32"])
 @pytest.mark.parametrize(
     "trials",
@@ -326,4 +326,4 @@ def test_global_max_pool(dtype, trials, rpc):
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

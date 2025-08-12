@@ -14,11 +14,11 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import te
-from gsmDataGen.script import ir as I
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import te
+from gsm_data_generator.script import ir as I
+from gsm_data_generator.script import tir as T
 
 
 def test_ssa_across_entire_module():
@@ -38,11 +38,11 @@ def test_ssa_across_entire_module():
                 for j in range(16):
                     T.evaluate(i)
 
-    after = gsmDataGen.ir.transform.Sequential(
+    after = gsm_data_generator.ir.transform.Sequential(
         [
-            gsmDataGen.tir.transform.AnnotateDeviceRegions(),
-            gsmDataGen.tir.transform.SplitHostDevice(),
-            gsmDataGen.tir.transform.LowerDeviceKernelLaunch(),
+            gsm_data_generator.tir.transform.AnnotateDeviceRegions(),
+            gsm_data_generator.tir.transform.SplitHostDevice(),
+            gsm_data_generator.tir.transform.LowerDeviceKernelLaunch(),
         ]
     )(before)
     loop_var = after["main"].body.loop_var
@@ -51,8 +51,8 @@ def test_ssa_across_entire_module():
     assert not loop_var.same_as(param_var)
 
 
-class BaseCompare(gsmDataGen.testing.CompareBeforeAfter):
-    transform = gsmDataGen.tir.transform.SplitHostDevice()
+class BaseCompare(gsm_data_generator.testing.CompareBeforeAfter):
+    transform = gsm_data_generator.tir.transform.SplitHostDevice()
 
 
 class TestSplitHostDevice(BaseCompare):
@@ -301,10 +301,10 @@ def test_dynamic_launch_thread():
             if blockIdx_x * 128 + threadIdx_x < seq_len:
                 B[blockIdx_x * 128 + threadIdx_x] = A[blockIdx_x * 128 + threadIdx_x]
 
-    after = gsmDataGen.tir.transform.SplitHostDevice()(before)
+    after = gsm_data_generator.tir.transform.SplitHostDevice()(before)
 
-    gsmDataGen.tir.analysis.verify_well_formed(after)
-    gsmDataGen.ir.assert_structural_equal(expected, after)
+    gsm_data_generator.tir.analysis.verify_well_formed(after)
+    gsm_data_generator.ir.assert_structural_equal(expected, after)
 
 
 def test_size_var():
@@ -322,10 +322,10 @@ def test_size_var():
             A_1 = T.Buffer((m,), data=A.data)
             B_1[blockIdx_x] = A_1[blockIdx_x]
 
-    after = gsmDataGen.tir.transform.SplitHostDevice()(Module)
+    after = gsm_data_generator.tir.transform.SplitHostDevice()(Module)
     assert len(after["main_kernel"].params) == 3
-    assert isinstance(after["main_kernel"].params[2], gsmDataGen.tir.SizeVar)
+    assert isinstance(after["main_kernel"].params[2], gsm_data_generator.tir.SizeVar)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

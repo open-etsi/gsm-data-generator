@@ -14,42 +14,42 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import te
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import te
 
 
 def test_basic():
     a = te.var("a")
     b = te.var("b")
     c = te.var("c")
-    m = gsmDataGen.arith.detect_clip_bound(gsmDataGen.tir.all(a * 1 < b * 6, a - 1 > 0), [a])
-    gsmDataGen.testing.assert_prim_expr_equal(m[1], b * 6 - 1)
+    m = gsm_data_generator.arith.detect_clip_bound(gsm_data_generator.tir.all(a * 1 < b * 6, a - 1 > 0), [a])
+    gsm_data_generator.testing.assert_prim_expr_equal(m[1], b * 6 - 1)
     assert m[0].value == 2
-    m = gsmDataGen.arith.detect_clip_bound(gsmDataGen.tir.all(a * 1 < b * 6, a - 1 > 0), [a, b])
+    m = gsm_data_generator.arith.detect_clip_bound(gsm_data_generator.tir.all(a * 1 < b * 6, a - 1 > 0), [a, b])
     assert len(m) == 0
-    m = gsmDataGen.arith.detect_clip_bound(gsmDataGen.tir.all(a + 10 * c <= 20, b - 1 > 0), [a, b])
-    gsmDataGen.testing.assert_prim_expr_equal(m[1], 20 - 10 * c)
-    gsmDataGen.testing.assert_prim_expr_equal(m[2], 2)
-    m = gsmDataGen.arith.detect_clip_bound(gsmDataGen.tir.all(gsmDataGen.tir.Not(a * 1 > b * 6), a - 1 > 0), [a])
-    gsmDataGen.testing.assert_prim_expr_equal(m[1], b * 6)
-    m = gsmDataGen.arith.detect_clip_bound(gsmDataGen.tir.all(gsmDataGen.tir.Min(a, b) > 3, a - 10 < 0), [a, b])
-    gsmDataGen.testing.assert_prim_expr_equal(m[0], 4)
-    gsmDataGen.testing.assert_prim_expr_equal(m[1], 9)
-    gsmDataGen.testing.assert_prim_expr_equal(m[2], 4)
+    m = gsm_data_generator.arith.detect_clip_bound(gsm_data_generator.tir.all(a + 10 * c <= 20, b - 1 > 0), [a, b])
+    gsm_data_generator.testing.assert_prim_expr_equal(m[1], 20 - 10 * c)
+    gsm_data_generator.testing.assert_prim_expr_equal(m[2], 2)
+    m = gsm_data_generator.arith.detect_clip_bound(gsm_data_generator.tir.all(gsm_data_generator.tir.Not(a * 1 > b * 6), a - 1 > 0), [a])
+    gsm_data_generator.testing.assert_prim_expr_equal(m[1], b * 6)
+    m = gsm_data_generator.arith.detect_clip_bound(gsm_data_generator.tir.all(gsm_data_generator.tir.Min(a, b) > 3, a - 10 < 0), [a, b])
+    gsm_data_generator.testing.assert_prim_expr_equal(m[0], 4)
+    gsm_data_generator.testing.assert_prim_expr_equal(m[1], 9)
+    gsm_data_generator.testing.assert_prim_expr_equal(m[2], 4)
 
 
 def test_trivial_eq():
     a = te.var("a")
     b = te.var("b")
-    m = gsmDataGen.arith.detect_clip_bound(b == 3, [a, b])
-    gsmDataGen.testing.assert_prim_expr_equal(m[2], 3)
-    gsmDataGen.testing.assert_prim_expr_equal(m[3], 3)
-    m = gsmDataGen.arith.detect_clip_bound(gsmDataGen.tir.all(a == 4, b == 3), [a, b])
-    gsmDataGen.testing.assert_prim_expr_equal(m[0], 4)
-    gsmDataGen.testing.assert_prim_expr_equal(m[1], 4)
-    gsmDataGen.testing.assert_prim_expr_equal(m[2], 3)
-    gsmDataGen.testing.assert_prim_expr_equal(m[3], 3)
+    m = gsm_data_generator.arith.detect_clip_bound(b == 3, [a, b])
+    gsm_data_generator.testing.assert_prim_expr_equal(m[2], 3)
+    gsm_data_generator.testing.assert_prim_expr_equal(m[3], 3)
+    m = gsm_data_generator.arith.detect_clip_bound(gsm_data_generator.tir.all(a == 4, b == 3), [a, b])
+    gsm_data_generator.testing.assert_prim_expr_equal(m[0], 4)
+    gsm_data_generator.testing.assert_prim_expr_equal(m[1], 4)
+    gsm_data_generator.testing.assert_prim_expr_equal(m[2], 3)
+    gsm_data_generator.testing.assert_prim_expr_equal(m[3], 3)
 
 
 if __name__ == "__main__":

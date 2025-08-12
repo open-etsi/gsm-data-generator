@@ -15,26 +15,26 @@
 # specific language governing permissions and limitations
 # under the License.
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import relax
-import gsmDataGen.script
-from gsmDataGen.script import relax as R, tir as T, ir as I
-from gsmDataGen.relax import transform
-from gsmDataGen.ir.base import assert_structural_equal
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import relax
+import gsm_data_generator.script
+from gsm_data_generator.script import relax as R, tir as T, ir as I
+from gsm_data_generator.relax import transform
+from gsm_data_generator.ir.base import assert_structural_equal
 
 
 def _check_equal(x, y):
-    gsmDataGen.ir.assert_structural_equal(x, y)
-    gsmDataGen.ir.assert_structural_equal(y, x)
+    gsm_data_generator.ir.assert_structural_equal(x, y)
+    gsm_data_generator.ir.assert_structural_equal(y, x)
 
-    xhash = gsmDataGen.ir.structural_hash(x, map_free_vars=True)
-    yhash = gsmDataGen.ir.structural_hash(y, map_free_vars=True)
+    xhash = gsm_data_generator.ir.structural_hash(x, map_free_vars=True)
+    yhash = gsm_data_generator.ir.structural_hash(y, map_free_vars=True)
     assert xhash == yhash
 
 
 def _check_save_roundtrip(x):
-    y = gsmDataGen.ir.load_json(gsmDataGen.ir.save_json(x))
+    y = gsm_data_generator.ir.load_json(gsm_data_generator.ir.save_json(x))
     _check_equal(x, y)
 
 
@@ -113,11 +113,11 @@ def test_input_module_is_unmodified():
             return res
 
     before = Before
-    copy_of_before = gsmDataGen.ir.load_json(gsmDataGen.ir.save_json(before))
+    copy_of_before = gsm_data_generator.ir.load_json(gsm_data_generator.ir.save_json(before))
 
     transform.LambdaLift()(before)
 
-    gsmDataGen.ir.assert_structural_equal(before, copy_of_before)
+    gsm_data_generator.ir.assert_structural_equal(before, copy_of_before)
 
 
 def test_closure():
@@ -509,4 +509,4 @@ def test_symbolic_variable_defined_by_outer_func():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

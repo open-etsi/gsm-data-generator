@@ -16,7 +16,7 @@
 # under the License.
 import pytest
 
-from gsmDataGen import ffi as tvm_ffi
+from gsm_data_generator import ffi as tvm_ffi
 
 
 def test_make_object():

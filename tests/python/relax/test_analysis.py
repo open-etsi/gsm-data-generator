@@ -17,11 +17,11 @@
 
 from typing import List, Set, Union
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import relax as rx
-from gsmDataGen import tir
-from gsmDataGen.relax.analysis import (
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import relax as rx
+from gsm_data_generator import tir
+from gsm_data_generator.relax.analysis import (
     all_global_vars,
     all_vars,
     bound_vars,
@@ -31,9 +31,9 @@ from gsmDataGen.relax.analysis import (
     remove_all_unused,
     udchain,
 )
-from gsmDataGen.script import ir as I
-from gsmDataGen.script import relax as R
-from gsmDataGen.script import tir as T
+from gsm_data_generator.script import ir as I
+from gsm_data_generator.script import relax as R
+from gsm_data_generator.script import tir as T
 
 
 def var_name_set(vars: List[Union[rx.Var, rx.GlobalVar]]) -> Set[str]:
@@ -62,7 +62,7 @@ def test_use_def():
 
 
 def test_chained_remove_all_unused():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class IdentityUnused:
         @R.function
         def main(x: R.Tensor((32, 32), "float32")) -> R.Tensor:
@@ -77,7 +77,7 @@ def test_chained_remove_all_unused():
 
     optimized = remove_all_unused(IdentityUnused["main"])
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class GroundTruth:
         @R.function
         def main(x: R.Tensor((32, 32), "float32")) -> R.Tensor:
@@ -86,7 +86,7 @@ def test_chained_remove_all_unused():
                 R.output(lv0)
             return lv0
 
-    gsmDataGen.ir.assert_structural_equal(optimized, GroundTruth["main"])
+    gsm_data_generator.ir.assert_structural_equal(optimized, GroundTruth["main"])
 
 
 def test_binding_block_remove_all_unused():
@@ -97,7 +97,7 @@ def test_binding_block_remove_all_unused():
     effects, they may be removed if unused.
     """
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class IdentityUnused:
         @R.function(pure=False)
         def main(x: R.Tensor((32, 32), "float32")) -> R.Tensor:
@@ -113,7 +113,7 @@ def test_binding_block_remove_all_unused():
 
     optimized = remove_all_unused(IdentityUnused["main"])
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class GroundTruth:
         @R.function(pure=False)
         def main(x: R.Tensor((32, 32), "float32")) -> R.Tensor:
@@ -123,7 +123,7 @@ def test_binding_block_remove_all_unused():
             z = R.call_packed("vm.builtin.copy", lv0, sinfo_args=(R.Tensor((32, 32), "float32")))
             return z
 
-    gsmDataGen.ir.assert_structural_equal(optimized, GroundTruth["main"])
+    gsm_data_generator.ir.assert_structural_equal(optimized, GroundTruth["main"])
 
 
 def test_binding_block_remove_unused_pure_without_dataflow():
@@ -147,7 +147,7 @@ def test_binding_block_remove_unused_pure_without_dataflow():
         return x
 
     after = remove_all_unused(before)
-    gsmDataGen.ir.assert_structural_equal(expected, after)
+    gsm_data_generator.ir.assert_structural_equal(expected, after)
 
 
 def test_binding_block_keep_impure_without_dataflow():
@@ -168,7 +168,7 @@ def test_binding_block_keep_impure_without_dataflow():
     expected = before
 
     after = remove_all_unused(before)
-    gsmDataGen.ir.assert_structural_equal(expected, after)
+    gsm_data_generator.ir.assert_structural_equal(expected, after)
 
 
 def test_binding_block_keep_pure_func_used_only_for_impure():
@@ -198,11 +198,11 @@ def test_binding_block_keep_pure_func_used_only_for_impure():
     expected = before
 
     after = remove_all_unused(before)
-    gsmDataGen.ir.assert_structural_equal(expected, after)
+    gsm_data_generator.ir.assert_structural_equal(expected, after)
 
 
 def test_binding_block_remove_all_unused_func_without_dataflow():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class IdentityUnused:
         @R.function(pure=False)
         def main(x: R.Tensor((32, 32), "float32")) -> R.Tensor:
@@ -217,7 +217,7 @@ def test_binding_block_remove_all_unused_func_without_dataflow():
 
     optimized = remove_all_unused(IdentityUnused["main"])
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class GroundTruth:
         @R.function(pure=False)
         def main(x: R.Tensor((32, 32), "float32")) -> R.Tensor:
@@ -225,11 +225,11 @@ def test_binding_block_remove_all_unused_func_without_dataflow():
             z = R.call_packed("vm.builtin.copy", lv0, sinfo_args=(R.Tensor((32, 32), "float32")))
             return z
 
-    gsmDataGen.ir.assert_structural_equal(optimized, GroundTruth["main"])
+    gsm_data_generator.ir.assert_structural_equal(optimized, GroundTruth["main"])
 
 
 def test_binding_block_fake_unused_remove_all_unused():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class IdentityUnused:
         @R.function(pure=False)
         def main(x: R.Tensor((32, 32), "float32")) -> R.Tensor:
@@ -241,7 +241,7 @@ def test_binding_block_fake_unused_remove_all_unused():
 
     optimized = remove_all_unused(IdentityUnused["main"])
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class GroundTruth:
         @R.function(pure=False)
         def main(x: R.Tensor((32, 32), "float32")) -> R.Tensor:
@@ -252,11 +252,11 @@ def test_binding_block_fake_unused_remove_all_unused():
             z = R.call_packed("vm.builtin.copy", lv0, sinfo_args=(R.Tensor((32, 32), "float32")))
             return lv0
 
-    gsmDataGen.ir.assert_structural_equal(optimized, GroundTruth["main"])
+    gsm_data_generator.ir.assert_structural_equal(optimized, GroundTruth["main"])
 
 
 def test_edge_binding_block_fake_unused_remove_all_unused():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class IdentityUnused:
         @R.function(pure=False)
         def main(x: R.Tensor((32, 32), "float32")) -> R.Tensor((32, 32), "float32"):
@@ -264,11 +264,11 @@ def test_edge_binding_block_fake_unused_remove_all_unused():
             return x
 
     optimized = remove_all_unused(IdentityUnused["main"])
-    gsmDataGen.ir.assert_structural_equal(optimized, IdentityUnused["main"])
+    gsm_data_generator.ir.assert_structural_equal(optimized, IdentityUnused["main"])
 
 
 def test_edge_binding_block_fake_unused_remove_all_unused2():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class IdentityUnused:
         @R.function
         def main(x: R.Tensor((3,), dtype="int64")) -> R.Tensor(dtype="int32", ndim=3):
@@ -287,7 +287,7 @@ def test_edge_binding_block_fake_unused_remove_all_unused2():
             return gv
 
     optimized = remove_all_unused(IdentityUnused["main"])
-    gsmDataGen.ir.assert_structural_equal(optimized, IdentityUnused["main"])
+    gsm_data_generator.ir.assert_structural_equal(optimized, IdentityUnused["main"])
 
 
 def test_remove_all_unused_from_dataflow_block():
@@ -312,7 +312,7 @@ def test_remove_all_unused_from_dataflow_block():
         return lv0
 
     after = remove_all_unused(before.body)
-    gsmDataGen.ir.assert_structural_equal(expected.body, after, map_free_vars=True)
+    gsm_data_generator.ir.assert_structural_equal(expected.body, after, map_free_vars=True)
 
 
 def test_remove_all_unused_from_binding_block():
@@ -331,7 +331,7 @@ def test_remove_all_unused_from_binding_block():
         return lv0
 
     after = remove_all_unused(before.body)
-    gsmDataGen.ir.assert_structural_equal(expected.body, after, map_free_vars=True)
+    gsm_data_generator.ir.assert_structural_equal(expected.body, after, map_free_vars=True)
 
 
 def test_retain_impure_calls_unused_in_binding_block():
@@ -351,7 +351,7 @@ def test_retain_impure_calls_unused_in_binding_block():
         return lv0
 
     after = remove_all_unused(before.body)
-    gsmDataGen.ir.assert_structural_equal(expected.body, after, map_free_vars=True)
+    gsm_data_generator.ir.assert_structural_equal(expected.body, after, map_free_vars=True)
 
 
 def test_retain_calls_to_impure_builtin_ops():
@@ -375,7 +375,7 @@ def test_retain_calls_to_impure_builtin_ops():
             return x
 
     after = remove_all_unused(Module["main"])
-    gsmDataGen.ir.assert_structural_equal(after, Module["main"], map_free_vars=True)
+    gsm_data_generator.ir.assert_structural_equal(after, Module["main"], map_free_vars=True)
 
 
 def test_name_to_binding_var_shadowing():
@@ -401,7 +401,7 @@ def test_name_to_binding_var_shadowing():
     assert len(n2binding["lv0"]) == 2
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class VarExample:
     @R.function
     def func(a: R.Tensor) -> R.Tensor:
@@ -788,4 +788,4 @@ def test_reshape_pattern_reject_reduction():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

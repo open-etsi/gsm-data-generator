@@ -17,9 +17,9 @@
 """VTCM Tests"""
 
 import pytest
-import gsmDataGen.testing
-from gsmDataGen import tir
-from gsmDataGen.script import tir as T
+import gsm_data_generator.testing
+from gsm_data_generator import tir
+from gsm_data_generator.script import tir as T
 from .infrastructure import get_hexagon_target
 
 
@@ -34,7 +34,7 @@ def scale_by_two(buffer_a: T.Buffer((8192,), "int8"), buffer_c: T.Buffer((8192,)
 
 
 def get_scale_by_two_schedule():
-    mod = gsmDataGen.IRModule.from_expr(scale_by_two.with_attr("global_symbol", "main"))
+    mod = gsm_data_generator.IRModule.from_expr(scale_by_two.with_attr("global_symbol", "main"))
     sch = tir.Schedule(mod, debug_mask="all")
     block_c = sch.get_block("C")
     (flat,) = sch.get_loops(block_c)
@@ -44,16 +44,16 @@ def get_scale_by_two_schedule():
     return sch
 
 
-@gsmDataGen.testing.requires_hexagon
+@gsm_data_generator.testing.requires_hexagon
 def test_vtcm_building():
     """Test building with vtcm mem scope"""
     sch = get_scale_by_two_schedule()
     target = get_hexagon_target("v68")
-    built = gsmDataGen.compile(sch.mod, target=target)
+    built = gsm_data_generator.compile(sch.mod, target=target)
     assert "global.vtcm" in built.get_source("asm")
 
 
-@gsmDataGen.testing.requires_hexagon
+@gsm_data_generator.testing.requires_hexagon
 @pytest.mark.parametrize("vtcm_capacity,limited", [(8192, False), (1024, False), (128, True)])
 def test_vtcm_limit(vtcm_capacity, limited):
     """Test building with vtcm mem scope limit"""
@@ -62,29 +62,29 @@ def test_vtcm_limit(vtcm_capacity, limited):
     def _raises_exception(f):
         try:
             f()
-        except gsmDataGen.base.TVMError:
+        except gsm_data_generator.base.TVMError:
             return True
         return False
 
     target = get_hexagon_target("v68", vtcm_capacity=vtcm_capacity)
 
     assert (
-        _raises_exception(lambda: gsmDataGen.compile(sch.mod, target=target)) == limited
+        _raises_exception(lambda: gsm_data_generator.compile(sch.mod, target=target)) == limited
     ), "Case 1 - arg. VTCM memory allocation limiter does not work correctly "
 
     with target:
         assert (
-            _raises_exception(lambda: gsmDataGen.compile(sch.mod)) == limited
+            _raises_exception(lambda: gsm_data_generator.compile(sch.mod)) == limited
         ), "Case 2 - with.VTCM memory allocation limiter does not work correctly "
 
-    with gsmDataGen.transform.PassContext(config={"tir.vtcm_capacity": vtcm_capacity}):
+    with gsm_data_generator.transform.PassContext(config={"tir.vtcm_capacity": vtcm_capacity}):
         assert (
             _raises_exception(
-                lambda: gsmDataGen.compile(sch.mod, target=get_hexagon_target("v68", vtcm_capacity=0))
+                lambda: gsm_data_generator.compile(sch.mod, target=get_hexagon_target("v68", vtcm_capacity=0))
             )
             == limited
         ), "Case 3 - context. VTCM memory allocation limiter does not work correctly "
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

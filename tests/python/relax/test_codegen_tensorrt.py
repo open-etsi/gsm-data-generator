@@ -16,16 +16,16 @@
 # under the License.
 import pytest
 import numpy as np
-import gsmDataGen
-import gsmDataGen.testing
+import gsm_data_generator
+import gsm_data_generator.testing
 
-from gsmDataGen import relax
-from gsmDataGen.script import relax as R
-from gsmDataGen.relax.dpl import make_fused_bias_activation_pattern, is_op, wildcard
-from gsmDataGen.contrib.pickle_memoize import memoize
+from gsm_data_generator import relax
+from gsm_data_generator.script import relax as R
+from gsm_data_generator.relax.dpl import make_fused_bias_activation_pattern, is_op, wildcard
+from gsm_data_generator.contrib.pickle_memoize import memoize
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Conv2dResidualBlock:
     @R.function
     def main(
@@ -42,8 +42,8 @@ class Conv2dResidualBlock:
         return out
 
 
-has_tensorrt = gsmDataGen.get_global_func("relax.ext.tensorrt", True)
-env_checker_runtime = gsmDataGen.get_global_func("relax.is_tensorrt_runtime_enabled", True)
+has_tensorrt = gsm_data_generator.get_global_func("relax.ext.tensorrt", True)
+env_checker_runtime = gsm_data_generator.get_global_func("relax.is_tensorrt_runtime_enabled", True)
 
 requires_tensorrt_codegen = pytest.mark.skipif(
     not has_tensorrt,
@@ -58,16 +58,16 @@ requires_tensorrt_runtime = pytest.mark.skipif(
 pytestmark = [
     requires_tensorrt_codegen,
     requires_tensorrt_runtime,
-] + gsmDataGen.testing.requires_cuda.marks()
+] + gsm_data_generator.testing.requires_cuda.marks()
 
 
 def build_and_run(mod, inputs_np, target, legalize=False):
-    dev = gsmDataGen.device(target, 0)
-    with gsmDataGen.transform.PassContext(config={"relax.transform.apply_legalize_ops": legalize}):
-        ex = gsmDataGen.compile(mod, target)
+    dev = gsm_data_generator.device(target, 0)
+    with gsm_data_generator.transform.PassContext(config={"relax.transform.apply_legalize_ops": legalize}):
+        ex = gsm_data_generator.compile(mod, target)
     vm = relax.VirtualMachine(ex, dev)
     f = vm["main"]
-    inputs = [gsmDataGen.nd.array(inp, dev) for inp in inputs_np]
+    inputs = [gsm_data_generator.nd.array(inp, dev) for inp in inputs_np]
     return f(*inputs).numpy()
 
 
@@ -97,7 +97,7 @@ def test_tensorrt_offload():
 
     params_np = {"weight1": inputs[1], "weight2": inputs[2]}
 
-    mod = gsmDataGen.transform.Sequential(
+    mod = gsm_data_generator.transform.Sequential(
         [
             relax.transform.BindParams("main", params_np),
             relax.transform.FuseOpsByPattern(patterns),
@@ -108,7 +108,7 @@ def test_tensorrt_offload():
 
     out = build_and_run(mod, inputs[:1], "cuda")
 
-    gsmDataGen.testing.assert_allclose(out, ref, rtol=1e-3, atol=1e-3)
+    gsm_data_generator.testing.assert_allclose(out, ref, rtol=1e-3, atol=1e-3)
 
 
 if __name__ == "__main__":

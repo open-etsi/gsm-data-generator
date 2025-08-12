@@ -15,16 +15,16 @@
 # specific language governing permissions and limitations
 # under the License.
 # pylint: disable=invalid-name,,missing-function-docstring
-import gsmDataGen
-from gsmDataGen.tir.transform import DefaultGPUSchedule
-from gsmDataGen.script import tir as T
-import gsmDataGen.testing
+import gsm_data_generator
+from gsm_data_generator.tir.transform import DefaultGPUSchedule
+from gsm_data_generator.script import tir as T
+import gsm_data_generator.testing
 
 
 def test_broadcast_to_symbolic():
     # pylint: disable=no-self-argument,missing-class-docstring,line-too-long
     # fmt: off
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Before:
         @T.prim_func
         def broadcast_to(
@@ -43,7 +43,7 @@ def test_broadcast_to_symbolic():
                     T.writes(T_broadcast_to[v_ax0, v_ax1])
                     T_broadcast_to[v_ax0, v_ax1] = rxplaceholder[v_ax0, T.int64(0)]
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @T.prim_func
         def broadcast_to(rxplaceholder: T.Buffer((T.int64(3), T.int64(1)), "float32"), var_T_broadcast_to: T.handle):
@@ -60,16 +60,16 @@ def test_broadcast_to_symbolic():
                             T_broadcast_to[v_ax0, v_ax1] = rxplaceholder[v_ax0, T.int64(0)]
     # fmt: on
     # pylint: enable=no-self-argument,missing-class-docstring,line-too-long
-    target = gsmDataGen.target.Target("nvidia/geforce-rtx-3070")
-    with target, gsmDataGen.transform.PassContext(opt_level=3):
+    target = gsm_data_generator.target.Target("nvidia/geforce-rtx-3070")
+    with target, gsm_data_generator.transform.PassContext(opt_level=3):
         After = DefaultGPUSchedule()(Before)
-    gsmDataGen.ir.assert_structural_equal(After, Expected)
+    gsm_data_generator.ir.assert_structural_equal(After, Expected)
 
 
 def test_matmul():
     # pylint: disable=no-self-argument,missing-class-docstring,line-too-long
     # fmt: off
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Before:
         @T.prim_func
         def matmul(
@@ -131,7 +131,7 @@ def test_matmul():
                         C[v_i, v_j] = T.float16(0)
                     C[v_i, v_j] = C[v_i, v_j] + A[v_i, v_k] * B[v_k, v_j]
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @T.prim_func
         def matmul(
@@ -189,16 +189,16 @@ def test_matmul():
                             C[v_i, v_j] = C[v_i, v_j] + A[v_i, v_k] * B[v_k, v_j]
     # fmt: on
     # pylint: enable=no-self-argument,missing-class-docstring,line-too-long
-    target = gsmDataGen.target.Target("nvidia/geforce-rtx-3070")
-    with target, gsmDataGen.transform.PassContext(opt_level=3):
+    target = gsm_data_generator.target.Target("nvidia/geforce-rtx-3070")
+    with target, gsm_data_generator.transform.PassContext(opt_level=3):
         After = DefaultGPUSchedule()(Before)
-    gsmDataGen.ir.assert_structural_equal(After, Expected)
+    gsm_data_generator.ir.assert_structural_equal(After, Expected)
 
 
 def test_add():
     # pylint: disable=no-self-argument,missing-class-docstring,line-too-long
     # fmt: off
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Before:
         @T.prim_func
         def add(rxplaceholder: T.Buffer((T.int64(1), T.int64(2), T.int64(3)), "float32"), rxplaceholder_1: T.Buffer((T.int64(4), T.int64(3), T.int64(2), T.int64(1)), "float32"), T_add: T.Buffer((T.int64(4), T.int64(3), T.int64(2), T.int64(3)), "float32")):
@@ -210,7 +210,7 @@ def test_add():
                     T.writes(T_add[ax0, ax1, ax2, ax3])
                     T_add[ax0, ax1, ax2, ax3] = rxplaceholder[T.int64(0), ax2, ax3] + rxplaceholder_1[ax0, ax1, ax2, T.int64(0)]
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @T.prim_func
         def add(
@@ -261,16 +261,16 @@ def test_add():
 
     # fmt: on
     # pylint: enable=no-self-argument,missing-class-docstring,line-too-long
-    target = gsmDataGen.target.Target("nvidia/geforce-rtx-3070")
-    with target, gsmDataGen.transform.PassContext(opt_level=3):
+    target = gsm_data_generator.target.Target("nvidia/geforce-rtx-3070")
+    with target, gsm_data_generator.transform.PassContext(opt_level=3):
         After = DefaultGPUSchedule()(Before)
-    gsmDataGen.ir.assert_structural_equal(After, Expected)
+    gsm_data_generator.ir.assert_structural_equal(After, Expected)
 
 
 def test_full():
     # pylint: disable=no-self-argument,missing-class-docstring,line-too-long
     # fmt: off
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Before:
         @T.prim_func
         def full(rxplaceholder: T.Buffer((), "int32"), T_full: T.Buffer((T.int64(2), T.int64(3)), "int32")):
@@ -282,7 +282,7 @@ def test_full():
                     T.writes(T_full[ax0, ax1])
                     T_full[ax0, ax1] = rxplaceholder[()]
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @T.prim_func
         def full(
@@ -308,17 +308,17 @@ def test_full():
 
     # fmt: on
     # pylint: enable=no-self-argument,missing-class-docstring,line-too-long
-    target = gsmDataGen.target.Target("nvidia/geforce-rtx-3070")
-    with target, gsmDataGen.transform.PassContext(opt_level=3):
+    target = gsm_data_generator.target.Target("nvidia/geforce-rtx-3070")
+    with target, gsm_data_generator.transform.PassContext(opt_level=3):
         After = DefaultGPUSchedule()(Before)
-    gsmDataGen.ir.assert_structural_equal(After, Expected)
+    gsm_data_generator.ir.assert_structural_equal(After, Expected)
 
 
 def test_scheduled():
     # pylint: disable=no-self-argument,missing-class-docstring,line-too-long
     # fmt: off
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Scheduled:
         @T.prim_func
         def full(
@@ -344,17 +344,17 @@ def test_scheduled():
 
     # fmt: on
     # pylint: enable=no-self-argument,missing-class-docstring,line-too-long
-    target = gsmDataGen.target.Target("nvidia/geforce-rtx-3070")
-    with target, gsmDataGen.transform.PassContext(opt_level=3):
+    target = gsm_data_generator.target.Target("nvidia/geforce-rtx-3070")
+    with target, gsm_data_generator.transform.PassContext(opt_level=3):
         # should do nothing
         After = DefaultGPUSchedule()(Scheduled)
-    gsmDataGen.ir.assert_structural_equal(After, Scheduled)
+    gsm_data_generator.ir.assert_structural_equal(After, Scheduled)
 
 
 def test_multiple():
     # pylint: disable=no-self-argument,missing-class-docstring,line-too-long
     # fmt: off
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Before:
         @T.prim_func
         def add(rxplaceholder: T.Buffer((T.int64(1), T.int64(2), T.int64(3)), "float32"), rxplaceholder_1: T.Buffer((T.int64(4), T.int64(3), T.int64(2), T.int64(1)), "float32"), T_add: T.Buffer((T.int64(4), T.int64(3), T.int64(2), T.int64(3)), "float32")):
@@ -376,7 +376,7 @@ def test_multiple():
                     T.writes(T_full[ax0, ax1])
                     T_full[ax0, ax1] = rxplaceholder[()]
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @T.prim_func
         def add(
@@ -448,16 +448,16 @@ def test_multiple():
                         T_full[ax0, ax1] = rxplaceholder[()]
     # fmt: on
     # pylint: enable=no-self-argument,missing-class-docstring,line-too-long
-    target = gsmDataGen.target.Target("nvidia/geforce-rtx-3070")
-    with target, gsmDataGen.transform.PassContext(opt_level=3):
+    target = gsm_data_generator.target.Target("nvidia/geforce-rtx-3070")
+    with target, gsm_data_generator.transform.PassContext(opt_level=3):
         After = DefaultGPUSchedule()(Before)
-    gsmDataGen.ir.assert_structural_equal(After, Expected)
+    gsm_data_generator.ir.assert_structural_equal(After, Expected)
 
 
 def test_add_on_metal():
     # pylint: disable=no-self-argument,missing-class-docstring,line-too-long
     # fmt: off
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Before:
         @T.prim_func
         def add(rxplaceholder: T.Buffer((T.int64(1), T.int64(2), T.int64(3)), "float32"), rxplaceholder_1: T.Buffer((T.int64(4), T.int64(3), T.int64(2), T.int64(1)), "float32"), T_add: T.Buffer((T.int64(4), T.int64(3), T.int64(2), T.int64(3)), "float32")):
@@ -469,7 +469,7 @@ def test_add_on_metal():
                     T.writes(T_add[ax0, ax1, ax2, ax3])
                     T_add[ax0, ax1, ax2, ax3] = rxplaceholder[T.int64(0), ax2, ax3] + rxplaceholder_1[ax0, ax1, ax2, T.int64(0)]
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @T.prim_func
         def add(rxplaceholder: T.Buffer((T.int64(1), T.int64(2), T.int64(3)), "float32"), rxplaceholder_1: T.Buffer((T.int64(4), T.int64(3), T.int64(2), T.int64(1)), "float32"), T_add: T.Buffer((T.int64(4), T.int64(3), T.int64(2), T.int64(3)), "float32")):
@@ -486,16 +486,16 @@ def test_add_on_metal():
                         T_add[ax0, ax1, ax2, ax3] = rxplaceholder[T.int64(0), ax2, ax3] + rxplaceholder_1[ax0, ax1, ax2, T.int64(0)]
     # fmt: on
     # pylint: enable=no-self-argument,missing-class-docstring,line-too-long
-    target = gsmDataGen.target.Target("apple/m1-gpu")
-    with target, gsmDataGen.transform.PassContext(opt_level=0):
+    target = gsm_data_generator.target.Target("apple/m1-gpu")
+    with target, gsm_data_generator.transform.PassContext(opt_level=0):
         mod = DefaultGPUSchedule()(Before)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_scalar_add():
     # pylint: disable=no-self-argument,missing-class-docstring,line-too-long
     # fmt: off
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Before:
         @T.prim_func
         def add(rxplaceholder: T.Buffer((), "int64"), T_add: T.Buffer((), "int64")):
@@ -506,7 +506,7 @@ def test_scalar_add():
                 T.writes(T_add[()])
                 T_add[()] = rxplaceholder[()] + T.int64(1)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @T.prim_func
         def add(rxplaceholder: T.Buffer((), "int64"), T_add: T.Buffer((), "int64")):
@@ -521,17 +521,17 @@ def test_scalar_add():
                         T_add[()] = rxplaceholder[()] + T.int64(1)
     # fmt: on
     # pylint: enable=no-self-argument,missing-class-docstring,line-too-long
-    target = gsmDataGen.target.Target("nvidia/geforce-rtx-3070")
-    with target, gsmDataGen.transform.PassContext(opt_level=0):
+    target = gsm_data_generator.target.Target("nvidia/geforce-rtx-3070")
+    with target, gsm_data_generator.transform.PassContext(opt_level=0):
         mod = DefaultGPUSchedule()(Before)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_sum():
     # sum has two reduction axes and no spatial axis
     # pylint: disable=no-self-argument,missing-class-docstring,line-too-long
     # fmt: off
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Before:
         @T.prim_func
         def sum(A: T.Buffer((T.int64(2), T.int64(2)), "float64"), A_red: T.Buffer((), "float64")):
@@ -542,7 +542,7 @@ def test_sum():
                         A_red[()] = T.float64(0)
                     A_red[()] = A_red[()] + A[v_k0, v_k1]
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @T.prim_func
         def sum(A: T.Buffer((T.int64(2), T.int64(2)), "float64"), A_red: T.Buffer((), "float64")):
@@ -560,11 +560,11 @@ def test_sum():
                             A_red[()] = A_red[()] + A[v_k0, v_k1]
     # fmt: on
     # pylint: enable=no-self-argument,missing-class-docstring,line-too-long
-    target = gsmDataGen.target.Target("nvidia/geforce-rtx-3070")
-    with target, gsmDataGen.transform.PassContext(opt_level=0):
+    target = gsm_data_generator.target.Target("nvidia/geforce-rtx-3070")
+    with target, gsm_data_generator.transform.PassContext(opt_level=0):
         mod = DefaultGPUSchedule()(Before)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

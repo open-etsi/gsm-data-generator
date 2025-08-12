@@ -14,32 +14,32 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import te
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import te
 import numpy as np
-from gsmDataGen.contrib.dlpack import to_pytorch_func
+from gsm_data_generator.contrib.dlpack import to_pytorch_func
 
 
 def verify_torch_dlpack():
     a = np.random.randn(1337)
-    tvm_a = gsmDataGen.nd.array(a)
-    np.testing.assert_equal(gsmDataGen.nd.from_dlpack(tvm_a.to_dlpack()).numpy(), a)
+    tvm_a = gsm_data_generator.nd.array(a)
+    np.testing.assert_equal(gsm_data_generator.nd.from_dlpack(tvm_a.to_dlpack()).numpy(), a)
 
     try:
         import torch
         import torch.utils.dlpack
 
         x = torch.rand(56, 56)
-        tvm_x = gsmDataGen.nd.from_dlpack(torch.utils.dlpack.to_dlpack(x))
+        tvm_x = gsm_data_generator.nd.from_dlpack(torch.utils.dlpack.to_dlpack(x))
         np.testing.assert_equal(x.numpy(), tvm_x.numpy())
-        y = gsmDataGen.nd.from_dlpack(tvm_x)
+        y = gsm_data_generator.nd.from_dlpack(tvm_x)
         np.testing.assert_equal(y.numpy(), tvm_x.numpy())
         np.testing.assert_equal(
             torch.utils.dlpack.from_dlpack(y.to_dlpack()).numpy(), tvm_x.numpy()
         )
 
-        n = gsmDataGen.runtime.convert(137)
+        n = gsm_data_generator.runtime.convert(137)
         xx = torch.rand(137, 137)
         yy = torch.rand(137, 137)
         zz2 = torch.empty(137, 137)
@@ -51,12 +51,12 @@ def verify_torch_dlpack():
         ZZ = te.compute((n, n), lambda i, j: te.sum(XX[i, k] * YY[k, j], axis=k))
         # No need to speficy target_host if it's llvm
         # Otherwise you will need to specify the target and target_host
-        f = gsmDataGen.compile(te.create_prim_func([XX, YY, ZZ]))
+        f = gsm_data_generator.compile(te.create_prim_func([XX, YY, ZZ]))
 
         f_pytorch = to_pytorch_func(f)
         zz2 = torch.empty(137, 137)
         f_pytorch(xx, yy, zz2)
-        gsmDataGen.testing.assert_allclose(zz.numpy(), zz2.numpy(), rtol=1e-4, atol=1e-4)
+        gsm_data_generator.testing.assert_allclose(zz.numpy(), zz2.numpy(), rtol=1e-4, atol=1e-4)
 
     except ImportError:
         pass

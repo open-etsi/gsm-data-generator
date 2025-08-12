@@ -49,11 +49,11 @@ import os
 import pytest
 import numpy as np
 
-import gsmDataGen.testing
-from gsmDataGen import te, topi, tir
-from gsmDataGen.topi import testing
-from gsmDataGen.contrib.hexagon.session import Session
-from gsmDataGen.contrib.hexagon import allocate_hexagon_array
+import gsm_data_generator.testing
+from gsm_data_generator import te, topi, tir
+from gsm_data_generator.topi import testing
+from gsm_data_generator.contrib.hexagon.session import Session
+from gsm_data_generator.contrib.hexagon import allocate_hexagon_array
 
 from .infrastructure import get_hexagon_target
 from . import benchmark_util as bu
@@ -176,23 +176,23 @@ class TestMaxPool2D:
         "comments",
     ]
 
-    dtype = gsmDataGen.testing.parameter("int8")
+    dtype = gsm_data_generator.testing.parameter("int8")
 
     # FIXME(cconvey): The script currently fails when height, width, or channel is not an
     # integer multiple of 8, 8, or 32, respectively.
-    n_batch = gsmDataGen.testing.parameter(1)
-    height = gsmDataGen.testing.parameter(*[x * 8 for x in [1, 4, 16]])
-    width = gsmDataGen.testing.parameter(*[x * 8 for x in [1, 4, 16]])
-    channel = gsmDataGen.testing.parameter(*[x * 32 for x in [1, 2]])
+    n_batch = gsm_data_generator.testing.parameter(1)
+    height = gsm_data_generator.testing.parameter(*[x * 8 for x in [1, 4, 16]])
+    width = gsm_data_generator.testing.parameter(*[x * 8 for x in [1, 4, 16]])
+    channel = gsm_data_generator.testing.parameter(*[x * 32 for x in [1, 2]])
 
-    kernel = gsmDataGen.testing.parameter((1, 1), (3, 3))
-    stride = gsmDataGen.testing.parameter((1, 1))
-    dilation = gsmDataGen.testing.parameter((1, 1))
-    padding = gsmDataGen.testing.parameter((0, 0, 0, 0))
-    io_tensor_mem_scope = gsmDataGen.testing.parameter("global.vtcm")
+    kernel = gsm_data_generator.testing.parameter((1, 1), (3, 3))
+    stride = gsm_data_generator.testing.parameter((1, 1))
+    dilation = gsm_data_generator.testing.parameter((1, 1))
+    padding = gsm_data_generator.testing.parameter((0, 0, 0, 0))
+    io_tensor_mem_scope = gsm_data_generator.testing.parameter("global.vtcm")
 
     @pytest.mark.skipif(_SHOULD_SKIP_BENCHMARKS, reason=_SKIP_BENCHMARKS_REASON)
-    @gsmDataGen.testing.requires_hexagon
+    @gsm_data_generator.testing.requires_hexagon
     def test_maxpool2d_nhwc(
         self,
         n_batch,
@@ -253,7 +253,7 @@ class TestMaxPool2D:
                     block="tensor", buffer="placeholder", index_map=_int8_nhwc_8h8w32c_map
                 )
 
-                built_module = gsmDataGen.compile(
+                built_module = gsm_data_generator.compile(
                     sch.mod,
                     target=get_hexagon_target("v69"),
                 )
@@ -320,7 +320,7 @@ class TestMaxPool2D:
                 timing_result = timer(a_hexagon_7d, c_hexagon_4d)
 
                 try:
-                    gsmDataGen.testing.assert_allclose(
+                    gsm_data_generator.testing.assert_allclose(
                         ref_output_4d, c_hexagon_4d.numpy(), rtol=rel_tolerance, atol=abs_tolerance
                     )
                 except AssertionError as exception:
@@ -352,4 +352,4 @@ class TestMaxPool2D:
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

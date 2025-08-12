@@ -20,9 +20,9 @@ Doc objects, then access and modify their attributes correctly.
 """
 
 import pytest
-import gsmDataGen
-from gsmDataGen.ffi.access_path import AccessPath
-from gsmDataGen.script.printer.doc import (
+import gsm_data_generator
+from gsm_data_generator.ffi.access_path import AccessPath
+from gsm_data_generator.script.printer.doc import (
     AssertDoc,
     AssignDoc,
     AttrAccessDoc,
@@ -558,4 +558,4 @@ def test_doc_source_paths():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

@@ -21,16 +21,16 @@ import tempfile
 import numpy as np
 import pytest
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import relax
-from gsmDataGen.base import TVMError
-from gsmDataGen.script import ir as I, relax as R, tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import relax
+from gsm_data_generator.base import TVMError
+from gsm_data_generator.script import ir as I, relax as R, tir as T
 
-exec_mode = gsmDataGen.testing.parameter("bytecode", "compiled")
+exec_mode = gsm_data_generator.testing.parameter("bytecode", "compiled")
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class InputModule:
     @R.function
     def foo(x: R.Tensor(("m", "n"), "int64")):
@@ -44,11 +44,11 @@ def run_cpu(mod, func_name, *args, exec_mode):
         func = mod
         args = [func_name, *args]
         func_name = func.attrs["global_symbol"]
-        mod = gsmDataGen.IRModule.from_expr(func)
+        mod = gsm_data_generator.IRModule.from_expr(func)
 
-    target = gsmDataGen.target.Target("llvm")
+    target = gsm_data_generator.target.Target("llvm")
     ex = relax.build(mod, target, exec_mode=exec_mode)
-    vm = relax.VirtualMachine(ex, gsmDataGen.cpu())
+    vm = relax.VirtualMachine(ex, gsm_data_generator.cpu())
 
     return vm[func_name](*args)
 
@@ -56,7 +56,7 @@ def run_cpu(mod, func_name, *args, exec_mode):
 def test_unique(exec_mode):
     # TODO(prakalp): also add test for compiling and running on cuda device.
     data_numpy = np.random.randint(0, 16, (16, 16))
-    data = gsmDataGen.nd.array(data_numpy)
+    data = gsm_data_generator.nd.array(data_numpy)
     result, result_sorted = run_cpu(InputModule, "foo", data, exec_mode=exec_mode)
 
     expected_output_sorted, indices = np.unique(data_numpy, return_index=True)
@@ -66,7 +66,7 @@ def test_unique(exec_mode):
     np.testing.assert_array_equal(expected_output, result.numpy())
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class PrintTest:
     @R.function(pure=False)
     def foo(x: R.Tensor((), "int32")):
@@ -91,7 +91,7 @@ def test_print(exec_mode):
             run_cpu(
                 PrintTest,
                 "foo",
-                gsmDataGen.nd.array(np.array(1).astype("int32")),
+                gsm_data_generator.nd.array(np.array(1).astype("int32")),
                 exec_mode=exec_mode,
             )
             test_out.seek(0)
@@ -108,7 +108,7 @@ def test_assert_passes(exec_mode):
         _ = R.assert_op(relax.const(True))
         return x
 
-    run_cpu(func, gsmDataGen.nd.array(np.array(1).astype("int32")), exec_mode=exec_mode)
+    run_cpu(func, gsm_data_generator.nd.array(np.array(1).astype("int32")), exec_mode=exec_mode)
 
 
 def test_assert_passes_with_format_args(exec_mode):
@@ -117,7 +117,7 @@ def test_assert_passes_with_format_args(exec_mode):
         _ = R.assert_op(relax.const(True), x, format="You won't see me")
         return x
 
-    run_cpu(func, gsmDataGen.nd.array(np.array(1).astype("int32")), exec_mode=exec_mode)
+    run_cpu(func, gsm_data_generator.nd.array(np.array(1).astype("int32")), exec_mode=exec_mode)
 
 
 def test_assert_fails(exec_mode):
@@ -127,7 +127,7 @@ def test_assert_fails(exec_mode):
         return x
 
     with pytest.raises(AssertionError, match="Assertion Failed"):
-        run_cpu(func, gsmDataGen.nd.array(np.array(1).astype("int32")), exec_mode=exec_mode)
+        run_cpu(func, gsm_data_generator.nd.array(np.array(1).astype("int32")), exec_mode=exec_mode)
 
 
 def test_assert_fails_with_message(exec_mode):
@@ -137,7 +137,7 @@ def test_assert_fails_with_message(exec_mode):
         return x
 
     with pytest.raises(AssertionError, match="I failed..."):
-        run_cpu(func, gsmDataGen.nd.array(np.array(1).astype("int32")), exec_mode=exec_mode)
+        run_cpu(func, gsm_data_generator.nd.array(np.array(1).astype("int32")), exec_mode=exec_mode)
 
 
 def test_assert_fails_with_args(exec_mode):
@@ -147,7 +147,7 @@ def test_assert_fails_with_args(exec_mode):
         return x
 
     with pytest.raises(AssertionError, match="5, 5"):
-        run_cpu(func, gsmDataGen.nd.array(np.array(5).astype("int32")), exec_mode=exec_mode)
+        run_cpu(func, gsm_data_generator.nd.array(np.array(5).astype("int32")), exec_mode=exec_mode)
 
 
 def test_assert_fails_with_formatted_args(exec_mode):
@@ -157,7 +157,7 @@ def test_assert_fails_with_formatted_args(exec_mode):
         return x
 
     with pytest.raises(AssertionError, match="Number: 6"):
-        run_cpu(func, gsmDataGen.nd.array(np.array(6).astype("int32")), exec_mode=exec_mode)
+        run_cpu(func, gsm_data_generator.nd.array(np.array(6).astype("int32")), exec_mode=exec_mode)
 
 
 def test_assert_on_argument_passes(exec_mode):
@@ -166,8 +166,8 @@ def test_assert_on_argument_passes(exec_mode):
         _ = R.assert_op(condition)
         return x
 
-    condition = gsmDataGen.nd.array(np.array(True))
-    x = gsmDataGen.nd.array(np.array(5).astype("int32"))
+    condition = gsm_data_generator.nd.array(np.array(True))
+    x = gsm_data_generator.nd.array(np.array(5).astype("int32"))
     run_cpu(func, condition, x, exec_mode=exec_mode)
 
 
@@ -177,8 +177,8 @@ def test_assert_on_argument_fails(exec_mode):
         _ = R.assert_op(condition)
         return x
 
-    condition = gsmDataGen.nd.array(np.array(False))
-    x = gsmDataGen.nd.array(np.array(5).astype("int32"))
+    condition = gsm_data_generator.nd.array(np.array(False))
+    x = gsm_data_generator.nd.array(np.array(5).astype("int32"))
     with pytest.raises(AssertionError):
         run_cpu(func, condition, x, exec_mode=exec_mode)
 
@@ -190,7 +190,7 @@ def test_assert_on_symbolic_var_passes(exec_mode):
         _ = R.assert_op(R.prim_value(N % 8 == 0))
         return x
 
-    x = gsmDataGen.nd.array(np.arange(8, dtype="int32"))
+    x = gsm_data_generator.nd.array(np.arange(8, dtype="int32"))
     run_cpu(func, x, exec_mode=exec_mode)
 
 
@@ -201,12 +201,12 @@ def test_assert_on_symbolic_var_fails(exec_mode):
         _ = R.assert_op(R.prim_value(N % 8 == 0))
         return x
 
-    x = gsmDataGen.nd.array(np.arange(10, dtype="int32"))
+    x = gsm_data_generator.nd.array(np.arange(10, dtype="int32"))
     with pytest.raises(AssertionError):
         run_cpu(func, x, exec_mode=exec_mode)
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class ShapeOfTest:
     @R.function
     def get_shape(t: R.Tensor(ndim=-1, dtype="int32")) -> R.Shape(ndim=-1):
@@ -232,34 +232,34 @@ class ShapeOfTest:
 
 def test_op_shape_of(exec_mode):
     unit_shape = run_cpu(ShapeOfTest, "get_scalar_shape", exec_mode=exec_mode)
-    assert unit_shape == gsmDataGen.runtime.ShapeTuple([])
+    assert unit_shape == gsm_data_generator.runtime.ShapeTuple([])
 
     const_shape = run_cpu(ShapeOfTest, "get_constant_shape", exec_mode=exec_mode)
-    assert const_shape == gsmDataGen.runtime.ShapeTuple([2, 2])
+    assert const_shape == gsm_data_generator.runtime.ShapeTuple([2, 2])
 
     scalar_shape = run_cpu(
-        ShapeOfTest, "get_shape", gsmDataGen.nd.array(np.array(1, dtype="int32")), exec_mode=exec_mode
+        ShapeOfTest, "get_shape", gsm_data_generator.nd.array(np.array(1, dtype="int32")), exec_mode=exec_mode
     )
-    assert scalar_shape == gsmDataGen.runtime.ShapeTuple([])
+    assert scalar_shape == gsm_data_generator.runtime.ShapeTuple([])
 
     tensor_shape = run_cpu(
         ShapeOfTest,
         "get_shape",
-        gsmDataGen.nd.array(np.zeros((1, 2, 3)).astype("int32")),
+        gsm_data_generator.nd.array(np.zeros((1, 2, 3)).astype("int32")),
         exec_mode=exec_mode,
     )
-    assert tensor_shape == gsmDataGen.runtime.ShapeTuple([1, 2, 3])
+    assert tensor_shape == gsm_data_generator.runtime.ShapeTuple([1, 2, 3])
 
     constrained_shape = run_cpu(
         ShapeOfTest,
         "get_constrained_shape",
-        gsmDataGen.nd.array(np.zeros((1,)).astype("int32")),
+        gsm_data_generator.nd.array(np.zeros((1,)).astype("int32")),
         exec_mode=exec_mode,
     )
-    assert constrained_shape == gsmDataGen.runtime.ShapeTuple([1])
+    assert constrained_shape == gsm_data_generator.runtime.ShapeTuple([1])
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class ShapeToTensorTest:
     @R.function
     def const_shape(shape: R.Shape(ndim=-1)) -> R.Tensor(ndim=-1):
@@ -274,39 +274,39 @@ class ShapeToTensorTest:
 
 def test_op_shape_to_tensor(exec_mode):
     # Check struct info
-    isinstance(ShapeToTensorTest["const_shape"].body.struct_info, gsmDataGen.relax.TensorStructInfo)
+    isinstance(ShapeToTensorTest["const_shape"].body.struct_info, gsm_data_generator.relax.TensorStructInfo)
     assert ShapeToTensorTest["const_shape"].body.struct_info.ndim == 1
-    isinstance(ShapeToTensorTest["symbolic_shape"].body.struct_info, gsmDataGen.relax.TensorStructInfo)
+    isinstance(ShapeToTensorTest["symbolic_shape"].body.struct_info, gsm_data_generator.relax.TensorStructInfo)
     assert ShapeToTensorTest["symbolic_shape"].body.struct_info.ndim == 1
 
     # Check its functionality
     out2d = run_cpu(
-        ShapeToTensorTest, "const_shape", gsmDataGen.runtime.ShapeTuple([3, 2]), exec_mode=exec_mode
+        ShapeToTensorTest, "const_shape", gsm_data_generator.runtime.ShapeTuple([3, 2]), exec_mode=exec_mode
     )
-    assert isinstance(out2d, gsmDataGen.runtime.ndarray.NDArray)
+    assert isinstance(out2d, gsm_data_generator.runtime.ndarray.NDArray)
     assert np.array_equal(out2d.numpy(), np.array([3, 2]))
 
     out3d = run_cpu(
-        ShapeToTensorTest, "const_shape", gsmDataGen.runtime.ShapeTuple([3, 3, 2]), exec_mode=exec_mode
+        ShapeToTensorTest, "const_shape", gsm_data_generator.runtime.ShapeTuple([3, 3, 2]), exec_mode=exec_mode
     )
-    assert isinstance(out3d, gsmDataGen.runtime.ndarray.NDArray)
+    assert isinstance(out3d, gsm_data_generator.runtime.ndarray.NDArray)
     assert np.array_equal(out3d.numpy(), np.array([3, 3, 2]))
 
     out4d = run_cpu(
-        ShapeToTensorTest, "const_shape", gsmDataGen.runtime.ShapeTuple([3, 3, 2, 2]), exec_mode=exec_mode
+        ShapeToTensorTest, "const_shape", gsm_data_generator.runtime.ShapeTuple([3, 3, 2, 2]), exec_mode=exec_mode
     )
-    assert isinstance(out4d, gsmDataGen.runtime.ndarray.NDArray)
+    assert isinstance(out4d, gsm_data_generator.runtime.ndarray.NDArray)
     assert np.array_equal(out4d.numpy(), np.array([3, 3, 2, 2]))
 
     outs = run_cpu(
-        ShapeToTensorTest, "symbolic_shape", gsmDataGen.runtime.ShapeTuple([3, 2]), exec_mode=exec_mode
+        ShapeToTensorTest, "symbolic_shape", gsm_data_generator.runtime.ShapeTuple([3, 2]), exec_mode=exec_mode
     )
-    assert isinstance(outs, gsmDataGen.runtime.ndarray.NDArray)
+    assert isinstance(outs, gsm_data_generator.runtime.ndarray.NDArray)
     assert np.array_equal(outs.numpy(), np.array([3, 2]))
 
 
 def test_op_call_pure_packed(exec_mode):
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class CallPureTest:
         @R.function
         def pure_copy(x: R.Tensor((3, 4), "float32")):
@@ -317,13 +317,13 @@ def test_op_call_pure_packed(exec_mode):
 
     np.random.seed(0)  # to avoid flakiness
     arr = np.random.rand(3, 4).astype("float32")
-    copy_found = run_cpu(CallPureTest, "pure_copy", gsmDataGen.nd.array(arr), exec_mode=exec_mode)
+    copy_found = run_cpu(CallPureTest, "pure_copy", gsm_data_generator.nd.array(arr), exec_mode=exec_mode)
     assert (copy_found.numpy() == arr).all()
 
 
 def test_op_call_inplace_packed(exec_mode):
     # in this case we can use the same test as above
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class CallInplaceTest:
         @R.function
         def pure_copy(x: R.Tensor((3, 4), "float32")):
@@ -335,7 +335,7 @@ def test_op_call_inplace_packed(exec_mode):
             )
             return z
 
-    @gsmDataGen.register_func("test.inplace.add", override=True)
+    @gsm_data_generator.register_func("test.inplace.add", override=True)
     def inplace_add(a, b):
         arr_a = a.numpy()
         arr_b = b.numpy()
@@ -345,7 +345,7 @@ def test_op_call_inplace_packed(exec_mode):
         a.copyfrom(arr_a)
         return a
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class CallInplaceAddTest:
         @R.function
         def inplace_add(x: R.Tensor((3, 4), "float32"), y: R.Tensor((3, 4), "float32")):
@@ -362,25 +362,25 @@ def test_op_call_inplace_packed(exec_mode):
     arr_a = np.random.rand(3, 4).astype("float32")
     arr_b = np.random.rand(3, 4).astype("float32")
     sum = arr_a + arr_b
-    tvm_arr_a = gsmDataGen.nd.array(arr_a)
+    tvm_arr_a = gsm_data_generator.nd.array(arr_a)
     result = run_cpu(
-        CallInplaceAddTest, "inplace_add", tvm_arr_a, gsmDataGen.nd.array(arr_b), exec_mode=exec_mode
+        CallInplaceAddTest, "inplace_add", tvm_arr_a, gsm_data_generator.nd.array(arr_b), exec_mode=exec_mode
     )
     assert result == tvm_arr_a
     assert (result.numpy() == sum).all()
 
-    @gsmDataGen.register_func("test.inplace.tuple_add", override=True)
+    @gsm_data_generator.register_func("test.inplace.tuple_add", override=True)
     def inplace_tuple_add(a, b):
         arr_a = a.numpy()
         arr_b = b.numpy()
-        c = gsmDataGen.nd.array(arr_a + arr_b)
+        c = gsm_data_generator.nd.array(arr_a + arr_b)
         for i in range(len(arr_a)):
             for j in range(len(arr_a[i])):
                 arr_a[i][j] = arr_a[i][j] + arr_b[i][j]
         a.copyfrom(arr_a)
-        return gsmDataGen.runtime.convert([a, c])
+        return gsm_data_generator.runtime.convert([a, c])
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class CallInplaceTuple:
         @R.function
         def inplace_tuple(x: R.Tensor((3, 4), "float32"), y: R.Tensor((3, 4), "float32")):
@@ -397,8 +397,8 @@ def test_op_call_inplace_packed(exec_mode):
     arr_a = np.random.rand(3, 4).astype("float32")
     arr_b = np.random.rand(3, 4).astype("float32")
     sum = arr_a + arr_b
-    tvm_arr_a = gsmDataGen.nd.array(arr_a)
-    tvm_arr_b = gsmDataGen.nd.array(arr_b)
+    tvm_arr_a = gsm_data_generator.nd.array(arr_a)
+    tvm_arr_b = gsm_data_generator.nd.array(arr_b)
     result = run_cpu(CallInplaceTuple, "inplace_tuple", tvm_arr_a, tvm_arr_b, exec_mode=exec_mode)
     assert result[0] == tvm_arr_a
     assert (result[0].numpy() == sum).all()
@@ -407,7 +407,7 @@ def test_op_call_inplace_packed(exec_mode):
 
 
 def test_op_to_device(exec_mode):
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class CallToDevice:
         @R.function
         def to_dev(x: R.Tensor((3, 4), "float32")):
@@ -422,24 +422,24 @@ def test_op_to_device(exec_mode):
 
     np.random.seed(0)  # to avoid flakiness
     arr = np.random.rand(3, 4).astype("float32")
-    copy_found = run_cpu(CallToDevice, "to_dev", gsmDataGen.nd.array(arr), exec_mode=exec_mode)
+    copy_found = run_cpu(CallToDevice, "to_dev", gsm_data_generator.nd.array(arr), exec_mode=exec_mode)
     assert (copy_found.numpy() == arr).all()
 
 
 def test_op_to_vdevice(exec_mode):
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class ToVDevice:
         I.module_global_infos({"vdevice": [I.vdevice("llvm")]})
 
         @R.function
         def to_vdev(x: R.Tensor((3, 4), "float32")):
-            dst_vdev = gsmDataGen.ir.VDevice("llvm", 0, "global")
+            dst_vdev = gsm_data_generator.ir.VDevice("llvm", 0, "global")
             ret = R.to_vdevice(x, "llvm")
             return ret
 
     np.random.seed(0)
     arr = np.random.rand(3, 4).astype("float32")
-    copy_found = run_cpu(ToVDevice, "to_vdev", gsmDataGen.nd.array(arr), exec_mode=exec_mode)
+    copy_found = run_cpu(ToVDevice, "to_vdev", gsm_data_generator.nd.array(arr), exec_mode=exec_mode)
     assert (copy_found.numpy() == arr).all()
 
 
@@ -454,10 +454,10 @@ def test_scalar_tensor_as_branch_condition(exec_mode):
             out = R.prim_value(10)
         return out
 
-    res = run_cpu(func, gsmDataGen.nd.array(np.array(True)), exec_mode=exec_mode)
+    res = run_cpu(func, gsm_data_generator.nd.array(np.array(True)), exec_mode=exec_mode)
     assert res == 5
 
-    res = run_cpu(func, gsmDataGen.nd.array(np.array(False)), exec_mode=exec_mode)
+    res = run_cpu(func, gsm_data_generator.nd.array(np.array(False)), exec_mode=exec_mode)
     assert res == 10
 
 
@@ -491,12 +491,12 @@ def test_computed_prim_value_as_branch_condition(exec_mode):
             out = R.prim_value(10)
         return out
 
-    res = run_cpu(func, gsmDataGen.nd.array(np.arange(16)), exec_mode=exec_mode)
+    res = run_cpu(func, gsm_data_generator.nd.array(np.arange(16)), exec_mode=exec_mode)
     assert res == 5
 
-    res = run_cpu(func, gsmDataGen.nd.array(np.arange(20)), exec_mode=exec_mode)
+    res = run_cpu(func, gsm_data_generator.nd.array(np.arange(20)), exec_mode=exec_mode)
     assert res == 10
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

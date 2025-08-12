@@ -15,13 +15,13 @@
 # specific language governing permissions and limitations
 # under the License.
 import pytest
-import gsmDataGen
-from gsmDataGen import te
+import gsm_data_generator
+from gsm_data_generator import te
 import numpy as np
 
 
 def test_array():
-    a = gsmDataGen.runtime.convert([1, 2, 3])
+    a = gsm_data_generator.runtime.convert([1, 2, 3])
     assert len(a) == 3
     assert a[-1] == 3
     a_slice = a[-3:-1]
@@ -29,9 +29,9 @@ def test_array():
 
 
 def test_array_save_load_json():
-    a = gsmDataGen.runtime.convert([1, 2, 3.5, True])
-    json_str = gsmDataGen.ir.save_json(a)
-    a_loaded = gsmDataGen.ir.load_json(json_str)
+    a = gsm_data_generator.runtime.convert([1, 2, 3.5, True])
+    json_str = gsm_data_generator.ir.save_json(a)
+    a_loaded = gsm_data_generator.ir.load_json(json_str)
     assert a_loaded[1] == 2
     assert a_loaded[2] == 3.5
     assert a_loaded[3] == True
@@ -39,14 +39,14 @@ def test_array_save_load_json():
 
 
 def test_dir_array():
-    a = gsmDataGen.runtime.convert([1, 2, 3])
+    a = gsm_data_generator.runtime.convert([1, 2, 3])
     assert dir(a)
 
 
 def test_map():
     a = te.var("a")
     b = te.var("b")
-    amap = gsmDataGen.runtime.convert({a: 2, b: 3})
+    amap = gsm_data_generator.runtime.convert({a: 2, b: 3})
     assert a in amap
     assert len(amap) == 2
     dd = dict(amap.items())
@@ -59,7 +59,7 @@ def test_map():
 
 
 def test_str_map():
-    amap = gsmDataGen.runtime.convert({"a": 2, "b": 3})
+    amap = gsm_data_generator.runtime.convert({"a": 2, "b": 3})
     assert "a" in amap
     assert len(amap) == 2
     dd = dict(amap.items())
@@ -71,9 +71,9 @@ def test_str_map():
 def test_map_save_load_json():
     a = te.var("a")
     b = te.var("b")
-    amap = gsmDataGen.runtime.convert({a: 2, b: 3})
-    json_str = gsmDataGen.ir.save_json(amap)
-    amap = gsmDataGen.ir.load_json(json_str)
+    amap = gsm_data_generator.runtime.convert({a: 2, b: 3})
+    json_str = gsm_data_generator.ir.save_json(amap)
+    amap = gsm_data_generator.ir.load_json(json_str)
     assert len(amap) == 2
     dd = {kv[0].name: kv[1] for kv in amap.items()}
     assert dd == {"a": 2, "b": 3}
@@ -82,36 +82,36 @@ def test_map_save_load_json():
 def test_dir_map():
     a = te.var("a")
     b = te.var("b")
-    amap = gsmDataGen.runtime.convert({a: 2, b: 3})
+    amap = gsm_data_generator.runtime.convert({a: 2, b: 3})
     assert dir(amap)
 
 
 def test_getattr_map():
     a = te.var("a")
     b = te.var("b")
-    amap = gsmDataGen.runtime.convert({a: 2, b: 3})
-    assert isinstance(amap, gsmDataGen.ffi.Map)
+    amap = gsm_data_generator.runtime.convert({a: 2, b: 3})
+    assert isinstance(amap, gsm_data_generator.ffi.Map)
 
 
 def test_in_container():
-    arr = gsmDataGen.runtime.convert(["a", "b", "c"])
+    arr = gsm_data_generator.runtime.convert(["a", "b", "c"])
     assert "a" in arr
-    assert gsmDataGen.tir.StringImm("a") in arr
+    assert gsm_data_generator.tir.StringImm("a") in arr
     assert "d" not in arr
 
 
 def test_ndarray_container():
-    x = gsmDataGen.nd.array([1, 2, 3])
-    arr = gsmDataGen.runtime.convert([x, x])
+    x = gsm_data_generator.nd.array([1, 2, 3])
+    arr = gsm_data_generator.runtime.convert([x, x])
     assert arr[0].same_as(x)
     assert arr[1].same_as(x)
-    assert isinstance(arr[0], gsmDataGen.nd.NDArray)
+    assert isinstance(arr[0], gsm_data_generator.nd.NDArray)
 
 
 def test_return_variant_type():
-    func = gsmDataGen.get_global_func("testing.ReturnsVariant")
+    func = gsm_data_generator.get_global_func("testing.ReturnsVariant")
     res_even = func(42)
-    assert isinstance(res_even, gsmDataGen.tir.IntImm)
+    assert isinstance(res_even, gsm_data_generator.tir.IntImm)
     assert res_even == 21
 
     res_odd = func(17)
@@ -119,19 +119,19 @@ def test_return_variant_type():
 
 
 def test_pass_variant_type():
-    func = gsmDataGen.get_global_func("testing.AcceptsVariant")
+    func = gsm_data_generator.get_global_func("testing.AcceptsVariant")
 
     assert func("string arg") == "ffi.String"
     assert func(17) == "ir.IntImm"
 
 
 def test_pass_incorrect_variant_type():
-    func = gsmDataGen.get_global_func("testing.AcceptsVariant")
-    float_arg = gsmDataGen.tir.FloatImm("float32", 0.5)
+    func = gsm_data_generator.get_global_func("testing.AcceptsVariant")
+    float_arg = gsm_data_generator.tir.FloatImm("float32", 0.5)
 
     with pytest.raises(Exception):
         func(float_arg)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

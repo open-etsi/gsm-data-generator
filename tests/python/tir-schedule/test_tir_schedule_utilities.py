@@ -18,12 +18,12 @@
 import sys
 
 import pytest
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import tir
-from gsmDataGen.ir import IRModule
-from gsmDataGen.script import tir as T
-from gsmDataGen.tir.schedule.testing import (
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import tir
+from gsm_data_generator.ir import IRModule
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.tir.schedule.testing import (
     assert_structural_equal_ignore_global_symbol,
     verify_trace_roundtrip,
 )
@@ -104,7 +104,7 @@ def matmul_relu_ann2(a: T.handle, b: T.handle, d: T.handle) -> None:
             D[vi, vj] = T.max(C[vi, vj], 0.0)
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class ModuleWithMultipleFuncs:
     @T.prim_func
     def vector_add(
@@ -161,7 +161,7 @@ def tuple_reduction(data: T.Buffer((4, 32), "float32"), T_add: T.Buffer((4,), "f
 
 # pylint: enable=no-member,invalid-name,unused-variable
 
-use_block_name = gsmDataGen.testing.parameter(by_dict={"block_obj": False, "block_name": True})
+use_block_name = gsm_data_generator.testing.parameter(by_dict={"block_obj": False, "block_name": True})
 
 
 def test_tir_schedule_creation():
@@ -290,7 +290,7 @@ def test_get_producers(use_block_name):
     sch = tir.Schedule(mod=matmul_relu, debug_mask="all")
     block = "relu" if use_block_name else sch.get_block("relu")
     (producer,) = sch.get_producers(block)
-    gsmDataGen.ir.assert_structural_equal(
+    gsm_data_generator.ir.assert_structural_equal(
         sch.get_sref(producer).stmt,
         sch.get_sref(sch.get_block("matmul")).stmt,
     )
@@ -301,7 +301,7 @@ def test_get_producers_multiple_buffer_depdencies(use_block_name):
     sch = tir.Schedule(mod=tuple_reduction, debug_mask="all")
     block = "T_add" if use_block_name else sch.get_block("T_add")
     (producer,) = sch.get_producers(block)
-    gsmDataGen.ir.assert_structural_equal(
+    gsm_data_generator.ir.assert_structural_equal(
         sch.get_sref(producer).stmt,
         sch.get_sref(sch.get_block("data_red_temp")).stmt,
     )
@@ -311,7 +311,7 @@ def test_get_consumers(use_block_name):
     sch = tir.Schedule(mod=matmul_relu, debug_mask="all")
     block = "matmul" if use_block_name else sch.get_block("matmul")
     (consumer,) = sch.get_consumers(block)
-    gsmDataGen.ir.assert_structural_equal(
+    gsm_data_generator.ir.assert_structural_equal(
         sch.get_sref(consumer).stmt,
         sch.get_sref(sch.get_block("relu")).stmt,
     )
@@ -322,7 +322,7 @@ def test_get_consumers_multiple_buffer_depdencies(use_block_name):
     sch = tir.Schedule(mod=tuple_reduction, debug_mask="all")
     block = "data_red_temp" if use_block_name else sch.get_block("data_red_temp")
     (consumer,) = sch.get_consumers(block)
-    gsmDataGen.ir.assert_structural_equal(
+    gsm_data_generator.ir.assert_structural_equal(
         sch.get_sref(consumer).stmt,
         sch.get_sref(sch.get_block("T_add")).stmt,
     )
@@ -422,4 +422,4 @@ def test_get_output_blocks_nested():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

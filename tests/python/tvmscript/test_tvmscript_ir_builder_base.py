@@ -16,7 +16,7 @@
 # under the License.
 """Unittests for tvm.script.ir_builder.base"""
 import pytest
-from gsmDataGen.script.ir_builder import IRBuilder
+from gsm_data_generator.script.ir_builder import IRBuilder
 
 
 def test_ir_builder_scope():

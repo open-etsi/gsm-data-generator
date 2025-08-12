@@ -18,13 +18,13 @@
 """Unittests for tvm.script.ir_builder.tir"""
 import numpy as np
 import pytest
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import tir
-from gsmDataGen.ir.base import assert_structural_equal
-from gsmDataGen.runtime import ndarray
-from gsmDataGen.script.ir_builder import IRBuilder
-from gsmDataGen.script.ir_builder import tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import tir
+from gsm_data_generator.ir.base import assert_structural_equal
+from gsm_data_generator.runtime import ndarray
+from gsm_data_generator.script.ir_builder import IRBuilder
+from gsm_data_generator.script.ir_builder import tir as T
 
 
 def test_ir_builder_tir_primfunc_base():
@@ -57,7 +57,7 @@ def test_ir_builder_tir_primfunc_complete():
             d = T.arg("d", T.handle())
             e = T.arg("e", T.Buffer((1024,), "int8"))
             T.func_attr({"key": "value"})
-            T.func_ret(gsmDataGen.ir.PrimType("int64"))
+            T.func_ret(gsm_data_generator.ir.PrimType("int64"))
             buffer_d = T.match_buffer(d, (64, 64), "int64")
             T.evaluate(0)
 
@@ -79,9 +79,9 @@ def test_ir_builder_tir_primfunc_complete():
             e_handle,
         ],
         body=tir.Evaluate(0),
-        ret_type=gsmDataGen.ir.PrimType("int64"),
+        ret_type=gsm_data_generator.ir.PrimType("int64"),
         buffer_map={c_handle: c_buffer, d_handle: d_buffer, e_handle: e_buffer},
-        attrs=gsmDataGen.ir.make_node("ir.DictAttrs", key="value"),
+        attrs=gsm_data_generator.ir.make_node("ir.DictAttrs", key="value"),
     )
 
     # Check if the generated ir is expected
@@ -326,7 +326,7 @@ def test_ir_builder_tir_realize():
 
     # the expected buffer realization
     buffer_realize = tir.BufferRealize(
-        buffer_a, [gsmDataGen.ir.Range(0, 128), gsmDataGen.ir.Range(0, 128)], True, tir.Evaluate(0)
+        buffer_a, [gsm_data_generator.ir.Range(0, 128), gsm_data_generator.ir.Range(0, 128)], True, tir.Evaluate(0)
     )
     expected_realize = tir.AttrStmt(
         buffer_a, "realize_scope", tir.StringImm("test_storage_scope"), buffer_realize
@@ -364,9 +364,9 @@ def test_ir_builder_tir_allocate():
     ir_actual = ib.get()
 
     # the expected allocate
-    buffer_var = tir.Var("v", gsmDataGen.ir.PointerType(gsmDataGen.ir.PrimType("float32"), "local"))
+    buffer_var = tir.Var("v", gsm_data_generator.ir.PointerType(gsm_data_generator.ir.PrimType("float32"), "local"))
     ir_expected = tir.Allocate(
-        buffer_var, "float32", [10], gsmDataGen.tir.const(1, "uint1"), tir.Evaluate(1)
+        buffer_var, "float32", [10], gsm_data_generator.tir.const(1, "uint1"), tir.Evaluate(1)
     )
 
     # Check if the generated ir is expected
@@ -383,7 +383,7 @@ def test_ir_builder_tir_allocate_const():
     ir_actual = ib.get()
 
     # the expected allocate const
-    buffer_var = tir.Var("v", gsmDataGen.ir.PointerType(gsmDataGen.ir.PrimType("int32")))
+    buffer_var = tir.Var("v", gsm_data_generator.ir.PointerType(gsm_data_generator.ir.PrimType("int32")))
     ir_expected = tir.AllocateConst(
         buffer_var,
         "int32",
@@ -452,8 +452,8 @@ def test_ir_builder_tir_buffer_store():
 
 def test_ir_builder_tir_buffer_store_scalable_vec():
     buffer_a = T.Buffer((30,), "float32")
-    value = T.broadcast(0.11, 4 * gsmDataGen.tir.vscale())
-    index = T.ramp(0, 1, 4 * gsmDataGen.tir.vscale())
+    value = T.broadcast(0.11, 4 * gsm_data_generator.tir.vscale())
+    index = T.ramp(0, 1, 4 * gsm_data_generator.tir.vscale())
 
     with IRBuilder() as ib:
         T.buffer_store(buffer_a, value, [index])
@@ -533,4 +533,4 @@ def test_ir_builder_tir_inline():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

@@ -17,9 +17,9 @@
 
 import os
 import sys
-import gsmDataGen
+import gsm_data_generator
 import pytest
-from gsmDataGen import rpc as _rpc
+from gsm_data_generator import rpc as _rpc
 
 
 @pytest.fixture(scope="session")

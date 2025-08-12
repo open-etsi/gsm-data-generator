@@ -19,11 +19,11 @@ import sys
 
 import numpy
 import pytest
-import gsmDataGen.testing
+import gsm_data_generator.testing
 
-from gsmDataGen import tir
-from gsmDataGen.script import tir as T
-from gsmDataGen.tir.schedule.testing import verify_trace_roundtrip
+from gsm_data_generator import tir
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.tir.schedule.testing import verify_trace_roundtrip
 
 
 # pylint: disable=no-member,invalid-name,unused-variable
@@ -179,7 +179,7 @@ def test_sample_perfect_tile_composite():
     verify_trace_roundtrip(sch, mod=elementwise)
 
 
-use_sugared_block = gsmDataGen.testing.parameter(by_dict={"block_obj": False, "block_name": True})
+use_sugared_block = gsm_data_generator.testing.parameter(by_dict={"block_obj": False, "block_name": True})
 
 
 def test_sample_compute_location(use_sugared_block):
@@ -241,4 +241,4 @@ def test_sample_perfect_tile_on_dynamic_loops():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

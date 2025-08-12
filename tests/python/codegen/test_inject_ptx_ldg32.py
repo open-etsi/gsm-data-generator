@@ -14,10 +14,10 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-import gsmDataGen
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+from gsm_data_generator.script import tir as T
 import numpy as np
-import gsmDataGen.testing
+import gsm_data_generator.testing
 
 
 @T.prim_func
@@ -37,21 +37,21 @@ def vector_add(A: T.Buffer((16), "float32"), B: T.Buffer((32), "float32")) -> No
             B[tx] = A_local[tx] + 1.0
 
 
-@gsmDataGen.testing.requires_cuda
+@gsm_data_generator.testing.requires_cuda
 def test_inject_ptx_intrin():
     f = vector_add
-    arch = gsmDataGen.contrib.nvcc.get_target_compute_version()
-    major, _ = gsmDataGen.contrib.nvcc.parse_compute_version(arch)
+    arch = gsm_data_generator.contrib.nvcc.get_target_compute_version()
+    major, _ = gsm_data_generator.contrib.nvcc.parse_compute_version(arch)
     if major < 8:
         # Require at least SM80
         return
-    with gsmDataGen.transform.PassContext(config={"tir.ptx_ldg32": True}):
-        mod = gsmDataGen.compile(f, target="cuda")
+    with gsm_data_generator.transform.PassContext(config={"tir.ptx_ldg32": True}):
+        mod = gsm_data_generator.compile(f, target="cuda")
     A_np = np.random.rand(16).astype("float32")
     B_np = np.zeros((32)).astype("float32")
-    dev = gsmDataGen.cuda(0)
-    A_nd = gsmDataGen.nd.array(A_np, device=dev)
-    B_nd = gsmDataGen.nd.array(B_np, device=dev)
+    dev = gsm_data_generator.cuda(0)
+    A_nd = gsm_data_generator.nd.array(A_np, device=dev)
+    B_nd = gsm_data_generator.nd.array(B_np, device=dev)
     mod(A_nd, B_nd)
 
     C_np = np.zeros((32)).astype("float32")
@@ -61,7 +61,7 @@ def test_inject_ptx_intrin():
             C_np[i] = A_np[i // 2]
         C_np[i] += 1.0
 
-    gsmDataGen.testing.assert_allclose(B_nd.numpy(), C_np)
+    gsm_data_generator.testing.assert_allclose(B_nd.numpy(), C_np)
 
 
 if __name__ == "__main__":

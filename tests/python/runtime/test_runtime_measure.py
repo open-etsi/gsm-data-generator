@@ -17,28 +17,28 @@
 import time
 import ctypes
 
-import gsmDataGen
-from gsmDataGen import te
-from gsmDataGen.contrib.utils import tempdir
-from gsmDataGen.runtime.module import BenchmarkResult
+import gsm_data_generator
+from gsm_data_generator import te
+from gsm_data_generator.contrib.utils import tempdir
+from gsm_data_generator.runtime.module import BenchmarkResult
 
 
 def test_min_repeat_ms():
     tmp = tempdir()
     filename = tmp.relpath("log")
 
-    @gsmDataGen.register_func
+    @gsm_data_generator.register_func
     def my_debug(filename):
         """one call lasts for 100 ms and writes one character to a file"""
         time.sleep(0.1)
         with open(filename, "a") as fout:
             fout.write("c")
 
-    X = te.compute((), lambda: gsmDataGen.tir.call_packed("my_debug", filename))
-    func = gsmDataGen.tir.build(te.create_prim_func([X]))
+    X = te.compute((), lambda: gsm_data_generator.tir.call_packed("my_debug", filename))
+    func = gsm_data_generator.tir.build(te.create_prim_func([X]))
 
-    x = gsmDataGen.nd.empty((), dtype="int32")
-    ftimer = func.time_evaluator(func.entry_name, gsmDataGen.cpu(), number=1, repeat=1)
+    x = gsm_data_generator.nd.empty((), dtype="int32")
+    ftimer = func.time_evaluator(func.entry_name, gsm_data_generator.cpu(), number=1, repeat=1)
     ftimer(x)
 
     with open(filename, "r") as fin:
@@ -46,7 +46,7 @@ def test_min_repeat_ms():
 
     assert ct == 2
 
-    ftimer = func.time_evaluator(func.entry_name, gsmDataGen.cpu(), number=1, repeat=1, min_repeat_ms=1000)
+    ftimer = func.time_evaluator(func.entry_name, gsm_data_generator.cpu(), number=1, repeat=1, min_repeat_ms=1000)
     ftimer(x)
 
     # make sure we get more than 10 calls

@@ -18,14 +18,14 @@ import sys
 from typing import Optional, Union
 
 import pytest
-import gsmDataGen
-import gsmDataGen.script
-import gsmDataGen.testing
-from gsmDataGen import IRModule, relax, tir, topi
-from gsmDataGen.ir import VDevice, DummyGlobalInfo
-from gsmDataGen.script.parser import ir as I
-from gsmDataGen.script.parser import relax as R
-from gsmDataGen.script.parser import tir as T
+import gsm_data_generator
+import gsm_data_generator.script
+import gsm_data_generator.testing
+from gsm_data_generator import IRModule, relax, tir, topi
+from gsm_data_generator.ir import VDevice, DummyGlobalInfo
+from gsm_data_generator.script.parser import ir as I
+from gsm_data_generator.script.parser import relax as R
+from gsm_data_generator.script.parser import tir as T
 
 
 def _check(
@@ -33,13 +33,13 @@ def _check(
     expect: Optional[Union[relax.Function, IRModule]] = None,
 ):
     test = parsed.script(show_meta=True)
-    roundtrip_mod = gsmDataGen.script.from_source(test)
-    gsmDataGen.ir.assert_structural_equal(parsed, roundtrip_mod)
+    roundtrip_mod = gsm_data_generator.script.from_source(test)
+    gsm_data_generator.ir.assert_structural_equal(parsed, roundtrip_mod)
     if isinstance(parsed, IRModule) and isinstance(roundtrip_mod, IRModule):
         assert relax.analysis.well_formed(parsed)
         assert relax.analysis.well_formed(roundtrip_mod)
     if expect:
-        gsmDataGen.ir.assert_structural_equal(parsed, expect)
+        gsm_data_generator.ir.assert_structural_equal(parsed, expect)
 
 
 def test_simple_func():
@@ -63,7 +63,7 @@ def test_simple_func():
 
 
 def test_error_report():
-    with pytest.raises(gsmDataGen.error.DiagnosticError):
+    with pytest.raises(gsm_data_generator.error.DiagnosticError):
 
         @R.function
         def foo(x: R.Tensor((128, 128), "float32")) -> R.Tensor(None, "float32", ndim=2):
@@ -108,7 +108,7 @@ def test_unexpected_ndim_type():
 
 
 def test_unexpected_tir_cast_args():
-    with pytest.raises(gsmDataGen.error.DiagnosticError):
+    with pytest.raises(gsm_data_generator.error.DiagnosticError):
 
         @R.function
         def f(x: R.Tensor(("m",), "float32")):
@@ -118,9 +118,9 @@ def test_unexpected_tir_cast_args():
 
 
 def test_unexpected_tir_args():
-    with pytest.raises(gsmDataGen.error.DiagnosticError):
+    with pytest.raises(gsm_data_generator.error.DiagnosticError):
 
-        @gsmDataGen.script.ir_module
+        @gsm_data_generator.script.ir_module
         class TestWellCallTIR:
             @T.prim_func
             def tir_addone(A: T.Buffer((16, 16), "int32"), B: T.Buffer((16, 16), "int32")) -> None:
@@ -137,7 +137,7 @@ def test_unexpected_tir_args():
                 gv = R.call_tir(tir_addone, (x,), R.Tensor((T.max(16),), dtype="float32"))
                 return gv
 
-    with pytest.raises(gsmDataGen.error.DiagnosticError):
+    with pytest.raises(gsm_data_generator.error.DiagnosticError):
 
         @R.function
         def f(x: R.Tensor(("m", "n"), "float32")):
@@ -147,7 +147,7 @@ def test_unexpected_tir_args():
 
 
 def test_func_type_annotation_fail():
-    with pytest.raises(gsmDataGen.error.DiagnosticError):
+    with pytest.raises(gsm_data_generator.error.DiagnosticError):
 
         @R.function
         def f(x, y):  # error: the parameter type annotation is missing
@@ -157,7 +157,7 @@ def test_func_type_annotation_fail():
 
 
 def test_if_mismatch_var_fail():
-    with pytest.raises(gsmDataGen.error.DiagnosticError):
+    with pytest.raises(gsm_data_generator.error.DiagnosticError):
 
         @R.function
         def f(cond: R.Tensor((), "bool"), x: R.Tensor((1,), "float32")):
@@ -171,7 +171,7 @@ def test_if_mismatch_var_fail():
 
 
 def test_unassigned_call_fail():
-    with pytest.raises(gsmDataGen.error.DiagnosticError):
+    with pytest.raises(gsm_data_generator.error.DiagnosticError):
 
         @R.function
         def f(x: R.Tensor):
@@ -180,7 +180,7 @@ def test_unassigned_call_fail():
 
 
 def test_incorrect_tensor_shape():
-    with pytest.raises(gsmDataGen.error.DiagnosticError):
+    with pytest.raises(gsm_data_generator.error.DiagnosticError):
 
         @R.function
         def f(x: R.Tensor([16])):
@@ -424,7 +424,7 @@ def test_symbolic_shape():
         gv0 = R.call_dps_packed("extern_func", x, R.Tensor((m, n), dtype="float32"))
         return gv0
 
-    with pytest.raises(gsmDataGen.error.DiagnosticError):
+    with pytest.raises(gsm_data_generator.error.DiagnosticError):
 
         @R.function
         def mismatch_dtype(x: R.Tensor(("m", "n"), "float32")) -> R.Tensor(None, "float32", ndim=2):
@@ -665,7 +665,7 @@ def test_dataflow_block_advanced():
 
 
 def test_dataflow_binding_after_output():
-    with pytest.raises(gsmDataGen.error.DiagnosticError):
+    with pytest.raises(gsm_data_generator.error.DiagnosticError):
 
         @R.function
         def foo(x: R.Tensor((128, 128), "float32")) -> R.Tensor(None, "float32", ndim=2):
@@ -677,7 +677,7 @@ def test_dataflow_binding_after_output():
 
 
 def test_dataflow_output_global_var():
-    with pytest.raises(gsmDataGen.error.DiagnosticError):
+    with pytest.raises(gsm_data_generator.error.DiagnosticError):
 
         @R.function
         def foo(x: R.Tensor((128, 128), "float32")) -> R.Tensor(None, "float32", ndim=2):
@@ -689,7 +689,7 @@ def test_dataflow_output_global_var():
 
 
 def test_dataflow_multiple_output():
-    with pytest.raises(gsmDataGen.error.DiagnosticError):
+    with pytest.raises(gsm_data_generator.error.DiagnosticError):
 
         @R.function
         def foo(x: R.Tensor((128, 128), "float32")) -> R.Tensor(None, "float32", ndim=2):
@@ -701,7 +701,7 @@ def test_dataflow_multiple_output():
 
 
 def test_dataflow_output_outside_dataflow_block():
-    with pytest.raises(gsmDataGen.error.DiagnosticError):
+    with pytest.raises(gsm_data_generator.error.DiagnosticError):
 
         @R.function
         def foo(x: R.Tensor((128, 128), "float32")) -> R.Tensor(None, "float32", ndim=2):
@@ -711,7 +711,7 @@ def test_dataflow_output_outside_dataflow_block():
 
 
 def test_dataflow_scope_fail():
-    with pytest.raises(gsmDataGen.error.DiagnosticError):
+    with pytest.raises(gsm_data_generator.error.DiagnosticError):
 
         @R.function
         def f(x: R.Tensor(ndim=2)):
@@ -738,7 +738,7 @@ def test_return_without_binding():
 
 
 def test_multiple_return():
-    with pytest.raises(gsmDataGen.error.DiagnosticError):
+    with pytest.raises(gsm_data_generator.error.DiagnosticError):
 
         @R.function
         def foo(x: R.Tensor((128, 128), "float32")):
@@ -747,7 +747,7 @@ def test_multiple_return():
 
 
 def test_function_without_return():
-    with pytest.raises(gsmDataGen.error.DiagnosticError):
+    with pytest.raises(gsm_data_generator.error.DiagnosticError):
 
         @R.function
         def foo(x: R.Tensor((128, 128), "float32")):
@@ -889,8 +889,8 @@ def test_annotation():
         return o
 
     def _check_struct_info(binding, expected_sinfo):
-        gsmDataGen.ir.assert_structural_equal(binding.var.struct_info, expected_sinfo)
-        gsmDataGen.ir.assert_structural_equal(binding.value.struct_info, expected_sinfo)
+        gsm_data_generator.ir.assert_structural_equal(binding.var.struct_info, expected_sinfo)
+        gsm_data_generator.ir.assert_structural_equal(binding.value.struct_info, expected_sinfo)
 
     # Cannot use block builder here because we need to check the annotated type,
     # which may be inconsistent with deduced type.
@@ -921,7 +921,7 @@ def test_annotate_override():
     assert isinstance(y_bind.var.struct_info, relax.TensorStructInfo)
     assert isinstance(z_bind.var.struct_info, relax.ObjectStructInfo)
 
-    with pytest.raises(gsmDataGen.error.DiagnosticError):
+    with pytest.raises(gsm_data_generator.error.DiagnosticError):
 
         @R.function
         def test(x: R.Tensor):
@@ -1016,7 +1016,7 @@ def test_call_tir_with_grad():
 
 
 def test_call_tir_inplace():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Module:
         @T.prim_func
         def copy(
@@ -1052,9 +1052,9 @@ def test_call_tir_inplace():
 
 
 def test_call_tir_inplace_with_tuple_var_raises_error():
-    with pytest.raises(gsmDataGen.error.DiagnosticError):
+    with pytest.raises(gsm_data_generator.error.DiagnosticError):
 
-        @gsmDataGen.script.ir_module
+        @gsm_data_generator.script.ir_module
         class Module:
             @R.function
             def main(x: R.Tensor((2, 3), "int32"), y: R.Tensor((2, 3), "int32")):
@@ -1118,7 +1118,7 @@ def test_local_function():
 
 
 def test_inline_prim_func():
-    with pytest.raises(gsmDataGen.error.DiagnosticError):
+    with pytest.raises(gsm_data_generator.error.DiagnosticError):
 
         @I.ir_module
         class TestModule:
@@ -1201,7 +1201,7 @@ def test_if_branch():
             assert call.op.name == op
         else:
             assert call.op == op
-        gsmDataGen.ir.assert_structural_equal(call.args, args)
+        gsm_data_generator.ir.assert_structural_equal(call.args, args)
 
     w_bind = ite.true_branch.blocks[0].bindings[0]
     # the seq exprts in the branches are normalized to bind any call
@@ -1256,11 +1256,11 @@ def test_if_branch_with_match_cast():
     # If the `R.match_cast` were removed, the function would infer the
     # return value as `R.Tensor([16,16])`, with an unknown dtype.
     # With the `R.match_cast` retained, the output dtype is known.
-    gsmDataGen.ir.assert_structural_equal(func.ret_struct_info, R.Tensor([16, 16], "float16"))
+    gsm_data_generator.ir.assert_structural_equal(func.ret_struct_info, R.Tensor([16, 16], "float16"))
 
 
 def test_if_inside_dataflow():
-    with pytest.raises(gsmDataGen.error.DiagnosticError):
+    with pytest.raises(gsm_data_generator.error.DiagnosticError):
 
         @R.function
         def foo(cond: R.Tensor((), "bool"), x: R.Tensor((1,), "float32")):
@@ -1276,7 +1276,7 @@ def test_if_inside_dataflow():
 
 
 def test_var_if_scoping_fail():
-    with pytest.raises(gsmDataGen.error.DiagnosticError):
+    with pytest.raises(gsm_data_generator.error.DiagnosticError):
 
         @R.function
         def f(cond: R.Tensor((), "bool"), x: R.Tensor((1,), "float32")):
@@ -1290,7 +1290,7 @@ def test_var_if_scoping_fail():
 
 
 def test_if_branch_var_scope():
-    with pytest.raises(gsmDataGen.error.DiagnosticError):
+    with pytest.raises(gsm_data_generator.error.DiagnosticError):
 
         @R.function
         def foo(cond: R.Tensor((), "bool"), x: R.Tensor((1,), "float32")):
@@ -1316,7 +1316,7 @@ def test_scalar_tensor_as_branch_condition():
 
     if_else = func.body.blocks[0].bindings[0].value
     assert isinstance(if_else.cond, relax.Var)
-    gsmDataGen.ir.assert_structural_equal(if_else.cond.struct_info, R.Tensor([], "bool"))
+    gsm_data_generator.ir.assert_structural_equal(if_else.cond.struct_info, R.Tensor([], "bool"))
 
 
 def test_prim_value_as_branch_condition():
@@ -1332,7 +1332,7 @@ def test_prim_value_as_branch_condition():
 
     if_else = func.body.blocks[0].bindings[0].value
     assert isinstance(if_else.cond, relax.Var)
-    gsmDataGen.ir.assert_structural_equal(if_else.cond.struct_info, R.Prim("bool"))
+    gsm_data_generator.ir.assert_structural_equal(if_else.cond.struct_info, R.Prim("bool"))
 
 
 def test_computed_prim_value_as_branch_condition():
@@ -1350,8 +1350,8 @@ def test_computed_prim_value_as_branch_condition():
     N = func.params[0].struct_info.shape[0]
     if_else = func.body.blocks[0].bindings[0].value
     assert isinstance(if_else.cond, relax.PrimValue)
-    gsmDataGen.ir.assert_structural_equal(N % 16 == 0, if_else.cond.value)
-    gsmDataGen.ir.assert_structural_equal(if_else.cond.struct_info, R.Prim(value=N % 16 == 0))
+    gsm_data_generator.ir.assert_structural_equal(N % 16 == 0, if_else.cond.value)
+    gsm_data_generator.ir.assert_structural_equal(if_else.cond.struct_info, R.Prim(value=N % 16 == 0))
 
 
 def test_tir_expr_as_branch_condition():
@@ -1375,7 +1375,7 @@ def test_tir_expr_as_branch_condition():
             out = R.call_pure_packed("slow_non_vectorized_impl", x, sinfo_args=[x.struct_info])
         return out
 
-    gsmDataGen.ir.assert_structural_equal(unsugared, sugared)
+    gsm_data_generator.ir.assert_structural_equal(unsugared, sugared)
 
 
 def test_scalar_tensor_as_assert_condition():
@@ -1390,7 +1390,7 @@ def test_scalar_tensor_as_assert_condition():
     assert_op = func.body.blocks[0].bindings[0].value
     condition = assert_op.args[0]
     assert isinstance(condition, relax.Var)
-    gsmDataGen.ir.assert_structural_equal(condition.struct_info, R.Tensor([], "bool"))
+    gsm_data_generator.ir.assert_structural_equal(condition.struct_info, R.Tensor([], "bool"))
 
 
 def test_prim_value_as_assert_condition():
@@ -1405,7 +1405,7 @@ def test_prim_value_as_assert_condition():
     assert_op = func.body.blocks[0].bindings[0].value
     condition = assert_op.args[0]
     assert isinstance(condition, relax.Var)
-    gsmDataGen.ir.assert_structural_equal(condition.struct_info, R.Prim("bool"))
+    gsm_data_generator.ir.assert_structural_equal(condition.struct_info, R.Prim("bool"))
 
 
 def test_computed_prim_value_as_assert_condition():
@@ -1422,8 +1422,8 @@ def test_computed_prim_value_as_assert_condition():
     assert_op = func.body.blocks[0].bindings[0].value
     condition = assert_op.args[0]
     assert isinstance(condition, relax.PrimValue)
-    gsmDataGen.ir.assert_structural_equal(N % 16 == 0, condition.value)
-    gsmDataGen.ir.assert_structural_equal(condition.struct_info, R.Prim(value=N % 16 == 0))
+    gsm_data_generator.ir.assert_structural_equal(N % 16 == 0, condition.value)
+    gsm_data_generator.ir.assert_structural_equal(condition.struct_info, R.Prim(value=N % 16 == 0))
 
 
 def test_tir_expr_as_assert_condition():
@@ -1443,7 +1443,7 @@ def test_tir_expr_as_assert_condition():
         out = R.call_packed("fast_vectorized_impl", x, sinfo_args=[x.struct_info])
         return out
 
-    gsmDataGen.ir.assert_structural_equal(unsugared, sugared)
+    gsm_data_generator.ir.assert_structural_equal(unsugared, sugared)
 
 
 def test_erase_to_well_defined_removes_internal_vars():
@@ -1455,7 +1455,7 @@ def test_erase_to_well_defined_removes_internal_vars():
         w = z
         return w
 
-    gsmDataGen.ir.assert_structural_equal(foo.ret_struct_info, R.Tensor(ndim=2))
+    gsm_data_generator.ir.assert_structural_equal(foo.ret_struct_info, R.Tensor(ndim=2))
     assert foo.ret_struct_info.shape is None
     _check(foo)
 
@@ -1660,7 +1660,7 @@ def test_undefined_symbolic_var_raises_error():
     shape.  That is, this test case raises an error, and will not
     attempt to define `m` as either `x.shape[0]-1` or `x.shape[1]//2`.
     """
-    with pytest.raises(gsmDataGen.error.DiagnosticError):
+    with pytest.raises(gsm_data_generator.error.DiagnosticError):
 
         @R.function
         def foo(x: R.Tensor(("m + 1", "m * 2"), "float32")):  # name 'm' is not defined
@@ -1787,7 +1787,7 @@ def test_datatype_imm():
 
 
 def test_function_void_return_type():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Foo:
         @R.function
         def main(x: R.Tensor((3, 3), dtype="float32")):
@@ -1805,7 +1805,7 @@ def test_function_void_return_type():
     assert isinstance(Foo["main"].ret_struct_info, relax.ObjectStructInfo)
     assert isinstance(Foo["mul"].ret_struct_info, relax.TensorStructInfo)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Bar:
         @R.function
         def main(x1: R.Tensor((3, 3), dtype="float32")):
@@ -1820,19 +1820,19 @@ def test_function_void_return_type():
     # Since the return type of function `mul` is not annotated,
     # the function `main` regards it as a generic return type.
     _check(Bar)
-    gsmDataGen.ir.assert_structural_equal(Bar["main"].ret_struct_info, relax.TupleStructInfo([]))
-    gsmDataGen.ir.assert_structural_equal(Bar["mul"].ret_struct_info, relax.TupleStructInfo([]))
+    gsm_data_generator.ir.assert_structural_equal(Bar["main"].ret_struct_info, relax.TupleStructInfo([]))
+    gsm_data_generator.ir.assert_structural_equal(Bar["mul"].ret_struct_info, relax.TupleStructInfo([]))
 
 
 def test_class_normalize():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class InputModule:
         @R.function
         def mul_add(x: R.Tensor) -> R.Tensor:
             return R.multiply(R.add(x, x), R.add(x, x))
 
     # The parser automatically normalizes the input AST to the following ANF form
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class OutputModule:
         @R.function
         def mul_add(x: R.Tensor) -> R.Tensor:
@@ -1844,7 +1844,7 @@ def test_class_normalize():
 
 
 def test_context_aware_parsing(monkeypatch):
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Module:
         @T.prim_func
         def add(
@@ -1868,7 +1868,7 @@ def test_context_aware_parsing(monkeypatch):
     def _break_env(self, *args):
         raise RuntimeError("Fail to pass context-aware parsing")
 
-    monkeypatch.setattr(gsmDataGen.ir.GlobalVar, "__call__", _break_env)
+    monkeypatch.setattr(gsm_data_generator.ir.GlobalVar, "__call__", _break_env)
 
     _check(Module)
 
@@ -1907,8 +1907,8 @@ def test_global_var_sinfo():
         (R.Tensor((128, 128), dtype="float32"),), R.Tensor((128, 128), dtype="float32")
     )
     gv = Module.get_global_var("foo")
-    gsmDataGen.ir.assert_structural_equal(gv.struct_info, target_sinfo)
-    gsmDataGen.ir.assert_structural_equal(Module["foo"].struct_info, target_sinfo)
+    gsm_data_generator.ir.assert_structural_equal(gv.struct_info, target_sinfo)
+    gsm_data_generator.ir.assert_structural_equal(Module["foo"].struct_info, target_sinfo)
     _check(Module)
 
 
@@ -2035,13 +2035,13 @@ def test_function_with_void_return_type_may_be_used_as_statements():
             R.assert_op(R.const(False, dtype="bool"), x, format="x: {}")
             return x
 
-    gsmDataGen.ir.assert_structural_equal(Unsugared, Sugared)
+    gsm_data_generator.ir.assert_structural_equal(Unsugared, Sugared)
 
 
 def test_function_with_non_void_return_type_must_be_assigned():
     """Non-void results must be assigned to a variable"""
 
-    with pytest.raises(gsmDataGen.error.DiagnosticError):
+    with pytest.raises(gsm_data_generator.error.DiagnosticError):
 
         @R.function(pure=False)
         def func(x: R.Tensor((), "int32")) -> R.Tensor((), "int32"):
@@ -2128,7 +2128,7 @@ def test_private_function():
 
 
 def test_private_function_with_global_symbol_fail():
-    with pytest.raises(gsmDataGen.error.DiagnosticError):
+    with pytest.raises(gsm_data_generator.error.DiagnosticError):
 
         @I.ir_module
         class Addition:
@@ -2145,7 +2145,7 @@ def test_private_function_with_global_symbol_fail():
 
 
 def test_private_function_with_global_symbol_no_module_fail():
-    with pytest.raises(gsmDataGen.error.DiagnosticError):
+    with pytest.raises(gsm_data_generator.error.DiagnosticError):
 
         @R.function(private=True)
         def func(x: R.Tensor((), "int32")) -> R.Tensor((), "int32"):
@@ -2222,7 +2222,7 @@ def test_macro_non_hygienic():
 
 
 def test_macro_no_variable_leak():
-    with pytest.raises(gsmDataGen.error.DiagnosticError):
+    with pytest.raises(gsm_data_generator.error.DiagnosticError):
 
         @R.macro(hygienic=True)
         def add_two(value):
@@ -2274,7 +2274,7 @@ def test_extern_func_in_module():
     def func(a: R.Tensor((10, 10))) -> R.Tensor((10, 10)):
         return a
 
-    expected = gsmDataGen.IRModule({"my_ext": relax.ExternFunc("my_ext"), "func": func})
+    expected = gsm_data_generator.IRModule({"my_ext": relax.ExternFunc("my_ext"), "func": func})
 
     _check(parsed_module, expected)
 
@@ -2313,7 +2313,7 @@ def test_define_relax_function_using_global_var():
 
     MainDefinedLater["main"] = main
 
-    gsmDataGen.ir.assert_structural_equal(DefinedAllAtOnce, MainDefinedLater)
+    gsm_data_generator.ir.assert_structural_equal(DefinedAllAtOnce, MainDefinedLater)
 
 
 def test_function_attributes_are_defined():
@@ -2359,7 +2359,7 @@ def test_function_symbolic_variables_are_annotated():
         output: R.Tensor([extent - 1]) = R.strided_slice(A, [0], [0], [extent - 1])
         return output
 
-    gsmDataGen.ir.assert_structural_equal(inferred_sinfo, expected)
+    gsm_data_generator.ir.assert_structural_equal(inferred_sinfo, expected)
 
 
 def test_conditional_may_use_symbolic_variables_from_function_scope():
@@ -2404,7 +2404,7 @@ def test_conditional_may_use_symbolic_variables_from_function_scope():
 
         return out
 
-    gsmDataGen.ir.assert_structural_equal(explicit_sinfo, inferred_sinfo)
+    gsm_data_generator.ir.assert_structural_equal(explicit_sinfo, inferred_sinfo)
 
 
 def test_return_from_dataflow_block():
@@ -2435,8 +2435,8 @@ def test_return_from_dataflow_block():
             C = R.multiply(B, B)
             return C
 
-    gsmDataGen.ir.assert_structural_equal(output_then_return, return_inside_dataflow)
+    gsm_data_generator.ir.assert_structural_equal(output_then_return, return_inside_dataflow)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

@@ -17,15 +17,15 @@
 
 import pytest
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen.ir.module import IRModule
-from gsmDataGen import tir
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator.ir.module import IRModule
+from gsm_data_generator import tir
+from gsm_data_generator.script import tir as T
 
 
 def test_texture_scope():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class PlusOneMultTwo:
         @T.prim_func
         def main(a: T.handle, b: T.handle) -> None:
@@ -55,9 +55,9 @@ def test_texture_scope():
     schedule_block(sch.get_block("B"))
     schedule_block(sch.get_block("C"))
 
-    target = gsmDataGen.target.Target("opencl")
-    mod = gsmDataGen.compile(sch.mod["main"], target=target)
+    target = gsm_data_generator.target.Target("opencl")
+    mod = gsm_data_generator.compile(sch.mod["main"], target=target)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

@@ -18,11 +18,11 @@
 import sys
 
 import pytest
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import tir
-from gsmDataGen.script import tir as T
-from gsmDataGen.tir.schedule.testing import (
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import tir
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.tir.schedule.testing import (
     assert_structural_equal_ignore_global_symbol,
     verify_trace_roundtrip,
 )
@@ -174,7 +174,7 @@ def two_elementwise_unit_dim(A: T.Buffer((1, 128), "float32"), C: T.Buffer((1, 1
             vi, vj = T.axis.remap("SS", [i, j])
             C[vi, vj] = B[vi, vj] + 1.0
 
-class TestTransformLayoutWithCacheWriteAndAxisSeparators(gsmDataGen.testing.CompareBeforeAfter):
+class TestTransformLayoutWithCacheWriteAndAxisSeparators(gsm_data_generator.testing.CompareBeforeAfter):
     """
     transform_layout with axis_separator on a buffer from cache_write should work as expected
     """
@@ -184,9 +184,9 @@ class TestTransformLayoutWithCacheWriteAndAxisSeparators(gsmDataGen.testing.Comp
         def transform(mod):
 
             def transform_fn(x, y):
-                return [x // 32, y, gsmDataGen.te.AXIS_SEPARATOR, x % 32]
+                return [x // 32, y, gsm_data_generator.te.AXIS_SEPARATOR, x % 32]
 
-            sch = gsmDataGen.tir.Schedule(mod, debug_mask="all")
+            sch = gsm_data_generator.tir.Schedule(mod, debug_mask="all")
             block_rv = sch.get_block("T_add")
             sch.cache_write(block_rv, 0, "global")
             sch.transform_layout(block_rv, ("write", 0), transform_fn, pad_value=0.0)
@@ -228,7 +228,7 @@ class TestTransformLayoutWithCacheWriteAndAxisSeparators(gsmDataGen.testing.Comp
 # pylint: enable=no-member,invalid-name,unused-variable,line-too-long,redefined-outer-name,unexpected-keyword-arg,too-many-nested-blocks
 # fmt: on
 
-use_block_name = gsmDataGen.testing.parameter(by_dict={"block_obj": False, "block_name": True})
+use_block_name = gsm_data_generator.testing.parameter(by_dict={"block_obj": False, "block_name": True})
 
 
 def test_two_elementwise_transform_intermediate_buffer(use_block_name):
@@ -353,7 +353,7 @@ def test_simplify():
                         # C[...] = B[vi // 16 + vi_o, vj // 16 + vj_o, vi % 16, vj % 16] + T.float32(1)
 
     # not comparing PrimFuncs
-    gsmDataGen.ir.assert_structural_equal(ref.body.block.body, sch.get(sch.get_loops(block_outer)[0]))
+    gsm_data_generator.ir.assert_structural_equal(ref.body.block.body, sch.get(sch.get_loops(block_outer)[0]))
 
 
 def test_var_args_sugar():
@@ -477,14 +477,14 @@ def test_transform_block_layout_int64_extent(use_block_name):
     verify_trace_roundtrip(sch=sch, mod=elementwise_int64_extent)
 
 
-class BasePaddingCompare(gsmDataGen.testing.CompareBeforeAfter):
-    pad_value = gsmDataGen.testing.parameter(None)
+class BasePaddingCompare(gsm_data_generator.testing.CompareBeforeAfter):
+    pad_value = gsm_data_generator.testing.parameter(None)
 
-    transformed_buffer = gsmDataGen.testing.parameter("A")
+    transformed_buffer = gsm_data_generator.testing.parameter("A")
 
-    index_map = gsmDataGen.testing.parameter(lambda i: [i // 4, i % 4])
+    index_map = gsm_data_generator.testing.parameter(lambda i: [i // 4, i % 4])
 
-    assume_injective_transform = gsmDataGen.testing.parameter(False)
+    assume_injective_transform = gsm_data_generator.testing.parameter(False)
 
     @pytest.fixture
     def transform(self, pad_value, transformed_buffer, index_map, assume_injective_transform):
@@ -505,7 +505,7 @@ class BasePaddingCompare(gsmDataGen.testing.CompareBeforeAfter):
 class TestNoPadding(BasePaddingCompare):
     """Transformations without padding do not depend on pad_value."""
 
-    pad_value = gsmDataGen.testing.parameter(None, 42)
+    pad_value = gsm_data_generator.testing.parameter(None, 42)
 
     def before():
         A = T.alloc_buffer(16, "int32")
@@ -530,7 +530,7 @@ class TestNoPaddingMultipleUsage(BasePaddingCompare):
     buffer should be rewritten.
     """
 
-    pad_value = gsmDataGen.testing.parameter(None, 42)
+    pad_value = gsm_data_generator.testing.parameter(None, 42)
 
     def before():
         A = T.alloc_buffer(16, "int32")
@@ -565,7 +565,7 @@ class TestNoPaddingOpaqueBlock(BasePaddingCompare):
     Like TestNoPadding, but buffer access is done in an opaque block.
     """
 
-    pad_value = gsmDataGen.testing.parameter(None, 42)
+    pad_value = gsm_data_generator.testing.parameter(None, 42)
 
     def before():
         A = T.alloc_buffer(16, "int32")
@@ -590,7 +590,7 @@ class TestErrorIfPaddingForbidden(BasePaddingCompare):
                 vi = T.axis.remap("S", [i])
                 A[vi] = 0
 
-    expected = gsmDataGen.tir.schedule.schedule.ScheduleError
+    expected = gsm_data_generator.tir.schedule.schedule.ScheduleError
 
 
 class TestImplicitPaddingAssumeInjective(BasePaddingCompare):
@@ -598,7 +598,7 @@ class TestImplicitPaddingAssumeInjective(BasePaddingCompare):
     padded. The padded region is not accessed because the original loop extent is not changed.
     """
 
-    assume_injective_transform = gsmDataGen.testing.parameter(True)
+    assume_injective_transform = gsm_data_generator.testing.parameter(True)
 
     def before():
         A = T.alloc_buffer(14, "int32")
@@ -618,7 +618,7 @@ class TestImplicitPaddingAssumeInjective(BasePaddingCompare):
 class TestErrorOnWrongPaddingType(BasePaddingCompare):
     """The padding must have the same dtype as the buffer"""
 
-    pad_value = gsmDataGen.testing.parameter(tir.IntImm("int8", 0))
+    pad_value = gsm_data_generator.testing.parameter(tir.IntImm("int8", 0))
 
     def before():
         A = T.alloc_buffer(14, "int32")
@@ -627,13 +627,13 @@ class TestErrorOnWrongPaddingType(BasePaddingCompare):
                 vi = T.axis.remap("S", [i])
                 A[vi] = 0
 
-    expected = gsmDataGen.tir.schedule.schedule.ScheduleError
+    expected = gsm_data_generator.tir.schedule.schedule.ScheduleError
 
 
 class TestErrorOnNonMatchingTypes(BasePaddingCompare):
     """The padding must have the same dtype as the buffer"""
 
-    pad_value = gsmDataGen.testing.parameter(0)
+    pad_value = gsm_data_generator.testing.parameter(0)
 
     def before():
         A = T.alloc_buffer(14, "float32")
@@ -642,7 +642,7 @@ class TestErrorOnNonMatchingTypes(BasePaddingCompare):
                 vi = T.axis.remap("S", [i])
                 A[vi] = 0
 
-    expected = gsmDataGen.tir.schedule.schedule.ScheduleError
+    expected = gsm_data_generator.tir.schedule.schedule.ScheduleError
 
 
 class TestPaddedTransformIfThenElse(BasePaddingCompare):
@@ -656,11 +656,11 @@ class TestPaddedTransformIfThenElse(BasePaddingCompare):
     `T.if_then_else`.
     """
 
-    pad_value = gsmDataGen.testing.parameter(0)
-    transformed_buffer = gsmDataGen.testing.parameter("B")
-    dtype = gsmDataGen.testing.parameter("int32", "int8")
+    pad_value = gsm_data_generator.testing.parameter(0)
+    transformed_buffer = gsm_data_generator.testing.parameter("B")
+    dtype = gsm_data_generator.testing.parameter("int32", "int8")
 
-    @gsmDataGen.testing.fixture
+    @gsm_data_generator.testing.fixture
     def before(self, dtype):
         @T.prim_func
         def func(A: T.Buffer(14, dtype)):
@@ -672,7 +672,7 @@ class TestPaddedTransformIfThenElse(BasePaddingCompare):
 
         return func
 
-    @gsmDataGen.testing.fixture
+    @gsm_data_generator.testing.fixture
     def expected(self, dtype, pad_value):
         pad_value = tir.IntImm(dtype, pad_value)
 
@@ -696,7 +696,7 @@ class TestPaddedTransformWithoutLoop(BasePaddingCompare):
     for-loop, such as if a loop has already been unrolled.
     """
 
-    pad_value = gsmDataGen.testing.parameter(0)
+    pad_value = gsm_data_generator.testing.parameter(0)
 
     def before(A: T.Buffer(14, "int32")):
         with T.block("root"):
@@ -719,8 +719,8 @@ class TestPaddedTransformWithoutLoop(BasePaddingCompare):
 class TestPaddedTransformIfThenElseReduction(BasePaddingCompare):
     """Like TestPaddedTransformIfThenElse, but with a reduction axis"""
 
-    pad_value = gsmDataGen.testing.parameter(0)
-    transformed_buffer = gsmDataGen.testing.parameter("B")
+    pad_value = gsm_data_generator.testing.parameter(0)
+    transformed_buffer = gsm_data_generator.testing.parameter("B")
 
     def before(A: T.Buffer((14, 32), "int32")):
         B = T.alloc_buffer(14, "int32")
@@ -746,8 +746,8 @@ class TestPaddedTransformIfThenElseReduction(BasePaddingCompare):
 class TestPaddedTransformIfThenElseReductionOpaque(BasePaddingCompare):
     """Like TestPaddedTransformIfThenElseReduction, but with opaque blocks"""
 
-    pad_value = gsmDataGen.testing.parameter(0)
-    transformed_buffer = gsmDataGen.testing.parameter("B")
+    pad_value = gsm_data_generator.testing.parameter(0)
+    transformed_buffer = gsm_data_generator.testing.parameter("B")
 
     def before(A: T.Buffer((14, 32), "int32")):
         B = T.alloc_buffer(14, "int32")
@@ -775,8 +775,8 @@ class TestPaddedTransformPostProcIfRequiredDueToSideEffects(BasePaddingCompare):
     also has the effect of setting `C`.
     """
 
-    pad_value = gsmDataGen.testing.parameter(0)
-    transformed_buffer = gsmDataGen.testing.parameter("B")
+    pad_value = gsm_data_generator.testing.parameter(0)
+    transformed_buffer = gsm_data_generator.testing.parameter("B")
 
     def before(A: T.Buffer(14, "int32")):
         B = T.alloc_buffer(14, "int32")
@@ -806,7 +806,7 @@ class TestPaddedTransformPostProcIfRequiredDueToSideEffects(BasePaddingCompare):
 class TestPaddedTransformOfInputCreatesAssumption(BasePaddingCompare):
     """Transformation of an input buffer places T.assume locally"""
 
-    pad_value = gsmDataGen.testing.parameter(42)
+    pad_value = gsm_data_generator.testing.parameter(42)
 
     def before(A: T.Buffer(14, "int32"), B: T.Buffer(14, "int32")):
         for i in T.serial(14):
@@ -826,7 +826,7 @@ class TestPaddedTransformOfInputCreatesAssumption(BasePaddingCompare):
                 B[vi] = A[vi // 4, vi % 4]
 
 
-class TestPaddedTransformNonConstantValue(gsmDataGen.testing.CompareBeforeAfter):
+class TestPaddedTransformNonConstantValue(gsm_data_generator.testing.CompareBeforeAfter):
     """Allow an expression to specify the pad value.
 
     Like TestPaddedTransformIfThenElse, but the pad value depends on
@@ -865,7 +865,7 @@ class TestPaddedTransformNonConstantValue(gsmDataGen.testing.CompareBeforeAfter)
 
 
 @pytest.mark.xfail(reason="Not yet implemented")
-class TestPaddedTransformRepeatedBufferElement(gsmDataGen.testing.CompareBeforeAfter):
+class TestPaddedTransformRepeatedBufferElement(gsm_data_generator.testing.CompareBeforeAfter):
     """Allow an expression to specify the pad value.
 
     Like TestPaddedTransformOfInputCreatesAssumption, but the pad
@@ -915,7 +915,7 @@ class TestPaddedTransformRepeatedBufferElement(gsmDataGen.testing.CompareBeforeA
                 B[vi] = A[vi // 4, vi % 4]
 
 
-class TestPadValueMayNotReferenceOtherBuffer(gsmDataGen.testing.CompareBeforeAfter):
+class TestPadValueMayNotReferenceOtherBuffer(gsm_data_generator.testing.CompareBeforeAfter):
     """Allow an expression to specify the pad value.
 
     Like TestPaddedTransformRepeatedBufferElement, but the pad value depends on
@@ -946,10 +946,10 @@ class TestPadValueMayNotReferenceOtherBuffer(gsmDataGen.testing.CompareBeforeAft
                 vi = T.axis.remap("S", [i])
                 B[vi] = A[vi]
 
-    expected = gsmDataGen.tir.schedule.schedule.ScheduleError
+    expected = gsm_data_generator.tir.schedule.schedule.ScheduleError
 
 
-class TestTransformLayoutWithVar(gsmDataGen.testing.CompareBeforeAfter):
+class TestTransformLayoutWithVar(gsm_data_generator.testing.CompareBeforeAfter):
     """Layout transform with dynamic parameter in transform"""
 
     @pytest.fixture
@@ -998,8 +998,8 @@ class TestTransformLayoutWithVar(gsmDataGen.testing.CompareBeforeAfter):
 class TestTransformWithAxisSeparators(BasePaddingCompare):
     """Axis separators may be specified in a transform"""
 
-    index_map = gsmDataGen.testing.parameter(lambda i: [i // 4, gsmDataGen.tir.IndexMap.AXIS_SEPARATOR, i % 4])
-    pad_value = gsmDataGen.testing.parameter(0)
+    index_map = gsm_data_generator.testing.parameter(lambda i: [i // 4, gsm_data_generator.tir.IndexMap.AXIS_SEPARATOR, i % 4])
+    pad_value = gsm_data_generator.testing.parameter(0)
 
     def before(a: T.handle):
         A = T.match_buffer(a, [14], "int32")
@@ -1019,8 +1019,8 @@ class TestTransformWithAxisSeparators(BasePaddingCompare):
 class TestTransformWithAxisSeparatorsOpaqueBlock(BasePaddingCompare):
     """Axis separators may be specified in a transform of opaque block"""
 
-    index_map = gsmDataGen.testing.parameter(lambda i: [i // 4, gsmDataGen.tir.IndexMap.AXIS_SEPARATOR, i % 4])
-    pad_value = gsmDataGen.testing.parameter(0)
+    index_map = gsm_data_generator.testing.parameter(lambda i: [i // 4, gsm_data_generator.tir.IndexMap.AXIS_SEPARATOR, i % 4])
+    pad_value = gsm_data_generator.testing.parameter(0)
 
     def before(a: T.handle):
         A = T.match_buffer(a, [14], "int32")
@@ -1130,7 +1130,7 @@ def test_transform_layout_with_symbolic_bound():
     # fmt: on
     # pylint: disable=invalid-name
     _, _, n, _ = before.buffer_map[before.params[1]].shape
-    sch = gsmDataGen.tir.Schedule(before)
+    sch = gsm_data_generator.tir.Schedule(before)
     block = sch.get_block("NT_matmul")
     sch.transform_layout(
         block,
@@ -1139,7 +1139,7 @@ def test_transform_layout_with_symbolic_bound():
         assume_injective_transform=True,
     )
     # pylint: enable=invalid-name
-    gsmDataGen.ir.assert_structural_equal(after, sch.mod["main"])
+    gsm_data_generator.ir.assert_structural_equal(after, sch.mod["main"])
 
 
 def test_transform_block_layout_with_symbolic_bound():
@@ -1180,7 +1180,7 @@ def test_transform_block_layout_with_symbolic_bound():
     # fmt: on
     # pylint: disable=invalid-name
     _, _, n, _ = before.buffer_map[before.params[1]].shape
-    sch = gsmDataGen.tir.Schedule(before)
+    sch = gsm_data_generator.tir.Schedule(before)
     block = sch.get_block("NT_matmul")
     sch.transform_block_layout(
         block,
@@ -1190,8 +1190,8 @@ def test_transform_block_layout_with_symbolic_bound():
         ),
     )
     # pylint: enable=invalid-name
-    gsmDataGen.ir.assert_structural_equal(after, sch.mod["main"])
+    gsm_data_generator.ir.assert_structural_equal(after, sch.mod["main"])
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

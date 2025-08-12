@@ -15,25 +15,25 @@
 # specific language governing permissions and limitations
 # under the License.
 import numpy as np
-import gsmDataGen
-from gsmDataGen import relax as rx
-from gsmDataGen import tir
-from gsmDataGen.script import relax as R
+import gsm_data_generator
+from gsm_data_generator import relax as rx
+from gsm_data_generator import tir
+from gsm_data_generator.script import relax as R
 import pytest
 
 
 def _check_equal(x, y, map_free_vars=False):
-    gsmDataGen.ir.assert_structural_equal(x, y, map_free_vars)
-    gsmDataGen.ir.assert_structural_equal(y, x, map_free_vars)
+    gsm_data_generator.ir.assert_structural_equal(x, y, map_free_vars)
+    gsm_data_generator.ir.assert_structural_equal(y, x, map_free_vars)
 
-    xhash = gsmDataGen.ir.structural_hash(x, map_free_vars)
-    yhash = gsmDataGen.ir.structural_hash(y, map_free_vars)
+    xhash = gsm_data_generator.ir.structural_hash(x, map_free_vars)
+    yhash = gsm_data_generator.ir.structural_hash(y, map_free_vars)
 
     assert xhash == yhash
 
 
 def _check_json_roundtrip(x):
-    xret = gsmDataGen.ir.load_json(gsmDataGen.ir.save_json(x))
+    xret = gsm_data_generator.ir.load_json(gsm_data_generator.ir.save_json(x))
     _check_equal(x, xret, map_free_vars=True)
     return xret
 
@@ -47,7 +47,7 @@ def test_var() -> None:
     assert v1.name_hint == "v1"
     for s0, s1 in zip(v1.struct_info.shape, shape):
         assert s0 == s1
-    gsmDataGen.ir.assert_structural_equal(v1.struct_info, rx.TensorStructInfo(shape, "float32"))
+    gsm_data_generator.ir.assert_structural_equal(v1.struct_info, rx.TensorStructInfo(shape, "float32"))
 
 
 def test_dataflow_var() -> None:
@@ -60,7 +60,7 @@ def test_dataflow_var() -> None:
     assert v1.name_hint == "v1"
 
     assert isinstance(v1, rx.DataflowVar)
-    gsmDataGen.ir.assert_structural_equal(v1.struct_info, rx.TensorStructInfo(shape, "float16"))
+    gsm_data_generator.ir.assert_structural_equal(v1.struct_info, rx.TensorStructInfo(shape, "float16"))
 
 
 def test_tuple() -> None:
@@ -88,7 +88,7 @@ def test_tuple_sinfo_inferred_on_construction():
     tup = rx.Tuple((v0, v1))
 
     assert tup.struct_info_ is not None
-    gsmDataGen.ir.assert_structural_equal(
+    gsm_data_generator.ir.assert_structural_equal(
         tup.struct_info, rx.TupleStructInfo([rx.ObjectStructInfo(), rx.ObjectStructInfo()])
     )
 
@@ -228,16 +228,16 @@ def test_shape_expr():
     shape_expr = rx.ShapeExpr([10, 20])
     assert shape_expr.values[0] == 10
     assert shape_expr.values[1] == 20
-    gsmDataGen.ir.assert_structural_equal(shape_expr.struct_info, R.Shape((10, 20)))
+    gsm_data_generator.ir.assert_structural_equal(shape_expr.struct_info, R.Shape((10, 20)))
 
     x = rx.Var("v0", R.Tensor((10, 20), "float32"))
     assert x.struct_info.shape[0] == 10
     assert x.struct_info.shape[1] == 20
-    gsmDataGen.ir.assert_structural_equal(x.struct_info.shape.struct_info, R.Shape((10, 20)))
+    gsm_data_generator.ir.assert_structural_equal(x.struct_info.shape.struct_info, R.Shape((10, 20)))
 
     m = tir.Var("m", "int32")
     with pytest.raises(
-        gsmDataGen.TVMError, match="the value in ShapeStructInfo can only have dtype of int64"
+        gsm_data_generator.TVMError, match="the value in ShapeStructInfo can only have dtype of int64"
     ):
         rx.ShapeExpr([m, 3])
 
@@ -253,7 +253,7 @@ def test_prim_value_with_var():
     n = tir.Var("n", "int64")
     pv = rx.PrimValue(n)
     assert pv.value.same_as(n)
-    gsmDataGen.ir.assert_structural_equal(pv.struct_info, rx.PrimStructInfo(value=n))
+    gsm_data_generator.ir.assert_structural_equal(pv.struct_info, rx.PrimStructInfo(value=n))
     _check_equal(pv, rx.PrimValue(n))
     _check_json_roundtrip(pv)
 
@@ -261,7 +261,7 @@ def test_prim_value_with_var():
 def test_prim_value_with_expr():
     n = tir.Var("n", "int64")
     pv = rx.PrimValue(n + 1)
-    gsmDataGen.ir.assert_structural_equal(pv.struct_info, rx.PrimStructInfo(value=n + 1))
+    gsm_data_generator.ir.assert_structural_equal(pv.struct_info, rx.PrimStructInfo(value=n + 1))
     _check_equal(pv, rx.PrimValue(n + 1))
     _check_json_roundtrip(pv)
 
@@ -303,4 +303,4 @@ def test_call_raises_error_for_invalid_function():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

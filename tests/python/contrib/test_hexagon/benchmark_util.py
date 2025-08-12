@@ -23,7 +23,7 @@ import tempfile
 
 import pytest
 
-from gsmDataGen.contrib.hexagon.tools import HEXAGON_SIMULATOR_NAME
+from gsm_data_generator.contrib.hexagon.tools import HEXAGON_SIMULATOR_NAME
 
 
 def skip_benchmarks_flag_and_reason():

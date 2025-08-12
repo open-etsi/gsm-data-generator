@@ -17,13 +17,13 @@
 
 import pytest
 
-import gsmDataGen
-import gsmDataGen.script
-import gsmDataGen.testing
-from gsmDataGen import relax
-from gsmDataGen.script import ir as I
-from gsmDataGen.script import relax as R
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.script
+import gsm_data_generator.testing
+from gsm_data_generator import relax
+from gsm_data_generator.script import ir as I
+from gsm_data_generator.script import relax as R
+from gsm_data_generator.script import tir as T
 
 
 def test_inline_simple():
@@ -55,8 +55,8 @@ def test_inline_simple():
             D = C + C
             return D
 
-    After = gsmDataGen.relax.transform.InlinePrivateFunctions()(Before)
-    gsmDataGen.ir.assert_structural_equal(Expected, After)
+    After = gsm_data_generator.relax.transform.InlinePrivateFunctions()(Before)
+    gsm_data_generator.ir.assert_structural_equal(Expected, After)
 
 
 def test_skip_inline_of_recursive_functions():
@@ -97,9 +97,9 @@ def test_skip_inline_of_recursive_functions():
 
     Expected = Before
 
-    After = gsmDataGen.relax.transform.InlinePrivateFunctions()(Before)
-    gsmDataGen.ir.assert_structural_equal(Expected, After)
+    After = gsm_data_generator.relax.transform.InlinePrivateFunctions()(Before)
+    gsm_data_generator.ir.assert_structural_equal(Expected, After)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

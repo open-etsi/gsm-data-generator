@@ -17,11 +17,11 @@
 """Tests to validate relax fast math tranform pass."""
 
 import pytest
-import gsmDataGen.testing
-from gsmDataGen import relax, topi
-from gsmDataGen.ir.base import assert_structural_equal
-from gsmDataGen.relax.transform import FastMathTransform
-from gsmDataGen.script import ir as I, relax as R
+import gsm_data_generator.testing
+from gsm_data_generator import relax, topi
+from gsm_data_generator.ir.base import assert_structural_equal
+from gsm_data_generator.relax.transform import FastMathTransform
+from gsm_data_generator.script import ir as I, relax as R
 
 
 def _run_pass_compare_output(Before, Expected):
@@ -56,4 +56,4 @@ def test_optimize_transform_layout_pass_one_arg():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

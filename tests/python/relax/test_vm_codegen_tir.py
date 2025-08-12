@@ -18,12 +18,12 @@
 
 Restrictions: all shape lowered, explicit allocation.
 """
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import relax
-from gsmDataGen.ir import assert_structural_equal
-from gsmDataGen.script import relax as R
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import relax
+from gsm_data_generator.ir import assert_structural_equal
+from gsm_data_generator.script import relax as R
+from gsm_data_generator.script import tir as T
 
 
 def get_tir_mod(mod):
@@ -32,7 +32,7 @@ def get_tir_mod(mod):
 
 
 def test_add():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Before:
         @R.function(pure=False)
         def foo(x: R.Tensor):
@@ -40,7 +40,7 @@ def test_add():
             z = R.call_packed("test.vm.add", x, x, sinfo_args=(R.Tensor))
             return z
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @T.prim_func
         def __vmtir__foo(ctx_ptr: T.handle, r: T.handle, c: T.handle, f: T.handle):
@@ -63,7 +63,7 @@ def test_add():
 
 
 def test_tir_call():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Before:
         @T.prim_func
         def shape_func(H: T.Buffer(T.int64(4), "int64")):
@@ -77,7 +77,7 @@ def test_tir_call():
             _ = Before.shape_func(x)
             return x
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @T.prim_func
         def shape_func(H: T.Buffer(T.int64(4), "int64")):
@@ -100,7 +100,7 @@ def test_tir_call():
 
 
 def test_if_cond():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Before:
         @R.function(pure=False)
         def ife(cond: R.Tensor((), "bool"), x: R.Tensor) -> R.Tensor:
@@ -111,14 +111,14 @@ def test_if_cond():
                 w = R.call_packed("test.vm.mul", x, x, sinfo_args=(R.Tensor))
             return w
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @T.prim_func
         def __vmtir__ife(ctx_ptr: T.handle, r: T.handle, c: T.handle, f: T.handle):
             T.func_attr({"global_symbol": "__vmtir__ife"})
             if T.Call(
                 "bool",
-                gsmDataGen.ir.Op.get("tir.tvm_call_packed"),
+                gsm_data_generator.ir.Op.get("tir.tvm_call_packed"),
                 ["vm.builtin.read_if_cond", T.anylist_getitem(r, T.int32(0))],
             ):
                 T.anylist_setitem_call_packed(
@@ -153,7 +153,7 @@ def test_if_cond():
 
 
 def test_const():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Before:
         @R.function
         def main(x: R.Tensor):
@@ -162,7 +162,7 @@ def test_const():
             z = (y, R.const([3, 4]), x)
             return z
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @T.prim_func
         def __vmtir__main(ctx_ptr: T.handle, r: T.handle, c: T.handle, f: T.handle):
@@ -188,7 +188,7 @@ def test_const():
 
 
 def test_const_call():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Before:
         @R.function(pure=False)
         def main(x: R.Tensor):
@@ -197,7 +197,7 @@ def test_const_call():
             z = R.call_packed("test.vm.add", x, y, sinfo_args=(R.Tensor))
             return z
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @T.prim_func
         def __vmtir__main(ctx_ptr: T.handle, r: T.handle, c: T.handle, f: T.handle):
@@ -220,4 +220,4 @@ def test_const_call():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

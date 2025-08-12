@@ -15,11 +15,11 @@
 # specific language governing permissions and limitations
 # under the License.
 import os
-import gsmDataGen
-from gsmDataGen import te
+import gsm_data_generator
+from gsm_data_generator import te
 import numpy as np
-from gsmDataGen import rpc
-from gsmDataGen.contrib import utils, tflite_runtime
+from gsm_data_generator import rpc
+from gsm_data_generator.contrib import utils, tflite_runtime
 
 # import tflite_runtime.interpreter as tflite
 
@@ -76,7 +76,7 @@ def skipped_test_tflite_runtime():
 
         with open(tflite_model_path, "rb") as model_fin:
             runtime = tflite_runtime.create(model_fin.read(), dev, runtime_target)
-            runtime.set_input(0, gsmDataGen.nd.array(tflite_input, dev))
+            runtime.set_input(0, gsm_data_generator.nd.array(tflite_input, dev))
             runtime.invoke()
             out = runtime.get_output(0)
             np.testing.assert_equal(out.numpy(), tflite_output)

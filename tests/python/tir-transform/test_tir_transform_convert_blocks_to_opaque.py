@@ -14,18 +14,18 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import tir, te
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import tir, te
+from gsm_data_generator.script import tir as T
 
 
 def _check(original, transformed):
     func = original
-    mod = gsmDataGen.IRModule.from_expr(func.with_attr("global_symbol", "main"))
-    mod = gsmDataGen.tir.transform.ConvertBlocksToOpaque()(mod)
-    mod = gsmDataGen.tir.transform.Simplify()(mod)
-    gsmDataGen.ir.assert_structural_equal(mod["main"], transformed.with_attr("global_symbol", "main"))
+    mod = gsm_data_generator.IRModule.from_expr(func.with_attr("global_symbol", "main"))
+    mod = gsm_data_generator.tir.transform.ConvertBlocksToOpaque()(mod)
+    mod = gsm_data_generator.tir.transform.Simplify()(mod)
+    gsm_data_generator.ir.assert_structural_equal(mod["main"], transformed.with_attr("global_symbol", "main"))
 
 
 @T.prim_func
@@ -74,8 +74,8 @@ def test_elementwise():
     _check(elementwise_func, substituted_elementwise_func)
 
 
-class TestErrorIfPredicateUsesBlockVariables(gsmDataGen.testing.CompareBeforeAfter):
-    transform = gsmDataGen.tir.transform.ConvertBlocksToOpaque()
+class TestErrorIfPredicateUsesBlockVariables(gsm_data_generator.testing.CompareBeforeAfter):
+    transform = gsm_data_generator.tir.transform.ConvertBlocksToOpaque()
     check_well_formed = False
 
     def before(A: T.Buffer(8, "int32")):
@@ -85,8 +85,8 @@ class TestErrorIfPredicateUsesBlockVariables(gsmDataGen.testing.CompareBeforeAft
                 T.where(vi < 6)
                 T.evaluate(0)
 
-    expected = gsmDataGen.TVMError
+    expected = gsm_data_generator.TVMError
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

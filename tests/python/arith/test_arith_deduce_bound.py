@@ -15,10 +15,10 @@
 # specific language governing permissions and limitations
 # under the License.
 import pytest
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import te
-from gsmDataGen.tir.buffer import decl_buffer
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import te
+from gsm_data_generator.tir.buffer import decl_buffer
 
 
 def test_deduce():
@@ -27,97 +27,97 @@ def test_deduce():
     c = te.var("c")
     d = te.var("d")
 
-    b_s = gsmDataGen.arith.IntervalSet(2, 3)
-    c_s = gsmDataGen.arith.IntervalSet(10, 15)
-    d_s = gsmDataGen.arith.IntervalSet(-3, -1)
-    zero = gsmDataGen.tir.const(0, "int32")
+    b_s = gsm_data_generator.arith.IntervalSet(2, 3)
+    c_s = gsm_data_generator.arith.IntervalSet(10, 15)
+    d_s = gsm_data_generator.arith.IntervalSet(-3, -1)
+    zero = gsm_data_generator.tir.const(0, "int32")
 
-    fdiv = gsmDataGen.te.floordiv
+    fdiv = gsm_data_generator.te.floordiv
 
     e0 = (-b) * a + c - d
-    res0 = gsmDataGen.arith.deduce_bound(a, e0 >= 0, {b: b_s, c: c_s, d: d_s}, {})
+    res0 = gsm_data_generator.arith.deduce_bound(a, e0 >= 0, {b: b_s, c: c_s, d: d_s}, {})
     ans0 = fdiv(d - c, b * -1)
-    gsmDataGen.testing.assert_prim_expr_equal(res0.max_value, ans0)
+    gsm_data_generator.testing.assert_prim_expr_equal(res0.max_value, ans0)
 
     # expression containing variable a is on rhs
-    res0 = gsmDataGen.arith.deduce_bound(a, zero <= e0, {b: b_s, c: c_s, d: d_s}, {})
-    gsmDataGen.testing.assert_prim_expr_equal(res0.max_value, ans0)
+    res0 = gsm_data_generator.arith.deduce_bound(a, zero <= e0, {b: b_s, c: c_s, d: d_s}, {})
+    gsm_data_generator.testing.assert_prim_expr_equal(res0.max_value, ans0)
 
     e0 = d * a + c - d
-    res0 = gsmDataGen.arith.deduce_bound(a, e0 >= 0, {b: b_s, c: c_s, d: d_s}, {})
+    res0 = gsm_data_generator.arith.deduce_bound(a, e0 >= 0, {b: b_s, c: c_s, d: d_s}, {})
     ans0 = fdiv(d - c, d)
-    gsmDataGen.testing.assert_prim_expr_equal(res0.max_value, ans0)
+    gsm_data_generator.testing.assert_prim_expr_equal(res0.max_value, ans0)
 
     # expression containing variable a is on rhs
-    res0 = gsmDataGen.arith.deduce_bound(a, zero <= e0, {b: b_s, c: c_s, d: d_s}, {})
-    gsmDataGen.testing.assert_prim_expr_equal(res0.max_value, ans0)
+    res0 = gsm_data_generator.arith.deduce_bound(a, zero <= e0, {b: b_s, c: c_s, d: d_s}, {})
+    gsm_data_generator.testing.assert_prim_expr_equal(res0.max_value, ans0)
 
     e1 = a * 4 + b < c
-    res1 = gsmDataGen.arith.deduce_bound(a, e1, {b: b_s, c: c_s, d: d_s}, {})
+    res1 = gsm_data_generator.arith.deduce_bound(a, e1, {b: b_s, c: c_s, d: d_s}, {})
     ans1 = fdiv(c - 1 - b, 4)
-    gsmDataGen.testing.assert_prim_expr_equal(res1.max_value, ans1)
+    gsm_data_generator.testing.assert_prim_expr_equal(res1.max_value, ans1)
 
     # expression containing variable a is on rhs
     e1 = c > a * 4 + b
-    res1 = gsmDataGen.arith.deduce_bound(a, e1, {b: b_s, c: c_s, d: d_s}, {})
-    gsmDataGen.testing.assert_prim_expr_equal(res1.max_value, ans1)
+    res1 = gsm_data_generator.arith.deduce_bound(a, e1, {b: b_s, c: c_s, d: d_s}, {})
+    gsm_data_generator.testing.assert_prim_expr_equal(res1.max_value, ans1)
 
-    e2 = gsmDataGen.te.max(5, a * 4) < 0
-    res2 = gsmDataGen.arith.deduce_bound(a, e2, {b: b_s, c: c_s, d: d_s}, {})
+    e2 = gsm_data_generator.te.max(5, a * 4) < 0
+    res2 = gsm_data_generator.arith.deduce_bound(a, e2, {b: b_s, c: c_s, d: d_s}, {})
     assert str(res2.max_value) == "neg_inf"
     assert str(res2.min_value) == "pos_inf"
 
     # expression containing variable a is on rhs
-    e2 = zero < gsmDataGen.te.max(5, a * 4)
-    res2 = gsmDataGen.arith.deduce_bound(a, e2, {b: b_s, c: c_s, d: d_s}, {})
+    e2 = zero < gsm_data_generator.te.max(5, a * 4)
+    res2 = gsm_data_generator.arith.deduce_bound(a, e2, {b: b_s, c: c_s, d: d_s}, {})
     assert str(res2.max_value) == "neg_inf"
     assert str(res2.min_value) == "pos_inf"
 
     e3 = (-b) + a * c - d
-    res3 = gsmDataGen.arith.deduce_bound(a, e3 >= 0, {b: b_s, c: c_s, d: d_s}, {b: b_s, d: d_s})
+    res3 = gsm_data_generator.arith.deduce_bound(a, e3 >= 0, {b: b_s, c: c_s, d: d_s}, {b: b_s, d: d_s})
     ans3 = fdiv(2, c) + 1
-    gsmDataGen.testing.assert_prim_expr_equal(res3.min_value, ans3)
+    gsm_data_generator.testing.assert_prim_expr_equal(res3.min_value, ans3)
 
-    res3 = gsmDataGen.arith.deduce_bound(a, zero <= e3, {b: b_s, c: c_s, d: d_s}, {b: b_s, d: d_s})
-    gsmDataGen.testing.assert_prim_expr_equal(res3.min_value, ans3)
+    res3 = gsm_data_generator.arith.deduce_bound(a, zero <= e3, {b: b_s, c: c_s, d: d_s}, {b: b_s, d: d_s})
+    gsm_data_generator.testing.assert_prim_expr_equal(res3.min_value, ans3)
 
     # tests for `EQ` op
-    res4 = gsmDataGen.arith.deduce_bound(a, a == b, {}, {})
-    gsmDataGen.testing.assert_prim_expr_equal(res4.max_value, b)
-    gsmDataGen.testing.assert_prim_expr_equal(res4.min_value, b)
+    res4 = gsm_data_generator.arith.deduce_bound(a, a == b, {}, {})
+    gsm_data_generator.testing.assert_prim_expr_equal(res4.max_value, b)
+    gsm_data_generator.testing.assert_prim_expr_equal(res4.min_value, b)
 
     # Unsatisfiable `EQ`, variable as one of the Operand
-    res5 = gsmDataGen.arith.deduce_bound(a, (a == b), {b: b_s}, {b: b_s})
+    res5 = gsm_data_generator.arith.deduce_bound(a, (a == b), {b: b_s}, {b: b_s})
     assert str(res5.max_value) == "neg_inf"
     assert str(res5.min_value) == "pos_inf"
 
     # variable `a` on the RHS side
-    res6 = gsmDataGen.arith.deduce_bound(a, 10 == a, {}, {})
-    gsmDataGen.testing.assert_prim_expr_equal(res6.max_value, 10)
-    gsmDataGen.testing.assert_prim_expr_equal(res6.min_value, 10)
+    res6 = gsm_data_generator.arith.deduce_bound(a, 10 == a, {}, {})
+    gsm_data_generator.testing.assert_prim_expr_equal(res6.max_value, 10)
+    gsm_data_generator.testing.assert_prim_expr_equal(res6.min_value, 10)
 
     # Add, Sub in `EQ`
     e4 = (a - c) == (b + d)
     ans4 = b + d + c
-    res7 = gsmDataGen.arith.deduce_bound(a, e4, {b: b_s, c: c_s, d: d_s}, {})
-    gsmDataGen.testing.assert_prim_expr_equal(res7.max_value, ans4)
-    gsmDataGen.testing.assert_prim_expr_equal(res7.min_value, ans4)
+    res7 = gsm_data_generator.arith.deduce_bound(a, e4, {b: b_s, c: c_s, d: d_s}, {})
+    gsm_data_generator.testing.assert_prim_expr_equal(res7.max_value, ans4)
+    gsm_data_generator.testing.assert_prim_expr_equal(res7.min_value, ans4)
 
     # Satisfiable Mul in `EQ` with negative sign
-    res8 = gsmDataGen.arith.deduce_bound(a, (5 * a == -10), {}, {})
-    gsmDataGen.testing.assert_prim_expr_equal(res8.max_value, -2)
-    gsmDataGen.testing.assert_prim_expr_equal(res8.min_value, -2)
+    res8 = gsm_data_generator.arith.deduce_bound(a, (5 * a == -10), {}, {})
+    gsm_data_generator.testing.assert_prim_expr_equal(res8.max_value, -2)
+    gsm_data_generator.testing.assert_prim_expr_equal(res8.min_value, -2)
 
     # Unsatisfiable Mul in `EQ`
     e5 = 4 * a == b
-    res9 = gsmDataGen.arith.deduce_bound(a, e5, {b: b_s}, {})
+    res9 = gsm_data_generator.arith.deduce_bound(a, e5, {b: b_s}, {})
     assert str(res9.max_value) == "neg_inf"
     assert str(res9.min_value) == "pos_inf"
 
-    res10 = gsmDataGen.arith.deduce_bound(a, (b * a == b), {b: b_s}, {})
+    res10 = gsm_data_generator.arith.deduce_bound(a, (b * a == b), {b: b_s}, {})
     # simplifier is now able to prove symbolic relation (b * a % b == 0)
-    gsmDataGen.testing.assert_prim_expr_equal(res10.max_value, 1)
-    gsmDataGen.testing.assert_prim_expr_equal(res10.min_value, 1)
+    gsm_data_generator.testing.assert_prim_expr_equal(res10.max_value, 1)
+    gsm_data_generator.testing.assert_prim_expr_equal(res10.min_value, 1)
 
 
 def test_check():
@@ -126,20 +126,20 @@ def test_check():
     c = te.var("c")
     d = te.var("d")
 
-    b_s = gsmDataGen.arith.IntervalSet(2, 3)
-    c_s = gsmDataGen.arith.IntervalSet(5, 7)
-    d_s = gsmDataGen.arith.IntervalSet(-3, -1)
+    b_s = gsm_data_generator.arith.IntervalSet(2, 3)
+    c_s = gsm_data_generator.arith.IntervalSet(5, 7)
+    d_s = gsm_data_generator.arith.IntervalSet(-3, -1)
 
     # no compare operator
-    res1 = gsmDataGen.arith.deduce_bound(a, a + b, {b: b_s}, {})
+    res1 = gsm_data_generator.arith.deduce_bound(a, a + b, {b: b_s}, {})
     assert res1.is_nothing()
 
     # multiple compare operators
-    res2 = gsmDataGen.arith.deduce_bound(a, (a + b > 3).astype(c.dtype) > c, {b: b_s, c: c_s}, {})
+    res2 = gsm_data_generator.arith.deduce_bound(a, (a + b > 3).astype(c.dtype) > c, {b: b_s, c: c_s}, {})
     assert res2.is_nothing()
 
     # multiple target variable
-    res2 = gsmDataGen.arith.deduce_bound(a, a * 2 - a > b, {b: b_s}, {})
+    res2 = gsm_data_generator.arith.deduce_bound(a, a * 2 - a > b, {b: b_s}, {})
     assert res2.is_nothing()
 
 
@@ -147,27 +147,27 @@ def test_deduce_basic():
     def test_basic(a1, a2, coff):
         a = te.var("a")
         b = te.var("b")
-        b_s = gsmDataGen.arith.IntervalSet(a1, a2)
+        b_s = gsm_data_generator.arith.IntervalSet(a1, a2)
         e0 = b + a * coff + 3
 
-        res1 = gsmDataGen.arith.deduce_bound(a, e0 < 17, {b: b_s}, {b: b_s})
+        res1 = gsm_data_generator.arith.deduce_bound(a, e0 < 17, {b: b_s}, {b: b_s})
         [x, y] = [res1.max_value, b_s.max_value] if coff > 0 else [res1.min_value, b_s.min_value]
-        gsmDataGen.testing.assert_prim_expr_equal((x * coff + 3 + y) < 17, True)
+        gsm_data_generator.testing.assert_prim_expr_equal((x * coff + 3 + y) < 17, True)
 
         # expression containing variable a is on rhs
-        res1 = gsmDataGen.arith.deduce_bound(a, gsmDataGen.tir.const(17, "int32") < e0, {b: b_s}, {b: b_s})
+        res1 = gsm_data_generator.arith.deduce_bound(a, gsm_data_generator.tir.const(17, "int32") < e0, {b: b_s}, {b: b_s})
         [x, y] = [res1.max_value, b_s.max_value] if coff < 0 else [res1.min_value, b_s.min_value]
-        gsmDataGen.testing.assert_prim_expr_equal((x * coff + 3 + y) > 17, True)
+        gsm_data_generator.testing.assert_prim_expr_equal((x * coff + 3 + y) > 17, True)
 
         # expression containing variable a is on rhs
-        res1 = gsmDataGen.arith.deduce_bound(a, gsmDataGen.tir.const(17, "int32") >= e0, {b: b_s}, {b: b_s})
+        res1 = gsm_data_generator.arith.deduce_bound(a, gsm_data_generator.tir.const(17, "int32") >= e0, {b: b_s}, {b: b_s})
         [x, y] = [res1.max_value, b_s.max_value] if coff > 0 else [res1.min_value, b_s.min_value]
 
-        gsmDataGen.testing.assert_prim_expr_equal((x * coff + 3 + y) <= 17, True)
+        gsm_data_generator.testing.assert_prim_expr_equal((x * coff + 3 + y) <= 17, True)
 
-        res1 = gsmDataGen.arith.deduce_bound(a, e0 >= 17, {b: b_s}, {b: b_s})
+        res1 = gsm_data_generator.arith.deduce_bound(a, e0 >= 17, {b: b_s}, {b: b_s})
         [x, y] = [res1.max_value, b_s.max_value] if coff < 0 else [res1.min_value, b_s.min_value]
-        gsmDataGen.testing.assert_prim_expr_equal((x * coff + 3 + y) >= 17, True)
+        gsm_data_generator.testing.assert_prim_expr_equal((x * coff + 3 + y) >= 17, True)
 
     test_basic(0, 4, 4)
     test_basic(1, 5, 4)
@@ -181,26 +181,26 @@ def test_deduce_complex():
     def test_complex(a1, a2, coff):
         a = te.var("a")
         b = te.var("b")
-        b_s = gsmDataGen.arith.IntervalSet(a1, a2)
+        b_s = gsm_data_generator.arith.IntervalSet(a1, a2)
         e0 = (b * 3 + a * coff) * 4
 
-        res1 = gsmDataGen.arith.deduce_bound(a, e0 < 63, {b: b_s}, {b: b_s})
+        res1 = gsm_data_generator.arith.deduce_bound(a, e0 < 63, {b: b_s}, {b: b_s})
         [t, x] = [res1.max_value, b_s.max_value] if coff > 0 else [res1.min_value, b_s.min_value]
-        gsmDataGen.testing.assert_prim_expr_equal(((x * 3 + t * coff) * 4) < 63, True)
+        gsm_data_generator.testing.assert_prim_expr_equal(((x * 3 + t * coff) * 4) < 63, True)
 
         # expression containing variable a is on rhs
-        res1 = gsmDataGen.arith.deduce_bound(a, gsmDataGen.tir.const(63, "int32") >= e0, {b: b_s}, {b: b_s})
+        res1 = gsm_data_generator.arith.deduce_bound(a, gsm_data_generator.tir.const(63, "int32") >= e0, {b: b_s}, {b: b_s})
         [t, x] = [res1.max_value, b_s.max_value] if coff > 0 else [res1.min_value, b_s.min_value]
-        gsmDataGen.testing.assert_prim_expr_equal(((x * 3 + t * coff) * 4) <= 63, True)
+        gsm_data_generator.testing.assert_prim_expr_equal(((x * 3 + t * coff) * 4) <= 63, True)
 
-        res1 = gsmDataGen.arith.deduce_bound(a, e0 > 63, {b: b_s}, {b: b_s})
+        res1 = gsm_data_generator.arith.deduce_bound(a, e0 > 63, {b: b_s}, {b: b_s})
         [t, x] = [res1.max_value, b_s.max_value] if coff < 0 else [res1.min_value, b_s.min_value]
-        gsmDataGen.testing.assert_prim_expr_equal(((x * 3 + t * coff) * 4) > 63, True)
+        gsm_data_generator.testing.assert_prim_expr_equal(((x * 3 + t * coff) * 4) > 63, True)
 
         # expression containing variable a is on rhs
-        res1 = gsmDataGen.arith.deduce_bound(a, gsmDataGen.tir.const(63, "int32") <= e0, {b: b_s}, {b: b_s})
+        res1 = gsm_data_generator.arith.deduce_bound(a, gsm_data_generator.tir.const(63, "int32") <= e0, {b: b_s}, {b: b_s})
         [t, x] = [res1.max_value, b_s.max_value] if coff < 0 else [res1.min_value, b_s.min_value]
-        gsmDataGen.testing.assert_prim_expr_equal(((x * 3 + t * coff) * 4) >= 63, True)
+        gsm_data_generator.testing.assert_prim_expr_equal(((x * 3 + t * coff) * 4) >= 63, True)
 
     test_complex(0, 4, 4)
     test_complex(0, 4, -4)
@@ -214,35 +214,35 @@ def test_deduce_non_support():
     a = te.var("a")
 
     def test_non_support(lhs):
-        res = gsmDataGen.arith.deduce_bound(a, lhs < 10, {}, {})
+        res = gsm_data_generator.arith.deduce_bound(a, lhs < 10, {}, {})
         assert res.is_nothing()
 
-    test_non_support(gsmDataGen.tir.floormod(a, 16))
-    test_non_support(gsmDataGen.tir.Min(a, 16))
-    test_non_support(gsmDataGen.tir.Max(a, 16))
-    test_non_support(gsmDataGen.tir.LE(a, 16))
-    test_non_support(gsmDataGen.tir.LT(a, 16))
-    test_non_support(gsmDataGen.tir.GE(a, 16))
-    test_non_support(gsmDataGen.tir.GT(a, 16))
-    test_non_support(gsmDataGen.tir.EQ(a, 16))
-    test_non_support(gsmDataGen.tir.NE(a, 16))
-    test_non_support(gsmDataGen.tir.log(a))
-    test_non_support(gsmDataGen.tir.BufferLoad(decl_buffer([16], "int32"), [a]))
+    test_non_support(gsm_data_generator.tir.floormod(a, 16))
+    test_non_support(gsm_data_generator.tir.Min(a, 16))
+    test_non_support(gsm_data_generator.tir.Max(a, 16))
+    test_non_support(gsm_data_generator.tir.LE(a, 16))
+    test_non_support(gsm_data_generator.tir.LT(a, 16))
+    test_non_support(gsm_data_generator.tir.GE(a, 16))
+    test_non_support(gsm_data_generator.tir.GT(a, 16))
+    test_non_support(gsm_data_generator.tir.EQ(a, 16))
+    test_non_support(gsm_data_generator.tir.NE(a, 16))
+    test_non_support(gsm_data_generator.tir.log(a))
+    test_non_support(gsm_data_generator.tir.BufferLoad(decl_buffer([16], "int32"), [a]))
 
 
 def test_deduce_floordiv():
     def do_test(gen_expr, dom_map, expect_min, expect_max):
         a = te.var("a")
         expr = gen_expr(a)
-        res = gsmDataGen.arith.deduce_bound(a, expr, dom_map, dom_map)
+        res = gsm_data_generator.arith.deduce_bound(a, expr, dom_map, dom_map)
         if isinstance(expect_min, str):
             assert str(res.min_value) == expect_min
         else:
-            gsmDataGen.testing.assert_prim_expr_equal(res.min_value, expect_min)
+            gsm_data_generator.testing.assert_prim_expr_equal(res.min_value, expect_min)
         if isinstance(expect_max, str):
             assert str(res.max_value) == expect_max
         else:
-            gsmDataGen.testing.assert_prim_expr_equal(res.max_value, expect_max)
+            gsm_data_generator.testing.assert_prim_expr_equal(res.max_value, expect_max)
 
     # test basic cases
     do_test(lambda a: a // 8 > 3, {}, 32, "pos_inf")
@@ -260,7 +260,7 @@ def test_deduce_floordiv():
 
     # test nested cases
     b = te.var("b")
-    bs = {b: gsmDataGen.arith.IntervalSet(2, 6)}
+    bs = {b: gsm_data_generator.arith.IntervalSet(2, 6)}
     do_test(lambda a: b * 3 + a // 8 < 63, bs, "neg_inf", 359)
     do_test(lambda a: b * 3 + a // 8 <= 63, bs, "neg_inf", 367)
     do_test(lambda a: b * 3 + a // 8 > 63, bs, 464, "pos_inf")
@@ -268,4 +268,4 @@ def test_deduce_floordiv():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

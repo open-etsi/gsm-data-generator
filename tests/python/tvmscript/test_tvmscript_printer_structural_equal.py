@@ -17,10 +17,10 @@
 
 import pytest
 
-import gsmDataGen
-from gsmDataGen.ir import assert_structural_equal
-from gsmDataGen.ffi.access_path import AccessPath
-from gsmDataGen.script import ir as I, tir as T
+import gsm_data_generator
+from gsm_data_generator.ir import assert_structural_equal
+from gsm_data_generator.ffi.access_path import AccessPath
+from gsm_data_generator.script import ir as I, tir as T
 
 
 def _error_message(exception):
@@ -153,4 +153,4 @@ def test_for():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

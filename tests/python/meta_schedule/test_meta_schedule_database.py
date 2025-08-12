@@ -21,20 +21,20 @@ import tempfile
 from typing import Callable, List, Optional
 
 import pytest
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import meta_schedule as ms
-from gsmDataGen import tir
-from gsmDataGen.ir.module import IRModule
-from gsmDataGen.meta_schedule.database import TuningRecord, Workload
-from gsmDataGen.script import tir as T
-from gsmDataGen.target import Target
-from gsmDataGen.tir import Schedule
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import meta_schedule as ms
+from gsm_data_generator import tir
+from gsm_data_generator.ir.module import IRModule
+from gsm_data_generator.meta_schedule.database import TuningRecord, Workload
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.target import Target
+from gsm_data_generator.tir import Schedule
 
 
 # pylint: disable=invalid-name,no-member,line-too-long,too-many-nested-blocks,no-self-argument
 # fmt: off
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Matmul:
     @T.prim_func
     def main(a: T.handle, b: T.handle, c: T.handle) -> None:
@@ -50,7 +50,7 @@ class Matmul:
                 C[vi, vj] = C[vi, vj] + A[vi, vk] * B[vk, vj]
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class MatmulRelu:
     @T.prim_func
     def main(a: T.handle, b: T.handle, d: T.handle) -> None:  # pylint: disable=no-self-argument
@@ -104,7 +104,7 @@ def _equal_record(a: ms.database.TuningRecord, b: ms.database.TuningRecord):
     assert str(a.run_secs) == str(b.run_secs)
     # AWAIT(@zxybazh): change to export after fixing "(bool)0"
     assert str(a.target) == str(b.target)
-    gsmDataGen.ir.assert_structural_equal(a.workload.mod, b.workload.mod)
+    gsm_data_generator.ir.assert_structural_equal(a.workload.mod, b.workload.mod)
     for arg0, arg1 in zip(a.args_info, b.args_info):
         assert str(arg0.as_json()) == str(arg1.as_json())
 
@@ -118,13 +118,13 @@ class PyMemoryDatabaseDefault(ms.database.PyDatabase):
 
     def has_workload(self, mod: IRModule) -> bool:
         for workload in self.workloads_:
-            if gsmDataGen.ir.structural_equal(mod, workload.mod):
+            if gsm_data_generator.ir.structural_equal(mod, workload.mod):
                 return True
 
     def commit_workload(self, mod: IRModule) -> ms.database.Workload:
         if self.has_workload(mod):
             for workload in self.workloads_:
-                if gsmDataGen.ir.structural_equal(mod, workload.mod):
+                if gsm_data_generator.ir.structural_equal(mod, workload.mod):
                     return workload
         else:
             workload = ms.database.Workload(mod)
@@ -141,7 +141,7 @@ class PyMemoryDatabaseDefault(ms.database.PyDatabase):
         return sorted(
             list(
                 filter(
-                    lambda x: gsmDataGen.ir.structural_equal(workload.mod, x.workload.mod),
+                    lambda x: gsm_data_generator.ir.structural_equal(workload.mod, x.workload.mod),
                     self.tuning_records_,
                 )
             ),
@@ -161,13 +161,13 @@ class PyMemoryDatabaseOverride(ms.database.PyDatabase):
 
     def has_workload(self, mod: IRModule) -> bool:
         for workload in self.workloads_:
-            if gsmDataGen.ir.structural_equal(mod, workload.mod):
+            if gsm_data_generator.ir.structural_equal(mod, workload.mod):
                 return True
 
     def commit_workload(self, mod: IRModule) -> ms.database.Workload:
         if self.has_workload(mod):
             for workload in self.workloads_:
-                if gsmDataGen.ir.structural_equal(mod, workload.mod):
+                if gsm_data_generator.ir.structural_equal(mod, workload.mod):
                     return workload
         else:
             workload = ms.database.Workload(mod)
@@ -184,7 +184,7 @@ class PyMemoryDatabaseOverride(ms.database.PyDatabase):
         return sorted(
             list(
                 filter(
-                    lambda x: gsmDataGen.ir.structural_equal(workload.mod, x.workload.mod),
+                    lambda x: gsm_data_generator.ir.structural_equal(workload.mod, x.workload.mod),
                     self.tuning_records_,
                 )
             ),
@@ -235,7 +235,7 @@ def test_meta_schedule_tuning_record_round_trip():
             _create_schedule(mod, _schedule_matmul).trace,
             workload,
             [T.float32(1.5), T.float32(2.5), T.float32(1.8)],
-            gsmDataGen.target.Target("llvm"),
+            gsm_data_generator.target.Target("llvm"),
             ms.arg_info.ArgInfo.from_prim_func(func=mod["main"]),
         )
         database.commit_tuning_record(record)
@@ -260,7 +260,7 @@ def test_meta_schedule_database_has_workload():
             _create_schedule(mod, _schedule_matmul).trace,
             workload,
             [1.5, 2.5, 1.8],
-            gsmDataGen.target.Target("llvm"),
+            gsm_data_generator.target.Target("llvm"),
             ms.arg_info.ArgInfo.from_prim_func(func=mod["main"]),
         )
         database.commit_tuning_record(record)
@@ -278,7 +278,7 @@ def test_meta_schedule_database_add_entry():
             _create_schedule(mod, _schedule_matmul).trace,
             workload,
             [1.5, 2.5, 1.8],
-            gsmDataGen.target.Target("llvm"),
+            gsm_data_generator.target.Target("llvm"),
             ms.arg_info.ArgInfo.from_prim_func(func=mod["main"]),
         )
         database.commit_tuning_record(record)
@@ -298,7 +298,7 @@ def test_meta_schedule_database_missing():
             _create_schedule(mod, _schedule_matmul).trace,
             workload,
             [1.5, 2.5, 1.8],
-            gsmDataGen.target.Target("llvm"),
+            gsm_data_generator.target.Target("llvm"),
             ms.arg_info.ArgInfo.from_prim_func(func=mod["main"]),
         )
         database.commit_tuning_record(record)
@@ -317,42 +317,42 @@ def test_meta_schedule_database_sorting():
                 trace,
                 token,
                 [7.0, 8.0, 9.0],
-                gsmDataGen.target.Target("llvm"),
+                gsm_data_generator.target.Target("llvm"),
                 ms.arg_info.ArgInfo.from_prim_func(func=mod["main"]),
             ),
             ms.database.TuningRecord(
                 trace,
                 token,
                 [1.0, 2.0, 3.0],
-                gsmDataGen.target.Target("llvm"),
+                gsm_data_generator.target.Target("llvm"),
                 ms.arg_info.ArgInfo.from_prim_func(func=mod["main"]),
             ),
             ms.database.TuningRecord(
                 trace,
                 token,
                 [4.0, 5.0, 6.0],
-                gsmDataGen.target.Target("llvm"),
+                gsm_data_generator.target.Target("llvm"),
                 ms.arg_info.ArgInfo.from_prim_func(func=mod["main"]),
             ),
             ms.database.TuningRecord(
                 trace,
                 token,
                 [1.1, 1.2, 600.0],
-                gsmDataGen.target.Target("llvm"),
+                gsm_data_generator.target.Target("llvm"),
                 ms.arg_info.ArgInfo.from_prim_func(func=mod["main"]),
             ),
             ms.database.TuningRecord(
                 trace,
                 token,
                 [1.0, 100.0, 6.0],
-                gsmDataGen.target.Target("llvm"),
+                gsm_data_generator.target.Target("llvm"),
                 ms.arg_info.ArgInfo.from_prim_func(func=mod["main"]),
             ),
             ms.database.TuningRecord(
                 trace,
                 token,
                 [4.0, 9.0, 8.0],
-                gsmDataGen.target.Target("llvm"),
+                gsm_data_generator.target.Target("llvm"),
                 ms.arg_info.ArgInfo.from_prim_func(func=mod["main"]),
             ),
         ]
@@ -379,21 +379,21 @@ def test_meta_schedule_database_reload():
                 trace,
                 token,
                 [7.0, 8.0, 9.0],
-                gsmDataGen.target.Target("llvm"),
+                gsm_data_generator.target.Target("llvm"),
                 ms.arg_info.ArgInfo.from_prim_func(func=mod["main"]),
             ),
             ms.database.TuningRecord(
                 trace,
                 token,
                 [1.0, 2.0, 3.0],
-                gsmDataGen.target.Target("llvm"),
+                gsm_data_generator.target.Target("llvm"),
                 ms.arg_info.ArgInfo.from_prim_func(func=mod["main"]),
             ),
             ms.database.TuningRecord(
                 trace,
                 token,
                 [4.0, 5.0, 6.0],
-                gsmDataGen.target.Target("llvm"),
+                gsm_data_generator.target.Target("llvm"),
                 ms.arg_info.ArgInfo.from_prim_func(func=mod["main"]),
             ),
         ]
@@ -416,7 +416,7 @@ def test_meta_schedule_database_reload():
 
 def test_meta_schedule_database_union():
     mod: IRModule = Matmul
-    target = gsmDataGen.target.Target("llvm")
+    target = gsm_data_generator.target.Target("llvm")
     arg_info = ms.arg_info.ArgInfo.from_prim_func(func=mod["main"])
     db_1 = ms.database.MemoryDatabase()
     db_2 = ms.database.MemoryDatabase()
@@ -453,7 +453,7 @@ def test_meta_schedule_database_union():
 
 def test_meta_schedule_pydatabase_default_query():
     mod: IRModule = Matmul
-    target = gsmDataGen.target.Target("llvm")
+    target = gsm_data_generator.target.Target("llvm")
     arg_info = ms.arg_info.ArgInfo.from_prim_func(func=mod["main"])
     db = PyMemoryDatabaseDefault()  # pylint: disable=invalid-name
     sch = _create_schedule(mod, _schedule_matmul)
@@ -477,22 +477,22 @@ def test_meta_schedule_pydatabase_default_query():
     record = query(db, mod, target, "record")
     assert record is not None and record.run_secs[0].value == 1.0
     sch_res = query(db, mod, target, "schedule")
-    assert sch_res is not None and gsmDataGen.ir.structural_equal(sch_res.mod, sch.mod)
+    assert sch_res is not None and gsm_data_generator.ir.structural_equal(sch_res.mod, sch.mod)
     mod_res = query(db, mod, target, "ir_module")
-    assert mod_res is not None and gsmDataGen.ir.structural_equal(mod_res, sch.mod)
+    assert mod_res is not None and gsm_data_generator.ir.structural_equal(mod_res, sch.mod)
 
     commit_record(Schedule(mod).trace, db, 0.2)  # Empty Trace
     record = query(db, mod, target, "record")
     assert record is not None and record.run_secs[0].value == 0.2
     sch_res = query(db, mod, target, "schedule")
-    assert sch_res is not None and gsmDataGen.ir.structural_equal(sch_res.mod, mod)
+    assert sch_res is not None and gsm_data_generator.ir.structural_equal(sch_res.mod, mod)
     mod_res = query(db, mod, target, "ir_module")
-    assert mod_res is not None and gsmDataGen.ir.structural_equal(mod_res, mod)
+    assert mod_res is not None and gsm_data_generator.ir.structural_equal(mod_res, mod)
 
 
 def test_meta_schedule_pydatabase_override_query():
     mod: IRModule = Matmul
-    target = gsmDataGen.target.Target("llvm")
+    target = gsm_data_generator.target.Target("llvm")
     arg_info = ms.arg_info.ArgInfo.from_prim_func(func=mod["main"])
     db = PyMemoryDatabaseOverride()  # pylint: disable=invalid-name
     sch = _create_schedule(mod, _schedule_matmul)
@@ -516,17 +516,17 @@ def test_meta_schedule_pydatabase_override_query():
     record = query(db, mod, target, "record")
     assert record is not None and record.run_secs[0].value == 1.14
     sch_res = query(db, mod, target, "schedule")
-    assert sch_res is not None and gsmDataGen.ir.structural_equal(sch_res.mod, sch.mod)
+    assert sch_res is not None and gsm_data_generator.ir.structural_equal(sch_res.mod, sch.mod)
     mod_res = query(db, mod, target, "ir_module")
-    assert mod_res is not None and gsmDataGen.ir.structural_equal(mod_res, sch.mod)
+    assert mod_res is not None and gsm_data_generator.ir.structural_equal(mod_res, sch.mod)
 
     commit_record(Schedule(mod).trace, db, 0.514)  # Empty Trace
     record = query(db, mod, target, "record")
     assert record is not None and record.run_secs[0].value == 1.14  # Override to 2nd best
     sch_res = query(db, mod, target, "schedule")
-    assert sch_res is not None and gsmDataGen.ir.structural_equal(sch_res.mod, sch.mod)
+    assert sch_res is not None and gsm_data_generator.ir.structural_equal(sch_res.mod, sch.mod)
     mod_res = query(db, mod, target, "ir_module")
-    assert mod_res is not None and gsmDataGen.ir.structural_equal(mod_res, sch.mod)
+    assert mod_res is not None and gsm_data_generator.ir.structural_equal(mod_res, sch.mod)
 
 
 def test_meta_schedule_pydatabase_current():
@@ -543,7 +543,7 @@ def call_get_top_k(run_secs_list, database, k):
             _create_schedule(mod, _schedule_matmul).trace,
             workload,
             run_secs,
-            gsmDataGen.target.Target("llvm"),
+            gsm_data_generator.target.Target("llvm"),
             ms.arg_info.ArgInfo.from_prim_func(func=mod["main"]),
         )
         database.commit_tuning_record(record)
@@ -604,4 +604,4 @@ def test_memory_database_commit_workload(f_mod, mod_eq):
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

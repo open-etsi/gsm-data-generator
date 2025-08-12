@@ -18,9 +18,9 @@
 
 import numpy as np
 
-import gsmDataGen
-from gsmDataGen import tir
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+from gsm_data_generator import tir
+from gsm_data_generator.script import tir as T
 
 from .infrastructure import get_hexagon_target
 
@@ -60,20 +60,20 @@ def compute(comp_type, outer, inner, dtype):
 class TestAsyncSoftwarePipeline:
     """Async software pipeline test class."""
 
-    outer = gsmDataGen.testing.parameter(8, 16)
-    inner = gsmDataGen.testing.parameter(64, 128)
-    dtype = gsmDataGen.testing.parameter("uint8", "float16")
-    scope = gsmDataGen.testing.parameter("global", "global.vtcm")
+    outer = gsm_data_generator.testing.parameter(8, 16)
+    inner = gsm_data_generator.testing.parameter(64, 128)
+    dtype = gsm_data_generator.testing.parameter("uint8", "float16")
+    scope = gsm_data_generator.testing.parameter("global", "global.vtcm")
     # TODO(Joseph) Turn on "multi_input_diffQ" compute type once we have upstreamed
     # changes in the InjectSoftwarePipeline pass to alleviate this restriction:
     # 'a_buffer dependency on multiple async stages is not supported'
-    comp_type = gsmDataGen.testing.parameter("single_input", "multi_input_sameQ")
+    comp_type = gsm_data_generator.testing.parameter("single_input", "multi_input_sameQ")
     # TODO(Straw) Add back "cache_write" schedule type once we have upstreamed
     # buffer dependency analysis in InjectSoftwarePipeline pass
     # to insert approprite TIR "wait" attributes for this schedule
-    sched_type = gsmDataGen.testing.parameter("cache_read", "cache_read_write")
+    sched_type = gsm_data_generator.testing.parameter("cache_read", "cache_read_write")
 
-    @gsmDataGen.testing.fixture
+    @gsm_data_generator.testing.fixture
     def data(self, comp_type, outer, inner, dtype):
         out_np = np.random.uniform(low=0, high=128, size=(outer, inner)).astype(dtype)
         a_np = np.random.uniform(low=0, high=128, size=(outer, inner)).astype(dtype)
@@ -83,7 +83,7 @@ class TestAsyncSoftwarePipeline:
             b_np = np.random.uniform(low=0, high=128, size=(outer, inner)).astype(dtype)
             return out_np, a_np, b_np
 
-    @gsmDataGen.testing.fixture
+    @gsm_data_generator.testing.fixture
     def verify(self, dtype):
         def check(out, ref):
             if "int" in dtype:
@@ -93,7 +93,7 @@ class TestAsyncSoftwarePipeline:
 
         return check
 
-    @gsmDataGen.testing.fixture
+    @gsm_data_generator.testing.fixture
     def reference(self, comp_type):
         """Returns reference data."""
         if comp_type == "single_input":
@@ -109,7 +109,7 @@ class TestAsyncSoftwarePipeline:
 
             return a_plus_b_plus_1_ref
 
-    @gsmDataGen.testing.fixture
+    @gsm_data_generator.testing.fixture
     def schedule(self, comp_type, sched_type, outer, inner, dtype, scope):
         """Generate schedule."""
         sch = tir.Schedule(compute(comp_type, outer, inner, dtype))
@@ -164,7 +164,7 @@ class TestAsyncSoftwarePipeline:
 
         return sch
 
-    @gsmDataGen.testing.requires_hexagon
+    @gsm_data_generator.testing.requires_hexagon
     def test_async_software_pipeline(
         self, hexagon_launcher, comp_type, data, reference, schedule, verify
     ):
@@ -177,27 +177,27 @@ class TestAsyncSoftwarePipeline:
             b_np = data[2]
             ref = reference(a_np, b_np)
 
-        with gsmDataGen.transform.PassContext(
+        with gsm_data_generator.transform.PassContext(
             config={
                 "tir.use_async_copy": 1,
                 "tir.experimental_dma_bypass_cache": 1,
             }
         ):
-            func = gsmDataGen.compile(schedule.mod["main"], target=get_hexagon_target("v68"))
+            func = gsm_data_generator.compile(schedule.mod["main"], target=get_hexagon_target("v68"))
 
         with hexagon_launcher.create_session() as hexagon_session:
             dev = hexagon_session.device
             mod = hexagon_session.load_module(func)
-            out = gsmDataGen.nd.array(out_np, device=dev)
-            a = gsmDataGen.nd.array(a_np, device=dev)
+            out = gsm_data_generator.nd.array(out_np, device=dev)
+            a = gsm_data_generator.nd.array(a_np, device=dev)
             if comp_type == "single_input":
                 mod(a, out)
             else:
-                b = gsmDataGen.nd.array(b_np, device=dev)
+                b = gsm_data_generator.nd.array(b_np, device=dev)
                 mod(a, b, out)
 
             verify(out, ref)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

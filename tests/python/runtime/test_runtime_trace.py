@@ -14,23 +14,23 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-import gsmDataGen
-from gsmDataGen import te
+import gsm_data_generator
+from gsm_data_generator import te
 import numpy as np
 
 
 def test_trace_default_action():
     n = 2
     x = te.placeholder((n, n, n), name="X", dtype="float32")
-    y = te.compute(x.shape, lambda i, j, k: gsmDataGen.tir.trace([i, j, k, x[i][j][k]]))
-    f = gsmDataGen.compile(te.create_prim_func([x, y]), target="llvm")
-    xnd = gsmDataGen.nd.array(np.ones((n, n, n), dtype=x.dtype))
-    ynd = gsmDataGen.nd.array(np.zeros((n, n, n), dtype=y.dtype))
+    y = te.compute(x.shape, lambda i, j, k: gsm_data_generator.tir.trace([i, j, k, x[i][j][k]]))
+    f = gsm_data_generator.compile(te.create_prim_func([x, y]), target="llvm")
+    xnd = gsm_data_generator.nd.array(np.ones((n, n, n), dtype=x.dtype))
+    ynd = gsm_data_generator.nd.array(np.zeros((n, n, n), dtype=y.dtype))
     f(xnd, ynd)
 
 
 def test_trace_expr_assign():
-    @gsmDataGen.register_func("tvm.tir.trace_callback2")
+    @gsm_data_generator.register_func("tvm.tir.trace_callback2")
     def trace_buffer(x):
         return
 
@@ -38,16 +38,16 @@ def test_trace_expr_assign():
         n = 4
         x = te.placeholder((n, n, n), name="X", dtype=dtype)
         y = te.compute(
-            x.shape, lambda i, j, k: gsmDataGen.tir.trace([x[i][j][k]], "tvm.tir.trace_callback2")
+            x.shape, lambda i, j, k: gsm_data_generator.tir.trace([x[i][j][k]], "tvm.tir.trace_callback2")
         )
         z = te.compute(
-            x.shape, lambda i, j, k: gsmDataGen.tir.trace([y[i][j][k]], "tvm.tir.trace_callback2")
+            x.shape, lambda i, j, k: gsm_data_generator.tir.trace([y[i][j][k]], "tvm.tir.trace_callback2")
         )
-        f = gsmDataGen.compile(te.create_prim_func([x, y, z]), "llvm")
+        f = gsm_data_generator.compile(te.create_prim_func([x, y, z]), "llvm")
 
-        xnd = gsmDataGen.nd.array(np.ones((n, n, n), dtype=x.dtype))
-        ynd = gsmDataGen.nd.array(np.zeros((n, n, n), dtype=y.dtype))
-        znd = gsmDataGen.nd.array(np.zeros((n, n, n), dtype=z.dtype))
+        xnd = gsm_data_generator.nd.array(np.ones((n, n, n), dtype=x.dtype))
+        ynd = gsm_data_generator.nd.array(np.zeros((n, n, n), dtype=y.dtype))
+        znd = gsm_data_generator.nd.array(np.zeros((n, n, n), dtype=z.dtype))
         f(xnd, ynd, znd)
 
         assert np.array_equal(xnd.numpy(), np.ones((n, n, n)))
@@ -59,7 +59,7 @@ def test_trace_expr_assign():
 
 
 def test_trace_expr_sum_generated():
-    @gsmDataGen.register_func("tvm.tir.trace_callback3")
+    @gsm_data_generator.register_func("tvm.tir.trace_callback3")
     def trace_buffer(x):
         return
 
@@ -69,13 +69,13 @@ def test_trace_expr_sum_generated():
         b = te.placeholder((n, n, n), name="b", dtype=dtype)
         c = te.compute(
             a.shape,
-            lambda i, j, k: gsmDataGen.tir.trace([a[i][j][k]], "tvm.tir.trace_callback3")
-            + gsmDataGen.tir.trace([b[i][j][k]], "tvm.tir.trace_callback3"),
+            lambda i, j, k: gsm_data_generator.tir.trace([a[i][j][k]], "tvm.tir.trace_callback3")
+            + gsm_data_generator.tir.trace([b[i][j][k]], "tvm.tir.trace_callback3"),
         )
-        f = gsmDataGen.compile(te.create_prim_func([a, b, c]))
-        xnd = gsmDataGen.nd.array(np.array(np.ones((n, n, n), dtype=a.dtype)))
-        ynd = gsmDataGen.nd.array(np.array(np.ones((n, n, n), dtype=b.dtype)))
-        znd = gsmDataGen.nd.array(np.zeros((n, n, n), dtype=c.dtype))
+        f = gsm_data_generator.compile(te.create_prim_func([a, b, c]))
+        xnd = gsm_data_generator.nd.array(np.array(np.ones((n, n, n), dtype=a.dtype)))
+        ynd = gsm_data_generator.nd.array(np.array(np.ones((n, n, n), dtype=b.dtype)))
+        znd = gsm_data_generator.nd.array(np.zeros((n, n, n), dtype=c.dtype))
         f(xnd, ynd, znd)
         assert np.array_equal(znd.numpy(), xnd.numpy() + ynd.numpy())
 
@@ -84,7 +84,7 @@ def test_trace_expr_sum_generated():
 
 
 def test_trace_expr_sum_args():
-    @gsmDataGen.register_func("tvm.tir.trace_silent")
+    @gsm_data_generator.register_func("tvm.tir.trace_silent")
     def silent(*args):
         return
 
@@ -97,17 +97,17 @@ def test_trace_expr_sum_args():
 
         c = te.compute(
             a.shape,
-            lambda i, j, k: gsmDataGen.tir.trace([i, j, k, a[i][j][k]], "tvm.tir.trace_silent")
-            + gsmDataGen.tir.trace([i, j, k, b[i][j][k]], "tvm.tir.trace_silent")
-            + gsmDataGen.tir.trace([i, j, k, d[i][j][k]], "tvm.tir.trace_silent")
-            + gsmDataGen.tir.trace([i, j, k, e[i][j][k]], "tvm.tir.trace_silent"),
+            lambda i, j, k: gsm_data_generator.tir.trace([i, j, k, a[i][j][k]], "tvm.tir.trace_silent")
+            + gsm_data_generator.tir.trace([i, j, k, b[i][j][k]], "tvm.tir.trace_silent")
+            + gsm_data_generator.tir.trace([i, j, k, d[i][j][k]], "tvm.tir.trace_silent")
+            + gsm_data_generator.tir.trace([i, j, k, e[i][j][k]], "tvm.tir.trace_silent"),
         )
-        f = gsmDataGen.compile(te.create_prim_func([a, b, d, e, c]))
-        a_nd = gsmDataGen.nd.array(np.array(np.ones((n, n, n), dtype=a.dtype)))
-        b_nd = gsmDataGen.nd.array(np.array(np.ones((n, n, n), dtype=b.dtype)))
-        d_nd = gsmDataGen.nd.array(np.array(np.ones((n, n, n), dtype=d.dtype)))
-        e_nd = gsmDataGen.nd.array(np.array(np.ones((n, n, n), dtype=e.dtype)))
-        c_nd = gsmDataGen.nd.array(np.zeros((n, n, n), dtype=c.dtype))
+        f = gsm_data_generator.compile(te.create_prim_func([a, b, d, e, c]))
+        a_nd = gsm_data_generator.nd.array(np.array(np.ones((n, n, n), dtype=a.dtype)))
+        b_nd = gsm_data_generator.nd.array(np.array(np.ones((n, n, n), dtype=b.dtype)))
+        d_nd = gsm_data_generator.nd.array(np.array(np.ones((n, n, n), dtype=d.dtype)))
+        e_nd = gsm_data_generator.nd.array(np.array(np.ones((n, n, n), dtype=e.dtype)))
+        c_nd = gsm_data_generator.nd.array(np.zeros((n, n, n), dtype=c.dtype))
         f(a_nd, b_nd, d_nd, e_nd, c_nd)
         assert np.array_equal(
             c_nd.numpy(), a_nd.numpy() + b_nd.numpy() + d_nd.numpy() + e_nd.numpy()
@@ -118,7 +118,7 @@ def test_trace_expr_sum_args():
 
 
 def test_trace_expr_sum_custom():
-    @gsmDataGen.register_func("tvm.tir.trace_callback4")
+    @gsm_data_generator.register_func("tvm.tir.trace_callback4")
     def trace_buffer(x):
         return
 
@@ -128,15 +128,15 @@ def test_trace_expr_sum_custom():
         b = te.placeholder((n, n), name="b", dtype=dtype)
         c = te.compute(
             a.shape,
-            lambda i, j: gsmDataGen.tir.trace([a[i][j]], "tvm.tir.trace_callback4")
-            + gsmDataGen.tir.trace([b[i][j]], "tvm.tir.trace_callback4"),
+            lambda i, j: gsm_data_generator.tir.trace([a[i][j]], "tvm.tir.trace_callback4")
+            + gsm_data_generator.tir.trace([b[i][j]], "tvm.tir.trace_callback4"),
         )
-        f = gsmDataGen.compile(te.create_prim_func([a, b, c]))
+        f = gsm_data_generator.compile(te.create_prim_func([a, b, c]))
         npa = np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]], dtype=a.dtype)
         npb = np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]], dtype=a.dtype)
-        xnd = gsmDataGen.nd.array(npa)
-        ynd = gsmDataGen.nd.array(npb)
-        znd = gsmDataGen.nd.array(np.zeros((n, n), dtype=c.dtype))
+        xnd = gsm_data_generator.nd.array(npa)
+        ynd = gsm_data_generator.nd.array(npb)
+        znd = gsm_data_generator.nd.array(np.zeros((n, n), dtype=c.dtype))
         f(xnd, ynd, znd)
         assert np.array_equal(znd.numpy(), npa + npb)
 
@@ -145,24 +145,24 @@ def test_trace_expr_sum_custom():
 
 
 def test_trace_can_change_traced_value_int():
-    @gsmDataGen.register_func("tvm.tir.trace_change_int_first")
+    @gsm_data_generator.register_func("tvm.tir.trace_change_int_first")
     def trace_buffer(x):
         return 13
 
-    @gsmDataGen.register_func("tvm.tir.trace_change_int_second")
+    @gsm_data_generator.register_func("tvm.tir.trace_change_int_second")
     def trace_buffer(x):
         return 14
 
     def check_assign(dtype):
         n = 4
         x = te.placeholder((n,), name="X", dtype=dtype)
-        y = te.compute(x.shape, lambda i: gsmDataGen.tir.trace([x[i]], "tvm.tir.trace_change_int_first"))
-        z = te.compute(x.shape, lambda i: gsmDataGen.tir.trace([y[i]], "tvm.tir.trace_change_int_second"))
-        f = gsmDataGen.compile(te.create_prim_func([x, y, z]))
+        y = te.compute(x.shape, lambda i: gsm_data_generator.tir.trace([x[i]], "tvm.tir.trace_change_int_first"))
+        z = te.compute(x.shape, lambda i: gsm_data_generator.tir.trace([y[i]], "tvm.tir.trace_change_int_second"))
+        f = gsm_data_generator.compile(te.create_prim_func([x, y, z]))
 
-        xnd = gsmDataGen.nd.array(np.ones((n,), dtype=x.dtype))
-        ynd = gsmDataGen.nd.array(np.zeros((n,), dtype=y.dtype))
-        znd = gsmDataGen.nd.array(np.zeros((n,), dtype=z.dtype))
+        xnd = gsm_data_generator.nd.array(np.ones((n,), dtype=x.dtype))
+        ynd = gsm_data_generator.nd.array(np.zeros((n,), dtype=y.dtype))
+        znd = gsm_data_generator.nd.array(np.zeros((n,), dtype=z.dtype))
         f(xnd, ynd, znd)
         check_array_first = np.array([13, 13, 13, 13])
         check_array_second = np.array([14, 14, 14, 14])
@@ -174,26 +174,26 @@ def test_trace_can_change_traced_value_int():
 
 
 def test_trace_can_change_traced_value_float():
-    @gsmDataGen.register_func("tvm.tir.trace_change_float_first")
+    @gsm_data_generator.register_func("tvm.tir.trace_change_float_first")
     def trace_buffer(x):
         return 13.0
 
-    @gsmDataGen.register_func("tvm.tir.trace_change_float_second")
+    @gsm_data_generator.register_func("tvm.tir.trace_change_float_second")
     def trace_buffer(x):
         return 14.0
 
     def check_assign(dtype):
         n = 4
         x = te.placeholder((n,), name="X", dtype=dtype)
-        y = te.compute(x.shape, lambda i: gsmDataGen.tir.trace([x[i]], "tvm.tir.trace_change_float_first"))
+        y = te.compute(x.shape, lambda i: gsm_data_generator.tir.trace([x[i]], "tvm.tir.trace_change_float_first"))
         z = te.compute(
-            x.shape, lambda i: gsmDataGen.tir.trace([y[i]], "tvm.tir.trace_change_float_second")
+            x.shape, lambda i: gsm_data_generator.tir.trace([y[i]], "tvm.tir.trace_change_float_second")
         )
-        f = gsmDataGen.compile(te.create_prim_func([x, y, z]), target="llvm")
+        f = gsm_data_generator.compile(te.create_prim_func([x, y, z]), target="llvm")
 
-        xnd = gsmDataGen.nd.array(np.ones((n,), dtype=x.dtype))
-        ynd = gsmDataGen.nd.array(np.zeros((n,), dtype=y.dtype))
-        znd = gsmDataGen.nd.array(np.zeros((n,), dtype=z.dtype))
+        xnd = gsm_data_generator.nd.array(np.ones((n,), dtype=x.dtype))
+        ynd = gsm_data_generator.nd.array(np.zeros((n,), dtype=y.dtype))
+        znd = gsm_data_generator.nd.array(np.zeros((n,), dtype=z.dtype))
         f(xnd, ynd, znd)
         check_array_first = np.array([13.0, 13.0, 13.0, 13.0])
         check_array_second = np.array([14.0, 14.0, 14.0, 14.0])
@@ -205,4 +205,4 @@ def test_trace_can_change_traced_value_float():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

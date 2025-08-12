@@ -16,13 +16,13 @@
 # under the License.
 import numpy as np
 import pytest
-import gsmDataGen
-import gsmDataGen.script
-from gsmDataGen import te, topi
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.script
+from gsm_data_generator import te, topi
+from gsm_data_generator.script import tir as T
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class PreRollingBuffer:
     @T.prim_func
     def main(
@@ -91,7 +91,7 @@ class PreRollingBuffer:
                                 )
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class PostRollingBuffer:
     @T.prim_func
     def main(
@@ -169,11 +169,11 @@ class PostRollingBuffer:
 
 def test_rolling_buffer_ir_transform():
     mod = PreRollingBuffer
-    mod = gsmDataGen.tir.transform.InjectRollingBuffer()(mod)
+    mod = gsm_data_generator.tir.transform.InjectRollingBuffer()(mod)
     script = mod.script()
-    mod = gsmDataGen.script.from_source(script)
-    gsmDataGen.ir.assert_structural_equal(mod["main"], PostRollingBuffer["main"], True)
+    mod = gsm_data_generator.script.from_source(script)
+    gsm_data_generator.ir.assert_structural_equal(mod["main"], PostRollingBuffer["main"], True)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

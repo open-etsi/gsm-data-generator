@@ -18,11 +18,11 @@
 import numpy as np
 import pytest
 
-import gsmDataGen
-import gsmDataGen.script
-import gsmDataGen.testing
-from gsmDataGen import relax
-from gsmDataGen.script import relax as R, ir as I
+import gsm_data_generator
+import gsm_data_generator.script
+import gsm_data_generator.testing
+from gsm_data_generator import relax
+from gsm_data_generator.script import relax as R, ir as I
 
 
 def test_multinomial_from_uniform():
@@ -39,21 +39,21 @@ def test_multinomial_from_uniform():
             return z
 
     mod = CallSample
-    target = gsmDataGen.target.Target("llvm", host="llvm")
-    ex = gsmDataGen.compile(mod, target)
+    target = gsm_data_generator.target.Target("llvm", host="llvm")
+    ex = gsm_data_generator.compile(mod, target)
     np_rand = np.random.rand(3, 5).astype(np.float32)
     # normalize it to get the random prob
     np_prob = np_rand / np_rand.sum(axis=1, keepdims=True)
-    nd_prob = gsmDataGen.nd.array(np_prob)
+    nd_prob = gsm_data_generator.nd.array(np_prob)
     # special sample to get deterministic results
-    nd_sample = gsmDataGen.nd.array(np.array([[1.0], [0], [1]]).astype(np.float32))
+    nd_sample = gsm_data_generator.nd.array(np.array([[1.0], [0], [1]]).astype(np.float32))
 
-    vm = relax.VirtualMachine(ex, gsmDataGen.cpu())
+    vm = relax.VirtualMachine(ex, gsm_data_generator.cpu())
     res = vm["foo"](nd_prob, nd_sample)
-    gsmDataGen.testing.assert_allclose(res.numpy(), np.array([[4], [0], [4]]).astype(np.int64))
+    gsm_data_generator.testing.assert_allclose(res.numpy(), np.array([[4], [0], [4]]).astype(np.int64))
 
 
-@gsmDataGen.testing.parametrize_targets("cuda")
+@gsm_data_generator.testing.parametrize_targets("cuda")
 def test_alloc_tensor_raises_out_of_memory(target, dev):
     """Out-of-memory exceptions may be raised from VM
 
@@ -73,7 +73,7 @@ def test_alloc_tensor_raises_out_of_memory(target, dev):
             output = R.builtin.alloc_tensor(R.shape([1024, 1024, 1024, 1024, 1024]), "uint8", 0)
             return output
 
-    built = gsmDataGen.compile(Module, target=target)
+    built = gsm_data_generator.compile(Module, target=target)
     vm = relax.VirtualMachine(built, dev)
 
     with pytest.raises(Exception, match="CUDA: out of memory"):
@@ -81,4 +81,4 @@ def test_alloc_tensor_raises_out_of_memory(target, dev):
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

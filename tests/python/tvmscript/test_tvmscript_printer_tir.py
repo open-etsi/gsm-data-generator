@@ -20,11 +20,11 @@ import re
 
 import pytest
 
-import gsmDataGen.testing
-from gsmDataGen import ir, tir
-from gsmDataGen.ir import Range
-from gsmDataGen.script.ir_builder import IRBuilder
-from gsmDataGen.script.ir_builder import tir as T
+import gsm_data_generator.testing
+from gsm_data_generator import ir, tir
+from gsm_data_generator.ir import Range
+from gsm_data_generator.script.ir_builder import IRBuilder
+from gsm_data_generator.script.ir_builder import tir as T
 
 
 def _assert_print(obj, expected):
@@ -611,7 +611,7 @@ def test_select():
 
 
 @pytest.mark.parametrize(
-    "lanes, scripted_lanes", [(32, "32"), (gsmDataGen.tir.vscale() * 8, "T.vscale() * 8")]
+    "lanes, scripted_lanes", [(32, "32"), (gsm_data_generator.tir.vscale() * 8, "T.vscale() * 8")]
 )
 def test_ramp(lanes, scripted_lanes):
     a = tir.Var("a", "int32")
@@ -628,7 +628,7 @@ T.Ramp(a, 1, {})
 
 
 @pytest.mark.parametrize(
-    "lanes, scripted_lanes", [(4, "4"), (gsmDataGen.tir.vscale() * 4, "T.vscale() * 4")]
+    "lanes, scripted_lanes", [(4, "4"), (gsm_data_generator.tir.vscale() * 4, "T.vscale() * 4")]
 )
 def test_broadcast(lanes, scripted_lanes):
     obj = tir.Broadcast(0, lanes)
@@ -720,7 +720,7 @@ def test_tuple_type():
 
 
 def test_remap():
-    from gsmDataGen.script import tir as T
+    from gsm_data_generator.script import tir as T
 
     @T.prim_func
     def block_with_remap_implicitly():
@@ -762,7 +762,7 @@ def main():
 
 
 def test_root_block():
-    from gsmDataGen.script import tir as T
+    from gsm_data_generator.script import tir as T
 
     @T.prim_func
     def root_block_implicitly():
@@ -797,7 +797,7 @@ def main():
 
 
 def test_private_primfunc():
-    from gsmDataGen.script import tir as T
+    from gsm_data_generator.script import tir as T
 
     a = tir.Var("a", "handle")
     b = tir.Var("b", "handle")
@@ -822,7 +822,7 @@ def main(A: T.Buffer((128, 128), "float32"), B: T.Buffer((256, 256), "float32"))
 
 
 def test_prim_func_different_symbol():
-    from gsmDataGen.script import tir as T
+    from gsm_data_generator.script import tir as T
 
     @T.prim_func
     def main(A: T.Buffer((128, 128), "float32"), B: T.Buffer((256, 256), "float32")):
@@ -850,7 +850,7 @@ def test_variable_with_cpp_address():
     with "_0x" followed by a hexadecimal number, and that the address
     is the same for each variable.
     """
-    from gsmDataGen.script import tir as T
+    from gsm_data_generator.script import tir as T
 
     # The test function has all named objects suffixed with "_name",
     # to avoid spurious replacement when generating the expected
@@ -878,7 +878,7 @@ def test_variable_with_cpp_address():
 
 
 def test_return_statement():
-    from gsmDataGen.script import tir as T
+    from gsm_data_generator.script import tir as T
 
     @T.prim_func
     def func():
@@ -914,7 +914,7 @@ CUSTOM_FLOAT_DTYPES = [
 
 @pytest.mark.parametrize("dtype", CUSTOM_FLOAT_DTYPES)
 def test_custom_float_types(dtype):
-    from gsmDataGen.script import tir as T
+    from gsm_data_generator.script import tir as T
 
     @T.prim_func()
     def func():
@@ -931,7 +931,7 @@ def func():
 
 
 def test_predicated_load_store():
-    from gsmDataGen.script import tir as T
+    from gsm_data_generator.script import tir as T
 
     @T.prim_func
     def main(a: T.handle, b: T.handle):
@@ -987,7 +987,7 @@ def main(A: T.Buffer((128, 128), "float32"), B: T.Buffer((256, 256), "float32"))
 
 
 def test_predicated_scalable_load_store():
-    from gsmDataGen.script import tir as T
+    from gsm_data_generator.script import tir as T
 
     @T.prim_func
     def main(a: T.handle, b: T.handle):
@@ -1009,7 +1009,7 @@ def func(A: T.Buffer((128, 128), "float32"), B: T.Buffer((256, 256), "float32"))
 
 
 def test_vload_with_explicit_scalable_data_type():
-    from gsmDataGen.script import tir as T
+    from gsm_data_generator.script import tir as T
 
     @T.prim_func
     def main(a: T.handle, b: T.handle):
@@ -1028,7 +1028,7 @@ def main(A: T.Buffer((128,), "float32"), B: T.Buffer((128,), "float32")):
 
 
 def test_vectorize_llvm_pure_intrin():
-    from gsmDataGen.script import tir as T
+    from gsm_data_generator.script import tir as T
 
     @T.prim_func
     def main(a: T.handle, b: T.handle):
@@ -1049,4 +1049,4 @@ def main(A: T.Buffer((4,), "float32"), B: T.Buffer((4,), "float32")):
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

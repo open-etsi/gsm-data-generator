@@ -16,15 +16,15 @@
 # under the License.
 """Test eliminate common subexpr pass"""
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen.ir import VDevice
-from gsmDataGen.relax.transform import RealizeVDevice
-from gsmDataGen.script.parser import ir as I, relax as R, tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator.ir import VDevice
+from gsm_data_generator.relax.transform import RealizeVDevice
+from gsm_data_generator.script.parser import ir as I, relax as R, tir as T
 
 
 def verify(input, expected):
-    gsmDataGen.ir.assert_structural_equal(RealizeVDevice()(input), expected)
+    gsm_data_generator.ir.assert_structural_equal(RealizeVDevice()(input), expected)
 
 
 vdevices = [
@@ -61,7 +61,7 @@ def test_dataflow_binding():
                 y1 = y
                 x2 = x1
                 y2 = y1
-                x2 = R.hint_on_device(x2, gsmDataGen.cpu())
+                x2 = R.hint_on_device(x2, gsm_data_generator.cpu())
                 lv0 = R.add(x2, y2)
                 gv = R.multiply(lv0, z)
                 R.output(gv)
@@ -123,7 +123,7 @@ def test_binding():
             y1 = y
             x2 = x1
             y2 = y1
-            x2 = R.hint_on_device(x2, gsmDataGen.cpu())
+            x2 = R.hint_on_device(x2, gsm_data_generator.cpu())
             s = R.add(x2, y2)
             m = R.multiply(s, z)
             return m
@@ -280,7 +280,7 @@ def test_multi_device():
         ) -> R.Tensor((2, 3), "float32", "cuda"):
             with R.dataflow():
                 lv0 = R.add(x, y)
-                lv0 = R.hint_on_device(lv0, gsmDataGen.cpu())
+                lv0 = R.hint_on_device(lv0, gsm_data_generator.cpu())
                 lv1 = R.to_vdevice(lv0, "cuda")
                 lv2 = R.add(z, z)
                 gv = R.multiply(lv1, lv2)
@@ -341,11 +341,11 @@ def test_insert_to_vdevice():
             z: R.Tensor((2, 3), "float32"),
         ) -> R.Tensor((2, 3), "float32"):
             with R.dataflow():
-                lv0 = R.hint_on_device(y, gsmDataGen.cpu())
+                lv0 = R.hint_on_device(y, gsm_data_generator.cpu())
                 lv1 = R.add(x, lv0)
-                lv2 = R.hint_on_device(lv1, gsmDataGen.cuda())
+                lv2 = R.hint_on_device(lv1, gsm_data_generator.cuda())
                 lv3 = R.add(lv2, lv2)
-                lv4 = R.hint_on_device(z, gsmDataGen.cuda())
+                lv4 = R.hint_on_device(z, gsm_data_generator.cuda())
                 gv = R.multiply(lv3, lv4)
                 R.output(gv)
             return gv
@@ -409,8 +409,8 @@ def test_input_module_is_unmodified():
     expected = make_module()
 
     RealizeVDevice()(original)
-    gsmDataGen.ir.assert_structural_equal(original, expected)
+    gsm_data_generator.ir.assert_structural_equal(original, expected)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

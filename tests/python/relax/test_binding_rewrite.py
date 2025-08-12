@@ -16,16 +16,16 @@
 # under the License.
 
 import pytest
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen.base import TVMError
-from gsmDataGen.relax.analysis import name_to_binding
-from gsmDataGen.relax.binding_rewrite import DataflowBlockRewrite
-from gsmDataGen.relax.expr import DataflowVar, Var
-from gsmDataGen.script import relax as R
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator.base import TVMError
+from gsm_data_generator.relax.analysis import name_to_binding
+from gsm_data_generator.relax.binding_rewrite import DataflowBlockRewrite
+from gsm_data_generator.relax.expr import DataflowVar, Var
+from gsm_data_generator.script import relax as R
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class Identity:
     @R.function
     def main(x: R.Tensor((32, 32), "float32")) -> R.Tensor:
@@ -61,7 +61,7 @@ def test_simple_add():
     # check "tmp" added
     assert "tmp" in name_to_binding(rwt.mutated_root_fn())
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class GroundTruth:
         @R.function
         def main(x: R.Tensor((32, 32), "float32")) -> R.Tensor:
@@ -71,7 +71,7 @@ def test_simple_add():
                 R.output(lv0)
             return lv0
 
-    gsmDataGen.ir.assert_structural_equal(rwt.mutated_root_fn(), GroundTruth["main"])
+    gsm_data_generator.ir.assert_structural_equal(rwt.mutated_root_fn(), GroundTruth["main"])
 
 
 def test_simple_auto_add_var():
@@ -100,7 +100,7 @@ def test_simple_auto_add_dfvar():
 
 
 def test_simple_remove_unused():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class IdentityUnused:
         @R.function
         def main(x: R.Tensor((32, 32), "float32")) -> R.Tensor:
@@ -123,7 +123,7 @@ def test_simple_remove_unused():
     # check "unused" removed
     assert "unused" not in name_to_binding(rwt.mutated_root_fn())
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class GroundTruth:
         @R.function
         def main(x: R.Tensor((32, 32), "float32")) -> R.Tensor:
@@ -132,7 +132,7 @@ def test_simple_remove_unused():
                 R.output(lv0)
             return lv0
 
-    gsmDataGen.ir.assert_structural_equal(rwt.mutated_root_fn(), GroundTruth["main"])
+    gsm_data_generator.ir.assert_structural_equal(rwt.mutated_root_fn(), GroundTruth["main"])
 
 
 def test_remove_unused_undef():
@@ -150,7 +150,7 @@ def test_remove_unused_undef():
 
 
 def test_simple_rm_all_unused():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class IdentityUnused:
         @R.function
         def main(x: R.Tensor((32, 32), "float32")) -> R.Tensor:
@@ -167,7 +167,7 @@ def test_simple_rm_all_unused():
     rwt = DataflowBlockRewrite(dfb, root_fn)
     rwt.remove_all_unused()
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class GroundTruth:
         @R.function
         def main(x: R.Tensor((32, 32), "float32")) -> R.Tensor:
@@ -176,10 +176,10 @@ def test_simple_rm_all_unused():
                 R.output(lv0)
             return lv0
 
-    gsmDataGen.ir.assert_structural_equal(rwt.mutated_root_fn(), GroundTruth["main"])
+    gsm_data_generator.ir.assert_structural_equal(rwt.mutated_root_fn(), GroundTruth["main"])
 
 
-@gsmDataGen.script.ir_module
+@gsm_data_generator.script.ir_module
 class DeadDFBlock:
     @R.function
     def main(x: R.Tensor((32, 32), "float32")) -> R.Tensor((32, 32), "float32"):
@@ -196,13 +196,13 @@ def test_empty_dfb_after_removal():
     rwt = DataflowBlockRewrite(dfb, root_fn)
     rwt.remove_unused(DeadDFBlock["main"].body.blocks[0].bindings[0].var)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class GroundTruth:
         @R.function
         def main(x: R.Tensor((32, 32), "float32")) -> R.Tensor((32, 32), "float32"):
             return x
 
-    gsmDataGen.ir.assert_structural_equal(rwt.mutated_root_fn(), GroundTruth["main"])
+    gsm_data_generator.ir.assert_structural_equal(rwt.mutated_root_fn(), GroundTruth["main"])
 
 
 def test_empty_dfb_after_all_removal():
@@ -212,17 +212,17 @@ def test_empty_dfb_after_all_removal():
     rwt = DataflowBlockRewrite(dfb, root_fn)
     rwt.remove_all_unused()
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class GroundTruth:
         @R.function
         def main(x: R.Tensor((32, 32), "float32")) -> R.Tensor((32, 32), "float32"):
             return x
 
-    gsmDataGen.ir.assert_structural_equal(rwt.mutated_root_fn(), GroundTruth["main"])
+    gsm_data_generator.ir.assert_structural_equal(rwt.mutated_root_fn(), GroundTruth["main"])
 
 
 def test_chained_rm_all_unused():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class IdentityChainedUnused:
         @R.function
         def main(x: R.Tensor((32, 32), "float32")) -> R.Tensor:
@@ -241,7 +241,7 @@ def test_chained_rm_all_unused():
     rwt = DataflowBlockRewrite(dfb, root_fn)
     rwt.remove_all_unused()
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class GroundTruth:
         @R.function
         def main(x: R.Tensor((32, 32), "float32")) -> R.Tensor:
@@ -250,11 +250,11 @@ def test_chained_rm_all_unused():
                 R.output(lv0)
             return lv0
 
-    gsmDataGen.ir.assert_structural_equal(rwt.mutated_root_fn(), GroundTruth["main"])
+    gsm_data_generator.ir.assert_structural_equal(rwt.mutated_root_fn(), GroundTruth["main"])
 
 
 def test_simple_replace_all_uses():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Lv0To1:
         @R.function
         def main(x: R.Tensor((32, 32), "float32")) -> R.Tensor((32, 32), "float32"):
@@ -298,7 +298,7 @@ def test_simple_replace_all_uses():
 
 
 def test_simple_module_update():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Identity:
         @R.function
         def main(x: R.Tensor((32, 32), "float32")) -> R.Tensor:
@@ -319,7 +319,7 @@ def test_simple_module_update():
     assert new_ir != Identity
     assert 2 == len(new_ir["main"].body.blocks[0].bindings)
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class GroundTruth:
         @R.function
         def main(x: R.Tensor((32, 32), "float32")) -> R.Tensor:
@@ -329,8 +329,8 @@ def test_simple_module_update():
                 R.output(lv0)
             return lv0
 
-    gsmDataGen.ir.assert_structural_equal(new_ir, GroundTruth)
+    gsm_data_generator.ir.assert_structural_equal(new_ir, GroundTruth)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

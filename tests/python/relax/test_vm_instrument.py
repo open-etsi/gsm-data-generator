@@ -15,12 +15,12 @@
 # specific language governing permissions and limitations
 # under the License.
 import numpy as np
-import gsmDataGen
-import gsmDataGen.testing
+import gsm_data_generator
+import gsm_data_generator.testing
 
-from gsmDataGen import relax
-from gsmDataGen.relax.testing import nn
-from gsmDataGen.relax.testing.lib_comparator import LibCompareVMInstrument
+from gsm_data_generator import relax
+from gsm_data_generator.relax.testing import nn
+from gsm_data_generator.relax.testing.lib_comparator import LibCompareVMInstrument
 
 
 def get_exec(data_shape):
@@ -46,7 +46,7 @@ def get_exec(data_shape):
     mod = relax.transform.BindParams("main", params)(mod)
 
     target = "llvm"
-    return gsmDataGen.compile(mod, target)
+    return gsm_data_generator.compile(mod, target)
 
 
 def get_exec_int32(data_shape):
@@ -61,13 +61,13 @@ def get_exec_int32(data_shape):
 
     mod = builder.get()
     target = "llvm"
-    return gsmDataGen.compile(mod, target)
+    return gsm_data_generator.compile(mod, target)
 
 
 def test_conv2d_cpu():
     data_np = np.random.randn(1, 64).astype("float32")
     ex = get_exec(data_np.shape)
-    vm = relax.VirtualMachine(ex, gsmDataGen.cpu())
+    vm = relax.VirtualMachine(ex, gsm_data_generator.cpu())
     hit_count = {}
 
     def instrument(func, name, before_run, ret_val, *args):
@@ -81,7 +81,7 @@ def test_conv2d_cpu():
             return relax.VMInstrumentReturnKind.SKIP_RUN
 
     vm.set_instrument(instrument)
-    vm["main"](gsmDataGen.nd.array(data_np))
+    vm["main"](gsm_data_generator.nd.array(data_np))
     assert hit_count[("matmul", True)] == 2
     assert ("matmul", False) not in hit_count
     assert hit_count[("relu", True)] == 2
@@ -91,12 +91,12 @@ def test_conv2d_cpu():
 def test_lib_comparator():
     data_np = np.random.randn(1, 64).astype("int32")
     ex = get_exec_int32(data_np.shape)
-    vm = relax.VirtualMachine(ex, gsmDataGen.cpu())
+    vm = relax.VirtualMachine(ex, gsm_data_generator.cpu())
     # compare against library module
-    cmp = LibCompareVMInstrument(vm.module.imported_modules[0], gsmDataGen.cpu(), verbose=False)
+    cmp = LibCompareVMInstrument(vm.module.imported_modules[0], gsm_data_generator.cpu(), verbose=False)
     vm.set_instrument(cmp)
-    vm["main"](gsmDataGen.nd.array(data_np))
+    vm["main"](gsm_data_generator.nd.array(data_np))
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

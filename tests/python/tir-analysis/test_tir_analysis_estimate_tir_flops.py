@@ -19,11 +19,11 @@ import sys
 
 import pytest
 
-import gsmDataGen.testing
-from gsmDataGen.ir import IRModule
-from gsmDataGen.meta_schedule.testing.te_workload import create_te_workload
-from gsmDataGen.script import tir as T
-from gsmDataGen.tir.analysis import estimate_tir_flops
+import gsm_data_generator.testing
+from gsm_data_generator.ir import IRModule
+from gsm_data_generator.meta_schedule.testing.te_workload import create_te_workload
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.tir.analysis import estimate_tir_flops
 
 
 @pytest.mark.parametrize(
@@ -141,4 +141,4 @@ def test_flops_with_variable_extent():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

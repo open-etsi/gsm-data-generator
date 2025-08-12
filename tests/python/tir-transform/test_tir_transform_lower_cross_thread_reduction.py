@@ -18,26 +18,26 @@
 import sys
 
 import pytest
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import te
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import te
+from gsm_data_generator.script import tir as T
 
 # pylint: disable=no-member,invalid-name,unused-variable,unexpected-keyword-arg
 
 
 def _check(original, transformed):
-    mod = gsmDataGen.IRModule.from_expr(original.with_attr("global_symbol", "main"))
-    mod = gsmDataGen.tir.transform.LowerCrossThreadReduction()(mod)
-    gsmDataGen.ir.assert_structural_equal(
+    mod = gsm_data_generator.IRModule.from_expr(original.with_attr("global_symbol", "main"))
+    mod = gsm_data_generator.tir.transform.LowerCrossThreadReduction()(mod)
+    gsm_data_generator.ir.assert_structural_equal(
         mod["main"], transformed.with_attr("global_symbol", "main"), True
     )
 
 
 def _check_fail(original):
-    mod = gsmDataGen.IRModule.from_expr(original)
+    mod = gsm_data_generator.IRModule.from_expr(original)
     with pytest.raises(ValueError):
-        gsmDataGen.tir.transform.LowerCrossThreadReduction()(mod)
+        gsm_data_generator.tir.transform.LowerCrossThreadReduction()(mod)
 
 
 @T.prim_func
@@ -1902,4 +1902,4 @@ def test_layer_norm_tuple_sum():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

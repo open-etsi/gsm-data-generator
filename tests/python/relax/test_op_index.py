@@ -15,12 +15,12 @@
 # specific language governing permissions and limitations
 # under the License.
 import pytest
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import relax, tir
-from gsmDataGen import TVMError
-from gsmDataGen.ir import Op, VDevice
-from gsmDataGen.script import ir as I, relax as R, tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import relax, tir
+from gsm_data_generator import TVMError
+from gsm_data_generator.ir import Op, VDevice
+from gsm_data_generator.script import ir as I, relax as R, tir as T
 import numpy as np
 
 
@@ -36,7 +36,7 @@ def test_op_correctness():
 
 def _check_inference(bb: relax.BlockBuilder, call: relax.Call, expected_sinfo: relax.StructInfo):
     ret = bb.normalize(call)
-    gsmDataGen.ir.assert_structural_equal(ret.struct_info, expected_sinfo)
+    gsm_data_generator.ir.assert_structural_equal(ret.struct_info, expected_sinfo)
 
 
 def test_take_infer_struct_info():
@@ -1007,8 +1007,8 @@ def test_legalize_dynamic_begin_end():
                     i, j = T.axis.remap("SS", iters)
                     B[i, j] = A[i + index, j]
 
-    after = gsmDataGen.relax.transform.LegalizeOps()(before)
-    gsmDataGen.ir.assert_structural_equal(expected, after)
+    after = gsm_data_generator.relax.transform.LegalizeOps()(before)
+    gsm_data_generator.ir.assert_structural_equal(expected, after)
 
 
 def test_legalize_dynamic_begin_inf_end():
@@ -1046,9 +1046,9 @@ def test_legalize_dynamic_begin_inf_end():
             return gv
     # fmt: on
 
-    after = gsmDataGen.relax.transform.LegalizeOps()(before)
-    gsmDataGen.ir.assert_structural_equal(expected, after)
+    after = gsm_data_generator.relax.transform.LegalizeOps()(before)
+    gsm_data_generator.ir.assert_structural_equal(expected, after)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

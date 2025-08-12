@@ -16,21 +16,21 @@
 # under the License.
 
 import numpy as np
-import gsmDataGen
-from gsmDataGen import relax
-import gsmDataGen.testing
-from gsmDataGen.relax.transform import ToMixedPrecision
-from gsmDataGen.script.parser import ir as I, relax as R, tir as T
+import gsm_data_generator
+from gsm_data_generator import relax
+import gsm_data_generator.testing
+from gsm_data_generator.relax.transform import ToMixedPrecision
+from gsm_data_generator.script.parser import ir as I, relax as R, tir as T
 
 
 def _assert_test(input, expected=None, expected2=None):
     if expected:
         mod = ToMixedPrecision()(input)
-        gsmDataGen.ir.assert_structural_equal(mod, expected)
+        gsm_data_generator.ir.assert_structural_equal(mod, expected)
 
     if expected2:
         mod = ToMixedPrecision(out_dtype="float16")(input)
-        gsmDataGen.ir.assert_structural_equal(mod, expected2)
+        gsm_data_generator.ir.assert_structural_equal(mod, expected2)
 
 
 def test_conv2d():
@@ -679,7 +679,7 @@ def test_conv2d_softmax():
 
 
 def test_conv2d_bias_conv2d():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Input:
         @R.function
         def main(
@@ -836,7 +836,7 @@ def test_conv2d_bias_conv2d():
         "w2": np.random.uniform(size=(4, 4, 1, 1)).astype("float16"),
         "w3": np.random.uniform(size=(4,)).astype("float16"),
     }
-    binding = {k: gsmDataGen.nd.array(v) for k, v in binding.items()}
+    binding = {k: gsm_data_generator.nd.array(v) for k, v in binding.items()}
     Input = relax.transform.BindParams("main", binding)(Input)
     Expected = relax.transform.BindParams("main", binding)(Expected)
     Expected2 = relax.transform.BindParams("main", binding)(Expected2)
@@ -844,7 +844,7 @@ def test_conv2d_bias_conv2d():
 
 
 def test_tuple_get():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Module:
         @R.function
         def main(
@@ -865,7 +865,7 @@ def test_tuple_get():
                 R.output(out)
             return out
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(
@@ -896,7 +896,7 @@ def test_tuple_get():
 
 
 def test_conv2d_bias_fp32():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Input:
         @R.function
         def main(
@@ -918,7 +918,7 @@ def test_conv2d_bias_fp32():
                 R.output(lv144)
             return lv144
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(
@@ -945,7 +945,7 @@ def test_conv2d_bias_fp32():
                 R.output(lv144)
             return lv144
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected_no_bias_cast:
         @R.function
         def main(
@@ -975,7 +975,7 @@ def test_conv2d_bias_fp32():
         "w": np.random.uniform(size=(512, 4, 3, 3)).astype("float32"),
         "bias": np.random.uniform(size=(512,)).astype("float32"),
     }
-    binding = {k: gsmDataGen.nd.array(v) for k, v in binding_np.items()}
+    binding = {k: gsm_data_generator.nd.array(v) for k, v in binding_np.items()}
 
     Input_bound = relax.transform.BindParams("main", binding)(Input)
     Expected = relax.transform.BindParams("main", binding)(Expected)
@@ -983,7 +983,7 @@ def test_conv2d_bias_fp32():
     _assert_test(Input_bound, expected2=Expected)
 
     binding_np["bias"][0] = 70000  # Out of fp16 range
-    binding = {k: gsmDataGen.nd.array(v) for k, v in binding_np.items()}
+    binding = {k: gsm_data_generator.nd.array(v) for k, v in binding_np.items()}
     Input_bound = relax.transform.BindParams("main", binding)(Input)
     Expected_no_bias_cast = relax.transform.BindParams("main", binding)(Expected_no_bias_cast)
 
@@ -991,7 +991,7 @@ def test_conv2d_bias_fp32():
 
 
 def test_convert_sig():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Input:
         @R.function
         def main(
@@ -1013,7 +1013,7 @@ def test_convert_sig():
                 R.output(lv144)
             return lv144
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(
@@ -1033,7 +1033,7 @@ def test_convert_sig():
             return lv144
 
     mod = ToMixedPrecision(out_dtype="float16", fp16_input_names=["w", "bias"])(Input)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_call_tir_with_float16_args():
@@ -1061,8 +1061,8 @@ def test_call_tir_with_float16_args():
     Expected = Before
 
     After = ToMixedPrecision()(Before)
-    gsmDataGen.ir.assert_structural_equal(Expected, After)
+    gsm_data_generator.ir.assert_structural_equal(Expected, After)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

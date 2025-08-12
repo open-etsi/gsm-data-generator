@@ -15,20 +15,20 @@
 # specific language governing permissions and limitations
 # under the License.
 
-import gsmDataGen
-import gsmDataGen.testing
+import gsm_data_generator
+import gsm_data_generator.testing
 
-from gsmDataGen.script import tir as T
-from gsmDataGen.tir.stmt_functor import substitute
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.tir.stmt_functor import substitute
 
 
-class BaseCompare(gsmDataGen.testing.CompareBeforeAfter):
+class BaseCompare(gsm_data_generator.testing.CompareBeforeAfter):
     def transform(self):
         def inner(mod):
             func = mod["main"]
             vmap = {func.params[0]: 16}
-            new_func = gsmDataGen.tir.PrimFunc(params=[], body=substitute(func.body, vmap))
-            return gsmDataGen.IRModule.from_expr(new_func)
+            new_func = gsm_data_generator.tir.PrimFunc(params=[], body=substitute(func.body, vmap))
+            return gsm_data_generator.IRModule.from_expr(new_func)
 
         return inner
 
@@ -80,4 +80,4 @@ class TestSubstituteDeclBuffer(BaseCompare):
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

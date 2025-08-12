@@ -21,21 +21,21 @@ import math
 import pytest
 import numpy as np
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import te
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import te
 
-dtype = gsmDataGen.testing.parameter("uint8", "int8", "uint16", "int16", "uint32", "int32", "float32")
+dtype = gsm_data_generator.testing.parameter("uint8", "int8", "uint16", "int16", "uint32", "int32", "float32")
 
 
 def test_nd_create(target, dev, dtype):
     x = np.random.randint(0, 10, size=(3, 4))
     x = np.array(x, dtype=dtype)
-    y = gsmDataGen.nd.array(x, device=dev)
+    y = gsm_data_generator.nd.array(x, device=dev)
     z = y.copyto(dev)
     assert y.dtype == x.dtype
     assert y.shape == x.shape
-    assert isinstance(y, gsmDataGen.nd.NDArray)
+    assert isinstance(y, gsm_data_generator.nd.NDArray)
     np.testing.assert_equal(x, y.numpy())
     np.testing.assert_equal(x, z.numpy())
 
@@ -48,11 +48,11 @@ def test_memory_usage(target, dev, dtype):
     if available_memory_before is None:
         pytest.skip(reason=f"Target '{target}' does not support queries of available memory")
 
-    arr = gsmDataGen.nd.empty([1024, 1024], dtype=dtype, device=dev)
+    arr = gsm_data_generator.nd.empty([1024, 1024], dtype=dtype, device=dev)
     available_memory_after = dev.available_global_memory
 
     num_elements = math.prod(arr.shape)
-    element_nbytes = gsmDataGen.runtime.DataType(dtype).itemsize
+    element_nbytes = gsm_data_generator.runtime.DataType(dtype).itemsize
     expected_memory_after = available_memory_before - num_elements * element_nbytes
 
     # Allocations may be padded out to provide alignment, to match a
@@ -70,9 +70,9 @@ def test_memory_usage(target, dev, dtype):
 
 
 def test_dtype():
-    dtype = gsmDataGen.DataType("handle")
-    assert dtype.type_code == gsmDataGen.DataTypeCode.HANDLE
+    dtype = gsm_data_generator.DataType("handle")
+    assert dtype.type_code == gsm_data_generator.DataTypeCode.HANDLE
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

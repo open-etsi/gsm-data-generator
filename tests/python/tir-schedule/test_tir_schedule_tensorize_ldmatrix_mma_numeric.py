@@ -18,11 +18,11 @@
 import numpy as np
 import pytest
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import te
-from gsmDataGen.testing.tir import mma_schedule
-from gsmDataGen.tir.tensor_intrin.cuda import (
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import te
+from gsm_data_generator.testing.tir import mma_schedule
+from gsm_data_generator.tir.tensor_intrin.cuda import (
     LDMATRIX_e4m3_A_INTRIN,
     LDMATRIX_e4m3_B_TRANS_INTRIN,
     LDMATRIX_e5m2_A_INTRIN,
@@ -67,7 +67,7 @@ def matmul(m, n, k, in_dtype, out_dtype, b_transposed):
 
     def maybe_cast(v):
         if in_dtype != out_dtype:
-            return gsmDataGen.tir.Cast(out_dtype, v)
+            return gsm_data_generator.tir.Cast(out_dtype, v)
         return v
 
     def maybe_swap(i, j):
@@ -118,9 +118,9 @@ def run_test(
         mma_store_intrin,
     )
 
-    f = gsmDataGen.compile(sch.mod["main"], target="cuda")
+    f = gsm_data_generator.compile(sch.mod["main"], target="cuda")
 
-    dev = gsmDataGen.device("cuda", 0)
+    dev = gsm_data_generator.device("cuda", 0)
 
     if in_dtype == "float16":
         a_np = np.random.normal(size=(M, K)).astype("float16")
@@ -169,21 +169,21 @@ def run_test(
             b_np = np.random.randint(-128, 128, (K, N)).astype("int8")
             c_np = np.dot(a_np.astype("float32"), b_np.astype("float32")).astype("int32")
 
-    a = gsmDataGen.nd.array(a_np, dev)
-    b = gsmDataGen.nd.array(b_np, dev)
-    c = gsmDataGen.nd.array(np.zeros((M, N), dtype=out_dtype), dev)
+    a = gsm_data_generator.nd.array(a_np, dev)
+    b = gsm_data_generator.nd.array(b_np, dev)
+    c = gsm_data_generator.nd.array(np.zeros((M, N), dtype=out_dtype), dev)
 
     f(a, b, c)
 
     if out_dtype != "float16" and in_dtype not in ["float8_e4m3fn", "float8_e5m2"]:
         # The numpy reference is computed with fp32 precision (otherwise too slow).
         # So there is non-trivial accuracy difference if TVM result is computed with fp16 accumulation.
-        gsmDataGen.testing.assert_allclose(c.numpy(), c_np, rtol=1e-2, atol=1e-2)
+        gsm_data_generator.testing.assert_allclose(c.numpy(), c_np, rtol=1e-2, atol=1e-2)
 
     return lambda: f.time_evaluator(f.entry_name, dev, number=500)(a, b, c)
 
 
-@gsmDataGen.testing.requires_cuda_compute_version(8)
+@gsm_data_generator.testing.requires_cuda_compute_version(8)
 def test_f16f16f32_m16n16k16():
     def index_map(i, j):
         return (
@@ -240,7 +240,7 @@ def test_f16f16f32_m16n16k16():
         print("f16f16f32_m16n16k16_trans: %f GFLOPS" % (gflops / (timer().mean)))
 
 
-@gsmDataGen.testing.requires_cuda_compute_version(8)
+@gsm_data_generator.testing.requires_cuda_compute_version(8)
 def test_f16f16f16_m16n16k16():
     def index_map(i, j):
         return (
@@ -297,7 +297,7 @@ def test_f16f16f16_m16n16k16():
         print("f16f16f16_m16n16k16_trans: %f GFLOPS" % (gflops / (timer().mean)))
 
 
-@gsmDataGen.testing.requires_cuda_compute_version(8)
+@gsm_data_generator.testing.requires_cuda_compute_version(8)
 def test_i8i8i32_m16n16k32():
     def index_map_A(i, j):
         return (
@@ -368,7 +368,7 @@ def test_i8i8i32_m16n16k32():
         print("i8i8i32_m16n16k32_trans: %f GOPS" % (gflops / (timer().mean)))
 
 
-@gsmDataGen.testing.requires_cuda_compute_version(8, 9)
+@gsm_data_generator.testing.requires_cuda_compute_version(8, 9)
 def test_e4m3e4m3f32_m16n16k32():
     def index_map_A(i, j):
         return (
@@ -411,7 +411,7 @@ def test_e4m3e4m3f32_m16n16k32():
         print("e4m3e4m3f32_m16n16k32_trans: %f GOPS" % (gflops / (timer().mean)))
 
 
-@gsmDataGen.testing.requires_cuda_compute_version(8, 9)
+@gsm_data_generator.testing.requires_cuda_compute_version(8, 9)
 def test_e5m2e5m2f32_m16n16k32():
     def index_map_A(i, j):
         return (
@@ -455,4 +455,4 @@ def test_e5m2e5m2f32_m16n16k32():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

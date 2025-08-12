@@ -16,19 +16,19 @@
 # under the License.
 import numpy as np
 import pytest
-import gsmDataGen
-from gsmDataGen import relax
-import gsmDataGen.topi.testing
-from gsmDataGen.relax.transform import LegalizeOps
-from gsmDataGen.script import relax as R, tir as T
-import gsmDataGen.testing
+import gsm_data_generator
+from gsm_data_generator import relax
+import gsm_data_generator.topi.testing
+from gsm_data_generator.relax.transform import LegalizeOps
+from gsm_data_generator.script import relax as R, tir as T
+import gsm_data_generator.testing
 
 # TODO(tvm-team): `tir.transform.DefaultGPUSchedule` does not work.
-target, dev = "llvm", gsmDataGen.cpu()
+target, dev = "llvm", gsm_data_generator.cpu()
 
 
 def build(mod):
-    exe = gsmDataGen.compile(mod, target=target)
+    exe = gsm_data_generator.compile(mod, target=target)
     return relax.VirtualMachine(exe, dev)
 
 
@@ -42,7 +42,7 @@ def build(mod):
 )
 def test_dynamic_strided_slice(begin, end, strides):
     # fmt: off
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class DynamicStridedSlice:
         @R.function
         def main(x: R.Tensor((8, 9, 10, 10), "float32"), begin: R.Tensor((4,),"int64"), end: R.Tensor((4,),"int64"), strides: R.Tensor((4,),"int64")) -> R.Tensor("float32", ndim=4):
@@ -52,15 +52,15 @@ def test_dynamic_strided_slice(begin, end, strides):
     vm = build(DynamicStridedSlice)
 
     x_np = np.random.rand(8, 9, 10, 10).astype(np.float32)
-    data_nd = gsmDataGen.nd.array(x_np, dev)
-    begin_nd = gsmDataGen.nd.array(np.array(begin).astype("int64"), dev)
-    end_nd = gsmDataGen.nd.array(np.array(end).astype("int64"), dev)
-    strides_nd = gsmDataGen.nd.array(np.array(strides).astype("int64"), dev)
+    data_nd = gsm_data_generator.nd.array(x_np, dev)
+    begin_nd = gsm_data_generator.nd.array(np.array(begin).astype("int64"), dev)
+    end_nd = gsm_data_generator.nd.array(np.array(end).astype("int64"), dev)
+    strides_nd = gsm_data_generator.nd.array(np.array(strides).astype("int64"), dev)
 
     # Reference implementation
-    out_npy = gsmDataGen.topi.testing.strided_slice_python(x_np, begin, end, strides)
+    out_npy = gsm_data_generator.topi.testing.strided_slice_python(x_np, begin, end, strides)
     out_nd = vm["main"](data_nd, begin_nd, end_nd, strides_nd)
-    gsmDataGen.testing.assert_allclose(out_nd.numpy(), out_npy)
+    gsm_data_generator.testing.assert_allclose(out_nd.numpy(), out_npy)
 
 
 @pytest.mark.parametrize(
@@ -73,7 +73,7 @@ def test_dynamic_strided_slice(begin, end, strides):
 )
 def test_dynamic_strided_slice_symbolic(begin, end, strides):
     # fmt: off
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class DynamicStridedSlice:
         @R.function
         def main(x: R.Tensor(("m", "n", 10, 10), "float32"), begin: R.Tensor((4,),"int64"), end: R.Tensor((4,),"int64"), strides: R.Tensor((4,),"int64")) -> R.Tensor("float32", ndim=4):
@@ -85,16 +85,16 @@ def test_dynamic_strided_slice_symbolic(begin, end, strides):
     vm = build(DynamicStridedSlice)
 
     x_np = np.random.rand(8, 9, 10, 10).astype(np.float32)
-    data_nd = gsmDataGen.nd.array(x_np, dev)
-    begin_nd = gsmDataGen.nd.array(np.array(begin).astype("int64"), dev)
-    end_nd = gsmDataGen.nd.array(np.array(end).astype("int64"), dev)
-    strides_nd = gsmDataGen.nd.array(np.array(strides).astype("int64"), dev)
+    data_nd = gsm_data_generator.nd.array(x_np, dev)
+    begin_nd = gsm_data_generator.nd.array(np.array(begin).astype("int64"), dev)
+    end_nd = gsm_data_generator.nd.array(np.array(end).astype("int64"), dev)
+    strides_nd = gsm_data_generator.nd.array(np.array(strides).astype("int64"), dev)
 
     # Reference implementation
-    out_npy = gsmDataGen.topi.testing.strided_slice_python(x_np, begin, end, strides)
+    out_npy = gsm_data_generator.topi.testing.strided_slice_python(x_np, begin, end, strides)
     out_nd = vm["main"](data_nd, begin_nd, end_nd, strides_nd)
-    gsmDataGen.testing.assert_allclose(out_nd.numpy(), out_npy)
+    gsm_data_generator.testing.assert_allclose(out_nd.numpy(), out_npy)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

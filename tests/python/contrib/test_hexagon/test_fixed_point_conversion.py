@@ -27,7 +27,7 @@ raised if they happened to be outside of the expected tolerance.
 import math
 import struct
 import numpy as np
-from gsmDataGen.topi.hexagon import utils
+from gsm_data_generator.topi.hexagon import utils
 
 
 class TestFixedPointConversion:

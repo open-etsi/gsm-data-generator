@@ -18,19 +18,19 @@
 
 import pytest
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import meta_schedule as ms
-from gsmDataGen import te
-from gsmDataGen.meta_schedule.testing import te_workload
-from gsmDataGen.meta_schedule.testing.space_generation import (
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import meta_schedule as ms
+from gsm_data_generator import te
+from gsm_data_generator.meta_schedule.testing import te_workload
+from gsm_data_generator.meta_schedule.testing.space_generation import (
     check_sketches,
     generate_design_space,
     get_rules,
     print_sketches,
 )
-from gsmDataGen.script import tir as T
-from gsmDataGen.tir.tensor_intrin.cuda import get_wmma_intrin_group
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.tir.tensor_intrin.cuda import get_wmma_intrin_group
 
 
 def multi_level_tiling_tensor_core(
@@ -213,7 +213,7 @@ def test_matmul_relu(shared_scope):
     actual = generate_design_space(
         kind="cuda",
         mod=mod,
-        target=gsmDataGen.target.Target("cuda --arch=sm_70"),
+        target=gsm_data_generator.target.Target("cuda --arch=sm_70"),
         types=None,
         sch_rules=[
             multi_level_tiling_tensor_core(
@@ -364,7 +364,7 @@ def test_matmul_relu_with_fallback():
     actual = generate_design_space(
         kind="cuda",
         mod=mod,
-        target=gsmDataGen.target.Target("cuda --arch=sm_70"),
+        target=gsm_data_generator.target.Target("cuda --arch=sm_70"),
         types=None,
         sch_rules=[
             multi_level_tiling_tensor_core(),
@@ -527,7 +527,7 @@ def test_conv2d(shared_scope):
     actual = generate_design_space(
         kind="cuda",
         mod=mod,
-        target=gsmDataGen.target.Target("cuda --arch=sm_70"),
+        target=gsm_data_generator.target.Target("cuda --arch=sm_70"),
         types=None,
         sch_rules=[
             multi_level_tiling_tensor_core(
@@ -547,7 +547,7 @@ def test_conv2d(shared_scope):
     actual = generate_design_space(
         kind="cuda",
         mod=mod,
-        target=gsmDataGen.target.Target("cuda --arch=sm_70"),
+        target=gsm_data_generator.target.Target("cuda --arch=sm_70"),
         types=None,
         sch_rules=[
             multi_level_tiling_tensor_core(
@@ -711,7 +711,7 @@ def test_matmul_relu_pipeline(shared_scope):
     actual = generate_design_space(
         kind="cuda",
         mod=mod,
-        target=gsmDataGen.target.Target("cuda --arch=sm_70"),
+        target=gsm_data_generator.target.Target("cuda --arch=sm_70"),
         types=None,
         sch_rules=[
             multi_level_tiling_tensor_core(
@@ -741,12 +741,12 @@ def test_matmul_relu_non_tensorizable():
     (sch,) = generate_design_space(
         kind="cuda",
         mod=mod,
-        target=gsmDataGen.target.Target("cuda --arch=sm_70"),
+        target=gsm_data_generator.target.Target("cuda --arch=sm_70"),
         types=None,
         sch_rules=[multi_level_tiling_tensor_core(write_reuse_scope="shared")]
         + get_rules("cuda", ms.schedule_rule.AutoInline),
     )
-    gsmDataGen.ir.assert_structural_equal(mod, sch.mod["main"])
+    gsm_data_generator.ir.assert_structural_equal(mod, sch.mod["main"])
 
 
 def test_padded_matmul_relu():
@@ -884,7 +884,7 @@ def test_padded_matmul_relu():
     actual = generate_design_space(
         kind="cuda",
         mod=mod,
-        target=gsmDataGen.target.Target("cuda --arch=sm_70"),
+        target=gsm_data_generator.target.Target("cuda --arch=sm_70"),
         types=None,
         sch_rules=[multi_level_tiling_tensor_core(write_reuse_scope="shared")]
         + get_rules("cuda", ms.schedule_rule.AutoInline),
@@ -1042,7 +1042,7 @@ def test_conv_1x1():
     actual = generate_design_space(
         kind="cuda",
         mod=mod,
-        target=gsmDataGen.target.Target("cuda --arch=sm_70"),
+        target=gsm_data_generator.target.Target("cuda --arch=sm_70"),
         types=None,
         sch_rules=[multi_level_tiling_tensor_core(write_reuse_scope="shared")]
         + get_rules("cuda", ms.schedule_rule.AutoInline),
@@ -1194,7 +1194,7 @@ def test_padded_conv():
     actual = generate_design_space(
         kind="cuda",
         mod=mod,
-        target=gsmDataGen.target.Target("cuda --arch=sm_70"),
+        target=gsm_data_generator.target.Target("cuda --arch=sm_70"),
         types=None,
         sch_rules=[multi_level_tiling_tensor_core(write_reuse_scope="shared")]
         + get_rules("cuda", ms.schedule_rule.AutoInline),
@@ -1342,7 +1342,7 @@ def test_padded_matmul_single_padded_input():
     actual = generate_design_space(
         kind="cuda",
         mod=mod,
-        target=gsmDataGen.target.Target("cuda --arch=sm_70"),
+        target=gsm_data_generator.target.Target("cuda --arch=sm_70"),
         types=None,
         sch_rules=[multi_level_tiling_tensor_core()]
         + get_rules("cuda", ms.schedule_rule.AutoInline),
@@ -1489,7 +1489,7 @@ def test_padded_matmul_no_padded_output():
     actual = generate_design_space(
         kind="cuda",
         mod=mod,
-        target=gsmDataGen.target.Target("cuda --arch=sm_70"),
+        target=gsm_data_generator.target.Target("cuda --arch=sm_70"),
         types=None,
         sch_rules=[multi_level_tiling_tensor_core()]
         + get_rules("cuda", ms.schedule_rule.AutoInline),
@@ -1503,4 +1503,4 @@ def test_padded_matmul_no_padded_output():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

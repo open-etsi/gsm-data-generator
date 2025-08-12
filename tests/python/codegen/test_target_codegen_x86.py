@@ -19,27 +19,27 @@ import re
 
 import pytest
 
-import gsmDataGen
-from gsmDataGen import te
+import gsm_data_generator
+from gsm_data_generator import te
 
-llvm_version = gsmDataGen.target.codegen.llvm_version_major()
+llvm_version = gsm_data_generator.target.codegen.llvm_version_major()
 machine = platform.machine()
 
 if machine not in ["i386", "x86_64", "AMD64", "amd64"]:
     pytest.skip(f"Requires x86_64/i386, but machine is {machine}", allow_module_level=True)
 
 
-@gsmDataGen.testing.requires_llvm
+@gsm_data_generator.testing.requires_llvm
 @pytest.mark.skipif(llvm_version < 6, reason=f"Requires LLVM 6+, got {llvm_version}")
 def test_fp16_to_fp32():
     def fp16_to_fp32(target, width, match=None, not_match=None):
         elements = 64
-        n = gsmDataGen.runtime.convert(elements)
+        n = gsm_data_generator.runtime.convert(elements)
         A = te.placeholder((n, width), dtype="float16", name="A")
         B = te.compute(A.shape, lambda *i: A(*i).astype("float32"), name="B")
-        sch = gsmDataGen.tir.Schedule(te.create_prim_func([A, B]))
+        sch = gsm_data_generator.tir.Schedule(te.create_prim_func([A, B]))
         sch.vectorize(sch.get_loops("B")[1])
-        f = gsmDataGen.tir.build(sch.mod, target=target)
+        f = gsm_data_generator.tir.build(sch.mod, target=target)
 
         assembly = f.get_source("asm").splitlines()
         if match:

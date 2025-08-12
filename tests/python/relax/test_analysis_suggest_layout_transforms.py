@@ -16,10 +16,10 @@
 # under the License.
 
 import pytest
-import gsmDataGen.testing
+import gsm_data_generator.testing
 
-from gsmDataGen import relax, tir
-from gsmDataGen.script import tir as T
+from gsm_data_generator import relax, tir
+from gsm_data_generator.script import tir as T
 
 
 def apply_transformations(func, suggested_transfoms, print_transformation=False):
@@ -79,7 +79,7 @@ def test_mismatch_transformations_and_num_params():
                 T.writes(relu[v_i0, v_i1, v_i2, v_i3])
                 relu[v_i0, v_i1, v_i2, v_i3] = T.max(arg[v_i0, v_i1, v_i2, v_i3], T.float32(0))
 
-    with pytest.raises(gsmDataGen.TVMError, match="Incompatible PrimFunc and write_transformations"):
+    with pytest.raises(gsm_data_generator.TVMError, match="Incompatible PrimFunc and write_transformations"):
         _ = relax.analysis.suggest_layout_transforms(
             func=elemwise,
             write_buffer_transforms=[
@@ -195,7 +195,7 @@ def test_unpacked_iter_used_in_read_access():
         func=before, write_buffer_transforms=[lambda a, b: (a * 8 + b)]
     )
     after = apply_transformations(before, suggested_transforms)
-    gsmDataGen.ir.assert_structural_equal(after, expected)
+    gsm_data_generator.ir.assert_structural_equal(after, expected)
 
 
 def test_invalid_index_map():
@@ -211,7 +211,7 @@ def test_invalid_index_map():
                 T.writes(relu[v_i0, v_i1, v_i2, v_i3])
                 relu[v_i0, v_i1, v_i2, v_i3] = T.max(arg[v_i0, v_i1, v_i2, v_i3], T.float32(0))
 
-    with pytest.raises(gsmDataGen.TVMError, match="Mismatch between output buffer shape and index map"):
+    with pytest.raises(gsm_data_generator.TVMError, match="Mismatch between output buffer shape and index map"):
         _ = relax.analysis.suggest_layout_transforms(
             func=elemwise, write_buffer_transforms=[lambda n, h, w: (n, w, h)]
         )
@@ -252,7 +252,7 @@ def test_SRSR_block():
         func=before, write_buffer_transforms=[lambda n, c: (n, c // 4, c % 4)]
     )
     after = apply_transformations(before, suggested_transforms)
-    gsmDataGen.ir.assert_structural_equal(after, expected)
+    gsm_data_generator.ir.assert_structural_equal(after, expected)
 
 
 def test_op_elemwise_symbolic():
@@ -291,7 +291,7 @@ def test_op_elemwise_symbolic():
         func=before, write_buffer_transforms=[lambda n, c, h, w: (n, h, w, c)]
     )
     after = apply_transformations(before, suggested_transforms)
-    gsmDataGen.ir.assert_structural_equal(after, expected)
+    gsm_data_generator.ir.assert_structural_equal(after, expected)
 
 
 def test_op_elemwise():
@@ -323,7 +323,7 @@ def test_op_elemwise():
         func=before, write_buffer_transforms=[lambda n, c, h, w: (n, h, w, c)]
     )
     after = apply_transformations(before, suggested_transforms)
-    gsmDataGen.ir.assert_structural_equal(after, expected)
+    gsm_data_generator.ir.assert_structural_equal(after, expected)
 
 
 def test_op_pool_nchw_nhwc():
@@ -383,7 +383,7 @@ def test_op_pool_nchw_nhwc():
         write_buffer_transforms=[lambda n, c, h, w: (n, h, w, c)],
     )
     after = apply_transformations(before, suggested_transforms)
-    gsmDataGen.ir.assert_structural_equal(after, expected)
+    gsm_data_generator.ir.assert_structural_equal(after, expected)
 
 
 def test_op_pool_nchw16c_nhwc():
@@ -436,7 +436,7 @@ def test_op_pool_nchw16c_nhwc():
         write_buffer_transforms=[lambda n, C, h, w, c: (n, h, w, C * 16 + c)],
     )
     after = apply_transformations(before, suggested_transforms)
-    gsmDataGen.ir.assert_structural_equal(after, expected)
+    gsm_data_generator.ir.assert_structural_equal(after, expected)
 
 
 def test_op_reduce():
@@ -472,7 +472,7 @@ def test_op_reduce():
         func=before, write_buffer_transforms=[lambda n, c: (n, c // 16, c % 16)]
     )
     after = apply_transformations(before, suggested_transforms)
-    gsmDataGen.ir.assert_structural_equal(after, expected)
+    gsm_data_generator.ir.assert_structural_equal(after, expected)
 
 
 def test_op_upsampling():
@@ -564,7 +564,7 @@ def test_op_upsampling():
         func=before, write_buffer_transforms=[lambda n, c, h, w: (n, h, w, c)]
     )
     after = apply_transformations(before, suggested_transforms)
-    gsmDataGen.ir.assert_structural_equal(after, expected)
+    gsm_data_generator.ir.assert_structural_equal(after, expected)
 
 
 def test_op_strided_slice():
@@ -611,7 +611,7 @@ def test_op_strided_slice():
         func=before, write_buffer_transforms=[lambda n, c, h, w: (n, h, w, c // 4, c % 4)]
     )
     after = apply_transformations(before, suggested_transforms)
-    gsmDataGen.ir.assert_structural_equal(after, expected)
+    gsm_data_generator.ir.assert_structural_equal(after, expected)
 
 
 def test_op_binary_broadcast():
@@ -654,7 +654,7 @@ def test_op_binary_broadcast():
         func=before, write_buffer_transforms=[lambda n, c, h, w: (n, h, w, c // 4, c % 4)]
     )
     after = apply_transformations(before, suggested_transforms)
-    gsmDataGen.ir.assert_structural_equal(after, expected)
+    gsm_data_generator.ir.assert_structural_equal(after, expected)
 
 
 def test_op_transpose():
@@ -686,7 +686,7 @@ def test_op_transpose():
         func=before, write_buffer_transforms=[lambda n, c, h, w: (n, h, w, c)]
     )
     after = apply_transformations(before, suggested_transforms)
-    gsmDataGen.ir.assert_structural_equal(after, expected)
+    gsm_data_generator.ir.assert_structural_equal(after, expected)
 
 
 def test_op_pad():
@@ -726,7 +726,7 @@ def test_op_pad():
         func=before, write_buffer_transforms=[lambda n, c, h, w: (n, h, w, c // 4, c % 4)]
     )
     after = apply_transformations(before, suggested_transforms)
-    gsmDataGen.ir.assert_structural_equal(after, expected)
+    gsm_data_generator.ir.assert_structural_equal(after, expected)
 
 
 def test_op_split():
@@ -773,7 +773,7 @@ def test_op_split():
         write_buffer_transforms=[lambda n, c, h, w: (n, h, w, c), lambda n, c, h, w: (n, h, w, c)],
     )
     after = apply_transformations(before, suggested_transforms)
-    gsmDataGen.ir.assert_structural_equal(after, expected)
+    gsm_data_generator.ir.assert_structural_equal(after, expected)
 
 
 @pytest.mark.skip("temp disable, due to minor arith regression")
@@ -825,8 +825,8 @@ def test_op_split_tiling_split_dim():
         ],
     )
     after = apply_transformations(before, suggested_transforms)
-    gsmDataGen.ir.assert_structural_equal(after, expected)
+    gsm_data_generator.ir.assert_structural_equal(after, expected)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

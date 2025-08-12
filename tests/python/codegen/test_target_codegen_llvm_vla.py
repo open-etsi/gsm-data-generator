@@ -22,29 +22,29 @@ Codegen tests for VLA extensions
 import re
 import pytest
 
-import gsmDataGen
-from gsmDataGen import te
-from gsmDataGen.script import tir as T
-from gsmDataGen.target.codegen import llvm_version_major
+import gsm_data_generator
+from gsm_data_generator import te
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.target.codegen import llvm_version_major
 
 
 @pytest.mark.skipif(
     llvm_version_major() < 11, reason="Vscale is not supported in earlier versions of LLVM"
 )
-@gsmDataGen.testing.parametrize_targets(
+@gsm_data_generator.testing.parametrize_targets(
     "llvm -mtriple=aarch64-linux-gnu -mattr=+sve",
     "llvm -device=riscv_cpu -mtriple=riscv64-linux-gnu -mcpu=generic-rv64 -mattr=+64bit,+a,+c,+d,+f,+m,+v",
 )
 def test_codegen_vscale(target):
-    vscale = gsmDataGen.tir.vscale()
+    vscale = gsm_data_generator.tir.vscale()
 
     @T.prim_func
     def main(A: T.Buffer((5,), "int32")):
         for i in range(5):
             A[i] = 2 * vscale
 
-    with gsmDataGen.target.Target(target):
-        build_mod = gsmDataGen.tir.build(main)
+    with gsm_data_generator.target.Target(target):
+        build_mod = gsm_data_generator.tir.build(main)
 
     llvm = build_mod.get_source()
     assert re.findall(r"llvm.vscale.i32", llvm), "No vscale in generated LLVM."
@@ -53,7 +53,7 @@ def test_codegen_vscale(target):
 @pytest.mark.skipif(
     llvm_version_major() < 11, reason="Vscale is not supported in earlier versions of LLVM"
 )
-@gsmDataGen.testing.parametrize_targets(
+@gsm_data_generator.testing.parametrize_targets(
     "llvm -mtriple=aarch64-linux-gnu -mattr=+sve",
     "llvm -device=riscv_cpu -mtriple=riscv64-linux-gnu -mcpu=generic-rv64 -mattr=+64bit,+a,+c,+d,+f,+m,+v",
 )
@@ -65,8 +65,8 @@ def test_scalable_buffer_load_store(target):
         T.func_attr({"global_symbol": "my_module", "tir.noalias": True})
         B[T.ramp(0, 1, 4 * T.vscale())] = A[T.ramp(0, 1, 4 * T.vscale())]
 
-    with gsmDataGen.target.Target(target):
-        mod = gsmDataGen.tir.build(my_func)
+    with gsm_data_generator.target.Target(target):
+        mod = gsm_data_generator.tir.build(my_func)
 
     llvm = mod.get_source("ll")
     assert re.findall(r"load <vscale x 4 x float>", llvm), "No scalable load in generated LLVM."
@@ -76,7 +76,7 @@ def test_scalable_buffer_load_store(target):
 @pytest.mark.skipif(
     llvm_version_major() < 11, reason="Vscale is not supported in earlier versions of LLVM"
 )
-@gsmDataGen.testing.parametrize_targets(
+@gsm_data_generator.testing.parametrize_targets(
     "llvm -mtriple=aarch64-linux-gnu -mattr=+sve",
     "llvm -device=riscv_cpu -mtriple=riscv64-linux-gnu -mcpu=generic-rv64 -mattr=+64bit,+a,+c,+d,+f,+m,+v",
 )
@@ -87,8 +87,8 @@ def test_scalable_broadcast(target):
         T.func_attr({"global_symbol": "my_module", "tir.noalias": True})
         A[T.ramp(0, 1, 4 * T.vscale())] = T.broadcast(1, 4 * T.vscale())
 
-    with gsmDataGen.target.Target(target):
-        mod = gsmDataGen.tir.build(my_func)
+    with gsm_data_generator.target.Target(target):
+        mod = gsm_data_generator.tir.build(my_func)
 
     llvm = mod.get_source("ll")
     assert re.findall(
@@ -100,7 +100,7 @@ def test_scalable_broadcast(target):
 @pytest.mark.skip(
     reason="Vscale and get.active.lane.mask are not supported in earlier versions of LLVM",
 )
-@gsmDataGen.testing.parametrize_targets(
+@gsm_data_generator.testing.parametrize_targets(
     "llvm -mtriple=aarch64-linux-gnu -mattr=+sve",
     "llvm -device=riscv_cpu -mtriple=riscv64-linux-gnu -mcpu=generic-rv64 -mattr=+64bit,+a,+c,+d,+f,+m,+v",
 )
@@ -111,8 +111,8 @@ def test_get_active_lane_mask(target):
         for i in range(T.ceildiv(30, T.vscale() * 4)):
             A[i : i + T.vscale() * 4] = T.get_active_lane_mask("uint1xvscalex4", i, 30)
 
-    with gsmDataGen.target.Target(target):
-        out = gsmDataGen.tir.build(before)
+    with gsm_data_generator.target.Target(target):
+        out = gsm_data_generator.tir.build(before)
 
     ll = out.get_source("ll")
     assert "get.active.lane.mask" in ll
@@ -121,7 +121,7 @@ def test_get_active_lane_mask(target):
 @pytest.mark.skip(
     reason="Vscale and get.active.lane.mask are not supported in earlier versions of LLVM",
 )
-@gsmDataGen.testing.parametrize_targets(
+@gsm_data_generator.testing.parametrize_targets(
     "llvm -mtriple=aarch64-linux-gnu -mattr=+sve",
     "llvm -device=riscv_cpu -mtriple=riscv64-linux-gnu -mcpu=generic-rv64 -mattr=+64bit,+a,+c,+d,+f,+m,+v",
 )
@@ -136,8 +136,8 @@ def test_predicated_scalable_buffer(target):
                 if i_0 * 4 * T.vscale() + i_1 < 14:
                     B[i_0 * 4 * T.vscale() + i_1] = A[i_0 * 4 * T.vscale() + i_1] + 1.0
 
-    with gsmDataGen.target.Target(target):
-        out = gsmDataGen.tir.build(before)
+    with gsm_data_generator.target.Target(target):
+        out = gsm_data_generator.tir.build(before)
 
     ll = out.get_source("ll")
     assert "get.active.lane.mask" in ll
@@ -146,4 +146,4 @@ def test_predicated_scalable_buffer(target):
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

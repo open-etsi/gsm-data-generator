@@ -15,14 +15,14 @@
 # specific language governing permissions and limitations
 # under the License.
 
-import gsmDataGen
-from gsmDataGen.relax.transform import LegalizeOps
-from gsmDataGen.script import relax as R, tir as T
-import gsmDataGen.testing
+import gsm_data_generator
+from gsm_data_generator.relax.transform import LegalizeOps
+from gsm_data_generator.script import relax as R, tir as T
+import gsm_data_generator.testing
 
 
 def test_quantize_fp32_to_int8():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Quantize:
         @R.function
         def main(
@@ -33,7 +33,7 @@ def test_quantize_fp32_to_int8():
             out = R.quantize(data, scale, zp, axis=0, out_dtype="int8")
             return out
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @T.prim_func(private=True)
         def quantize(
@@ -72,11 +72,11 @@ def test_quantize_fp32_to_int8():
             return out
 
     mod = LegalizeOps()(Quantize)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_quantize_fp16_to_uint8():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Quantize:
         @R.function
         def main(
@@ -87,7 +87,7 @@ def test_quantize_fp16_to_uint8():
             out = R.quantize(data, scale, zp, axis=0, out_dtype="uint8")
             return out
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @T.prim_func(private=True)
         def quantize(
@@ -126,11 +126,11 @@ def test_quantize_fp16_to_uint8():
             return out
 
     mod = LegalizeOps()(Quantize)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_quantize_fp32_to_int8_symbolic():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Quantize:
         @R.function
         def main(
@@ -141,7 +141,7 @@ def test_quantize_fp32_to_int8_symbolic():
             out = R.quantize(data, scale, zp, axis=-1, out_dtype="int8")
             return out
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @T.prim_func(private=True)
         def quantize(var_A: T.handle, var_B: T.handle, var_C: T.handle, var_quantized: T.handle):
@@ -181,11 +181,11 @@ def test_quantize_fp32_to_int8_symbolic():
             return out
 
     mod = LegalizeOps()(Quantize)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_quantize_fp32_to_int8_scalar_param():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Quantize:
         @R.function
         def main(data: R.Tensor((2, 4), "float32")) -> R.Tensor((2, 4), "int8"):
@@ -194,7 +194,7 @@ def test_quantize_fp32_to_int8_scalar_param():
             )
             return out
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @T.prim_func(private=True)
         def quantize(
@@ -225,11 +225,11 @@ def test_quantize_fp32_to_int8_scalar_param():
             return out
 
     mod = LegalizeOps()(Quantize)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_quantize_fp32_to_int8_scalar_1d_param():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Quantize:
         @R.function
         def main(data: R.Tensor((2, 4), "float32")) -> R.Tensor((2, 4), "int8"):
@@ -242,7 +242,7 @@ def test_quantize_fp32_to_int8_scalar_1d_param():
             )
             return out
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @T.prim_func(private=True)
         def quantize(
@@ -280,11 +280,11 @@ def test_quantize_fp32_to_int8_scalar_1d_param():
             return out
 
     mod = LegalizeOps()(Quantize)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_quantize_fp16_to_int8_scalar_param():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Quantize:
         @R.function
         def main(data: R.Tensor((2, 4), "float16")) -> R.Tensor((2, 4), "int8"):
@@ -293,7 +293,7 @@ def test_quantize_fp16_to_int8_scalar_param():
             )
             return out
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @T.prim_func(private=True)
         def quantize(
@@ -324,11 +324,11 @@ def test_quantize_fp16_to_int8_scalar_param():
             return out
 
     mod = LegalizeOps()(Quantize)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_dequantize_int8_to_fp32():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Dequantize:
         @R.function
         def main(
@@ -339,7 +339,7 @@ def test_dequantize_int8_to_fp32():
             out = R.dequantize(data, scale, zp, axis=0, out_dtype="float32")
             return out
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @T.prim_func(private=True)
         def dequantize(
@@ -372,11 +372,11 @@ def test_dequantize_int8_to_fp32():
             return out
 
     mod = LegalizeOps()(Dequantize)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_dequantize_int8_to_fp32_scalar_param():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Dequantize:
         @R.function
         def main(data: R.Tensor((2, 4), "int8")) -> R.Tensor((2, 4), "float32"):
@@ -385,7 +385,7 @@ def test_dequantize_int8_to_fp32_scalar_param():
             )
             return out
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @T.prim_func(private=True)
         def dequantize(
@@ -410,11 +410,11 @@ def test_dequantize_int8_to_fp32_scalar_param():
             return out
 
     mod = LegalizeOps()(Dequantize)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_dequantize_int8_to_fp32_symbolic():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Dequantize:
         @R.function
         def main(
@@ -425,7 +425,7 @@ def test_dequantize_int8_to_fp32_symbolic():
             out = R.dequantize(data, scale, zp, axis=-1, out_dtype="float32")
             return out
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @T.prim_func(private=True)
         def dequantize(
@@ -461,11 +461,11 @@ def test_dequantize_int8_to_fp32_symbolic():
             return out
 
     mod = LegalizeOps()(Dequantize)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_dequantize_int8_to_fp16():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Dequantize:
         @R.function
         def main(
@@ -476,7 +476,7 @@ def test_dequantize_int8_to_fp16():
             out = R.dequantize(data, scale, zp, axis=0, out_dtype="float16")
             return out
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @T.prim_func(private=True)
         def dequantize(
@@ -519,11 +519,11 @@ def test_dequantize_int8_to_fp16():
             return out
 
     mod = LegalizeOps()(Dequantize)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_dequantize_int8_to_fp16_scalar_param():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Dequantize:
         @R.function
         def main(data: R.Tensor((2, 4), "int8")) -> R.Tensor((2, 4), "float16"):
@@ -532,7 +532,7 @@ def test_dequantize_int8_to_fp16_scalar_param():
             )
             return out
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @T.prim_func(private=True)
         def dequantize(
@@ -565,8 +565,8 @@ def test_dequantize_int8_to_fp16_scalar_param():
             return out
 
     mod = LegalizeOps()(Dequantize)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

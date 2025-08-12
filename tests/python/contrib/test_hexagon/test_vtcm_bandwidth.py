@@ -20,9 +20,9 @@
 import numpy as np
 import pytest
 
-import gsmDataGen
-from gsmDataGen.script import tir as T
-from gsmDataGen.tir.tensor_intrin.hexagon import DMA_READ_128_i8
+import gsm_data_generator
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.tir.tensor_intrin.hexagon import DMA_READ_128_i8
 
 from .infrastructure import get_hexagon_target
 
@@ -95,18 +95,18 @@ def evaluate(hexagon_session, sch, size):
     """Evaluate schedule."""
     a_shape = size
 
-    func_tir = gsmDataGen.compile(sch.mod["main"], target=get_hexagon_target("v69"))
+    func_tir = gsm_data_generator.compile(sch.mod["main"], target=get_hexagon_target("v69"))
     module = hexagon_session.load_module(func_tir)
 
     a = np.random.randint(-128, 127, a_shape, dtype="int8")
     a_vtcm = np.zeros(a_shape, dtype="int8")
 
-    a_hexagon = gsmDataGen.runtime.ndarray.array(a, device=hexagon_session.device, mem_scope="global")
-    a_vtcm_hexagon = gsmDataGen.runtime.ndarray.array(
+    a_hexagon = gsm_data_generator.runtime.ndarray.array(a, device=hexagon_session.device, mem_scope="global")
+    a_vtcm_hexagon = gsm_data_generator.runtime.ndarray.array(
         a_vtcm, device=hexagon_session.device, mem_scope="global.vtcm"
     )
 
-    if gsmDataGen.testing.utils.IS_IN_CI:
+    if gsm_data_generator.testing.utils.IS_IN_CI:
         # Run with reduced number and repeat for CI
         timer = module.time_evaluator("__tvm_main__", hexagon_session.device, number=1, repeat=1)
     else:
@@ -115,7 +115,7 @@ def evaluate(hexagon_session, sch, size):
     runtime = timer(a_hexagon, a_vtcm_hexagon)
 
     gbps = round((size / 2**30) / runtime.mean, 4)
-    gsmDataGen.testing.assert_allclose(a_vtcm_hexagon.numpy(), a)
+    gsm_data_generator.testing.assert_allclose(a_vtcm_hexagon.numpy(), a)
 
     return gbps
 
@@ -124,7 +124,7 @@ class TestMatMulVec:
     """MatMul test class."""
 
     # Removed most of these to speedup CI.
-    size = gsmDataGen.testing.parameter(
+    size = gsm_data_generator.testing.parameter(
         128,
         KB,
         10 * KB,
@@ -132,23 +132,23 @@ class TestMatMulVec:
         MB,
     )
 
-    outer_split = gsmDataGen.testing.parameter(4)
-    unroll_split = gsmDataGen.testing.parameter(2)
-    vector_split = gsmDataGen.testing.parameter(128)
+    outer_split = gsm_data_generator.testing.parameter(4)
+    unroll_split = gsm_data_generator.testing.parameter(2)
+    vector_split = gsm_data_generator.testing.parameter(128)
 
-    @gsmDataGen.testing.requires_hexagon
+    @gsm_data_generator.testing.requires_hexagon
     def test_bandwidth(self, hexagon_session, size, outer_split, unroll_split, vector_split):
         """Test bandwidth."""
 
-        if gsmDataGen.testing.utils.IS_IN_CI and (size > 128):
+        if gsm_data_generator.testing.utils.IS_IN_CI and (size > 128):
             pytest.skip("Skipping test since it takes too long in CI.")
 
         # Run the base memcopy operator.
-        sch = gsmDataGen.tir.Schedule(memcopy_operator(size))
+        sch = gsm_data_generator.tir.Schedule(memcopy_operator(size))
         base_gpbs = evaluate(hexagon_session, sch, size)
 
         # Run with some basic unroll and vectorize scheduling.
-        sch = gsmDataGen.tir.Schedule(memcopy_operator(size))
+        sch = gsm_data_generator.tir.Schedule(memcopy_operator(size))
         vtcm_block_a = sch.get_block("A_global.vtcm")
         v_block = sch.get_loops(vtcm_block_a)
         _, vio_a, vii_a = sch.split(v_block[0], factors=[None, unroll_split, vector_split])
@@ -157,7 +157,7 @@ class TestMatMulVec:
         vectorize_gbps = evaluate(hexagon_session, sch, size)
 
         # Run with some basic unroll and vectorize scheduling and parallelization.
-        sch = gsmDataGen.tir.Schedule(memcopy_operator(size))
+        sch = gsm_data_generator.tir.Schedule(memcopy_operator(size))
         vtcm_block_a = sch.get_block("A_global.vtcm")
         v_block = sch.get_loops(vtcm_block_a)
         vbo_a, _, vio_a, vii_a = sch.split(
@@ -169,7 +169,7 @@ class TestMatMulVec:
         parallel_gbps = evaluate(hexagon_session, sch, size)
 
         # Run with some basic unroll and vectorize scheduling and parallelization.
-        sch = gsmDataGen.tir.Schedule(memcopy_operator(size))
+        sch = gsm_data_generator.tir.Schedule(memcopy_operator(size))
         block = sch.get_block("A_global.vtcm")
         loops = sch.get_loops(block)
         _, inner = sch.split(loops[0], [None, 128])
@@ -178,7 +178,7 @@ class TestMatMulVec:
         sync_dma_gbps = evaluate(hexagon_session, sch, size)
 
         # Run using a single dma copy to transfer the data.
-        sch = gsmDataGen.tir.Schedule(single_dma_operator(size))
+        sch = gsm_data_generator.tir.Schedule(single_dma_operator(size))
         single_dma_gbps = evaluate(hexagon_session, sch, size)
 
         mbs = round(size / MB, 2)
@@ -190,4 +190,4 @@ class TestMatMulVec:
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

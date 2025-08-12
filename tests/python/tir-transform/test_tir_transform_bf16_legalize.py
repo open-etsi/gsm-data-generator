@@ -14,17 +14,17 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-import gsmDataGen
-import gsmDataGen.script
-from gsmDataGen.target import Target
-from gsmDataGen.script import tir as T
-from gsmDataGen.target import Target
-from gsmDataGen.tir.transform.transform import BindTarget
+import gsm_data_generator
+import gsm_data_generator.script
+from gsm_data_generator.target import Target
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.target import Target
+from gsm_data_generator.tir.transform.transform import BindTarget
 
 
 def u16tof32(v):
     uint32_v = v.astype("uint32")
-    uint32_v = uint32_v << gsmDataGen.tir.const(16, "uint32")
+    uint32_v = uint32_v << gsm_data_generator.tir.const(16, "uint32")
     return T.reinterpret("float32", uint32_v)
 
 
@@ -34,10 +34,10 @@ def bf16tof32(v):
 
 def f32tou16(v):
     uint32_v = T.reinterpret("uint32", v)
-    rounding_bias = (uint32_v >> gsmDataGen.tir.const(16, "uint32")) & gsmDataGen.tir.const(1, "uint32")
-    rounding_bias += gsmDataGen.tir.const(0x7FFF, "uint32")
+    rounding_bias = (uint32_v >> gsm_data_generator.tir.const(16, "uint32")) & gsm_data_generator.tir.const(1, "uint32")
+    rounding_bias += gsm_data_generator.tir.const(0x7FFF, "uint32")
     uint32_v = uint32_v + rounding_bias
-    return (uint32_v >> gsmDataGen.tir.const(16, "uint32")).astype("uint16")
+    return (uint32_v >> gsm_data_generator.tir.const(16, "uint32")).astype("uint16")
 
 
 def f32tobf16(v):
@@ -46,7 +46,7 @@ def f32tobf16(v):
 
 def test_bf16_storage_compute_scope_will_legalize():
     def get_before():
-        @gsmDataGen.script.ir_module
+        @gsm_data_generator.script.ir_module
         class Before:
             @T.prim_func
             def main(
@@ -66,7 +66,7 @@ def test_bf16_storage_compute_scope_will_legalize():
         return Before
 
     def after_compute_legalize():
-        @gsmDataGen.script.ir_module
+        @gsm_data_generator.script.ir_module
         class After:
             @T.prim_func
             def main(
@@ -86,7 +86,7 @@ def test_bf16_storage_compute_scope_will_legalize():
         return After
 
     def after_storage_legalize():
-        @gsmDataGen.script.ir_module
+        @gsm_data_generator.script.ir_module
         class After:
             @T.prim_func
             def main(
@@ -107,15 +107,15 @@ def test_bf16_storage_compute_scope_will_legalize():
 
     target = Target("nvidia/geforce-rtx-2080-ti")
     before = BindTarget(target)(get_before())
-    after_compute = gsmDataGen.tir.transform.BF16ComputeLegalize()(before)
-    after_storage = gsmDataGen.tir.transform.BF16StorageLegalize()(after_compute)
-    gsmDataGen.ir.assert_structural_equal(after_compute, BindTarget(target)(after_compute_legalize()))
-    gsmDataGen.ir.assert_structural_equal(after_storage, BindTarget(target)(after_storage_legalize()))
+    after_compute = gsm_data_generator.tir.transform.BF16ComputeLegalize()(before)
+    after_storage = gsm_data_generator.tir.transform.BF16StorageLegalize()(after_compute)
+    gsm_data_generator.ir.assert_structural_equal(after_compute, BindTarget(target)(after_compute_legalize()))
+    gsm_data_generator.ir.assert_structural_equal(after_storage, BindTarget(target)(after_storage_legalize()))
 
 
 def test_bf16_storage_compute_scope_wont_legalize():
     def get_before():
-        @gsmDataGen.script.ir_module
+        @gsm_data_generator.script.ir_module
         class Before:
             @T.prim_func
             def main(
@@ -135,7 +135,7 @@ def test_bf16_storage_compute_scope_wont_legalize():
         return Before
 
     def after_compute_legalize():
-        @gsmDataGen.script.ir_module
+        @gsm_data_generator.script.ir_module
         class After:
             @T.prim_func
             def main(
@@ -155,7 +155,7 @@ def test_bf16_storage_compute_scope_wont_legalize():
         return After
 
     def after_storage_legalize():
-        @gsmDataGen.script.ir_module
+        @gsm_data_generator.script.ir_module
         class After:
             @T.prim_func
             def main(
@@ -176,15 +176,15 @@ def test_bf16_storage_compute_scope_wont_legalize():
 
     target = Target("nvidia/geforce-rtx-3090-ti")
     before = BindTarget(target)(get_before())
-    after_compute = gsmDataGen.tir.transform.BF16ComputeLegalize()(before)
-    after_storage = gsmDataGen.tir.transform.BF16StorageLegalize()(after_compute)
-    gsmDataGen.ir.assert_structural_equal(after_compute, BindTarget(target)(after_compute_legalize()))
-    gsmDataGen.ir.assert_structural_equal(after_storage, BindTarget(target)(after_storage_legalize()))
+    after_compute = gsm_data_generator.tir.transform.BF16ComputeLegalize()(before)
+    after_storage = gsm_data_generator.tir.transform.BF16StorageLegalize()(after_compute)
+    gsm_data_generator.ir.assert_structural_equal(after_compute, BindTarget(target)(after_compute_legalize()))
+    gsm_data_generator.ir.assert_structural_equal(after_storage, BindTarget(target)(after_storage_legalize()))
 
 
 def test_bf16_reduce_will_legalize():
     def get_before():
-        @gsmDataGen.script.ir_module
+        @gsm_data_generator.script.ir_module
         class Before:
             @T.prim_func(private=True)
             def main(
@@ -213,7 +213,7 @@ def test_bf16_reduce_will_legalize():
         return Before
 
     def after_compute_legalize():
-        @gsmDataGen.script.ir_module
+        @gsm_data_generator.script.ir_module
         class After:
             @T.prim_func(private=True)
             def main(
@@ -248,7 +248,7 @@ def test_bf16_reduce_will_legalize():
         return After
 
     def after_storage_legalize():
-        @gsmDataGen.script.ir_module
+        @gsm_data_generator.script.ir_module
         class After:
             @T.prim_func(private=True)
             def main(
@@ -284,15 +284,15 @@ def test_bf16_reduce_will_legalize():
 
     target = Target("nvidia/geforce-rtx-2080-ti")
     before = BindTarget(target)(get_before())
-    after_compute = gsmDataGen.tir.transform.BF16ComputeLegalize()(before)
-    after_storage = gsmDataGen.tir.transform.BF16StorageLegalize()(after_compute)
-    gsmDataGen.ir.assert_structural_equal(after_compute, BindTarget(target)(after_compute_legalize()))
-    gsmDataGen.ir.assert_structural_equal(after_storage, BindTarget(target)(after_storage_legalize()))
+    after_compute = gsm_data_generator.tir.transform.BF16ComputeLegalize()(before)
+    after_storage = gsm_data_generator.tir.transform.BF16StorageLegalize()(after_compute)
+    gsm_data_generator.ir.assert_structural_equal(after_compute, BindTarget(target)(after_compute_legalize()))
+    gsm_data_generator.ir.assert_structural_equal(after_storage, BindTarget(target)(after_storage_legalize()))
 
 
 def test_bf16_reduce_wont_legalize():
     def get_before():
-        @gsmDataGen.script.ir_module
+        @gsm_data_generator.script.ir_module
         class Before:
             @T.prim_func(private=True)
             def main(
@@ -321,7 +321,7 @@ def test_bf16_reduce_wont_legalize():
         return Before
 
     def after_compute_legalize():
-        @gsmDataGen.script.ir_module
+        @gsm_data_generator.script.ir_module
         class After:
             @T.prim_func(private=True)
             def main(
@@ -350,7 +350,7 @@ def test_bf16_reduce_wont_legalize():
         return After
 
     def after_storage_legalize():
-        @gsmDataGen.script.ir_module
+        @gsm_data_generator.script.ir_module
         class After:
             @T.prim_func(private=True)
             def main(
@@ -380,10 +380,10 @@ def test_bf16_reduce_wont_legalize():
 
     target = Target("nvidia/geforce-rtx-3090-ti")
     before = BindTarget(target)(get_before())
-    after_compute = gsmDataGen.tir.transform.BF16ComputeLegalize()(before)
-    after_storage = gsmDataGen.tir.transform.BF16StorageLegalize()(after_compute)
-    gsmDataGen.ir.assert_structural_equal(after_compute, BindTarget(target)(after_compute_legalize()))
-    gsmDataGen.ir.assert_structural_equal(after_storage, BindTarget(target)(after_storage_legalize()))
+    after_compute = gsm_data_generator.tir.transform.BF16ComputeLegalize()(before)
+    after_storage = gsm_data_generator.tir.transform.BF16StorageLegalize()(after_compute)
+    gsm_data_generator.ir.assert_structural_equal(after_compute, BindTarget(target)(after_compute_legalize()))
+    gsm_data_generator.ir.assert_structural_equal(after_storage, BindTarget(target)(after_storage_legalize()))
 
 
 if __name__ == "__main__":

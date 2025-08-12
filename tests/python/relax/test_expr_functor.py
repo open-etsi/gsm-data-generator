@@ -14,12 +14,12 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-import gsmDataGen
-from gsmDataGen import relax, tir
-from gsmDataGen.ir import Op
-from gsmDataGen.ir.base import assert_structural_equal
-from gsmDataGen.relax import PyExprMutator, PyExprVisitor
-from gsmDataGen.relax.expr import (
+import gsm_data_generator
+from gsm_data_generator import relax, tir
+from gsm_data_generator.ir import Op
+from gsm_data_generator.ir.base import assert_structural_equal
+from gsm_data_generator.relax import PyExprMutator, PyExprVisitor
+from gsm_data_generator.relax.expr import (
     BindingBlock,
     Call,
     Constant,
@@ -41,9 +41,9 @@ from gsmDataGen.relax.expr import (
     Var,
     VarBinding,
 )
-from gsmDataGen.script import relax as R
+from gsm_data_generator.script import relax as R
 import pytest
-import gsmDataGen.testing
+import gsm_data_generator.testing
 
 m, n = tir.Var("m", "int64"), tir.Var("n", "int64")
 x = relax.Var("x", R.Tensor([n], "float32"))
@@ -860,8 +860,8 @@ def test_function_parameter_mutation():
         return R.matmul(A, B)
 
     after = ParamMutator({"A": (1, 32)}).visit_expr(before)
-    gsmDataGen.ir.assert_structural_equal(expected, after)
+    gsm_data_generator.ir.assert_structural_equal(expected, after)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

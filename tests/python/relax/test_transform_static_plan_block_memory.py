@@ -17,17 +17,17 @@
 
 import pytest
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import TVMError, relax
-from gsmDataGen.script import ir as I
-from gsmDataGen.script import relax as R
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import TVMError, relax
+from gsm_data_generator.script import ir as I
+from gsm_data_generator.script import relax as R
+from gsm_data_generator.script import tir as T
 
 
 def test_basic():
     # fmt: off
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Module:
         @T.prim_func
         def add(rxplaceholder: T.Buffer(T.int64(8), "float32"), rxplaceholder_1: T.Buffer((), "float32"), T_add: T.Buffer(T.int64(8), "float32")):
@@ -76,7 +76,7 @@ def test_basic():
             gv: R.Tensor((10,), dtype="float32") = alloc4
             return gv
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @T.prim_func
         def add(rxplaceholder: T.Buffer(T.int64(8), "float32"), rxplaceholder_1: T.Buffer((), "float32"), T_add: T.Buffer(T.int64(8), "float32")):
@@ -182,15 +182,15 @@ def test_basic():
     # fmt: on
 
     mod = relax.transform.StaticPlanBlockMemory()(Module)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
     mod = relax.transform.LowerAllocTensor()(mod)
     mod = relax.transform.KillAfterLastUse()(mod)
     mod = relax.transform.LowerRuntimeBuiltin()(mod)
-    gsmDataGen.ir.assert_structural_equal(mod, ExpectedLowered)
+    gsm_data_generator.ir.assert_structural_equal(mod, ExpectedLowered)
 
 
 def test_different_dtype():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Module:
         @T.prim_func
         def add(
@@ -226,7 +226,7 @@ def test_different_dtype():
             gv1: R.Tensor((2, 3), dtype="int32") = alloc1
             return x
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @T.prim_func
         def add(
@@ -269,11 +269,11 @@ def test_different_dtype():
             return x
 
     mod = relax.transform.StaticPlanBlockMemory()(Module)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_dtype_bool():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Module:
         @T.prim_func
         def add1(
@@ -294,7 +294,7 @@ def test_dtype_bool():
             gv1: R.Tensor((2, 3), dtype="bool") = alloc
             return y
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @T.prim_func
         def add1(
@@ -319,11 +319,11 @@ def test_dtype_bool():
             return y
 
     mod = relax.transform.StaticPlanBlockMemory()(Module)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_same_dtype():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Module:
         @T.prim_func
         def add(
@@ -351,7 +351,7 @@ def test_same_dtype():
             gv1: R.Tensor((2, 3), dtype="float32") = alloc1
             return x
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @T.prim_func
         def add(
@@ -383,11 +383,11 @@ def test_same_dtype():
             return x
 
     mod = relax.transform.StaticPlanBlockMemory()(Module)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_if_cond():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Module:
         @T.prim_func
         def all_less_than_zero(A: T.Buffer((2, 3), "float32"), B: T.Buffer((), "bool")):
@@ -419,11 +419,11 @@ def test_if_cond():
 
     # The pass does no change.
     mod = relax.transform.StaticPlanBlockMemory()(Module)
-    gsmDataGen.ir.assert_structural_equal(mod, Module)
+    gsm_data_generator.ir.assert_structural_equal(mod, Module)
 
 
 def test_if_then_else():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Module:
         @T.prim_func
         def exp(A: T.Buffer((2, 3), "float32"), B: T.Buffer((2, 3), "float32")):
@@ -448,11 +448,11 @@ def test_if_then_else():
 
     # The pass does no change.
     mod = relax.transform.StaticPlanBlockMemory()(Module)
-    gsmDataGen.ir.assert_structural_equal(mod, Module)
+    gsm_data_generator.ir.assert_structural_equal(mod, Module)
 
 
 def test_cross_block_use():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Module:
         @T.prim_func
         def exp(A: T.Buffer((2, 3), "float32"), B: T.Buffer((2, 3), "float32")):
@@ -487,11 +487,11 @@ def test_cross_block_use():
 
     # The pass does no change.
     mod = relax.transform.StaticPlanBlockMemory()(Module)
-    gsmDataGen.ir.assert_structural_equal(mod, Module)
+    gsm_data_generator.ir.assert_structural_equal(mod, Module)
 
 
 def test_nested_tuple():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Module:
         @T.prim_func
         def exp(A: T.Buffer((2, 3), "float32"), B: T.Buffer((2, 3), "float32")):
@@ -547,7 +547,7 @@ def test_nested_tuple():
             z3: R.Tensor((2, 3), dtype="float32") = alloc5
             return x
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @T.prim_func
         def exp(A: T.Buffer((2, 3), "float32"), B: T.Buffer((2, 3), "float32")):
@@ -616,11 +616,11 @@ def test_nested_tuple():
             return x
 
     mod = relax.transform.StaticPlanBlockMemory()(Module)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_call_func_other_than_primfunc():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Module:
         @R.function
         def main(x: R.Tensor((2, 3), "float32")):
@@ -634,7 +634,7 @@ def test_call_func_other_than_primfunc():
 
     # The pass does no change.
     mod = relax.transform.StaticPlanBlockMemory()(Module)
-    gsmDataGen.ir.assert_structural_equal(mod, Module)
+    gsm_data_generator.ir.assert_structural_equal(mod, Module)
 
 
 def test_call_packed_external_func():
@@ -675,11 +675,11 @@ def test_call_packed_external_func():
             return z
 
     mod = relax.transform.StaticPlanBlockMemory()(Module)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_symbolic_shape():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Module:
         @T.prim_func
         def exp(var_A: T.handle, var_B: T.handle):
@@ -701,7 +701,7 @@ def test_symbolic_shape():
             y: R.Tensor((m, n), dtype="float32") = alloc
             return x
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @T.prim_func
         def exp(var_A: T.handle, var_B: T.handle):
@@ -728,11 +728,11 @@ def test_symbolic_shape():
             return x
 
     mod = relax.transform.StaticPlanBlockMemory()(Module)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_zero_reference():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Module:
         @R.function
         def main(x: R.Tensor((2, 3), "float32")):
@@ -742,7 +742,7 @@ def test_zero_reference():
             )
             return x
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Expected:
         @R.function
         def main(x: R.Tensor((2, 3), "float32")):
@@ -756,11 +756,11 @@ def test_zero_reference():
             return x
 
     mod = relax.transform.StaticPlanBlockMemory()(Module)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_reshape_param():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Module:
         @T.prim_func
         def add(
@@ -786,11 +786,11 @@ def test_reshape_param():
 
     # The pass does no change.
     mod = relax.transform.StaticPlanBlockMemory()(Module)
-    gsmDataGen.ir.assert_structural_equal(mod, Module)
+    gsm_data_generator.ir.assert_structural_equal(mod, Module)
 
 
 def test_multiple_functions():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Module:
         @T.prim_func
         def add(
@@ -908,12 +908,12 @@ def test_multiple_functions():
             return x
 
     mod = relax.transform.StaticPlanBlockMemory()(Module)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_tir_var_upper_bound():
     # fmt: off
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Module:
         @T.prim_func
         def add(rxplaceholder: T.handle, rxplaceholder_1: T.handle, T_add: T.handle):
@@ -1015,7 +1015,7 @@ def test_tir_var_upper_bound():
     # fmt: on
 
     mod = relax.transform.StaticPlanBlockMemory()(Module)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_tir_var_decreasing_monotone():
@@ -1070,7 +1070,7 @@ def test_tir_var_decreasing_monotone():
     # fmt: on
 
     mod = relax.transform.StaticPlanBlockMemory()(Module)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_call_tir_dyn():
@@ -1131,7 +1131,7 @@ def test_call_tir_dyn():
     # fmt: on
 
     mod = relax.transform.StaticPlanBlockMemory()(Module)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_call_tir_dyn_plan_dynamic_func_output():
@@ -1193,7 +1193,7 @@ def test_call_tir_dyn_plan_dynamic_func_output():
     # fmt: on
 
     mod = relax.transform.StaticPlanBlockMemory()(Module)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_call_tir_dyn_plan_partially_dynamic():
@@ -1263,12 +1263,12 @@ def test_call_tir_dyn_plan_partially_dynamic():
     # fmt: on
 
     mod = relax.transform.StaticPlanBlockMemory()(Module)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_function_independence():
     # fmt: off
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Module:
         @T.prim_func
         def exp(A: T.handle, B: T.handle):
@@ -1332,11 +1332,11 @@ def test_function_independence():
     # fmt: on
 
     mod = relax.transform.StaticPlanBlockMemory()(Module)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_invalid_tir_var_upper_bound():
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Module:
         @R.function
         def main(x: R.Tensor((2, "n"), dtype="float32")):
@@ -1446,7 +1446,7 @@ def test_add():
             return lv1_1
 
     mod = relax.transform.StaticPlanBlockMemory()(Module)
-    gsmDataGen.ir.assert_structural_equal(mod, Expected)
+    gsm_data_generator.ir.assert_structural_equal(mod, Expected)
 
 
 def test_view():
@@ -1501,7 +1501,7 @@ def test_view():
             return z
 
     after = relax.transform.StaticPlanBlockMemory()(Before)
-    gsmDataGen.ir.assert_structural_equal(after, Expected)
+    gsm_data_generator.ir.assert_structural_equal(after, Expected)
 
 
 def test_with_dataflow():
@@ -1542,8 +1542,8 @@ def test_with_dataflow():
             return gv
 
     after = relax.transform.StaticPlanBlockMemory()(Before)
-    gsmDataGen.ir.assert_structural_equal(after, Expected)
+    gsm_data_generator.ir.assert_structural_equal(after, Expected)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

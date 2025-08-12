@@ -19,12 +19,12 @@
 import sys
 
 import pytest
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import tir
-from gsmDataGen.script import tir as T
-from gsmDataGen.tir.schedule import BlockRV, Instruction, InstructionKind, LoopRV, Trace
-from gsmDataGen.tir.schedule.testing import assert_structural_equal_ignore_global_symbol
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import tir
+from gsm_data_generator.script import tir as T
+from gsm_data_generator.tir.schedule import BlockRV, Instruction, InstructionKind, LoopRV, Trace
+from gsm_data_generator.tir.schedule.testing import assert_structural_equal_ignore_global_symbol
 
 # pylint: disable=no-member,invalid-name,unused-variable
 
@@ -324,7 +324,7 @@ def test_apply_json_to_schedule_sample_categorical():
             Instruction(
                 kind=InstructionKind.get("SampleCategorical"),
                 inputs=[],
-                attrs=[[gsmDataGen.tir.IntImm("int32", 3)], [gsmDataGen.tir.FloatImm("float32", 1.0)]],
+                attrs=[[gsm_data_generator.tir.IntImm("int32", 3)], [gsm_data_generator.tir.FloatImm("float32", 1.0)]],
                 outputs=[var],
             )
         ],
@@ -392,4 +392,4 @@ def test_apply_annotation_from_json():
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

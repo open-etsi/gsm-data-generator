@@ -15,25 +15,25 @@
 # specific language governing permissions and limitations
 # under the License.
 import numpy as np
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import relax
-from gsmDataGen.testing import assert_allclose
-from gsmDataGen.testing.utils import check_numerical_grads
-from gsmDataGen.script.parser import ir as I, relax as R
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import relax
+from gsm_data_generator.testing import assert_allclose
+from gsm_data_generator.testing.utils import check_numerical_grads
+from gsm_data_generator.script.parser import ir as I, relax as R
 
 
 def rand(dtype, *shape):
-    return gsmDataGen.nd.array(np.random.rand(*shape).astype(dtype))
+    return gsm_data_generator.nd.array(np.random.rand(*shape).astype(dtype))
 
 
 def _legalize_and_build(mod, target, dev):
-    ex = gsmDataGen.compile(mod, target)
+    ex = gsm_data_generator.compile(mod, target)
     vm = relax.VirtualMachine(ex, dev)
     return vm
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_manual_gradient(target, dev):
     # The expression computed is sum((2x - 2y) * (y + z))
     # the gradient of x is broadcast_to(2y + 2z, x.shape)
@@ -79,7 +79,7 @@ def test_manual_gradient(target, dev):
         assert_allclose(i.numpy(), j, atol=1e-4)
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_mlp_blockbuilder(target, dev):
     layers, in_size, out_size, hidden_size, batch_size = 3, 5, 5, 5, 4
 
@@ -118,7 +118,7 @@ def test_mlp_blockbuilder(target, dev):
     for arg in After["MLP_adjoint"].params:
         shape = [int(l) for l in arg.struct_info.shape]
         if arg.struct_info.dtype == "int64":
-            args.append(gsmDataGen.nd.array(np.random.randint(0, out_size, size=shape).astype(np.int64)))
+            args.append(gsm_data_generator.nd.array(np.random.randint(0, out_size, size=shape).astype(np.int64)))
         else:  # float32
             args.append(rand("float32", *shape))
 
@@ -127,18 +127,18 @@ def test_mlp_blockbuilder(target, dev):
     _, grad = vm_after["MLP_adjoint"](*args)
 
     def func(*inputs):
-        loss = vm_before["MLP"](args[0], *[gsmDataGen.nd.array(i) for i in inputs], args[-1])
+        loss = vm_before["MLP"](args[0], *[gsm_data_generator.nd.array(i) for i in inputs], args[-1])
         return loss.numpy()
 
     check_numerical_grads(func, [i.numpy() for i in args[1:-1]], [i.numpy() for i in grad])
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_complex(target, dev):
     cst = relax.const(np.ones((6,)), dtype="float32")
     cst1 = relax.const(np.array(3), dtype="int64")
 
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Before:
         @R.function
         def main(x: R.Tensor((6,), "float32"), y: R.Tensor((6, 3, 4), "float32")):
@@ -183,15 +183,15 @@ def test_complex(target, dev):
     _, grad = vm_after["main_adjoint"](*args)
 
     def func(*inputs):
-        loss = vm_before["main"](*[gsmDataGen.nd.array(i) for i in inputs])
+        loss = vm_before["main"](*[gsm_data_generator.nd.array(i) for i in inputs])
         return loss.numpy()
 
     check_numerical_grads(func, [i.numpy() for i in args], [i.numpy() for i in grad])
 
 
-@gsmDataGen.testing.parametrize_targets("llvm")
+@gsm_data_generator.testing.parametrize_targets("llvm")
 def test_matmul(target, dev):
-    @gsmDataGen.script.ir_module
+    @gsm_data_generator.script.ir_module
     class Before:
         @R.function
         def main(x: R.Tensor((3, 3), "float32"), y: R.Tensor((3, 3), "float32")):
@@ -220,11 +220,11 @@ def test_matmul(target, dev):
     _, grad = vm_after["main_adjoint"](*args)
 
     def func(*inputs):
-        loss = vm_before["main"](*[gsmDataGen.nd.array(i) for i in inputs])
+        loss = vm_before["main"](*[gsm_data_generator.nd.array(i) for i in inputs])
         return loss.numpy()
 
     check_numerical_grads(func, [i.numpy() for i in args], [i.numpy() for i in grad])
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

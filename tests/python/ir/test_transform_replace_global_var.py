@@ -15,8 +15,8 @@
 # specific language governing permissions and limitations
 # under the License.
 
-import gsmDataGen.testing
-from gsmDataGen.script import ir as I, relax as R, tir as T
+import gsm_data_generator.testing
+from gsm_data_generator.script import ir as I, relax as R, tir as T
 
 
 def _get_before_module():
@@ -61,7 +61,7 @@ def test_no_op_if_no_replacements():
 
     after = before.replace_global_vars({})
 
-    gsmDataGen.ir.assert_structural_equal(expected, after)
+    gsm_data_generator.ir.assert_structural_equal(expected, after)
     assert before.same_as(after)
 
 
@@ -108,7 +108,7 @@ def test_replace_relax_main():
             for i in range(16):
                 B[i] = A[i] + 1.0
 
-    gsmDataGen.ir.assert_structural_equal(Expected, after)
+    gsm_data_generator.ir.assert_structural_equal(Expected, after)
 
 
 def test_replace_relax_subroutine():
@@ -157,7 +157,7 @@ def test_replace_relax_subroutine():
             for i in range(16):
                 B[i] = A[i] + 1.0
 
-    gsmDataGen.ir.assert_structural_equal(Expected, after)
+    gsm_data_generator.ir.assert_structural_equal(Expected, after)
 
 
 def test_replace_tir_main():
@@ -204,7 +204,7 @@ def test_replace_tir_main():
             for i in range(16):
                 B[i] = A[i] + 1.0
 
-    gsmDataGen.ir.assert_structural_equal(Expected, after)
+    gsm_data_generator.ir.assert_structural_equal(Expected, after)
 
 
 def test_replace_tir_subroutine():
@@ -251,7 +251,7 @@ def test_replace_tir_subroutine():
             for i in range(16):
                 B[i] = A[i] + 1.0
 
-    gsmDataGen.ir.assert_structural_equal(Expected, after)
+    gsm_data_generator.ir.assert_structural_equal(Expected, after)
 
 
 def test_simultaneous_replacements():
@@ -299,8 +299,8 @@ def test_simultaneous_replacements():
             for i in range(16):
                 B[i] = A[i] + 1.0
 
-    gsmDataGen.ir.assert_structural_equal(Expected, after)
+    gsm_data_generator.ir.assert_structural_equal(Expected, after)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

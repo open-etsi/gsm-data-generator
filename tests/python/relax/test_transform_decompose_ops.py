@@ -17,12 +17,12 @@
 
 from typing import Union
 
-import gsmDataGen
-import gsmDataGen.script
-import gsmDataGen.testing
-from gsmDataGen import IRModule, relax
-from gsmDataGen.relax import Function
-from gsmDataGen.script import relax as R, tir as T, ir as I
+import gsm_data_generator
+import gsm_data_generator.script
+import gsm_data_generator.testing
+from gsm_data_generator import IRModule, relax
+from gsm_data_generator.relax import Function
+from gsm_data_generator.script import relax as R, tir as T, ir as I
 
 
 def test_batch_norm_inference():
@@ -89,7 +89,7 @@ def test_batch_norm_inference():
             return gv
 
     After = relax.transform.DecomposeOpsForInference("main")(Before)
-    gsmDataGen.ir.assert_structural_equal(Expected, After)
+    gsm_data_generator.ir.assert_structural_equal(Expected, After)
 
 
 def test_batch_norm_training():
@@ -174,7 +174,7 @@ def test_batch_norm_training():
             return (gv0, gv1, gv2)
 
     After = relax.transform.DecomposeOpsForTraining("main")(Before)
-    gsmDataGen.ir.assert_structural_equal(Expected, After)
+    gsm_data_generator.ir.assert_structural_equal(Expected, After)
 
 
 def test_batch_norm_multiple_functions():
@@ -301,7 +301,7 @@ def test_batch_norm_multiple_functions():
             return gv
 
     After = relax.transform.DecomposeOpsForInference()(Before)
-    gsmDataGen.ir.assert_structural_equal(Expected, After)
+    gsm_data_generator.ir.assert_structural_equal(Expected, After)
 
 
 def test_layer_norm():
@@ -353,7 +353,7 @@ def test_layer_norm():
             return ln
 
     After = relax.transform.DecomposeOpsForTraining()(Before)
-    gsmDataGen.ir.assert_structural_equal(Expected, After)
+    gsm_data_generator.ir.assert_structural_equal(Expected, After)
 
 
 def test_op_tensor_to_shape():
@@ -379,8 +379,8 @@ def test_op_tensor_to_shape():
             return gv_1
 
     After = relax.transform.DecomposeOpsForInference()(Before)
-    gsmDataGen.ir.assert_structural_equal(Expected, After)
+    gsm_data_generator.ir.assert_structural_equal(Expected, After)
 
 
 if __name__ == "__main__":
-    gsmDataGen.testing.main()
+    gsm_data_generator.testing.main()

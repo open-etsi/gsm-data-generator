@@ -14,27 +14,27 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import te
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import te
+from gsm_data_generator.script import tir as T
 
 
-def run_passes(func: gsmDataGen.tir.PrimFunc):
-    mod = gsmDataGen.IRModule.from_expr(func)
+def run_passes(func: gsm_data_generator.tir.PrimFunc):
+    mod = gsm_data_generator.IRModule.from_expr(func)
 
-    cuda_target = gsmDataGen.target.Target("cuda", host="llvm")
+    cuda_target = gsm_data_generator.target.Target("cuda", host="llvm")
 
-    mod = gsmDataGen.tir.transform.Apply(
+    mod = gsm_data_generator.tir.transform.Apply(
         lambda f: f.with_attr({"global_symbol": "test", "target": cuda_target})
     )(mod)
 
-    mod = gsmDataGen.tir.transform.AnnotateDeviceRegions()(mod)
-    mod = gsmDataGen.tir.transform.SplitHostDevice()(mod)
-    return gsmDataGen.tir.transform.ThreadSync("shared")(mod)
+    mod = gsm_data_generator.tir.transform.AnnotateDeviceRegions()(mod)
+    mod = gsm_data_generator.tir.transform.SplitHostDevice()(mod)
+    return gsm_data_generator.tir.transform.ThreadSync("shared")(mod)
 
 
-@gsmDataGen.testing.requires_cuda
+@gsm_data_generator.testing.requires_cuda
 def test_sync_read_thread_id_independent_location():
     @T.prim_func
     def func(p0_arg: T.Buffer((1, 2, 1, 1), "float32"), p1: T.Buffer(2, "float32")) -> None:
@@ -93,12 +93,12 @@ def test_sync_shared_dyn():
         E_1 = T.Buffer((16,), data=E.data)
         E_1[threadIdx_x] = D_1_1[threadIdx_x]
 
-    mod = gsmDataGen.IRModule({"main": func})
-    mod = gsmDataGen.tir.transform.ThreadSync("shared.dyn")(mod)
-    gsmDataGen.ir.assert_structural_equal(mod["main"], expected)
+    mod = gsm_data_generator.IRModule({"main": func})
+    mod = gsm_data_generator.tir.transform.ThreadSync("shared.dyn")(mod)
+    gsm_data_generator.ir.assert_structural_equal(mod["main"], expected)
 
 
-@gsmDataGen.testing.requires_cuda
+@gsm_data_generator.testing.requires_cuda
 def test_sync_let_stmt():
     @T.prim_func(private=True)
     def func(A: T.Buffer((16 * 512), "float32")):
@@ -169,9 +169,9 @@ def test_sync_let_stmt():
             threadIdx_x,
         )
 
-    mod = gsmDataGen.IRModule({"main": func})
-    mod = gsmDataGen.tir.transform.ThreadSync("shared")(mod)
-    gsmDataGen.ir.assert_structural_equal(mod["main"], expected)
+    mod = gsm_data_generator.IRModule({"main": func})
+    mod = gsm_data_generator.tir.transform.ThreadSync("shared")(mod)
+    gsm_data_generator.ir.assert_structural_equal(mod["main"], expected)
 
 
 if __name__ == "__main__":

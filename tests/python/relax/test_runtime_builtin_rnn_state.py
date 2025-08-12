@@ -20,12 +20,12 @@ from typing import Sequence, Union
 import numpy as np
 import pytest
 
-import gsmDataGen
-import gsmDataGen.testing
-from gsmDataGen import dlight as dl
-from gsmDataGen import tir
-from gsmDataGen.runtime import ShapeTuple
-from gsmDataGen.script import tir as T
+import gsm_data_generator
+import gsm_data_generator.testing
+from gsm_data_generator import dlight as dl
+from gsm_data_generator import tir
+from gsm_data_generator.runtime import ShapeTuple
+from gsm_data_generator.script import tir as T
 
 # pylint: disable=invalid-name
 
@@ -37,7 +37,7 @@ np_three = np.full((32, 32), 3.0, "float32")
 reserved_nseq = 4
 max_history = 4
 num_layers = 1
-device = gsmDataGen.cuda()
+device = gsm_data_generator.cuda()
 # Note that kernels in this test file cannot support 1-dim states.
 states = [((16, 16), "float16"), ((32, 32), "float32")]
 
@@ -63,24 +63,24 @@ def set_global_func():
     global f_begin_forward, f_end_forward, f_get, f_set, f_debug_get
     global f_tir_gets, f_tir_sets
 
-    f_clear = gsmDataGen.get_global_func("vm.builtin.kv_state_clear")
-    f_add_sequence = gsmDataGen.get_global_func("vm.builtin.kv_state_add_sequence")
-    f_remove_sequence = gsmDataGen.get_global_func("vm.builtin.kv_state_remove_sequence")
-    f_fork_sequence = gsmDataGen.get_global_func("vm.builtin.kv_state_fork_sequence")
-    f_popn = gsmDataGen.get_global_func("vm.builtin.kv_state_popn")
-    f_begin_forward = gsmDataGen.get_global_func("vm.builtin.kv_state_begin_forward")
-    f_end_forward = gsmDataGen.get_global_func("vm.builtin.kv_state_end_forward")
-    f_get = gsmDataGen.get_global_func("vm.builtin.rnn_state_get")
-    f_set = gsmDataGen.get_global_func("vm.builtin.rnn_state_set")
-    f_debug_get = gsmDataGen.get_global_func("vm.builtin.rnn_state_debug_get")
+    f_clear = gsm_data_generator.get_global_func("vm.builtin.kv_state_clear")
+    f_add_sequence = gsm_data_generator.get_global_func("vm.builtin.kv_state_add_sequence")
+    f_remove_sequence = gsm_data_generator.get_global_func("vm.builtin.kv_state_remove_sequence")
+    f_fork_sequence = gsm_data_generator.get_global_func("vm.builtin.kv_state_fork_sequence")
+    f_popn = gsm_data_generator.get_global_func("vm.builtin.kv_state_popn")
+    f_begin_forward = gsm_data_generator.get_global_func("vm.builtin.kv_state_begin_forward")
+    f_end_forward = gsm_data_generator.get_global_func("vm.builtin.kv_state_end_forward")
+    f_get = gsm_data_generator.get_global_func("vm.builtin.rnn_state_get")
+    f_set = gsm_data_generator.get_global_func("vm.builtin.rnn_state_set")
+    f_debug_get = gsm_data_generator.get_global_func("vm.builtin.rnn_state_debug_get")
 
-    target = gsmDataGen.target.Target("cuda")
+    target = gsm_data_generator.target.Target("cuda")
 
     def _build(tir_func):
-        mod = gsmDataGen.IRModule({"main": tir_func})
+        mod = gsm_data_generator.IRModule({"main": tir_func})
         with target:
             mod = dl.ApplyDefaultSchedule(dl.gpu.Fallback())(mod)  # pylint: disable=not-callable
-        f = gsmDataGen.tir.build(mod["main"], target=target)
+        f = gsm_data_generator.tir.build(mod["main"], target=target)
         return f.entry_func
 
     _f_tir_gets, _f_tir_sets = [], []
@@ -94,8 +94,8 @@ def set_global_func():
 
 
 def create_rnn_state():
-    f_create = gsmDataGen.get_global_func("vm.builtin.rnn_state_create")
-    init_values = [gsmDataGen.nd.array(np_zero, device=device), gsmDataGen.nd.array(np_one, device=device)]
+    f_create = gsm_data_generator.get_global_func("vm.builtin.rnn_state_create")
+    init_values = [gsm_data_generator.nd.array(np_zero, device=device), gsm_data_generator.nd.array(np_one, device=device)]
     return f_create(num_layers, reserved_nseq, max_history, f_tir_gets, f_tir_sets, init_values)
 
 
@@ -110,25 +110,25 @@ def verify_state(state, seq_ids, expected_values):
     for seq_id in seq_ids:
         for state_id, expected_value in enumerate(expected_values[seq_id]):
             state_value = f_debug_get(state, layer_id, state_id, seq_id)
-            gsmDataGen.testing.assert_allclose(state_value.numpy(), expected_value)
+            gsm_data_generator.testing.assert_allclose(state_value.numpy(), expected_value)
 
 
-@gsmDataGen.testing.requires_cuda
+@gsm_data_generator.testing.requires_cuda
 def test_rnn_state_get(rnn_state):  # pylint: disable=redefined-outer-name
     state = rnn_state
     f_clear(state)
     f_add_sequence(state, 0)
     f_begin_forward(state, ShapeTuple([0]), ShapeTuple([1]))
-    tvm_nd_0 = gsmDataGen.nd.array(np.empty((1, 16, 16), "float16"), device=device)
-    tvm_nd_1 = gsmDataGen.nd.array(np.empty((1, 32, 32), "float32"), device=device)
+    tvm_nd_0 = gsm_data_generator.nd.array(np.empty((1, 16, 16), "float16"), device=device)
+    tvm_nd_1 = gsm_data_generator.nd.array(np.empty((1, 32, 32), "float32"), device=device)
     f_get(state, 0, 0, tvm_nd_0)
     f_get(state, 0, 1, tvm_nd_1)
     f_end_forward(state)
-    gsmDataGen.testing.assert_allclose(tvm_nd_0.numpy(), np.zeros((1, 16, 16), "float16"))
-    gsmDataGen.testing.assert_allclose(tvm_nd_1.numpy(), np.ones((1, 32, 32), "float32"))
+    gsm_data_generator.testing.assert_allclose(tvm_nd_0.numpy(), np.zeros((1, 16, 16), "float16"))
+    gsm_data_generator.testing.assert_allclose(tvm_nd_1.numpy(), np.ones((1, 32, 32), "float32"))
 
 
-@gsmDataGen.testing.requires_cuda
+@gsm_data_generator.testing.requires_cuda
 def test_rnn_state_set(rnn_state):  # pylint: disable=redefined-outer-name
     state = rnn_state
     f_clear(state)
@@ -136,41 +136,41 @@ def test_rnn_state_set(rnn_state):  # pylint: disable=redefined-outer-name
         f_add_sequence(state, seq_id)
     f_begin_forward(state, ShapeTuple([0, 2]), ShapeTuple([1, 1]))
 
-    f_set(state, 0, 0, gsmDataGen.nd.array(np.full((2, 16, 16), 2.0, "float16"), device=device))
-    f_set(state, 0, 1, gsmDataGen.nd.array(np.full((2, 32, 32), 3.0, "float32"), device=device))
+    f_set(state, 0, 0, gsm_data_generator.nd.array(np.full((2, 16, 16), 2.0, "float16"), device=device))
+    f_set(state, 0, 1, gsm_data_generator.nd.array(np.full((2, 32, 32), 3.0, "float32"), device=device))
     f_end_forward(state)
 
     expected_values = [[np_two, np_three], [np_zero, np_one], [np_two, np_three]]
     verify_state(state, [0, 1, 2], expected_values)
 
 
-@gsmDataGen.testing.requires_cuda
+@gsm_data_generator.testing.requires_cuda
 def test_rnn_state_popn(rnn_state):  # pylint: disable=redefined-outer-name
     state = rnn_state
     f_clear(state)
 
     f_add_sequence(state, 0)
     f_begin_forward(state, ShapeTuple([0]), ShapeTuple([1]))
-    f_set(state, 0, 0, gsmDataGen.nd.array(np_two.reshape(1, 16, 16), device=device))
-    f_set(state, 0, 1, gsmDataGen.nd.array(np_three.reshape(1, 32, 32), device=device))
+    f_set(state, 0, 0, gsm_data_generator.nd.array(np_two.reshape(1, 16, 16), device=device))
+    f_set(state, 0, 1, gsm_data_generator.nd.array(np_three.reshape(1, 32, 32), device=device))
     f_end_forward(state)
 
     verify_state(state, [0], [[np_two, np_three]])
     f_popn(state, 0, 1)
     verify_state(state, [0], [[np_zero, np_one]])
-    with pytest.raises(gsmDataGen.error.TVMError):
+    with pytest.raises(gsm_data_generator.error.TVMError):
         f_popn(state, 0, 1)  # no available history to pop
 
 
-@gsmDataGen.testing.requires_cuda
+@gsm_data_generator.testing.requires_cuda
 def test_rnn_state_fork_sequence(rnn_state):  # pylint: disable=redefined-outer-name
     state = rnn_state
     f_clear(state)
 
     f_add_sequence(state, 0)
     f_begin_forward(state, ShapeTuple([0]), ShapeTuple([1]))
-    f_set(state, 0, 0, gsmDataGen.nd.array(np_two.reshape(1, 16, 16), device=device))
-    f_set(state, 0, 1, gsmDataGen.nd.array(np_three.reshape(1, 32, 32), device=device))
+    f_set(state, 0, 0, gsm_data_generator.nd.array(np_two.reshape(1, 16, 16), device=device))
+    f_set(state, 0, 1, gsm_data_generator.nd.array(np_three.reshape(1, 32, 32), device=device))
     f_end_forward(state)
     f_fork_sequence(state, 0, 1, -1)
     verify_state(state, [0, 1], [[np_two, np_three], [np_two, np_three]])
