@@ -186,8 +186,8 @@
       same "printed page" as the copyright notice for easier
       identification within third-party archives.
 
-   Copyright {yyyy} {name of copyright owner}
 
+   Copyright [yyyy] [name of c
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
    You may obtain a copy of the License at
@@ -200,53 +200,3 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 
-------------------------------------------------------------------------------------
-This product bundles various third-party components under other open source licenses.
-This section summarizes those components and their licenses. See licenses/
-for text of these licenses.
-
-
-Apache Software Foundation License 2.0
---------------------------------------
-
-3rdparty/dlpack
-3rdparty/dmlc-core
-3rdparty/OpenCL-Headers
-3rdparty/mlperftiny
-3rdparty/nvbench (with LLVM exception)
-3rdparty/cutlass_fpA_intB_gemm
-3rdparty/tensorrt_llm
-
-BSD 2-clause License
---------------------
-
-3rdparty/picojson
-3rdparty/dmlc-core/include/dmlc/concurrentqueue.h
-
-
-BSD 2-clause License + zlib License
------------------------------------
-
-3rdparty/dmlc-core/include/dmlc/blockingconcurrentqueue.h
-
-
-MIT License
------------
-
-3rdparty/libcrc
-3rdparty/cma
-3rdparty/compiler-rt/builtin_fp16.h
-3rdparty/cnpy
-
-The Unlicense
--------------
-
-3rdparty/rang
-3rdparty/zlib
-
-BSD 3-Clause "New" or "Revised" License
----------------------------------------
-
-3rdparty/cutlass
-3rdparty/libbacktrace
-3rdparty/libflash_attn
