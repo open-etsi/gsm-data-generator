@@ -160,7 +160,9 @@ if __name__ == "__main__":
     help = "List out commits with attached PRs since a certain commit"
     parser = argparse.ArgumentParser(description=help)
     parser.add_argument(
-        "--notes", required=True, help="csv or markdown file of categorized PRs in order"
+        "--notes",
+        required=True,
+        help="csv or markdown file of categorized PRs in order",
     )
     parser.add_argument(
         "--is-pr-with-link",
@@ -185,7 +187,9 @@ if __name__ == "__main__":
             if match:
                 pr_num_str = match.group()
                 pr_num_int = pr_num_str.replace("#", "")
-                pr_number_str = f"[#{pr_num_int}](https://github.com/apache/tvm/pull/{pr_num_int})"
+                pr_number_str = (
+                    f"[#{pr_num_int}](https://github.com/apache/tvm/pull/{pr_num_int})"
+                )
                 line = line.replace(pr_num_str, pr_number_str)
             formated.append(line)
         result = "".join(formated)
@@ -235,7 +239,9 @@ if __name__ == "__main__":
         misc += value.get("Misc", [])
         for pr_number in misc:
             if args.is_pr_with_link:
-                pr_number_str = f"[#{pr_number}](https://github.com/apache/tvm/pull/{pr_number})"
+                pr_number_str = (
+                    f"[#{pr_number}](https://github.com/apache/tvm/pull/{pr_number})"
+                )
             else:
                 pr_number_str = f"#{pr_number}"
             pr_str = f" * {pr_number_str} - {pr_title(pr_number, '[' + key + ']')}\n"
@@ -247,7 +253,11 @@ if __name__ == "__main__":
             if subheading == "n/a" or subheading == "Misc":
                 continue
             else:
-                output += f" * {subheading} - " + ", ".join([f"#{n}" for n in pr_numbers]) + "\n"
+                output += (
+                    f" * {subheading} - "
+                    + ", ".join([f"#{n}" for n in pr_numbers])
+                    + "\n"
+                )
             # print(value)
 
         output += "\n"

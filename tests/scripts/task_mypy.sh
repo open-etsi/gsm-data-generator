@@ -21,22 +21,28 @@ set -euxo pipefail
 source tests/scripts/setup-pytest-env.sh
 
 echo "Checking MyPy Type defs in the TensorIR schedule package."
-mypy  --check-untyped-defs python/tvm/tir/schedule
+mypy  --check-untyped-defs gsm_data_generator/generator
 
-echo "Checking MyPy Type defs in the meta schedule package."
-mypy  --check-untyped-defs python/tvm/meta_schedule
+echo "Checking MyPy Type defs in the TensorIR schedule package."
+mypy  --check-untyped-defs gsm_data_generator/globals
 
-echo "Checking MyPy Type defs in the analysis package."
-mypy  --check-untyped-defs python/tvm/tir/analysis/
+echo "Checking MyPy Type defs in the TensorIR schedule package."
+mypy  --check-untyped-defs gsm_data_generator/executor
 
-echo "Checking MyPy Type defs in the transform package."
-mypy  --check-untyped-defs python/tvm/tir/transform/
+# echo "Checking MyPy Type defs in the meta schedule package."
+# mypy  --check-untyped-defs python/tvm/meta_schedule
 
-echo "Checking MyPy Type defs in the tvmscript printer package."
-mypy  --check-untyped-defs python/tvm/script/printer
+# echo "Checking MyPy Type defs in the analysis package."
+# mypy  --check-untyped-defs python/tvm/tir/analysis/
 
-echo "Checking MyPy Type defs in the TIR package with unittest"
-MYPYPATH=$TVM_PATH/python mypy --check-untyped-defs tests/python/tvmscript/test_tvmscript_type.py
+# echo "Checking MyPy Type defs in the transform package."
+# mypy  --check-untyped-defs python/tvm/tir/transform/
 
-echo "Checking MyPy Type defs in the tvmscript IRBuilder package."
-mypy  --check-untyped-defs python/tvm/script/ir_builder
+# echo "Checking MyPy Type defs in the tvmscript printer package."
+# mypy  --check-untyped-defs python/tvm/script/printer
+
+# echo "Checking MyPy Type defs in the TIR package with unittest"
+# MYPYPATH=$TVM_PATH/python mypy --check-untyped-defs tests/python/tvmscript/test_tvmscript_type.py
+
+# echo "Checking MyPy Type defs in the tvmscript IRBuilder package."
+# mypy  --check-untyped-defs python/tvm/script/ir_builder

@@ -42,7 +42,7 @@ def get_lib_path():
     """Get library path, name and version"""
     # We can not import `libinfo.py` in setup.py directly since __init__.py
     # Will be invoked which introduces dependencies
-    libinfo_py = os.path.join(CURRENT_DIR, "./tvm/libinfo.py")
+    libinfo_py = os.path.join(CURRENT_DIR, "./gsm_data_generator/libinfo.py")
     libinfo = {"__file__": libinfo_py}
     exec(compile(open(libinfo_py, "rb").read(), libinfo_py, "exec"), libinfo, libinfo)
     version = libinfo["__version__"]
@@ -62,7 +62,9 @@ def get_lib_path():
 
         # Add tvmc configuration json files
         for name in lib_path:
-            candidate_path = os.path.abspath(os.path.join(os.path.dirname(name), "..", "configs"))
+            candidate_path = os.path.abspath(
+                os.path.join(os.path.dirname(name), "..", "configs")
+            )
             if os.path.isdir(candidate_path):
                 libs.append(candidate_path)
                 break
@@ -126,7 +128,6 @@ def _remove_path(path):
             shutil.rmtree(path)
 
 
-
 class BinaryDistribution(Distribution):
     def has_ext_modules(self):
         return True
@@ -135,9 +136,10 @@ class BinaryDistribution(Distribution):
         return False
 
 
-
 def long_description_contents():
-    with open(pathlib.Path(CURRENT_DIR).resolve().parent / "README.md", encoding="utf-8") as readme:
+    with open(
+        pathlib.Path(CURRENT_DIR).resolve().parent / "README.md", encoding="utf-8"
+    ) as readme:
         description = readme.read()
 
     return description
@@ -152,12 +154,14 @@ sys.path.pop(0)
 
 requirements = gen_requirements.join_requirements()
 extras_require = {
-    piece: deps for piece, (_, deps) in requirements.items() if piece not in ("all", "core")
+    piece: deps
+    for piece, (_, deps) in requirements.items()
+    if piece not in ("all", "core")
 }
 
 setup(
     name="gsm-data-generator",
-    #version=__version__,
+    # version=__version__,
     description="DATAGEN: An End to End Tensor IR/DSL Stack for Deep Learning Systems",
     long_description="long_description_contents()",
     long_description_content_type="text/markdown",
@@ -180,6 +184,5 @@ setup(
     package_dir={"tvm": "tvm"},
     distclass=BinaryDistribution,
     # ext_modules=config_cython(),
-    #**setup_kwargs,
+    # **setup_kwargs,
 )
-

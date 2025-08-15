@@ -22,7 +22,7 @@ import os
 
 # top-level alias
 # gsm_data_generator._ffi
-from .base import DATAGENError, __version__#, #_RUNTIME_ONLY
+from gsm_data_generator.base import DATAGENError, __version__  # , #_RUNTIME_ONLY
 
 # from .ffi import register_object, register_func, get_global_func
 
@@ -34,44 +34,7 @@ from .base import DATAGENError, __version__#, #_RUNTIME_ONLY
 # from .runtime import ndarray as nd, DataType, DataTypeCode
 
 # gsm_data_generator.error
-from . import error
-
-# gsm_gsm_datagen.ir
-# from .ir import IRModule
-# from .ir import transform
-# from .ir import instrument
-# from .ir import container
-# from . import ir
-
-# # gsm_gsm_datagen.tir
-# from . import tir
-
-# # gsm_gsm_datagen.target
-# from . import target
-
-# # gsm_gsm_datagen.te
-# from . import te
-
-# # gsm_data_generator.driver
-# from .driver import build, compile
-
-# # others
-# from . import arith
-
-# # support infra
-# from . import support
-
-# # Contrib initializers
-# from .contrib import rocm as _rocm, nvcc as _nvcc
-
-# # Relax contain modules that are only available in compiler package
-# # Do not import them if DATAGEN is built with runtime only
-# if not _RUNTIME_ONLY:
-#     from . import relax
-
-# NOTE: This file should be python2 compatible so we can
-# raise proper error message when user run the package using
-# an older version of the python
+from gsm_data_generator import error
 
 
 def _should_print_backtrace():
@@ -82,7 +45,9 @@ def _should_print_backtrace():
         gsm_datagen_backtrace = bool(int(gsm_datagen_backtrace))
     except ValueError:
         raise ValueError(
-            "invalid value for DATAGEN_BACKTRACE {}, please set to 0 or 1.".format(gsm_datagen_backtrace)
+            "invalid value for DATAGEN_BACKTRACE {}, please set to 0 or 1.".format(
+                gsm_datagen_backtrace
+            )
         )
 
     return in_pytest or gsm_datagen_backtrace
@@ -95,7 +60,9 @@ def gsm_datagen_wrap_excepthook(exception_hook):
         """Clean subprocesses when DATAGEN is interrupted."""
         if exctype is error.DiagnosticError and not _should_print_backtrace():
             # TODO(@jroesch): consider moving to C++?
-            print("note: run with `DATAGEN_BACKTRACE=1` environment variable to display a backtrace.")
+            print(
+                "note: run with `DATAGEN_BACKTRACE=1` environment variable to display a backtrace."
+            )
         else:
             exception_hook(exctype, value, trbk)
 

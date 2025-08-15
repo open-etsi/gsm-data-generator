@@ -15,6 +15,6 @@
 # specific language governing permissions and limitations
 # under the License.
 """FFI for CUDA TOPI ops and schedules"""
-import gsm_data_generator.ffi
+# import gsm_data_generator.ffi
 
-gsm_data_generator.ffi._init_api("topi.cuda", "tvm.topi.cpp.cuda")
+# gsm_data_generator.ffi._init_api("topi.cuda", "tvm.topi.cpp.cuda")

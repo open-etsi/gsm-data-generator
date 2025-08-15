@@ -91,7 +91,9 @@ def get_build_dir(name: str) -> str:
 def check_docker():
     executable = shutil.which("docker")
     if executable is None:
-        clean_exit("'docker' executable not found, install it first (e.g. 'apt install docker.io')")
+        clean_exit(
+            "'docker' executable not found, install it first (e.g. 'apt install docker.io')"
+        )
 
     if sys.platform == "linux":
         # Check that the user is in the docker group before running
@@ -304,7 +306,9 @@ def docs(
     scripts.append("./tests/scripts/task_python_docs.sh")
 
     if tutorial_pattern is None:
-        tutorial_pattern = os.getenv("TVM_TUTORIAL_EXEC_PATTERN", ".py" if full else "none")
+        tutorial_pattern = os.getenv(
+            "TVM_TUTORIAL_EXEC_PATTERN", ".py" if full else "none"
+        )
 
     env = {
         "TVM_TUTORIAL_EXEC_PATTERN": tutorial_pattern,
@@ -312,7 +316,13 @@ def docs(
         "IS_LOCAL": "1",
         "TVM_LIBRARY_PATH": str(REPO_ROOT / build_dir),
     }
-    docker(name=gen_name("docs"), image=image, scripts=scripts, env=env, interactive=interactive)
+    docker(
+        name=gen_name("docs"),
+        image=image,
+        scripts=scripts,
+        env=env,
+        interactive=interactive,
+    )
     print_color(
         col.GREEN,
         "Done building the docs. You can view them by running "
@@ -335,7 +345,9 @@ def serve_docs(directory: str = "_docs") -> None:
     cmd([sys.executable, "-m", "http.server"], cwd=directory_path)
 
 
-def lint(interactive: bool = False, fix: bool = False, docker_image: Optional[str] = None) -> None:
+def lint(
+    interactive: bool = False, fix: bool = False, docker_image: Optional[str] = None
+) -> None:
     """
     Run CI's Sanity Check step
 
@@ -421,7 +433,9 @@ def generate_command(
         # Add named test suites
         for option_name, (_, extra_scripts) in options.items():
             if kwargs.get(option_name, False):
-                scripts.extend(script.format(build_dir=build_dir) for script in extra_scripts)
+                scripts.extend(
+                    script.format(build_dir=build_dir) for script in extra_scripts
+                )
 
         docker_env = {
             # Need to specify the library path manually or else TVM can't
@@ -571,16 +585,24 @@ def add_subparser(
             option_cli_name = cli_name(option_name)
             if option_cli_name[0] not in seen_prefixes:
                 subparser.add_argument(
-                    f"-{option_cli_name[0]}", f"--{option_cli_name}", action="store_true", help=help
+                    f"-{option_cli_name[0]}",
+                    f"--{option_cli_name}",
+                    action="store_true",
+                    help=help,
                 )
                 seen_prefixes.add(option_cli_name[0])
             else:
-                subparser.add_argument(f"--{option_cli_name}", action="store_true", help=help)
+                subparser.add_argument(
+                    f"--{option_cli_name}", action="store_true", help=help
+                )
 
     return subparser
 
 
-CPP_UNITTEST = ("run c++ unitests", ["./tests/scripts/task_cpp_unittest.sh {build_dir}"])
+CPP_UNITTEST = (
+    "run c++ unitests",
+    ["./tests/scripts/task_cpp_unittest.sh {build_dir}"],
+)
 
 generated = [
     generate_command(
@@ -597,7 +619,10 @@ generated = [
                     "./tests/scripts/task_python_integration_gpuonly.sh",
                 ],
             ),
-            "frontend": ("run frontend tests", ["./tests/scripts/task_python_frontend.sh"]),
+            "frontend": (
+                "run frontend tests",
+                ["./tests/scripts/task_python_frontend.sh"],
+            ),
         },
     ),
     generate_command(
@@ -615,7 +640,10 @@ generated = [
                     "./tests/scripts/task_python_unittest.sh",
                 ],
             ),
-            "frontend": ("run frontend tests", ["./tests/scripts/task_python_frontend_cpu.sh"]),
+            "frontend": (
+                "run frontend tests",
+                ["./tests/scripts/task_python_frontend_cpu.sh"],
+            ),
         },
     ),
     generate_command(
@@ -691,13 +719,16 @@ generated = [
         },
         env={
             "ADRENO_OPENCL": "/adreno-opencl",
-            "ADRENO_TARGET_CLML_VERSION": os.environ.get("ADRENO_TARGET_CLML_VERSION", "3"),
+            "ADRENO_TARGET_CLML_VERSION": os.environ.get(
+                "ADRENO_TARGET_CLML_VERSION", "3"
+            ),
         },
         options={
             "test": (
                 "run Adreno API/Python tests",
                 [
-                    "./tests/scripts/task_python_adreno.sh " + os.environ.get("ANDROID_SERIAL", ""),
+                    "./tests/scripts/task_python_adreno.sh "
+                    + os.environ.get("ANDROID_SERIAL", ""),
                 ],
             ),
             "benchmarks": (
@@ -705,7 +736,8 @@ generated = [
                 [
                     "./apps/benchmark/adreno/bench.sh texture "
                     + os.environ.get("ANDROID_SERIAL", ""),
-                    "./apps/benchmark/adreno/bench.sh clml " + os.environ.get("ANDROID_SERIAL", ""),
+                    "./apps/benchmark/adreno/bench.sh clml "
+                    + os.environ.get("ANDROID_SERIAL", ""),
                 ],
             ),
             "nativebenchmarks": (
@@ -718,7 +750,8 @@ generated = [
             "clmlbenchmarks": (
                 "run Adreno CLML SDK Benchmarks",
                 [
-                    "./apps/benchmark/adreno/bench.sh clml " + os.environ.get("ANDROID_SERIAL", ""),
+                    "./apps/benchmark/adreno/bench.sh clml "
+                    + os.environ.get("ANDROID_SERIAL", ""),
                 ],
             ),
         },
@@ -757,7 +790,11 @@ def main():
     func = commands[args.command]
 
     # Extract out the parsed args and invoke the relevant function
-    kwargs = {k: getattr(args, k) for k in dir(args) if not k.startswith("_") and k != "command"}
+    kwargs = {
+        k: getattr(args, k)
+        for k in dir(args)
+        if not k.startswith("_") and k != "command"
+    }
     func(**kwargs)
 
 

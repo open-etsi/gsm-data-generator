@@ -51,7 +51,9 @@ import sys
 import textwrap
 import typing
 
-RequirementsByPieceType = typing.List[typing.Tuple[str, typing.Tuple[str, typing.List[str]]]]
+RequirementsByPieceType = typing.List[
+    typing.Tuple[str, typing.Tuple[str, typing.List[str]]]
+]
 
 
 # Maps named DATAGEN piece (see description above) to a list of names of Python packages. Please use
@@ -63,13 +65,13 @@ REQUIREMENTS_BY_PIECE: RequirementsByPieceType = [
         (
             "Base requirements needed to install tvm",
             [
-                # "cloudpickle",
+                "cloudpickle",
                 # "ml_dtypes",
-                # "numpy",
-                # "packaging",
-                # "psutil",
-                # "scipy",
-                # "tornado",
+                "numpy",
+                "packaging",
+                "psutil",
+                "scipy",
+                "tornado",
                 "typing_extensions",
             ],
         ),
@@ -143,30 +145,30 @@ REQUIREMENTS_BY_PIECE: RequirementsByPieceType = [
     #         ],
     #     ),
     # ),
-    # # Development requirements
-    # (
-    #     "dev",
-    #     (
-    #         "Requirements to develop DATAGEN -- lint, docs, testing, etc.",
-    #         [
-    #             "astroid",  # pylint requirement, listed so a hard constraint can be included.
-    #             "autodocsumm",
-    #             "black",
-    #             "commonmark",
-    #             "cpplint",
-    #             "docutils",
-    #             "image",
-    #             "matplotlib",
-    #             "pillow",
-    #             "pylint",
-    #             "sphinx",
-    #             "sphinx_autodoc_annotation",
-    #             "sphinx_gallery",
-    #             "sphinx_rtd_theme",
-    #             "types-psutil",
-    #         ],
-    #     ),
-    # ),
+    # Development requirements
+    (
+        "dev",
+        (
+            "Requirements to develop DATAGEN -- lint, docs, testing, etc.",
+            [
+                "astroid",  # pylint requirement, listed so a hard constraint can be included.
+                "autodocsumm",
+                "black",
+                "commonmark",
+                #                "cpplint",
+                "docutils",
+                "image",
+                "matplotlib",
+                "pillow",
+                "pylint",
+                "sphinx",
+                "sphinx_autodoc_annotation",
+                "sphinx_gallery",
+                "sphinx_rtd_theme",
+                "types-psutil",
+            ],
+        ),
+    ),
 ]
 
 ConstraintsType = typing.List[typing.Tuple[str, typing.Union[None, str]]]
@@ -232,7 +234,9 @@ REQUIRED_PIECES: typing.List[str] = ["core", "dev"]
 PIECE_REGEX: typing.Pattern = re.compile(r"^[a-z0-9][a-z0-9-]*", re.IGNORECASE)
 
 # Regex to match a constraint specification. Multiple constraints are not supported.
-CONSTRAINT_REGEX: typing.Pattern = re.compile(r"(?:\^|\<|(?:~=)|(?:<=)|(?:==)|(?:>=)|\>)[^<>=\^,]+")
+CONSTRAINT_REGEX: typing.Pattern = re.compile(
+    r"(?:\^|\<|(?:~=)|(?:<=)|(?:==)|(?:>=)|\>)[^<>=\^,]+"
+)
 
 # Regex for parsing semantic versions. See
 # https://semver.org/#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string
@@ -277,7 +281,9 @@ def validate_requirements_by_piece() -> typing.List[str]:
         seen_pieces.add(piece_lower)
 
         if not saw_core and piece != "core":
-            problems.append(f'piece {piece}: must list after "core" (core must be first)')
+            problems.append(
+                f'piece {piece}: must list after "core" (core must be first)'
+            )
         elif piece == "core":
             saw_core = True
 
@@ -295,10 +301,16 @@ def validate_requirements_by_piece() -> typing.List[str]:
         description, deps = value
 
         if not isinstance(description, str):
-            problems.append(f"piece {piece}: description should be a string, got {description!r}")
+            problems.append(
+                f"piece {piece}: description should be a string, got {description!r}"
+            )
 
-        if not isinstance(deps, (list, tuple)) or any(not isinstance(d, str) for d in deps):
-            problems.append(f"piece {piece}: deps should be a list of strings, got {deps!r}")
+        if not isinstance(deps, (list, tuple)) or any(
+            not isinstance(d, str) for d in deps
+        ):
+            problems.append(
+                f"piece {piece}: deps should be a list of strings, got {deps!r}"
+            )
             continue
 
         if list(sorted(deps)) != list(deps):
@@ -320,7 +332,10 @@ def validate_requirements_by_piece() -> typing.List[str]:
             piece_deps.add(d.lower())
 
     extras_pieces = [
-        k for (k, _) in REQUIREMENTS_BY_PIECE if k not in ("dev", "core") if isinstance(k, str)
+        k
+        for (k, _) in REQUIREMENTS_BY_PIECE
+        if k not in ("dev", "core")
+        if isinstance(k, str)
     ]
     sorted_extras_pieces = list(sorted(extras_pieces))
     if sorted_extras_pieces != list(extras_pieces):
@@ -429,7 +444,8 @@ def validate_constraints() -> typing.List[str]:
     sorted_constrained_packages = list(sorted(all_constrained_packages))
     if sorted_constrained_packages != all_constrained_packages:
         problems.append(
-            "CONSTRAINTS entries should be in this sorted order: " f"{sorted_constrained_packages}"
+            "CONSTRAINTS entries should be in this sorted order: "
+            f"{sorted_constrained_packages}"
         )
 
     return problems
@@ -460,7 +476,10 @@ class ValidationError(Exception):
             formatted.append(
                 "\n".join(
                     textwrap.wrap(
-                        f"{config}: {p}", width=80, initial_indent=" * ", subsequent_indent="   "
+                        f"{config}: {p}",
+                        width=80,
+                        initial_indent=" * ",
+                        subsequent_indent="   ",
                     )
                 )
             )
@@ -529,7 +548,9 @@ def join_requirements() -> typing.Dict[str, typing.Tuple[str, typing.List[str]]]
     """
     validate_or_raise()
 
-    constraints_map = collections.OrderedDict([(p.lower(), c) for (p, c) in CONSTRAINTS])
+    constraints_map = collections.OrderedDict(
+        [(p.lower(), c) for (p, c) in CONSTRAINTS]
+    )
 
     to_return = collections.OrderedDict()
     all_deps = set()
@@ -563,7 +584,9 @@ def join_and_write_requirements(args: argparse.Namespace):
     try:
         joined_deps = join_requirements()
     except ValidationError as e:
-        print(f"ERROR: invalid requirements configuration in {__file__}:", file=sys.stderr)
+        print(
+            f"ERROR: invalid requirements configuration in {__file__}:", file=sys.stderr
+        )
         print(str(e), file=sys.stderr)
         sys.exit(2)
 
@@ -594,7 +617,9 @@ def join_and_write_requirements(args: argparse.Namespace):
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--lint", action="store_true", help="Just lint dependencies, don't generate anything"
+        "--lint",
+        action="store_true",
+        help="Just lint dependencies, don't generate anything",
     )
     return parser.parse_args()
 

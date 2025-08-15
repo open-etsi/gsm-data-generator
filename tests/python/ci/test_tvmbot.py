@@ -133,7 +133,9 @@ class TestBadCI(_TvmBotTest):
 
     def preprocess_data(self, data: Dict[str, Any]):
         # Mark the Jenkins build as failed
-        contexts = data["commits"]["nodes"][0]["commit"]["statusCheckRollup"]["contexts"]["nodes"]
+        contexts = data["commits"]["nodes"][0]["commit"]["statusCheckRollup"][
+            "contexts"
+        ]["nodes"]
         for context in contexts:
             if "context" in context and context["context"] == "tvm-ci/pr-head":
                 context["state"] = "FAILED"
@@ -164,7 +166,9 @@ class TestMissingJob(_TvmBotTest):
     EXPECTED = "Cannot merge, missing expected jobs"
 
     def preprocess_data(self, data: Dict[str, Any]) -> Dict[str, Any]:
-        contexts = data["commits"]["nodes"][0]["commit"]["statusCheckRollup"]["contexts"]["nodes"]
+        contexts = data["commits"]["nodes"][0]["commit"]["statusCheckRollup"][
+            "contexts"
+        ]["nodes"]
         for context in contexts:
             if "context" in context and context["context"] == "tvm-ci/pr-head":
                 context["context"] = "something"
@@ -198,7 +202,9 @@ class TestNoReview(_TvmBotTest):
 
     COMMENT = "@tvm-bot merge"
     USER = "abc"
-    EXPECTED = "Cannot merge, did not find any approving reviews from users with write access"
+    EXPECTED = (
+        "Cannot merge, did not find any approving reviews from users with write access"
+    )
 
     def preprocess_data(self, data: Dict[str, Any]) -> Dict[str, Any]:
         data["reviews"]["nodes"] = []

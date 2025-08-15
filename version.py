@@ -93,7 +93,9 @@ def git_describe_version():
         "--match",
         "v[0-9]*.[0-9]*.dev[0-9]*",
     ]
-    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=PROJ_ROOT)
+    proc = subprocess.Popen(
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=PROJ_ROOT
+    )
     (out, _) = proc.communicate()
 
     if proc.returncode != 0:
@@ -178,11 +180,14 @@ def sync_version(pub_ver, local_ver, dry_run):
     # Use public version for other parts for now
     # Note that full git hash is already available in libgsm_gsm_datagen
 
-
     # web
     # change to pre-release convention by npm
     dev_pos = pub_ver.find(".dev")
-    npm_ver = pub_ver if dev_pos == -1 else "%s.0-%s" % (pub_ver[:dev_pos], pub_ver[dev_pos + 1 :])
+    npm_ver = (
+        pub_ver
+        if dev_pos == -1
+        else "%s.0-%s" % (pub_ver[:dev_pos], pub_ver[dev_pos + 1 :])
+    )
     update(
         os.path.join(PROJ_ROOT, "web", "package.json"),
         r'(?<="version": ")[.0-9a-z\-\+]+',

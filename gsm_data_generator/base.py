@@ -58,7 +58,7 @@ __version__ = libinfo.__version__
 # _LIB, _LIB_NAME = _load_lib()
 
 # Whether we are runtime only
-#_RUNTIME_ONLY = "runtime" in _LIB_NAME
+# _RUNTIME_ONLY = "runtime" in _LIB_NAME
 
 
 # if _RUNTIME_ONLY:
@@ -67,10 +67,10 @@ __version__ = libinfo.__version__
 #     _DATAGEN_ffi_registry._SKIP_UNKNOWN_OBJECTS = True
 
 # The FFI mode of DATAGEN
-_FFI_MODE = os.environ.get("DATAGEN_FFI", "auto")
+# _FFI_MODE = os.environ.get("DATAGEN_FFI", "auto")
 
-if _FFI_MODE == "ctypes":
-    raise ImportError("We have phased out ctypes support in favor of cython on wards")
+# if _FFI_MODE == "ctypes":
+#     raise ImportError("We have phased out ctypes support in favor of cython on wards")
 
 
 def py_str(x):
