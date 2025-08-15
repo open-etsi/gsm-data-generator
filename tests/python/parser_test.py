@@ -1,6 +1,5 @@
 import json
-from core.parser.utils import json_loader, ConfigHolder, ConfigData, gui_loader
-
+from gsm_data_generator.parser import *
 
 JSON_PATH = "D:/STC_APP/improvements/security-layer/datadecryption_poetry/settings.json"
 

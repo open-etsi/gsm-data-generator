@@ -24,7 +24,8 @@ import logging
 from pathlib import Path
 
 import pytest
-import gsm_data_generator.testing
+
+# import gsm_data_generator.testing
 
 from .test_utils import (
     REPO_ROOT,

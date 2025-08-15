@@ -1,5 +1,5 @@
-from core.executor.script import DataGenerationScript
-from core.parser.utils import ConfigHolder, json_loader
+from gsm_data_generator.executor import DataGenerationScript
+from gsm_data_generator.parser import ConfigHolder, json_loader, json_loader1
 
 if __name__ == "__main__":
     config_holder: ConfigHolder = json_loader(
