@@ -22,7 +22,7 @@ import os
 
 # top-level alias
 # gsm_data_generator._ffi
-from .base import DATAGENError, __version__  # , #_RUNTIME_ONLY
+from gsm_data_generator.base import DATAGENError, __version__  # , #_RUNTIME_ONLY
 
 # from .ffi import register_object, register_func, get_global_func
 
@@ -34,7 +34,7 @@ from .base import DATAGENError, __version__  # , #_RUNTIME_ONLY
 # from .runtime import ndarray as nd, DataType, DataTypeCode
 
 # gsm_data_generator.error
-from . import error
+from gsm_data_generator import error
 
 
 def _should_print_backtrace():

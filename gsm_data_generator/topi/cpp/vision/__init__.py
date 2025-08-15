@@ -16,8 +16,8 @@
 # under the License.
 
 """FFI for vision TOPI ops and schedules"""
-import gsm_data_generator.ffi
+# import gsm_data_generator.ffi
 
-from . import yolo
+# from . import yolo
 
-gsm_data_generator.ffi._init_api("topi.vision", "tvm.topi.cpp.vision")
+# gsm_data_generator.ffi._init_api("topi.vision", "tvm.topi.cpp.vision")

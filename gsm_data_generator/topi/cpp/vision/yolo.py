@@ -15,6 +15,6 @@
 # specific language governing permissions and limitations
 # under the License.
 """FFI for Yolo TOPI ops and schedules"""
-import gsm_data_generator.ffi
+# import gsm_data_generator.ffi
 
-gsm_data_generator.ffi._init_api("topi.vision.yolo", "tvm.topi.cpp.vision.yolo")
+# gsm_data_generator.ffi._init_api("topi.vision.yolo", "tvm.topi.cpp.vision.yolo")

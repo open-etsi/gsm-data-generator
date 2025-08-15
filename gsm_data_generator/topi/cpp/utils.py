@@ -15,6 +15,6 @@
 # specific language governing permissions and limitations
 # under the License.
 """FFI for TOPI utility functions"""
-import gsm_data_generator.ffi
+# import gsm_data_generator.ffi
 
-gsm_data_generator.ffi._init_api("topi.utils", "tvm.topi.cpp.utils")
+# gsm_data_generator.ffi._init_api("topi.utils", "tvm.topi.cpp.utils")
