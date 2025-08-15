@@ -39,7 +39,11 @@ def ncw_pack_layout(layout_info):
 
 def ncw_xc_layout(layout_info):
     """Check whether the layout type is NCWxc"""
-    return layout_info[:3] == "NCW" and "c" in layout_info and layout_info[3:-1].isnumeric()
+    return (
+        layout_info[:3] == "NCW"
+        and "c" in layout_info
+        and layout_info[3:-1].isnumeric()
+    )
 
 
 def nchw_pack_layout(layout_info):
@@ -49,7 +53,11 @@ def nchw_pack_layout(layout_info):
 
 def nchw_xc_layout(layout_info):
     """Check whether the layout type is NCHWxc"""
-    return layout_info[:4] == "NCHW" and "c" in layout_info and layout_info[4:-1].isnumeric()
+    return (
+        layout_info[:4] == "NCHW"
+        and "c" in layout_info
+        and layout_info[4:-1].isnumeric()
+    )
 
 
 def traverse_inline(s, final_op, callback):
@@ -226,7 +234,9 @@ def const_vector(vector, name="const_vector"):
         now = gsm_data_generator.tir.const(0.0, dtype)
         for ii in range(row):
             now = gsm_data_generator.tir.Select(
-                gsm_data_generator.tir.all(idxm(i, row) == ii), gsm_data_generator.tir.const(vector[ii], dtype), now
+                gsm_data_generator.tir.all(idxm(i, row) == ii),
+                gsm_data_generator.tir.const(vector[ii], dtype),
+                now,
             )
         return now
 
@@ -265,7 +275,9 @@ def simplify(expr):
     if isinstance(expr, te.Tensor):
         return te.compute(
             expr.shape,
-            lambda *indices: gsm_data_generator.arith.Analyzer().simplify(expr[indices]),
+            lambda *indices: gsm_data_generator.arith.Analyzer().simplify(
+                expr[indices]
+            ),
             name="simplify_output",
             tag="simplify",
         )
@@ -424,10 +436,14 @@ def get_shape(src_shape, src_layout, dst_layout):
     if isinstance(dst_layout, str):
         dst_layout = layout(dst_layout)
 
-    assert len(src_layout) == len(dst_layout), f"Incompatible layout {src_layout} vs {dst_layout}"
+    assert len(src_layout) == len(
+        dst_layout
+    ), f"Incompatible layout {src_layout} vs {dst_layout}"
 
     layout_mapping = bijective_layout(src_layout, dst_layout)
-    dst_indices = layout_mapping.forward_index(gsm_data_generator.runtime.convert(list(range(len(src_layout)))))
+    dst_indices = layout_mapping.forward_index(
+        gsm_data_generator.runtime.convert(list(range(len(src_layout))))
+    )
 
     return get_const_tuple(tuple([src_shape[i.value] for i in dst_indices]))
 
@@ -457,8 +473,14 @@ def within_index(b, e, s, i):
     """
     bc = gsm_data_generator.tir.Select(s < 0, i <= e, i < b)
     ec = gsm_data_generator.tir.Select(s < 0, i > b, i >= e)
-    ss = te.if_then_else(s < 0, ((i - e) + (e % te.abs(s)) + 1) % te.abs(s), (i - b) % s)
-    return gsm_data_generator.tir.Select(gsm_data_generator.tir.Or(bc, ec), gsm_data_generator.tir.const(False), ss.equal(0))
+    ss = te.if_then_else(
+        s < 0, ((i - e) + (e % te.abs(s)) + 1) % te.abs(s), (i - b) % s
+    )
+    return gsm_data_generator.tir.Select(
+        gsm_data_generator.tir.Or(bc, ec),
+        gsm_data_generator.tir.const(False),
+        ss.equal(0),
+    )
 
 
 def make_idx(b, e, s, z, i):
@@ -497,7 +519,9 @@ def make_idx(b, e, s, z, i):
     b = gsm_data_generator.tir.Select(z < b, z - 1, b)
 
     ss = gsm_data_generator.tir.if_then_else(s < 0, (b - i) // te.abs(s), (i - b) // s)
-    return gsm_data_generator.tir.if_then_else(gsm_data_generator.tir.Or(bc, ec), 88, ss)
+    return gsm_data_generator.tir.if_then_else(
+        gsm_data_generator.tir.Or(bc, ec), 88, ss
+    )
 
 
 def is_empty_shape(shape):

@@ -17,4 +17,4 @@
 # under the License.
 set -euxo pipefail
 
-python3 -m pylint python/tvm --rcfile="$(dirname "$0")"/pylintrc
+python3 -m pylint gsm_data_generator --rcfile="$(dirname "$0")"/pylintrc

@@ -32,7 +32,9 @@ if __name__ == "__main__":
     help = "List out RFCs since a commit"
     parser = argparse.ArgumentParser(description=help)
     parser.add_argument("--since-commit", required=True, help="last commit to include")
-    parser.add_argument("--rfcs-repo", required=True, help="path to checkout of apache/tvm-rfcs")
+    parser.add_argument(
+        "--rfcs-repo", required=True, help="path to checkout of apache/tvm-rfcs"
+    )
     args = parser.parse_args()
     user = "apache"
     repo = "tvm"
@@ -72,4 +74,6 @@ if __name__ == "__main__":
             sprint(f"error on {commit} {subject}")
             continue
 
-        print(f" * [{subject}]({LINK_BASE + rfc_file}) ([`{commit[:7]}`]({COMMIT_BASE + commit}))")
+        print(
+            f" * [{subject}]({LINK_BASE + rfc_file}) ([`{commit[:7]}`]({COMMIT_BASE + commit}))"
+        )

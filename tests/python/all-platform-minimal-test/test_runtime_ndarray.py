@@ -25,7 +25,9 @@ import gsm_data_generator
 import gsm_data_generator.testing
 from gsm_data_generator import te
 
-dtype = gsm_data_generator.testing.parameter("uint8", "int8", "uint16", "int16", "uint32", "int32", "float32")
+dtype = gsm_data_generator.testing.parameter(
+    "uint8", "int8", "uint16", "int16", "uint32", "int32", "float32"
+)
 
 
 def test_nd_create(target, dev, dtype):
@@ -46,7 +48,9 @@ def test_nd_create(target, dev, dtype):
 def test_memory_usage(target, dev, dtype):
     available_memory_before = dev.available_global_memory
     if available_memory_before is None:
-        pytest.skip(reason=f"Target '{target}' does not support queries of available memory")
+        pytest.skip(
+            reason=f"Target '{target}' does not support queries of available memory"
+        )
 
     arr = gsm_data_generator.nd.empty([1024, 1024], dtype=dtype, device=dev)
     available_memory_after = dev.available_global_memory

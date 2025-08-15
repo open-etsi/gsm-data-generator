@@ -26,7 +26,13 @@ from pathlib import Path
 import pytest
 import gsm_data_generator.testing
 
-from .test_utils import REPO_ROOT, GITHUB_SCRIPT_ROOT, JENKINS_SCRIPT_ROOT, TempGit, run_script
+from .test_utils import (
+    REPO_ROOT,
+    GITHUB_SCRIPT_ROOT,
+    JENKINS_SCRIPT_ROOT,
+    TempGit,
+    run_script,
+)
 
 # pylint: disable=wrong-import-position,wrong-import-order
 sys.path.insert(0, str(REPO_ROOT / "ci"))
@@ -364,7 +370,10 @@ def test_docs_comment(target_url, base_url, commit_sha, expected_body):
 @gsm_data_generator.testing.skip_if_wheel_test
 @parameterize_named(
     cc_no_one=dict(
-        pr_body="abc", requested_reviewers=[], existing_review_users=[], expected_reviewers=[]
+        pr_body="abc",
+        requested_reviewers=[],
+        existing_review_users=[],
+        expected_reviewers=[],
     ),
     cc_abc=dict(
         pr_body="cc @abc",
@@ -373,7 +382,10 @@ def test_docs_comment(target_url, base_url, commit_sha, expected_body):
         expected_reviewers=["abc"],
     ),
     bad_cc_line=dict(
-        pr_body="cc @", requested_reviewers=[], existing_review_users=[], expected_reviewers=[]
+        pr_body="cc @",
+        requested_reviewers=[],
+        existing_review_users=[],
+        expected_reviewers=[],
     ),
     cc_multiple=dict(
         pr_body="cc @abc @def",
@@ -413,7 +425,11 @@ def test_docs_comment(target_url, base_url, commit_sha, expected_body):
     ),
 )
 def test_cc_reviewers(
-    tmpdir_factory, pr_body, requested_reviewers, existing_review_users, expected_reviewers
+    tmpdir_factory,
+    pr_body,
+    requested_reviewers,
+    existing_review_users,
+    expected_reviewers,
 ):
     """
     Test that reviewers are added from 'cc @someone' messages in PRs
@@ -427,17 +443,26 @@ def test_cc_reviewers(
         [reviewers_script, "--dry-run", "--testing-reviews-json", json.dumps(reviews)],
         env={
             "PR": json.dumps(
-                {"number": 1, "body": pr_body, "requested_reviewers": requested_reviewers}
+                {
+                    "number": 1,
+                    "body": pr_body,
+                    "requested_reviewers": requested_reviewers,
+                }
             )
         },
         cwd=git.cwd,
     )
 
-    assert f"After filtering existing reviewers, adding: {expected_reviewers}" in proc.stdout
+    assert (
+        f"After filtering existing reviewers, adding: {expected_reviewers}"
+        in proc.stdout
+    )
 
 
 def generate_good_commit_status():
-    return list([{"context": context, "state": "SUCCESS"} for context in EXPECTED_CI_JOBS])
+    return list(
+        [{"context": context, "state": "SUCCESS"} for context in EXPECTED_CI_JOBS]
+    )
 
 
 @parameterize_named(
@@ -493,7 +518,9 @@ def test_update_branch(tmpdir_factory, statuses, expected_rc, expected_output):
     data = {
         "data": {
             "repository": {
-                "defaultBranchRef": {"target": {"history": {"edges": [], "nodes": [commit]}}}
+                "defaultBranchRef": {
+                    "target": {"history": {"edges": [], "nodes": [commit]}}
+                }
             }
         }
     }
@@ -504,7 +531,9 @@ def test_update_branch(tmpdir_factory, statuses, expected_rc, expected_output):
     )
 
     if proc.returncode != expected_rc:
-        raise RuntimeError(f"Wrong return code:\nstdout:\n{proc.stdout}\n\nstderr:\n{proc.stderr}")
+        raise RuntimeError(
+            f"Wrong return code:\nstdout:\n{proc.stdout}\n\nstderr:\n{proc.stderr}"
+        )
 
     if expected_output not in proc.stdout:
         raise RuntimeError(
@@ -1247,7 +1276,9 @@ def test_open_docker_update_pr(
     docker_data = {}
     for image in images:
         docker_data[f"repositories/tlcpackstaging/{image}/tags"] = tlcpackstaging_body
-        docker_data[f"repositories/tlcpack/{image.replace('_', '-')}/tags"] = tlcpack_body
+        docker_data[f"repositories/tlcpack/{image.replace('_', '-')}/tags"] = (
+            tlcpack_body
+        )
 
     proc = run_script(
         [
@@ -1329,7 +1360,10 @@ def test_determine_docker_images(tmpdir_factory, images, expected):
         expected_code=1,
     ),
     no_hash=dict(
-        changed_files=[], name="123-123-abc", check="No extant hash found", expected_code=1
+        changed_files=[],
+        name="123-123-abc",
+        check="No extant hash found",
+        expected_code=1,
     ),
     no_changes=dict(
         changed_files=[["test.txt"]],
@@ -1344,7 +1378,9 @@ def test_determine_docker_images(tmpdir_factory, images, expected):
         expected_code=2,
     ),
 )
-def test_should_rebuild_docker(tmpdir_factory, changed_files, name, check, expected_code):
+def test_should_rebuild_docker(
+    tmpdir_factory, changed_files, name, check, expected_code
+):
     """
     Check that the Docker images are built when necessary
     """

@@ -69,6 +69,8 @@ def run_script(command: List[Any], check: bool = True, **kwargs):
         **kwargs_to_send,
     )
     if check and proc.returncode != 0:
-        raise RuntimeError(f"Process failed:\nstdout:\n{proc.stdout}\n\nstderr:\n{proc.stderr}")
+        raise RuntimeError(
+            f"Process failed:\nstdout:\n{proc.stdout}\n\nstderr:\n{proc.stderr}"
+        )
 
     return proc

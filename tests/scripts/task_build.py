@@ -37,7 +37,9 @@ if __name__ == "__main__":
     parser.add_argument("--sccache-region", required=False, help="sccache region")
     parser.add_argument("--build-dir", default="build", help="build folder")
     parser.add_argument("--cmake-target", help="optional build target")
-    parser.add_argument("--debug", required=False, action="store_true", help="build in debug mode")
+    parser.add_argument(
+        "--debug", required=False, action="store_true", help="build in debug mode"
+    )
     args = parser.parse_args()
     sccache_exe = shutil.which("sccache")
 
@@ -53,7 +55,9 @@ if __name__ == "__main__":
     if use_sccache:
         if args.sccache_bucket and "AWS_ACCESS_KEY_ID" in os.environ:
             env["SCCACHE_BUCKET"] = args.sccache_bucket
-            env["SCCACHE_REGION"] = args.sccache_region if args.sccache_region else "us-west-2"
+            env["SCCACHE_REGION"] = (
+                args.sccache_region if args.sccache_region else "us-west-2"
+            )
             logging.info(f"Using sccache bucket: {args.sccache_bucket}")
             logging.info(f"Using sccache region: {env['SCCACHE_REGION']}")
         else:

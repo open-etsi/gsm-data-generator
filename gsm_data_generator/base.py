@@ -58,7 +58,7 @@ __version__ = libinfo.__version__
 # _LIB, _LIB_NAME = _load_lib()
 
 # Whether we are runtime only
-#_RUNTIME_ONLY = "runtime" in _LIB_NAME
+# _RUNTIME_ONLY = "runtime" in _LIB_NAME
 
 
 # if _RUNTIME_ONLY:

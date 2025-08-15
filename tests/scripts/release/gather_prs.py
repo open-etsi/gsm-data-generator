@@ -90,7 +90,9 @@ def fetch_pr_data(args, cache):
     github = GitHubRepo(user=user, repo=repo, token=GITHUB_TOKEN)
 
     if args.from_commit is None or args.to_commit is None:
-        print("--from-commit and --to-commit must be specified if --skip-query is not used")
+        print(
+            "--from-commit and --to-commit must be specified if --skip-query is not used"
+        )
         exit(1)
 
     i = 0
@@ -109,7 +111,9 @@ def fetch_pr_data(args, cache):
                 },
             )
         except RuntimeError as e:
-            print(f"{e}\nPlease check enviroment variable GITHUB_TOKEN whether is valid.")
+            print(
+                f"{e}\nPlease check enviroment variable GITHUB_TOKEN whether is valid."
+            )
             exit(1)
         data = r["data"]["repository"]["defaultBranchRef"]["target"]["history"]
         if not data["pageInfo"]["hasNextPage"]:
@@ -137,7 +141,9 @@ def fetch_pr_data(args, cache):
 
 
 def write_csv(
-    filename: str, data: List[Dict[str, Any]], threshold_filter: Callable[[Dict[str, Any]], bool]
+    filename: str,
+    data: List[Dict[str, Any]],
+    threshold_filter: Callable[[Dict[str, Any]], bool],
 ) -> None:
     with open(filename, "w", newline="") as csvfile:
         writer = csv.writer(csvfile, quotechar='"')
@@ -195,10 +201,14 @@ if __name__ == "__main__":
     parser.add_argument("--from-commit", help="commit to start checking PRs from")
     parser.add_argument("--to-commit", help="commit to stop checking PRs from")
     parser.add_argument(
-        "--threshold", default=0, help="sum of additions + deletions to consider large, such as 150"
+        "--threshold",
+        default=0,
+        help="sum of additions + deletions to consider large, such as 150",
     )
     parser.add_argument(
-        "--skip-query", action="store_true", help="don't query GitHub and instead use cache file"
+        "--skip-query",
+        action="store_true",
+        help="don't query GitHub and instead use cache file",
     )
     args = parser.parse_args()
     user = "apache"

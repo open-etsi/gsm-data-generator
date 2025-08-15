@@ -50,22 +50,22 @@ class InternalError(DATAGENError):
     """
 
 
-#@register_error
+# @register_error
 class RPCError(DATAGENError):
     """Error thrown by the remote server handling the RPC call."""
 
 
-#@register_error
+# @register_error
 class RPCSessionTimeoutError(RPCError, TimeoutError):
     """Error thrown by the remote server when the RPC session has expired."""
 
 
-#@register_error
+# @register_error
 class OpError(DATAGENError):
     """Base class of all operator errors in frontends."""
 
 
-#@register_error
+# @register_error
 class OpNotImplemented(OpError, NotImplementedError):
     """Operator is not implemented.
 
@@ -79,7 +79,7 @@ class OpNotImplemented(OpError, NotImplementedError):
     """
 
 
-#@register_error
+# @register_error
 class OpAttributeRequired(OpError, AttributeError):
     """Required attribute is not found.
 
@@ -93,7 +93,7 @@ class OpAttributeRequired(OpError, AttributeError):
     """
 
 
-#@register_error
+# @register_error
 class OpAttributeInvalid(OpError, AttributeError):
     """Attribute value is invalid when taking in a frontend operator.
 
@@ -107,7 +107,7 @@ class OpAttributeInvalid(OpError, AttributeError):
     """
 
 
-#@register_error
+# @register_error
 class OpAttributeUnImplemented(OpError, NotImplementedError):
     """Attribute is not supported in a certain frontend.
 
@@ -121,7 +121,7 @@ class OpAttributeUnImplemented(OpError, NotImplementedError):
     """
 
 
-#@register_error
+# @register_error
 class DiagnosticError(DATAGENError):
     """Error diagnostics were reported during the execution of a pass.
 

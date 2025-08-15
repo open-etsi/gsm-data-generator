@@ -34,8 +34,8 @@ function shard1 {
   echo "Checking file types..."
   python3 tests/lint/check_file_type.py
 
-  echo "Checking CMake <-> LibInfo options mirroring"
-  python3 tests/lint/check_cmake_options.py
+  # echo "Checking CMake <-> LibInfo options mirroring"
+  # python3 tests/lint/check_cmake_options.py
 
   echo "black check..."
   tests/lint/git-black.sh

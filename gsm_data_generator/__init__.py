@@ -22,7 +22,7 @@ import os
 
 # top-level alias
 # gsm_data_generator._ffi
-from .base import DATAGENError, __version__#, #_RUNTIME_ONLY
+from .base import DATAGENError, __version__  # , #_RUNTIME_ONLY
 
 # from .ffi import register_object, register_func, get_global_func
 
@@ -45,7 +45,9 @@ def _should_print_backtrace():
         gsm_datagen_backtrace = bool(int(gsm_datagen_backtrace))
     except ValueError:
         raise ValueError(
-            "invalid value for DATAGEN_BACKTRACE {}, please set to 0 or 1.".format(gsm_datagen_backtrace)
+            "invalid value for DATAGEN_BACKTRACE {}, please set to 0 or 1.".format(
+                gsm_datagen_backtrace
+            )
         )
 
     return in_pytest or gsm_datagen_backtrace
@@ -58,7 +60,9 @@ def gsm_datagen_wrap_excepthook(exception_hook):
         """Clean subprocesses when DATAGEN is interrupted."""
         if exctype is error.DiagnosticError and not _should_print_backtrace():
             # TODO(@jroesch): consider moving to C++?
-            print("note: run with `DATAGEN_BACKTRACE=1` environment variable to display a backtrace.")
+            print(
+                "note: run with `DATAGEN_BACKTRACE=1` environment variable to display a backtrace."
+            )
         else:
             exception_hook(exctype, value, trbk)
 

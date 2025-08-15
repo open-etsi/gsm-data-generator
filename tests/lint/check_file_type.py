@@ -251,11 +251,14 @@ def main():
     if asf_copyright_list:
         report = "------File type check report----\n"
         report += "\n".join(asf_copyright_list) + "\n"
-        report += "------Found %d files that has ASF header with copyright message----\n" % len(
-            asf_copyright_list
+        report += (
+            "------Found %d files that has ASF header with copyright message----\n"
+            % len(asf_copyright_list)
         )
         report += "--- Files with ASF header do not need Copyright lines.\n"
-        report += "--- Contributors retain copyright to their contribution by default.\n"
+        report += (
+            "--- Contributors retain copyright to their contribution by default.\n"
+        )
         report += "--- If a file comes with a different license, consider put it under the 3rdparty folder instead.\n"
         report += "---\n"
         report += "--- You can use the following steps to remove the copyright lines\n"

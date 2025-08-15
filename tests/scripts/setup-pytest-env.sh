@@ -27,7 +27,8 @@ fi
 set -ux
 
 export TVM_PATH=`pwd`
-export PYTHONPATH="${TVM_PATH}/python"
+export PYTHONPATH="${TVM_PATH}"
+export PYTHONPATH=$(pwd)
 
 export TVM_PYTEST_RESULT_DIR="${TVM_PATH}/build/pytest-results"
 mkdir -p "${TVM_PYTEST_RESULT_DIR}"
