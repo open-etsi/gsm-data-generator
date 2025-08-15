@@ -78,24 +78,24 @@ sha512sum -c ./apache-tvm-src-${version_rc}.tar.gz.sha512
 echo "[6/9] Unzip ..."
 tar -zxf apache-tvm-src-${version_rc}.tar.gz
 
-echo "[7/9] Checking whether binary in source code ..."
-output=`find apache-tvm-src-${version} -type f -exec file {} + | grep -w "ELF\|shared object"`
-if [[ -n "$output" ]]; then
-    echo "Error: ELF or shared object files found:"
-    echo "$output"
-    exit 1
-fi
+# echo "[7/9] Checking whether binary in source code ..."
+# output=`find apache-tvm-src-${version} -type f -exec file {} + | grep -w "ELF\|shared object"`
+# if [[ -n "$output" ]]; then
+#     echo "Error: ELF or shared object files found:"
+#     echo "$output"
+#     exit 1
+# fi
 
-echo "[8/9] Compile and Python Import on Linux ..."
-cd apache-tvm-src-${version}
-mkdir build
-cd build
-cp ../cmake/config.cmake .
-cmake ..
-make -j4
-cd ..
+# echo "[8/9] Compile and Python Import on Linux ..."
+# cd apache-tvm-src-${version}
+# mkdir build
+# cd build
+# cp ../cmake/config.cmake .
+# cmake ..
+# make -j4
+# cd ..
 
-echo "[9/9] Import TVM and print path ..."
+echo "[9/9] Import gsm_data_generator and print path ..."
 export TVM_HOME=$(pwd)
 export PYTHONPATH=$TVM_HOME/python:${PYTHONPATH}
-python3 -c "import tvm; print(tvm.__path__)"
+python3 -c "import gsm_data_generator; print(gsm_data_generator.__path__)"

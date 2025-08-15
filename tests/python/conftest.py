@@ -25,5 +25,4 @@ if sys.platform.startswith("win"):
     COLLECT_IGNORE.append("frontend/tensorflow")
     COLLECT_IGNORE.append("frontend/tflite")
     COLLECT_IGNORE.append("frontend/onnx")
-
     COLLECT_IGNORE.append("tir_base/test_tir_intrin.py")
