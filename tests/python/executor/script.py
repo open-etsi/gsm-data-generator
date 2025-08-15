@@ -47,7 +47,8 @@ from ..generator import CryptoUtils, DataGenerator, DataProcessing, DataFramePro
 from ..globals import DataFrames, Parameters
 
 from ..executor import default_headers, copy_function, list_2_dict, dict_2_list
-#from core.executor.utils import list_2_dict, dict_2_list, default_headers, copy_function
+
+# from core.executor.utils import list_2_dict, dict_2_list, default_headers, copy_function
 
 
 class DataGenerationScript:
@@ -216,7 +217,7 @@ class DataGenerationScript:
         # )
         initial_df, keys_dict = self.generate_initial_data(True)
         # print(initial_df.head())
-#        data_types = {bool, dict, bool, bool}
+        #        data_types = {bool, dict, bool, bool}
         data_types = {}
         data_types = {
             "SERVER": (
