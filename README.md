@@ -49,10 +49,9 @@ place to start.
 
 Features
 --------
-- Synthetic GSM data generation
-- Operator-specific templates
-- GUI support for ease of use
-- Data output in various formats
+Synthetic GSM data generation
+Operator-specific templates
+Data output in various formats
 
 
 Contribute to Data Generation
