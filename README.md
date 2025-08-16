@@ -15,16 +15,27 @@
 <!--- specific language governing permissions and limitations -->
 <!--- under the License. -->
 
-<img src=https://raw.githubusercontent.com/apache/tvm-site/main/images/logo/tvm-logo-small.png width=128/> Open Deep Learning Compiler Stack
+
+<!--
+  <table>
+    <tr>
+      <td><img src=https://raw.githubusercontent.com/hamzaqureshi5/gsm-data-generator-gui/ds0/src/resources/icon_without_text.png width="128"/></td>
+      <td style="vertical-align: middle; padding-left: 12px;">
+        <h1>GSM Data Generation Stack</h1>
+      </td>
+    </tr>
+  </table>
+</p>
+!-->
+
+<img src=https://raw.githubusercontent.com/hamzaqureshi5/gsm-data-generator-gui/ds0/src/resources/icon_without_text.png width=128/> Open GSM Data Generation Stack
 ==============================================
-[Documentation](https://tvm.apache.org/docs) |
+[Documentation]() |
 [Contributors](CONTRIBUTORS.md) |
-[Community](https://tvm.apache.org/community) |
+[Community]() |
 [Release Notes](NEWS.md)
 
-Apache TVM is a compiler stack for deep learning systems. It is designed to close the gap between the
-productivity-focused deep learning frameworks and the performance- and efficiency-focused hardware backends.
-TVM works with deep learning frameworks to provide end-to-end compilation for different backends.
+GSM Data Generator is a library for generating and processing structured datasets for GSM, USIM, and eSIM systems. It is designed to bridge the gap between telecom operator requirements and developer productivity, offering flexible tools for data parsing, formatting, and export. The library provides an extensible framework to define operator-specific templates, process large-scale inputs, and generate outputs in standardized formats for downstream telecom systems.
 
 License
 -------
@@ -32,32 +43,34 @@ TVM is licensed under the [Apache-2.0](LICENSE) license.
 
 Getting Started
 ---------------
-Check out the [TVM Documentation](https://tvm.apache.org/docs/) site for installation instructions, tutorials, examples, and more.
-The [Getting Started with TVM](https://tvm.apache.org/docs/get_started/overview.html) tutorial is a great
+Check out the [Data Generation Documentation]() site for installation instructions, tutorials, examples, and more.
+The [Getting Started with Data Generation]() tutorial is a great
 place to start.
 
-Contribute to TVM
+Features
+--------
+- Synthetic GSM data generation
+- Operator-specific templates
+- GUI support for ease of use
+- Data output in various formats
+
+
+Contribute to Data Generation
 -----------------
-TVM adopts the Apache committer model. We aim to create an open-source project maintained and owned by the community.
-Check out the [Contributor Guide](https://tvm.apache.org/docs/contribute/).
+Data Generation adopts the Apache committer model. We aim to create an open-source project maintained and owned by the community.
+Check out the [Contributor Guide]().
 
 History and Acknowledgement
 ---------------------------
-TVM started as a research project for deep learning compilation.
-The first version of the project benefited a lot from the following projects:
+Data Generation started as a research project for USIM, ESIM etc.
+<!-- The first version of the project benefited a lot from the following projects:
 
 - [Halide](https://github.com/halide/Halide): Part of TVM's TIR and arithmetic simplification module
  originates from Halide. We also learned and adapted some parts of the lowering pipeline from Halide.
 - [Loopy](https://github.com/inducer/loopy): use of integer set analysis and its loop transformation primitives.
-- [Theano](https://github.com/Theano/Theano): the design inspiration of symbolic scan operator for recurrence.
+- [Theano](https://github.com/Theano/Theano): the design inspiration of symbolic scan operator for recurrence. -->
 
 Since then, the project has gone through several rounds of redesigns.
 The current design is also drastically different from the initial design, following the
-development trend of the ML compiler community.
+development trend of the community.
 
-The most recent version focuses on a cross-level design with TensorIR as the tensor-level representation
-and Relax as the graph-level representation and Python-first transformations.
-The project's current design goal is to make the ML compiler accessible by enabling most
-transformations to be customizable in Python and bringing a cross-level representation that can jointly
-optimize computational graphs, tensor programs, and libraries. The project is also a foundation
-infra for building Python-first vertical compilers for domains, such as LLMs.
