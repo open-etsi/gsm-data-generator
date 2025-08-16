@@ -39,7 +39,7 @@ GSM Data Generator is a library for generating and processing structured dataset
 
 License
 -------
-TVM is licensed under the [Apache-2.0](LICENSE) license.
+Data Generation is licensed under the [Apache-2.0](LICENSE) license.
 
 Getting Started
 ---------------
