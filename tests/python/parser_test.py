@@ -91,7 +91,7 @@ json_var = {
 
 if __name__ == "__main__":
     # TEST GUI LOADER
-    config_holder = gui_loader(json_var)
+    config_holder = gui_loader(json_var) # type: ignore
     print(config_holder.DISP.graph_data_sep)
 
     # TEST JSON FILE LOADER
