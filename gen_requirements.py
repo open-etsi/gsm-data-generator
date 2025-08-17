@@ -63,7 +63,7 @@ REQUIREMENTS_BY_PIECE: RequirementsByPieceType = [
     (
         "core",
         (
-            "Base requirements needed to install tvm",
+            "Base requirements needed to install gsm-data-generator",
             [
                 "cloudpickle",
                 # "ml_dtypes",
@@ -154,8 +154,8 @@ REQUIREMENTS_BY_PIECE: RequirementsByPieceType = [
                 "astroid",  # pylint requirement, listed so a hard constraint can be included.
                 "autodocsumm",
                 "black",
-                "commonmark",
-                #                "cpplint",
+                "commonmark", 
+                "pandas",
                 "docutils",
                 "image",
                 "matplotlib",
