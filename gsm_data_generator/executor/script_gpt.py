@@ -107,7 +107,9 @@ class DataGenerationScript:
     # ---------------------------
     # DATAFRAME PROCESSING
     # ---------------------------
-    def apply_function(self, df: pd.DataFrame, dest: str, src: str, function) -> pd.DataFrame:
+    def apply_function(
+        self, df: pd.DataFrame, dest: str, src: str, function
+    ) -> pd.DataFrame:
         """Apply transformation function on `src` column to produce `dest` column."""
         if dest in df.columns:
             df[dest] = df[src].apply(function)
@@ -126,7 +128,9 @@ class DataGenerationScript:
         df["ADM6"] = df["ADM6"].apply(lambda _: self.generate_code("ADM6", 8))
 
         df["KI"] = df["KI"].apply(lambda _: self.data_generator.generate_ki())
-        df["ACC"] = df["IMSI"].apply(lambda imsi: self.dep_data_generator.calculate_acc(imsi=str(imsi)))
+        df["ACC"] = df["IMSI"].apply(
+            lambda imsi: self.dep_data_generator.calculate_acc(imsi=str(imsi))
+        )
 
         # Apply EKI / OPC
         self.apply_function(df, "EKI", "KI", self.generate_eki)
@@ -137,6 +141,8 @@ class DataGenerationScript:
             for key in ["KIC", "KID", "KIK"]:
                 col = f"{key}{i}"
                 if col in df.columns:
-                    df[col] = df["KI"].apply(lambda _: self.data_generator.generate_otas())
+                    df[col] = df["KI"].apply(
+                        lambda _: self.data_generator.generate_otas()
+                    )
 
         return df
