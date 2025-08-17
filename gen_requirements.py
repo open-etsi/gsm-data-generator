@@ -175,7 +175,6 @@ ConstraintsType = typing.List[typing.Tuple[str, typing.Union[None, str]]]
 #    here. Include a comment linking to context or explaining why the constraint is in place.
 CONSTRAINTS = [
     ("pydantic", ">=2.7"),
-
     # ("astroid", None),
     # ("autodocsumm", None),
     # ("black", "==20.8b1"),
