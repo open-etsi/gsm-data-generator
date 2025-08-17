@@ -1,5 +1,3 @@
-import json
-
 DEFAULT_HEADER = (
     "ICCID",
     "IMSI",

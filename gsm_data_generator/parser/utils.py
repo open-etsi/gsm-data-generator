@@ -85,7 +85,7 @@ def json_loader1(input_data: dict | str) -> ConfigHolder:
     return ConfigHolder.from_config(config)
 
 
-def gui_loader(path: json) -> ConfigHolder:
+def gui_loader(path) -> ConfigHolder:
     #    data = json.load(path)
     data = path
     config = ConfigData(**data)
@@ -114,4 +114,5 @@ __all__ = [
     "json_loader",
     "json_loader1",
     "gui_loader",
+    "ConfigData",
 ]

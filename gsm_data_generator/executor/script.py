@@ -10,7 +10,7 @@ from ..generator import (
 )
 from ..globals import DataFrames, Parameters
 
-from ..utils import DEFAULT_HEADER, copy_function, list_2_dict, dict_2_list
+from ..utils import DEFAULT_HEADER, copy_function, list_2_dict
 
 
 class DataGenerationScript:
