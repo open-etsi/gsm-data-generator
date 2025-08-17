@@ -12,7 +12,7 @@ jobs:
 
     strategy:
       matrix:
-        python-version: ["3.11", "3.12" ]  # adjust versions you want to support
+        python-version: ["3.11" ]  # adjust versions you want to support
 
     steps:
       - name: Checkout code
