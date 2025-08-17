@@ -3,6 +3,7 @@ import pytest
 
 from gsm_data_generator.utils import dict_2_list, list_2_dict
 
+
 def test_list_2_dict_basic():
     data = ["A", "B", "C"]
     result = list_2_dict(data)

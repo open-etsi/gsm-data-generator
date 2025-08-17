@@ -1,8 +1,6 @@
 # test_config.py
 import json
 import pytest
-from pathlib import Path
-import gsm_data_generator
 from gsm_data_generator.parser.utils import (
     DISP,
     PATHS,

@@ -59,19 +59,22 @@ RequirementsByPieceType = typing.List[
 # Maps named DATAGEN piece (see description above) to a list of names of Python packages. Please use
 # alphabetical order for each package list, and do not add version constraints here!
 REQUIREMENTS_BY_PIECE: RequirementsByPieceType = [
-    # Base requirements needed to install tvm.
+    # Base requirements needed to install gsm-data-generator.
     (
         "core",
         (
             "Base requirements needed to install gsm-data-generator",
             [
                 "cloudpickle",
-                # "ml_dtypes",
+                "docutils",
                 "numpy",
                 "packaging",
+                "pandas",
                 "psutil",
-                "scipy",
-                "tornado",
+                "pycryptodome",
+                "pydantic",
+                "python-dateutil",
+                "pytz",
                 "typing_extensions",
             ],
         ),
@@ -107,18 +110,11 @@ REQUIREMENTS_BY_PIECE: RequirementsByPieceType = [
     #         ],
     #     ),
     # ),
+    #
     # (
-    #     "importer-tensorflow",
-    #     ("Requirements for the TensorFlow importer", ["tensorflow", "tensorflow-estimator"]),
-    # ),
-    # (
-    #     "importer-tflite",
-    #     ("Requirements for the TFLite importer", ["tensorflow", "tensorflow-estimator", "tflite"]),
-    # ),
-    # (
-    #     "tvmc",
+    #     "gsm-data-generator-c",
     #     (
-    #         "Requirements for the tvmc command-line tool",
+    #         "Requirements for the gsm-data-generator-c command-line tool",
     #         [
     #             "ethos-u-vela",
     #             "future",  # Hidden dependency of torch.
@@ -133,18 +129,6 @@ REQUIREMENTS_BY_PIECE: RequirementsByPieceType = [
     #         ],
     #     ),
     # ),
-    # # XGBoost, useful for autotuning on some targets.
-    # (
-    #     "xgboost",
-    #     (
-    #         "Requirements for XGBoost autotuning",
-    #         [
-    #             "future",  # Hidden dependency of torch.
-    #             "torch",
-    #             "xgboost",
-    #         ],
-    #     ),
-    # ),
     # Development requirements
     (
         "dev",
@@ -154,13 +138,16 @@ REQUIREMENTS_BY_PIECE: RequirementsByPieceType = [
                 "astroid",  # pylint requirement, listed so a hard constraint can be included.
                 "autodocsumm",
                 "black",
-                "commonmark", 
-                "pandas",
+                "commonmark",
+                "dateutil",
                 "docutils",
-                "image",
-                "matplotlib",
-                "pillow",
+                "pandas",
+                "pydantic",
+                # "image",
+                # "matplotlib",
+                # "pillow",
                 "pylint",
+                "pytz",
                 "sphinx",
                 "sphinx_autodoc_annotation",
                 "sphinx_gallery",
@@ -170,6 +157,7 @@ REQUIREMENTS_BY_PIECE: RequirementsByPieceType = [
         ),
     ),
 ]
+
 
 ConstraintsType = typing.List[typing.Tuple[str, typing.Union[None, str]]]
 
@@ -186,13 +174,14 @@ ConstraintsType = typing.List[typing.Tuple[str, typing.Union[None, str]]]
 # 2. If DATAGEN will functionally break against an old version of a dependency, specify a >= relation
 #    here. Include a comment linking to context or explaining why the constraint is in place.
 CONSTRAINTS = [
+    ("pydantic", ">=2.7"),
+
     # ("astroid", None),
     # ("autodocsumm", None),
     # ("black", "==20.8b1"),
     # ("cloudpickle", None),
     # ("commonmark", ">=0.7.3"),  # From PR #213.
-    # ("coremltools", None),
-    # ("cpplint", None),
+    # # ("pydantic", ">=2.7,<3"),
     # (
     #     "docutils",
     #     "<0.17",
@@ -207,7 +196,7 @@ CONSTRAINTS = [
     # ("pillow", None),
     # ("psutil", None),
     # ("pylint", None),
-    # ("scipy", None),
+    # # ("scipy", None),
     # ("sphinx", None),
     # ("sphinx_autodoc_annotation", None),
     # ("sphinx_gallery", None),
