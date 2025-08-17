@@ -17,8 +17,6 @@
 # coding: utf-8
 # pylint: disable=invalid-name, import-outside-toplevel
 """Base library for DATAGEN."""
-import ctypes
-import os
 import sys
 
 from . import libinfo

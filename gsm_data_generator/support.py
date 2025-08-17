@@ -17,7 +17,6 @@
 """Support infra of TVM."""
 import json
 import textwrap
-import ctypes
 import os
 import sys
 

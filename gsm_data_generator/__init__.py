@@ -15,23 +15,14 @@
 # specific language governing permissions and limitations
 # under the License.
 # pylint: disable=redefined-builtin, wildcard-import
-"""DATAGEN: Open Deep Learning Compiler Stack."""
+"""DATAGEN"""
 import multiprocessing
 import sys
 import os
 
 # top-level alias
-# gsm_data_generator._ffi
 from gsm_data_generator.base import DATAGENError, __version__  # , #_RUNTIME_ONLY
-
-# from .ffi import register_object, register_func, get_global_func
-
-# # top-level alias
-# # gsm_data_generator.runtime
-# from .runtime.object import Object
-# from .runtime.ndarray import device, cpu, cuda, opencl, vulkan, metal
-# from .runtime.ndarray import vpi, rocm, ext_dev, hexagon
-# from .runtime import ndarray as nd, DataType, DataTypeCode
+import gsm_data_generator.testing
 
 # gsm_data_generator.error
 from gsm_data_generator import error
