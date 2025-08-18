@@ -7,7 +7,7 @@ on:
     branches: [ main, master ]
 
 jobs:
-  test:
+  pipeline-test:
     runs-on: ubuntu-latest
 
     strategy:
