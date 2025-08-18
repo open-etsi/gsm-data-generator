@@ -1,15 +1,10 @@
 import pandas as pd
 
 
-from ..generator import (
-    CryptoUtils,
-    DataGenerator,
-    DataProcessing,
-    DataFrameProcessor,
-    DependentDataGenerator,
-)
+from ..algorithm import CryptoUtils, DependentDataGenerator
+from ..processor import DataProcessing, DataFrameProcessor
 from ..globals import DataFrames, Parameters
-
+from ..generator import DataGenerator
 from ..utils import DEFAULT_HEADER, copy_function, list_2_dict
 
 
@@ -120,7 +115,7 @@ class DataGenerationScript:
 
     def generate_demo_data(self):
         df = self.df_processor.generate_empty_dataframe(
-            DEFAULT_HEADER, self.params.get_DATA_SIZE()
+            DEFAULT_HEADER, self.params.get_DATA_SIZE()  # type: ignore
         )
         self.df_processor.initialize_column(df, "ICCID", self.params.get_ICCID())
         self.df_processor.initialize_column(df, "IMSI", self.params.get_IMSI())
@@ -134,7 +129,7 @@ class DataGenerationScript:
 
     def generate_non_demo_data(self):
         input_df = self.dataframes.get_input_df()
-        df = self.df_processor.generate_empty_dataframe(DEFAULT_HEADER, len(input_df))
+        df = self.df_processor.generate_empty_dataframe(DEFAULT_HEADER, len(input_df))  # type: ignore
         self.df_processor.initialize_column(
             df, "OP", self.params.get_OP(), increment=False
         )
@@ -179,7 +174,7 @@ class DataGenerationScript:
         #     self.params.get_PRODUCTION_CHECK()
         # )
         initial_df, keys_dict = self.generate_initial_data(True)
-        # print(initial_df.head())
+        print(initial_df.head())
         #        data_types = {bool, dict, bool, bool}
         data_types = {}
         data_types = {

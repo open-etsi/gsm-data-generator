@@ -2,9 +2,10 @@
 import re
 import pytest
 
-from gsm_data_generator.algorithm import CryptoUtils,DependentDataGenerator
+from gsm_data_generator.algorithm import CryptoUtils, DependentDataGenerator
 from gsm_data_generator.algorithm import EncodingUtils
 from gsm_data_generator.transform import DataTransform
+
 
 # -------------------------
 # Tests for DependentDataGenerator
@@ -35,7 +36,6 @@ def test_calculate_acc():
     assert isinstance(acc, str)
     assert len(acc) == 4
     assert re.fullmatch(r"[0-9a-f]+", acc)
-
 
 
 # -------------------------

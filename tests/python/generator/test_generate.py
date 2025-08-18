@@ -39,4 +39,3 @@ def test_generate_4_digit():
     num = generator.DataGenerator.generate_4_digit()
     assert num.isdigit()
     assert len(num) == 4
-
