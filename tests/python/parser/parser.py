@@ -112,7 +112,7 @@ def test_json_loader1_jsonstring(valid_config_dict):
 
 def test_json_loader1_invalid():
     with pytest.raises(ValueError):
-        json_loader1(123)  # not dict or str
+        json_loader1(123)  # type: ignore # not dict or str
     with pytest.raises(ValueError):
         json_loader1("{bad json}")  # invalid JSON string
 

@@ -1,5 +1,5 @@
 import pytest
-from gsm_data_generator.generator import DataTransform
+from gsm_data_generator.transform import DataTransform
 
 
 # ------------------------
