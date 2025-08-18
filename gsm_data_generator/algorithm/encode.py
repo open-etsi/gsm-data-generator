@@ -1,6 +1,6 @@
 from typing import Optional
 
-from ..transform.transform import DataTransform
+from ..transform import DataTransform
 
 
 class EncodingUtils:
@@ -58,3 +58,6 @@ class EncodingUtils:
             10 - sum(num[-2::-2] + [sum(divmod(d * 2, 10)) for d in num[::-2]]) % 10
         )
         return 0 if check_digit == 10 else check_digit
+
+
+__all__ = ["EncodingUtils"]

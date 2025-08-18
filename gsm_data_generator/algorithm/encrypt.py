@@ -43,4 +43,4 @@ class DependentDataGenerator:
         return format(int(acc_binary, 2), "04x")
 
 
-__all__ = ["DependentDataGenerator"]
+__all__ = ["DependentDataGenerator", "CryptoUtils"]

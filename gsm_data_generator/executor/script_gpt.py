@@ -2,13 +2,11 @@ import pandas as pd
 import logging
 from typing import Dict, Tuple
 
-from ..generator import (
-    CryptoUtils,
-    DataGenerator,
-    DataProcessing,
-    DataFrameProcessor,
-    DependentDataGenerator,
-)
+from ..generator import DataGenerator
+from ..transform import DataTransform
+from ..algorithm import EncodingUtils, CryptoUtils, DependentDataGenerator
+from ..processor import DataFrameProcessor, DataProcessing
+
 from ..globals import DataFrames, Parameters
 from ..utils import DEFAULT_HEADER, copy_function, list_2_dict
 
