@@ -27,8 +27,6 @@ class CryptoUtils:
         return o_pc.hex().upper()
 
 
-
-
 class DependentDataGenerator:
     @staticmethod
     def calculate_opc(op: str, ki: str) -> str:
@@ -43,5 +41,6 @@ class DependentDataGenerator:
         last_digit = int(imsi[-1])
         acc_binary = bin(1 << last_digit)[2:].zfill(16)
         return format(int(acc_binary, 2), "04x")
+
 
 __all__ = ["DependentDataGenerator"]
