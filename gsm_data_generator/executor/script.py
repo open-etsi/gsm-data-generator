@@ -8,7 +8,6 @@ from ..generator import DataGenerator
 from ..utils import copy_function, list_2_dict, DEFAULT_HEADER
 
 
-
 class DataGenerationScript:
 
     def __init__(self, config_holder):
@@ -148,14 +147,20 @@ class DataGenerationScript:
 
                 # Validate required parameters
                 if not k4 or not isinstance(k4, str):
-                    raise ValueError("Invalid value for K4: must be a non-empty string.")
+                    raise ValueError(
+                        "Invalid value for K4: must be a non-empty string."
+                    )
                 if not op or not isinstance(op, str):
-                    raise ValueError("Invalid value for OP: must be a non-empty string.")
+                    raise ValueError(
+                        "Invalid value for OP: must be a non-empty string."
+                    )
 
                 return demo_data, {"k4": k4, "op": op}
 
             else:
-                raise NotImplementedError("Non-demo data generation is not yet implemented.")
+                raise NotImplementedError(
+                    "Non-demo data generation is not yet implemented."
+                )
 
         except Exception as e:
             raise RuntimeError(f"Error in generate_initial_data: {e}") from e
