@@ -105,7 +105,6 @@ class DataGenerationScript:
             return getattr(self.params, f"get_{adm_type}")()
         return self.data_generator.generate_8_digit()
 
-    #    @staticmethod
     def apply_function(self, df, dest: str, src: str, function):
         if dest in df.columns:
             df[dest] = df[src].apply(function).copy(deep=False)
@@ -126,7 +125,6 @@ class DataGenerationScript:
             lambda imsi: self.dep_data_generator.calculate_acc(imsi=str(imsi))
         )
 
-        #        self.apply_function(df, "EKI", "KI", functions)
         self.apply_function(df, "EKI", "KI", self.generate_eki)
         self.apply_function(df, "OPC", "KI", self.generate_opc)
 
@@ -137,7 +135,6 @@ class DataGenerationScript:
                     df[col] = df["KI"].apply(
                         lambda x: self.data_generator.generate_otas()
                     )
-        #        df.to_csv("temp.csv")
         return df
 
     def generate_demo_data(self):
@@ -167,38 +164,38 @@ class DataGenerationScript:
         df["IMSI"] = input_df["IMSI"]
         return self.apply_functions(df)
 
-    # def generate_initial_data(self, is_demo: bool):
-    #     try:
-    #         if is_demo:
-    #             demo_data = self.generate_demo_data()
-
-    #             k4 = self.params.get_K4()
-    #             op = self.params.get_OP()
-
-    #             # Validate required parameters
-    #             if not k4 or not isinstance(k4, str):
-    #                 raise ValueError("Invalid value for K4: must be a non-empty string.")
-    #             if not op or not isinstance(op, str):
-    #                 raise ValueError("Invalid value for OP: must be a non-empty string.")
-
-    #             return demo_data, {"k4": k4, "op": op}
-
-    #         else:
-    #             raise NotImplementedError("Non-demo data generation is not yet implemented.")
-
-    #     except Exception as e:
-    #         raise RuntimeError(f"Error in generate_initial_data: {e}") from e
-
     def generate_initial_data(self, is_demo: bool):
-        if is_demo:
-            return self.generate_demo_data(), {
-                "k4": self.params.get_K4(),
-                "op": self.params.get_OP(),
-            }
-        return self.generate_non_demo_data(), {
-            "k4": self.params.get_K4(),
-            "op": self.params.get_OP(),
-        }
+        try:
+            if is_demo:
+                demo_data = self.generate_demo_data()
+
+                k4 = self.params.get_K4()
+                op = self.params.get_OP()
+
+                # Validate required parameters
+                if not k4 or not isinstance(k4, str):
+                    raise ValueError("Invalid value for K4: must be a non-empty string.")
+                if not op or not isinstance(op, str):
+                    raise ValueError("Invalid value for OP: must be a non-empty string.")
+
+                return demo_data, {"k4": k4, "op": op}
+
+            else:
+                raise NotImplementedError("Non-demo data generation is not yet implemented.")
+
+        except Exception as e:
+            raise RuntimeError(f"Error in generate_initial_data: {e}") from e
+
+    # def generate_initial_data(self, is_demo: bool):
+    #     if is_demo:
+    #         return self.generate_demo_data(), {
+    #             "k4": self.params.get_K4(),
+    #             "op": self.params.get_OP(),
+    #         }
+    #     return self.generate_non_demo_data(), {
+    #         "k4": self.params.get_K4(),
+    #         "op": self.params.get_OP(),
+    #     }
 
     def process_final_data(
         self, input_dict: dict, df_input: pd.DataFrame, clip: bool, encoding: bool

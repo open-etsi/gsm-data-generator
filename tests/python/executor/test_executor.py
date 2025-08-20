@@ -10,6 +10,7 @@ import json
 from gsm_data_generator.executor import DataGenerationScript
 from gsm_data_generator.parser import json_loader_2_ConfigHolder
 from gsm_data_generator.globals import Parameters
+
 p = Parameters.get_instance()
 
 
@@ -216,12 +217,14 @@ def params_dict():
     """Fixture to provide global params dict."""
     return global_params_to_json()
 
+
 def test_json_loader1_returns_dict(params_dict):
     js = json_loader_2_ConfigHolder(params_dict)
     assert isinstance(js, ConfigHolder), "json_loader1 should return a ConfigHolder"
     # assert "DISP" in js.DISP.adm1
     # assert "PARAMETERS" in js.PARAMETERS.data_variables
     # assert "PATHS" in js.PATHS.OUTPUT_FILES_DIR
+
 
 def test_data_generation_script_runs(params_dict, tmp_path):
     js = json_loader_2_ConfigHolder(params_dict)
