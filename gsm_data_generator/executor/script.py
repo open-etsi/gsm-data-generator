@@ -5,34 +5,8 @@ from ..algorithm import CryptoUtils, DependentDataGenerator
 from ..processor import DataProcessing, DataFrameProcessor
 from ..globals import DataFrames, Parameters
 from ..generator import DataGenerator
-from ..utils import copy_function, list_2_dict
+from ..utils import copy_function, list_2_dict, DEFAULT_HEADER
 
-
-DEFAULT_HEADER = (
-    "ICCID",
-    "IMSI",
-    "OP",
-    "K4",
-    "PIN1",
-    "PUK1",
-    "PIN2",
-    "PUK2",
-    "KI",
-    "EKI",
-    "OPC",
-    "ADM1",
-    "ADM6",
-    "ACC",
-    "KIC1",
-    "KID1",
-    "KIK1",
-    "KIC2",
-    "KID2",
-    "KIK2",
-    "KIC3",
-    "KID3",
-    "KIK3",
-)
 
 
 class DataGenerationScript:
@@ -293,7 +267,6 @@ class DataGenerationScript:
                         f"but the dictionary is missing or invalid."
                     )
 
-                # 🔹 Process if everything is valid
                 try:
                     result_dfs[data_type] = self.process_final_data(
                         dict_func, initial_df, clip, encoding
