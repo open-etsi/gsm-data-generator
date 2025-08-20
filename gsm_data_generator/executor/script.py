@@ -5,34 +5,7 @@ from ..algorithm import CryptoUtils, DependentDataGenerator
 from ..processor import DataProcessing, DataFrameProcessor
 from ..globals import DataFrames, Parameters
 from ..generator import DataGenerator
-from ..utils import copy_function, list_2_dict
-
-
-DEFAULT_HEADER = (
-    "ICCID",
-    "IMSI",
-    "OP",
-    "K4",
-    "PIN1",
-    "PUK1",
-    "PIN2",
-    "PUK2",
-    "KI",
-    "EKI",
-    "OPC",
-    "ADM1",
-    "ADM6",
-    "ACC",
-    "KIC1",
-    "KID1",
-    "KIK1",
-    "KIC2",
-    "KID2",
-    "KIK2",
-    "KIC3",
-    "KID3",
-    "KIK3",
-)
+from ..utils import copy_function, list_2_dict, DEFAULT_HEADER
 
 
 class DataGenerationScript:
@@ -174,14 +147,20 @@ class DataGenerationScript:
 
                 # Validate required parameters
                 if not k4 or not isinstance(k4, str):
-                    raise ValueError("Invalid value for K4: must be a non-empty string.")
+                    raise ValueError(
+                        "Invalid value for K4: must be a non-empty string."
+                    )
                 if not op or not isinstance(op, str):
-                    raise ValueError("Invalid value for OP: must be a non-empty string.")
+                    raise ValueError(
+                        "Invalid value for OP: must be a non-empty string."
+                    )
 
                 return demo_data, {"k4": k4, "op": op}
 
             else:
-                raise NotImplementedError("Non-demo data generation is not yet implemented.")
+                raise NotImplementedError(
+                    "Non-demo data generation is not yet implemented."
+                )
 
         except Exception as e:
             raise RuntimeError(f"Error in generate_initial_data: {e}") from e
@@ -293,7 +272,6 @@ class DataGenerationScript:
                         f"but the dictionary is missing or invalid."
                     )
 
-                # 🔹 Process if everything is valid
                 try:
                     result_dfs[data_type] = self.process_final_data(
                         dict_func, initial_df, clip, encoding

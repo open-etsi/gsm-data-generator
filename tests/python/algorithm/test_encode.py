@@ -1,14 +1,12 @@
 # tests/test_encoding_utils.py
 import pytest
 from gsm_data_generator.algorithm import EncodingUtils
-from gsm_data_generator.algorithm import CryptoUtils
-from gsm_data_generator.transform import DataTransform
 
 
 # -------------------------
 # Tests for enc/dec PIN
 # -------------------------
-def test_enc_dec_pin_roundtrip(monkeypatch):
+def test_enc_dec_pin_roundtrip():
     # Mock DataTransform functions for predictable behavior
 
     pin = "1234"
