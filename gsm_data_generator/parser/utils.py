@@ -68,7 +68,7 @@ def json_loader(path: str) -> ConfigHolder:
     return config_holder
 
 
-def json_loader1(input_data: dict | str) -> ConfigHolder:
+def json_loader_2_ConfigHolder(input_data: dict | str) -> ConfigHolder:
     if isinstance(input_data, str):
         try:
             data = json.loads(input_data)
@@ -112,7 +112,7 @@ __all__ = [
     "PARAMETERS",
     "ConfigHolder",
     "json_loader",
-    "json_loader1",
+    "json_loader_2_ConfigHolder",
     "gui_loader",
     "ConfigData",
 ]

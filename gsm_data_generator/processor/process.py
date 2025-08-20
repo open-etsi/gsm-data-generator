@@ -1,8 +1,8 @@
 from typing import List, Dict, Any, Tuple
-from .gen_utils import EncodingUtils
 import pandas as pd
 import collections
-from .gen_utils import DataTransform
+from ..transform import DataTransform
+from ..algorithm import EncodingUtils
 
 
 class DataProcessing:

@@ -47,7 +47,7 @@ def get_lib_path():
     exec(compile(open(libinfo_py, "rb").read(), libinfo_py, "exec"), libinfo, libinfo)
     version = libinfo["__version__"]
     if not CONDA_BUILD and not INPLACE_BUILD:
-        lib_path = libinfo["find_lib_path"]()
+        lib_path = libinfo["find_lib_path"]()  # type: ignore
         libs = [lib_path[0]]
         if "runtime" not in libs[0]:
             for name in lib_path[1:]:
@@ -181,7 +181,7 @@ setup(
     install_requires=requirements["core"][1],
     extras_require=extras_require,
     packages=find_packages(),
-    package_dir={"tvm": "tvm"},
+    package_dir={"gsm-data-generator": "gsm-data-generator"},
     distclass=BinaryDistribution,
     # ext_modules=config_cython(),
     # **setup_kwargs,

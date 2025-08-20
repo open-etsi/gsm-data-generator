@@ -1,4 +1,7 @@
 import pandas as pd
+from typing import List, Dict, Optional
+from pydantic import BaseModel, field_validator, constr, Field
+from threading import Lock
 
 debug = False
 
@@ -72,77 +75,75 @@ class Parameters(DataFrames):
     def __init__(self):
         super().__init__()
         self.__def_head = None
-        self.EXTRCATOR_DICT = None
-        self.__EXTRACTOR_DICT = None
         if Parameters.__instance is not None:
             raise Exception(
                 "GlobalParameters class is a singleton! Use get_instance() to access the instance."
             )
         else:
             Parameters.__instance = self
-            self.__ICCID = ""
-            self.__IMSI = ""
-            self.__PIN1 = ""
-            self.__PUK1 = ""
-            self.__PIN2 = ""
-            self.__PUK2 = ""
-            self.__K4 = ""
-            self.__OP = ""
-            self.__ADM1 = ""
-            self.__ADM6 = ""
-            self.__ACC = ""
-            self.__DATA_SIZE = ""
-            self.__ELECT_CHECK = False
-            self.__GRAPH_CHECK = False
-            self.__SERVER_CHECK = False
-            self.__PROD_CHECK = False
 
-            self.__pin1_rand = True
-            self.__puk1_rand = True
-            self.__pin2_rand = True
-            self.__puk2_rand = True
-            self.__adm1_rand = True
-            self.__adm6_rand = True
-            self.__acc_rand = True
+            self.__ICCID: constr(strip_whitespace=True, min_length=18, max_length=20) = ""  # type: ignore
+            self.__IMSI: constr(strip_whitespace=True, min_length=15, max_length=15) = ""  # type: ignore
+            self.__PIN1: constr(regex=r"^\d{4}$") = ""  # type: ignore
+            self.__PUK1: constr(regex=r"^\d{8}$") = ""  # type: ignore
+            self.__PIN2: constr(regex=r"^\d{4}$") = ""  # type: ignore
+            self.__PUK2: constr(regex=r"^\d{8}$") = ""  # type: ignore
+            self.__K4: str = ""
+            self.__OP: str = ""
+            self.__ADM1: str = ""
+            self.__ADM6: str = ""
+            self.__ACC: str = ""
+            self.__DATA_SIZE: str = ""
 
-            self.__INPUT_PATH = ""
-            self.__LASER_EXT_PATH = ""
+            self.__ELECT_CHECK: bool = False
+            self.__GRAPH_CHECK: bool = False
+            self.__SERVER_CHECK: bool = False
+            self.__PROD_CHECK: bool = False
 
-            self.__ELECT_DICT = {}
-            self.__GRAPH_DICT = {}
-            self.__SERVER_DICT = {}
+            self.__pin1_rand: bool = True
+            self.__puk1_rand: bool = True
+            self.__pin2_rand: bool = True
+            self.__puk2_rand: bool = True
+            self.__adm1_rand: bool = True
+            self.__adm6_rand: bool = True
+            self.__acc_rand: bool = True
 
-            self.__INPUT_FILE_PARAMETERS = {}
+            self.__ELECT_DICT: dict = {}
+            self.__GRAPH_DICT: dict = {}
+            self.__SERVER_DICT: dict = {}
+
             self.file_name: str
             # ===========================-=================#
             # ================= SEPERATOR==================#
             # =============================================#
 
-            self.__ELECT_SEP = None
-            self.__GRAPH_SEP = None
-            self.__SERVR_SEP = None
+            self.__ELECT_SEP: str = ""
+            self.__GRAPH_SEP: str = ""
+            self.__SERVR_SEP: str = ""
 
-            # ============================================#
-            # =================EXTRACTOR==================#
-            # ============================================#
+    # Example validator
+    @field_validator("DATA_SIZE")
+    def check_data_size(cls, v):
+        if v is not None and v <= 0:
+            raise ValueError("DATA_SIZE must be a positive integer")
+        return v
 
-            self.__TEMPLATE_JSON = None
-            self.__INPUT_FILE_PATH = None
-            self.__INPUT_CSV = None
-            self.__OUTPUT_FILES_DIR = None
-            self.__OUTPUT_FILES_LASER_EXT = None
-            self.file_name = None
+    # Singleton implementation
+    __instance = None
+    __lock = Lock()
 
-    #           self.__LASER_DICT = None
-    #           self.__SERVER_LIST = None
-    #           self.__ELECT_LIST = None
-    #           pass
+    @classmethod
+    def get_instance(cls):
+        with cls.__lock:
+            if cls.__instance is None:
+                cls.__instance = Parameters()
+            return cls.__instance
 
-    @staticmethod
-    def get_instance():
-        if Parameters.__instance is None:
-            Parameters.__instance = Parameters()
-        return Parameters.__instance
+    # @staticmethod
+    # def get_instance():
+    #     if Parameters.__instance is None:
+    #         Parameters.__instance = Parameters()
+    #     return Parameters.__instance
 
     def set_ELECT_SEP(self, value: str) -> None:
         self.__ELECT_SEP = str(value)
@@ -174,23 +175,11 @@ class Parameters(DataFrames):
     def get_INPUT_FILE_PATH(self) -> str:
         return self.__INPUT_FILE_PATH
 
-    def set_INPUT_CSV(self, value) -> None:
-        self.__INPUT_CSV = str(value)
-
-    def get_INPUT_CSV(self) -> str:
-        return self.__INPUT_CSV
-
     def set_OUTPUT_FILES_DIR(self, value) -> None:
         self.__OUTPUT_FILES_DIR = str(value)
 
     def get_OUTPUT_FILES_DIR(self) -> str:
         return self.__OUTPUT_FILES_DIR
-
-    def set_OUTPUT_FILES_LASER_EXT(self, value) -> None:
-        self.__PIN2 = str(value)
-
-    def get_OUTPUT_FILES_LASER_EXT(self) -> str:
-        return self.__OUTPUT_FILES_LASER_EXT
 
     def set_ICCID(self, value):
         self.__ICCID = str(value)
@@ -226,7 +215,7 @@ class Parameters(DataFrames):
         self.__ACC = str(value)
 
     def set_DATA_SIZE(self, value):
-        self.__DATA_SIZE = str(value)
+        self.__DATA_SIZE = value
 
     def set_ELECT_CHECK(self, value: bool):
         self.__ELECT_CHECK = value
@@ -366,18 +355,6 @@ class Parameters(DataFrames):
     def get_SERVER_DICT(self):
         return self.__SERVER_DICT
 
-    def set_INPUT_FILE_PARAMETERS(self, value: dict):
-        self.__INPUT_FILE_PARAMETERS = value
-
-    def get_INPUT_FILE_PARAMETERS(self):
-        return self.__INPUT_FILE_PARAMETERS
-
-    def set_EXTRACTOR_DICT(self, value: dict):
-        self.__EXTRACTOR_DICT = value
-
-    def get_EXTRACTOR_DICT(self):
-        return self.EXTRCATOR_DICT
-
     def set_file_name(self, value: str):
         self.file_name = value
 
@@ -424,7 +401,7 @@ class Parameters(DataFrames):
             case "OP":
                 result = len(str(param)) == 32
             case "K4":
-                result = len(str(param)) == 64
+                result = (len(str(param)) == 64) or (len(str(param)) == 32)
             case "SIZE":
                 param = int(param)
                 result = len(str(param)) != 0 or param > 0

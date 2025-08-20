@@ -1,6 +1,3 @@
-# from custom_json import JsonHandler
-
-# from pydantic import BaseModel, Field
 from Crypto.Cipher import AES
 import binascii
 
@@ -28,3 +25,22 @@ class CryptoUtils:
         data = op
         o_pc = CryptoUtils.xor_str(data, aes_crypt.encrypt(data))
         return o_pc.hex().upper()
+
+
+class DependentDataGenerator:
+    @staticmethod
+    def calculate_opc(op: str, ki: str) -> str:
+        return CryptoUtils.calc_opc_hex(ki, op).upper()
+
+    @staticmethod
+    def calculate_eki(transport: str, ki: str) -> str:
+        return CryptoUtils.aes_128_cbc_encrypt(transport, ki)
+
+    @staticmethod
+    def calculate_acc(imsi: str) -> str:
+        last_digit = int(imsi[-1])
+        acc_binary = bin(1 << last_digit)[2:].zfill(16)
+        return format(int(acc_binary, 2), "04x")
+
+
+__all__ = ["DependentDataGenerator", "CryptoUtils"]

@@ -1,5 +1,5 @@
 import pytest
-from gsm_data_generator.generator import DataProcessing
+from gsm_data_generator.processor import DataProcessing
 
 
 def test_split_range_valid():
