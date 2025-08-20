@@ -226,8 +226,6 @@ def test_json_loader1_returns_dict(params_dict):
     # assert "PATHS" in js.PATHS.OUTPUT_FILES_DIR
 
 
-
-
 def global_params_to_json():
     param_dict = {
         "DISP": {

@@ -212,8 +212,6 @@ def global_params_to_json():
     return param_dict
 
 
-
-
 import pandas as pd
 
 # param_dict = {
@@ -384,12 +382,47 @@ param_dict_template = {
     },
     "PARAMETERS": {
         "server_variables": [
-            "IMSI", "EKI", "ICCID", "PIN1", "PUK1", "PIN2", "PUK2", "ADM1", "ADM6",
-            "ACC", "KIC1", "KID1", "KIK1", "KIC2", "KID2", "KIK2", "KIC3", "KID3", "KIK3",
+            "IMSI",
+            "EKI",
+            "ICCID",
+            "PIN1",
+            "PUK1",
+            "PIN2",
+            "PUK2",
+            "ADM1",
+            "ADM6",
+            "ACC",
+            "KIC1",
+            "KID1",
+            "KIK1",
+            "KIC2",
+            "KID2",
+            "KIK2",
+            "KIC3",
+            "KID3",
+            "KIK3",
         ],
         "data_variables": [
-            "IMSI", "ICCID", "PIN1", "PUK1", "PIN2", "PUK2", "ADM1", "ADM6", "KI", "OPC",
-            "ACC", "KIC1", "KID1", "KIK1", "KIC2", "KID2", "KIK2", "KIC3", "KID3", "KIK3",
+            "IMSI",
+            "ICCID",
+            "PIN1",
+            "PUK1",
+            "PIN2",
+            "PUK2",
+            "ADM1",
+            "ADM6",
+            "KI",
+            "OPC",
+            "ACC",
+            "KIC1",
+            "KID1",
+            "KIK1",
+            "KIC2",
+            "KID2",
+            "KIK2",
+            "KIC3",
+            "KID3",
+            "KIK3",
         ],
         "laser_variables": {
             "0": ["ICCID", "Normal", "0-20"],
@@ -411,10 +444,10 @@ param_dict_template = {
 
 # Fields we want to randomize between 0 and 1
 boolean_fields = [
-#    "prod_check",
-#    "elect_check",
-#    "graph_check",
-#    "server_check",
+    #    "prod_check",
+    #    "elect_check",
+    #    "graph_check",
+    #    "server_check",
     "pin1_fix",
     "puk1_fix",
     "pin2_fix",
@@ -467,7 +500,15 @@ import copy
 data_sizes = [5, 10, 20]  # different number of rows for your data
 
 # Boolean fields to vary
-boolean_fields = [ "pin1_fix", "puk1_fix", "pin2_fix", "puk2_fix", "adm1_fix", "adm6_fix"]
+boolean_fields = [
+    "pin1_fix",
+    "puk1_fix",
+    "pin2_fix",
+    "puk2_fix",
+    "adm1_fix",
+    "adm6_fix",
+]
+
 
 # Generate all combinations of booleans + sizes
 def generate_param_dicts_with_size():
@@ -481,7 +522,9 @@ def generate_param_dicts_with_size():
             pdict["DISP"]["size"] = str(size)
             yield pdict, dict(zip(boolean_fields, combo)), size
 
+
 test_cases = list(generate_param_dicts_with_size())
+
 
 @pytest.mark.parametrize("params_dict,expected_bools,size", test_cases)
 def test_data_generation_script_runs(params_dict, expected_bools, size):
@@ -496,16 +539,15 @@ def test_data_generation_script_runs(params_dict, expected_bools, size):
     assert p.get_IMSI() == "111111111121111"
     assert p.get_PIN1() == "1111"
 
-
     # Step 2: run data generation (should not raise)
     t1, t2 = script.generate_all_data()
-
+    ds = t1["ELECT"].shape[0]
     # Step 3: verify DataFrame shape
-    #if isinstance(t1, pd.DataFrame):
-    assert t1["ELECT"].shape[0] == size, f"Expected {size} rows, got {t1["ELECT"].shape[0]}"
-    #else:
+    # if isinstance(t1, pd.DataFrame):
+    assert ds == size, f"Expected {size} rows, got {ds}"
+    # else:
     # print("FAAIIIIIILLLLLL!")
-    #if isinstance(t2, pd.DataFrame):
+    # if isinstance(t2, pd.DataFrame):
     #    assert t2.shape[0] == size, f"Expected {size} rows, got {t2.shape[0]}"
 
     print("Generated:", t1.shape if isinstance(t1, pd.DataFrame) else type(t1))
