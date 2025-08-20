@@ -1,16 +1,11 @@
 import pandas as pd
 
 
-from ..generator import (
-    CryptoUtils,
-    DataGenerator,
-    DataProcessing,
-    DataFrameProcessor,
-    DependentDataGenerator,
-)
+from ..algorithm import CryptoUtils, DependentDataGenerator
+from ..processor import DataProcessing, DataFrameProcessor
 from ..globals import DataFrames, Parameters
-
-from ..utils import DEFAULT_HEADER, copy_function, list_2_dict
+from ..generator import DataGenerator
+from ..utils import copy_function, list_2_dict, DEFAULT_HEADER
 
 
 class DataGenerationScript:
@@ -83,7 +78,6 @@ class DataGenerationScript:
             return getattr(self.params, f"get_{adm_type}")()
         return self.data_generator.generate_8_digit()
 
-    #    @staticmethod
     def apply_function(self, df, dest: str, src: str, function):
         if dest in df.columns:
             df[dest] = df[src].apply(function).copy(deep=False)
@@ -104,7 +98,6 @@ class DataGenerationScript:
             lambda imsi: self.dep_data_generator.calculate_acc(imsi=str(imsi))
         )
 
-        #        self.apply_function(df, "EKI", "KI", functions)
         self.apply_function(df, "EKI", "KI", self.generate_eki)
         self.apply_function(df, "OPC", "KI", self.generate_opc)
 
@@ -115,12 +108,11 @@ class DataGenerationScript:
                     df[col] = df["KI"].apply(
                         lambda x: self.data_generator.generate_otas()
                     )
-        #        df.to_csv("temp.csv")
         return df
 
     def generate_demo_data(self):
         df = self.df_processor.generate_empty_dataframe(
-            DEFAULT_HEADER, self.params.get_DATA_SIZE()
+            DEFAULT_HEADER, self.params.get_DATA_SIZE()  # type: ignore
         )
         self.df_processor.initialize_column(df, "ICCID", self.params.get_ICCID())
         self.df_processor.initialize_column(df, "IMSI", self.params.get_IMSI())
@@ -134,7 +126,7 @@ class DataGenerationScript:
 
     def generate_non_demo_data(self):
         input_df = self.dataframes.get_input_df()
-        df = self.df_processor.generate_empty_dataframe(DEFAULT_HEADER, len(input_df))
+        df = self.df_processor.generate_empty_dataframe(DEFAULT_HEADER, len(input_df))  # type: ignore
         self.df_processor.initialize_column(
             df, "OP", self.params.get_OP(), increment=False
         )
@@ -146,15 +138,43 @@ class DataGenerationScript:
         return self.apply_functions(df)
 
     def generate_initial_data(self, is_demo: bool):
-        if is_demo:
-            return self.generate_demo_data(), {
-                "k4": self.params.get_K4(),
-                "op": self.params.get_OP(),
-            }
-        return self.generate_non_demo_data(), {
-            "k4": self.params.get_K4(),
-            "op": self.params.get_OP(),
-        }
+        try:
+            if is_demo:
+                demo_data = self.generate_demo_data()
+
+                k4 = self.params.get_K4()
+                op = self.params.get_OP()
+
+                # Validate required parameters
+                if not k4 or not isinstance(k4, str):
+                    raise ValueError(
+                        "Invalid value for K4: must be a non-empty string."
+                    )
+                if not op or not isinstance(op, str):
+                    raise ValueError(
+                        "Invalid value for OP: must be a non-empty string."
+                    )
+
+                return demo_data, {"k4": k4, "op": op}
+
+            else:
+                raise NotImplementedError(
+                    "Non-demo data generation is not yet implemented."
+                )
+
+        except Exception as e:
+            raise RuntimeError(f"Error in generate_initial_data: {e}") from e
+
+    # def generate_initial_data(self, is_demo: bool):
+    #     if is_demo:
+    #         return self.generate_demo_data(), {
+    #             "k4": self.params.get_K4(),
+    #             "op": self.params.get_OP(),
+    #         }
+    #     return self.generate_non_demo_data(), {
+    #         "k4": self.params.get_K4(),
+    #         "op": self.params.get_OP(),
+    #     }
 
     def process_final_data(
         self, input_dict: dict, df_input: pd.DataFrame, clip: bool, encoding: bool
@@ -174,14 +194,50 @@ class DataGenerationScript:
         print(df)
         return df
 
+    # def generate_all_data(self):
+    #     # initial_df, keys_dict = self.generate_initial_data(
+    #     #     self.params.get_PRODUCTION_CHECK()
+    #     # )
+    #     initial_df, keys_dict = self.generate_initial_data(True)
+    #     print(initial_df.head())
+    #     #        data_types = {bool, dict, bool, bool}
+    #     data_types = {}
+    #     data_types = {
+    #         "SERVER": (
+    #             self.params.get_SERVER_CHECK(),
+    #             self.params.get_SERVER_DICT(),
+    #             False,
+    #             False,
+    #         ),
+    #         "GRAPH": (
+    #             self.params.get_GRAPH_CHECK(),
+    #             self.params.get_GRAPH_DICT(),
+    #             True,
+    #             False,
+    #         ),
+    #         "ELECT": (
+    #             self.params.get_ELECT_CHECK(),
+    #             self.params.get_ELECT_DICT(),
+    #             False,
+    #             True,
+    #         ),
+    #     }
+    #     result_dfs = {}
+    #     for data_type, (check, dict_func, clip, encoding) in data_types.items():
+    #         print(data_type, (check, dict_func, clip, encoding))
+    #         if check:
+    #             result_dfs[data_type] = self.process_final_data(
+    #                 dict_func, initial_df, clip, encoding
+    #             )
+    #     return result_dfs, keys_dict
+
     def generate_all_data(self):
         # initial_df, keys_dict = self.generate_initial_data(
         #     self.params.get_PRODUCTION_CHECK()
         # )
         initial_df, keys_dict = self.generate_initial_data(True)
-        # print(initial_df.head())
-        #        data_types = {bool, dict, bool, bool}
-        data_types = {}
+        print(initial_df.head())
+
         data_types = {
             "SERVER": (
                 self.params.get_SERVER_CHECK(),
@@ -202,13 +258,29 @@ class DataGenerationScript:
                 True,
             ),
         }
+
         result_dfs = {}
+
         for data_type, (check, dict_func, clip, encoding) in data_types.items():
-            print(data_type, (check, dict_func, clip, encoding))
+            print(f"Checking {data_type}: {check}, {dict_func}")
+
             if check:
-                result_dfs[data_type] = self.process_final_data(
-                    dict_func, initial_df, clip, encoding
-                )
+                # 🔹 Raise if dict is missing or invalid
+                if not dict_func or not isinstance(dict_func, dict):
+                    raise ValueError(
+                        f"{data_type} is enabled (check=True) "
+                        f"but the dictionary is missing or invalid."
+                    )
+
+                try:
+                    result_dfs[data_type] = self.process_final_data(
+                        dict_func, initial_df, clip, encoding
+                    )
+                except Exception as e:
+                    raise RuntimeError(
+                        f"Failed processing {data_type} data: {str(e)}"
+                    ) from e
+
         return result_dfs, keys_dict
 
 
