@@ -66,7 +66,6 @@ class DataProcessing:
 
         return output_list
 
-
 class DataFrameProcessor:
     @staticmethod
     def generate_empty_dataframe(columns: List[str], rows: str) -> pd.DataFrame:

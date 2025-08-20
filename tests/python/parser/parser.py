@@ -8,7 +8,7 @@ from gsm_data_generator.parser.utils import (
     ConfigData,
     ConfigHolder,
     json_loader,
-    json_loader1,
+    json_loader_2_ConfigHolder,
     gui_loader,
 )
 
@@ -100,21 +100,21 @@ def test_json_loader(tmp_path, valid_config_dict):
 
 
 def test_json_loader1_dict(valid_config_dict):
-    holder = json_loader1(valid_config_dict)
+    holder = json_loader_2_ConfigHolder(valid_config_dict)
     assert holder.DISP.pin1 == "1234"
 
 
 def test_json_loader1_jsonstring(valid_config_dict):
     json_str = json.dumps(valid_config_dict)
-    holder = json_loader1(json_str)
+    holder = json_loader_2_ConfigHolder(json_str)
     assert holder.DISP.puk1 == "87654321"
 
 
 def test_json_loader1_invalid():
     with pytest.raises(ValueError):
-        json_loader1(123)  # type: ignore # not dict or str
+        json_loader_2_ConfigHolder(123)  # type: ignore # not dict or str
     with pytest.raises(ValueError):
-        json_loader1("{bad json}")  # invalid JSON string
+        json_loader_2_ConfigHolder("{bad json}")  # invalid JSON string
 
 
 def test_gui_loader(valid_config_dict):

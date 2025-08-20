@@ -29,6 +29,15 @@ mypy  --check-untyped-defs gsm_data_generator/globals
 echo "Checking MyPy Type defs in the TensorIR schedule package."
 mypy  --check-untyped-defs gsm_data_generator/executor
 
+echo "Checking MyPy Type defs in the TensorIR schedule package."
+mypy  --check-untyped-defs gsm_data_generator/algorithm
+
+echo "Checking MyPy Type defs in the TensorIR schedule package."
+mypy  --check-untyped-defs gsm_data_generator/processor
+
+echo "Checking MyPy Type defs in the TensorIR schedule package."
+mypy  --check-untyped-defs gsm_data_generator/transform
+
 # echo "Checking MyPy Type defs in the meta schedule package."
 # mypy  --check-untyped-defs python/tvm/meta_schedule
 

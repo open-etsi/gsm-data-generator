@@ -5,7 +5,34 @@ from ..algorithm import CryptoUtils, DependentDataGenerator
 from ..processor import DataProcessing, DataFrameProcessor
 from ..globals import DataFrames, Parameters
 from ..generator import DataGenerator
-from ..utils import DEFAULT_HEADER, copy_function, list_2_dict
+from ..utils import copy_function, list_2_dict
+
+
+DEFAULT_HEADER = (
+    "ICCID",
+    "IMSI",
+    "OP",
+    "K4",
+    "PIN1",
+    "PUK1",
+    "PIN2",
+    "PUK2",
+    "KI",
+    "EKI",
+    "OPC",
+    "ADM1",
+    "ADM6",
+    "ACC",
+    "KIC1",
+    "KID1",
+    "KIK1",
+    "KIC2",
+    "KID2",
+    "KIK2",
+    "KIC3",
+    "KID3",
+    "KIK3",
+)
 
 
 class DataGenerationScript:
@@ -140,6 +167,28 @@ class DataGenerationScript:
         df["IMSI"] = input_df["IMSI"]
         return self.apply_functions(df)
 
+    # def generate_initial_data(self, is_demo: bool):
+    #     try:
+    #         if is_demo:
+    #             demo_data = self.generate_demo_data()
+
+    #             k4 = self.params.get_K4()
+    #             op = self.params.get_OP()
+
+    #             # Validate required parameters
+    #             if not k4 or not isinstance(k4, str):
+    #                 raise ValueError("Invalid value for K4: must be a non-empty string.")
+    #             if not op or not isinstance(op, str):
+    #                 raise ValueError("Invalid value for OP: must be a non-empty string.")
+
+    #             return demo_data, {"k4": k4, "op": op}
+
+    #         else:
+    #             raise NotImplementedError("Non-demo data generation is not yet implemented.")
+
+    #     except Exception as e:
+    #         raise RuntimeError(f"Error in generate_initial_data: {e}") from e
+
     def generate_initial_data(self, is_demo: bool):
         if is_demo:
             return self.generate_demo_data(), {
@@ -169,14 +218,50 @@ class DataGenerationScript:
         print(df)
         return df
 
+    # def generate_all_data(self):
+    #     # initial_df, keys_dict = self.generate_initial_data(
+    #     #     self.params.get_PRODUCTION_CHECK()
+    #     # )
+    #     initial_df, keys_dict = self.generate_initial_data(True)
+    #     print(initial_df.head())
+    #     #        data_types = {bool, dict, bool, bool}
+    #     data_types = {}
+    #     data_types = {
+    #         "SERVER": (
+    #             self.params.get_SERVER_CHECK(),
+    #             self.params.get_SERVER_DICT(),
+    #             False,
+    #             False,
+    #         ),
+    #         "GRAPH": (
+    #             self.params.get_GRAPH_CHECK(),
+    #             self.params.get_GRAPH_DICT(),
+    #             True,
+    #             False,
+    #         ),
+    #         "ELECT": (
+    #             self.params.get_ELECT_CHECK(),
+    #             self.params.get_ELECT_DICT(),
+    #             False,
+    #             True,
+    #         ),
+    #     }
+    #     result_dfs = {}
+    #     for data_type, (check, dict_func, clip, encoding) in data_types.items():
+    #         print(data_type, (check, dict_func, clip, encoding))
+    #         if check:
+    #             result_dfs[data_type] = self.process_final_data(
+    #                 dict_func, initial_df, clip, encoding
+    #             )
+    #     return result_dfs, keys_dict
+
     def generate_all_data(self):
         # initial_df, keys_dict = self.generate_initial_data(
         #     self.params.get_PRODUCTION_CHECK()
         # )
         initial_df, keys_dict = self.generate_initial_data(True)
         print(initial_df.head())
-        #        data_types = {bool, dict, bool, bool}
-        data_types = {}
+
         data_types = {
             "SERVER": (
                 self.params.get_SERVER_CHECK(),
@@ -197,13 +282,30 @@ class DataGenerationScript:
                 True,
             ),
         }
+
         result_dfs = {}
+
         for data_type, (check, dict_func, clip, encoding) in data_types.items():
-            print(data_type, (check, dict_func, clip, encoding))
+            print(f"Checking {data_type}: {check}, {dict_func}")
+
             if check:
-                result_dfs[data_type] = self.process_final_data(
-                    dict_func, initial_df, clip, encoding
-                )
+                # 🔹 Raise if dict is missing or invalid
+                if not dict_func or not isinstance(dict_func, dict):
+                    raise ValueError(
+                        f"{data_type} is enabled (check=True) "
+                        f"but the dictionary is missing or invalid."
+                    )
+
+                # 🔹 Process if everything is valid
+                try:
+                    result_dfs[data_type] = self.process_final_data(
+                        dict_func, initial_df, clip, encoding
+                    )
+                except Exception as e:
+                    raise RuntimeError(
+                        f"Failed processing {data_type} data: {str(e)}"
+                    ) from e
+
         return result_dfs, keys_dict
 
 

@@ -81,32 +81,19 @@ class Parameters(DataFrames):
             )
         else:
             Parameters.__instance = self
-            # self.__ICCID: str = ""
-            # self.__IMSI: str = ""
-            # self.__PIN1: str = ""
-            # self.__PUK1: str = ""
-            # self.__PIN2: str = ""
-            # self.__PUK2: str = ""
-            # self.__K4: str = ""
-            # self.__OP: str = ""
-            # self.__ADM1: str = ""
-            # self.__ADM6: str = ""
-            # self.__ACC: str = ""
-            # self.__DATA_SIZE: str = ""
 
-            # Core fields (validated automatically)
-            self.__ICCID: Optional[constr(strip_whitespace=True, min_length=18, max_length=20)] = ""  # type: ignore
-            self.__IMSI: Optional[constr(strip_whitespace=True, min_length=15, max_length=15)] = ""  # type: ignore
-            self.__PIN1: Optional[constr(regex=r"^\d{4}$")] = ""  # type: ignore
-            self.__PUK1: Optional[constr(regex=r"^\d{8}$")] = ""  # type: ignore
-            self.__PIN2: Optional[constr(regex=r"^\d{4}$")] = ""  # type: ignore
-            self.__PUK2: Optional[constr(regex=r"^\d{8}$")] = ""  # type: ignore
-            self.__K4: Optional[str] = ""
-            self.__OP: Optional[str] = ""
-            self.__ADM1: Optional[str] = ""
-            self.__ADM6: Optional[str] = ""
-            self.__ACC: Optional[str] = ""
-            self.__DATA_SIZE: Optional[str] = ""
+            self.__ICCID: constr(strip_whitespace=True, min_length=18, max_length=20) = ""  # type: ignore
+            self.__IMSI: constr(strip_whitespace=True, min_length=15, max_length=15) = ""  # type: ignore
+            self.__PIN1: constr(regex=r"^\d{4}$") = ""  # type: ignore
+            self.__PUK1: constr(regex=r"^\d{8}$") = ""  # type: ignore
+            self.__PIN2: constr(regex=r"^\d{4}$") = ""  # type: ignore
+            self.__PUK2: constr(regex=r"^\d{8}$") = ""  # type: ignore
+            self.__K4: str = ""
+            self.__OP: str = ""
+            self.__ADM1: str = ""
+            self.__ADM6: str = ""
+            self.__ACC: str = ""
+            self.__DATA_SIZE: str = ""
 
             self.__ELECT_CHECK: bool = False
             self.__GRAPH_CHECK: bool = False
