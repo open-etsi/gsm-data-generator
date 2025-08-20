@@ -1,42 +1,32 @@
-# tests/test_data_generator.py
 import re
 import pytest
 
-from gsm_data_generator.algorithm import CryptoUtils, DependentDataGenerator
-from gsm_data_generator.algorithm import EncodingUtils
-from gsm_data_generator.transform import DataTransform
-
-
-import re
-import pytest
 from gsm_data_generator.algorithm import DependentDataGenerator
 
 
-@pytest.mark.parametrize("imsi", [
-    "123456789012345",
-    "310150123456789",
-    "460001234567890",
-    "724999123456789",
-    "262071234567890",
-    "505021234567890",
-    "208201234567890",
-    "440101234567890",
-    "234151234567890",
-    "404451234567890",
-])
+@pytest.mark.parametrize(
+    "imsi",
+    [
+        "123456789012345",
+        "310150123456789",
+        "460001234567890",
+        "724999123456789",
+        "262071234567890",
+        "505021234567890",
+        "208201234567890",
+        "440101234567890",
+        "234151234567890",
+        "404451234567890",
+    ],
+)
 def test_calculate_acc(imsi):
     acc = DependentDataGenerator.calculate_acc(imsi)
 
     assert isinstance(acc, str), f"ACC must be str for IMSI {imsi}"
     assert len(acc) == 4, f"ACC must be 4 hex chars for IMSI {imsi}"
-    assert re.fullmatch(r"[0-9a-f]+", acc), f"ACC must be lowercase hex for IMSI {imsi}: {acc}"
-
-# def test_calculate_acc():
-#     imsi = "123456789012345"
-#     acc = DependentDataGenerator.calculate_acc(imsi)
-#     assert isinstance(acc, str)
-#     assert len(acc) == 4
-#     assert re.fullmatch(r"[0-9a-f]+", acc)
+    assert re.fullmatch(
+        r"[0-9a-f]+", acc
+    ), f"ACC must be lowercase hex for IMSI {imsi}: {acc}"
 
 
 test_vectors = [
@@ -111,8 +101,6 @@ test_vectors = [
         "10B128A09CFB056C819A3929CAED70D6",
     ),
 ]
-
-# vectors.append((ki, op, transport, opc, eki))
 
 
 @pytest.mark.parametrize("ki, op, transport, expected_opc, expected_eki", test_vectors)
