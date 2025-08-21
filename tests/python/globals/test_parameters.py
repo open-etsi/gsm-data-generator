@@ -50,7 +50,6 @@ def test_is_valid_df(params):
     df2 = pd.DataFrame({"a": [1, 2]})
     assert Parameters.is_valid_df(df2, "DF") is False
 
-from gsm_data_generator.globals.
 def test_get_all_params_dict(params):
     params.set_PIN1("1234")
     params.set_PUK1("12345678")
