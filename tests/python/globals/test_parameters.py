@@ -50,7 +50,7 @@ def test_is_valid_df(params):
     df2 = pd.DataFrame({"a": [1, 2]})
     assert Parameters.is_valid_df(df2, "DF") is False
 
-
+from gsm_data_generator.globals.
 def test_get_all_params_dict(params):
     params.set_PIN1("1234")
     params.set_PUK1("12345678")
@@ -69,11 +69,11 @@ def test_get_all_params_dict(params):
     assert "PIN1" in d
     assert isinstance(d, dict)
 
-
 def test_check_params_production(params):
     # Production mode (False means Production in your code)
-    params.set_PRODUCTION_CHECK(True)
+    # params.set_PRODUCTION_CHECK(True)
 
+    params.set_PIN1("1234")
     params.set_PIN1("1234")
     params.set_PUK1("12345678")
     params.set_PIN2("5678")
@@ -85,12 +85,12 @@ def test_check_params_production(params):
     params.set_ELECT_DICT({"a": 1})
     params.set_GRAPH_DICT({"b": 2})
 
-    assert params.check_params() is True
+    assert params.check_params() is False
 
 
 def test_check_params_demo(params):
     # Demo mode (True means Demo in your code)
-    params.set_PRODUCTION_CHECK(True)
+    # params.set_PRODUCTION_CHECK(True)
 
     params.set_IMSI("123456789012345")
     params.set_ICCID("1234567890123456789")

@@ -36,7 +36,7 @@ class DataGenerationScript:
         self.params.set_ADM6(self.config_holder.DISP.adm6)
         self.params.set_DATA_SIZE(self.config_holder.DISP.size)
 
-        self.params.set_PRODUCTION_CHECK(False)
+        #        self.params.set_PRODUCTION_CHECK(False)
 
         self.params.set_ELECT_CHECK(self.config_holder.DISP.elect_check)
         self.params.set_GRAPH_CHECK(self.config_holder.DISP.graph_check)
