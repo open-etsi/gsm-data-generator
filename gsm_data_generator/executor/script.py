@@ -19,6 +19,7 @@ class DataGenerationScript:
         self.data_processor = DataProcessing()
         self.df_processor = DataFrameProcessor()
         self.dep_data_generator = DependentDataGenerator()
+
     def json_to_global_params(self) -> None:
         self.params.SERVER_SEP = self.config_holder.DISP.server_data_sep
         self.params.ELECT_SEP = self.config_holder.DISP.elect_data_sep
@@ -99,20 +100,38 @@ class DataGenerationScript:
     def generate_opc(self, ki):
         return self.dep_data_generator.calculate_opc(self.params.OP, ki)
 
-    def generate_pin(self, pin_type):
-        if getattr(self.params, f"get_{pin_type}_RAND")():
-            return getattr(self.params, f"get_{pin_type}")()
+    def generate_pin(self, pin_type: str) -> str:
+        """Generate a PIN: use stored value if *_RAND is True, else random 4-digit."""
+        if getattr(self.params, f"{pin_type}_RAND"):
+            return getattr(self.params, pin_type)
         return self.data_generator.generate_4_digit()
 
-    def generate_puk(self, puk_type):
-        if getattr(self.params, f"get_{puk_type}_RAND")():
-            return getattr(self.params, f"get_{puk_type}")()
+    def generate_puk(self, puk_type: str) -> str:
+        """Generate a PUK: use stored value if *_RAND is True, else random 8-digit."""
+        if getattr(self.params, f"{puk_type}_RAND"):
+            return getattr(self.params, puk_type)
         return self.data_generator.generate_8_digit()
 
-    def generate_adm(self, adm_type):
-        if getattr(self.params, f"get_{adm_type}_RAND")():
-            return getattr(self.params, f"get_{adm_type}")()
+    def generate_adm(self, adm_type: str) -> str:
+        """Generate an ADM: use stored value if *_RAND is True, else random 8-digit."""
+        if getattr(self.params, f"{adm_type}_RAND"):
+            return getattr(self.params, adm_type)
         return self.data_generator.generate_8_digit()
+    
+    # def generate_pin(self, pin_type):
+    #     if getattr(self.params, f"{pin_type}_RAND")():
+    #         return getattr(self.params, f"{pin_type}")()
+    #     return self.data_generator.generate_4_digit()
+
+    # def generate_puk(self, puk_type):
+    #     if getattr(self.params, f"{puk_type}_RAND")():
+    #         return getattr(self.params, f"{puk_type}")()
+    #     return self.data_generator.generate_8_digit()
+
+    # def generate_adm(self, adm_type):
+    #     if getattr(self.params, f"{adm_type}_RAND")():
+    #         return getattr(self.params, f"{adm_type}")()
+    #     return self.data_generator.generate_8_digit()
 
     def apply_function(self, df, dest: str, src: str, function):
         if dest in df.columns:
@@ -148,27 +167,19 @@ class DataGenerationScript:
 
     def generate_demo_data(self):
         df = self.df_processor.generate_empty_dataframe(
-            DEFAULT_HEADER, self.params.get_DATA_SIZE()  # type: ignore
+            DEFAULT_HEADER, self.params.DATA_SIZE  # type: ignore
         )
         self.df_processor.initialize_column(df, "ICCID", self.params.ICCID)
         self.df_processor.initialize_column(df, "IMSI", self.params.IMSI)
-        self.df_processor.initialize_column(
-            df, "OP", self.params.OP, increment=False
-        )
-        self.df_processor.initialize_column(
-            df, "K4", self.params.K4, increment=False
-        )
+        self.df_processor.initialize_column(df, "OP", self.params.OP, increment=False)
+        self.df_processor.initialize_column(df, "K4", self.params.K4, increment=False)
         return self.apply_functions(df)
 
     def generate_non_demo_data(self):
         input_df = self.dataframes.get_input_df()
         df = self.df_processor.generate_empty_dataframe(DEFAULT_HEADER, len(input_df))  # type: ignore
-        self.df_processor.initialize_column(
-            df, "OP", self.params.OP, increment=False
-        )
-        self.df_processor.initialize_column(
-            df, "K4", self.params.K4, increment=False
-        )
+        self.df_processor.initialize_column(df, "OP", self.params.OP, increment=False)
+        self.df_processor.initialize_column(df, "K4", self.params.K4, increment=False)
         df["ICCID"] = input_df["ICCID"]
         df["IMSI"] = input_df["IMSI"]
         return self.apply_functions(df)

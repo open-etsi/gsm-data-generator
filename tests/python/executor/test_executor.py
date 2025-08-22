@@ -68,71 +68,71 @@ p.ADM6_RAND = False
 # p.set_ADM1_RAND(False)
 # p.set_ADM6_RAND(False)
 
-p.ELECT_DF=    list_2_dict(
-        [
-            "IMSI",
-            "ICCID",
-            "PIN1",
-            "PUK1",
-            "PIN2",
-            "PUK2",
-            "ADM1",
-            "ADM6",
-            "KI",
-            "OPC",
-            "ACC",
-            "KIC1",
-            "KID1",
-            "KIK1",
-            "KIC2",
-            "KID2",
-            "KIK2",
-            "KIC3",
-            "KID3",
-            "KIK3",
-        ]
-    )
+p.ELECT_DF = list_2_dict(
+    [
+        "IMSI",
+        "ICCID",
+        "PIN1",
+        "PUK1",
+        "PIN2",
+        "PUK2",
+        "ADM1",
+        "ADM6",
+        "KI",
+        "OPC",
+        "ACC",
+        "KIC1",
+        "KID1",
+        "KIK1",
+        "KIC2",
+        "KID2",
+        "KIK2",
+        "KIC3",
+        "KID3",
+        "KIK3",
+    ]
+)
 
 
-p.SERVER_DICT =list_2_dict(
-        [
-            "IMSI",
-            "EKI",
-            "ICCID",
-            "PIN1",
-            "PUK1",
-            "PIN2",
-            "PUK2",
-            "ADM1",
-            "ADM6",
-            "ACC",
-            "KIC1",
-            "KID1",
-            "KIK1",
-            "KIC2",
-            "KID2",
-            "KIK2",
-            "KIC3",
-            "KID3",
-            "KIK3",
-        ]
-    )
+p.SERVER_DICT = list_2_dict(
+    [
+        "IMSI",
+        "EKI",
+        "ICCID",
+        "PIN1",
+        "PUK1",
+        "PIN2",
+        "PUK2",
+        "ADM1",
+        "ADM6",
+        "ACC",
+        "KIC1",
+        "KID1",
+        "KIK1",
+        "KIC2",
+        "KID2",
+        "KIK2",
+        "KIC3",
+        "KID3",
+        "KIK3",
+    ]
+)
 
-p.GRAPH_DICT= {
-        "0": ["ICCID", "Normal", "0-20"],
-        "1": ["ICCID", "Normal", "0-20"],
-        "2": ["ICCID", "Normal", "0-3"],
-        "3": ["ICCID", "Normal", "4-7"],
-        "4": ["ICCID", "Normal", "8-11"],
-        "5": ["ICCID", "Normal", "12-15"],
-        "6": ["ICCID", "Normal", "16-20"],
-        "7": ["PIN1", "Normal", "0-3"],
-        "8": ["PUK1", "Normal", "0-7"],
-        "9": ["PIN2", "Normal", "0-3"],
-        "10": ["PUK2", "Normal", "0-7"],
-        "11": ["IMSI", "Normal", "0-5"],
-        "12": ["IMSI", "Normal", "6-15"],
-    }
+p.GRAPH_DICT = {
+    "0": ["ICCID", "Normal", "0-20"],
+    "1": ["ICCID", "Normal", "0-20"],
+    "2": ["ICCID", "Normal", "0-3"],
+    "3": ["ICCID", "Normal", "4-7"],
+    "4": ["ICCID", "Normal", "8-11"],
+    "5": ["ICCID", "Normal", "12-15"],
+    "6": ["ICCID", "Normal", "16-20"],
+    "7": ["PIN1", "Normal", "0-3"],
+    "8": ["PUK1", "Normal", "0-7"],
+    "9": ["PIN2", "Normal", "0-3"],
+    "10": ["PUK2", "Normal", "0-7"],
+    "11": ["IMSI", "Normal", "0-5"],
+    "12": ["IMSI", "Normal", "6-15"],
+}
 
 
 def global_params_to_json():

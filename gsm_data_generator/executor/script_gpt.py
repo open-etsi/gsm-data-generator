@@ -20,7 +20,6 @@ class DataGenerationScript:
         self.df_processor = DataFrameProcessor()
         self.dep_data_generator = DependentDataGenerator()
 
-
     # def json_to_global_params(self):
     #     self.params.set_SERVER_SEP(self.config_holder.DISP.server_data_sep)
     #     self.params.ELECT_SEP=self.config_holder.DISP.elect_data_sep
@@ -58,6 +57,7 @@ class DataGenerationScript:
     #     self.params.set_ADM1_RAND(self.config_holder.DISP.adm1_fix)
     #     self.params.set_ADM6_RAND(self.config_holder.DISP.adm6_fix)
 
+
 def json_to_global_params(self) -> None:
     self.params.SERVER_SEP = self.config_holder.DISP.server_data_sep
     self.params.ELECT_SEP = self.config_holder.DISP.elect_data_sep
@@ -80,9 +80,7 @@ def json_to_global_params(self) -> None:
     self.params.GRAPH_CHECK = self.config_holder.DISP.graph_check
     self.params.SERVER_CHECK = self.config_holder.DISP.server_check
 
-    self.params.ELECT_DICT = list_2_dict(
-        self.config_holder.PARAMETERS.data_variables
-    )
+    self.params.ELECT_DICT = list_2_dict(self.config_holder.PARAMETERS.data_variables)
     self.params.GRAPH_DICT = self.config_holder.PARAMETERS.laser_variables
     self.params.SERVER_DICT = list_2_dict(
         self.config_holder.PARAMETERS.server_variables

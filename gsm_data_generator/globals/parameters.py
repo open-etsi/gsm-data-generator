@@ -150,24 +150,23 @@ class Parameters(DataFrames):
                 cls.__instance = Parameters()
             return cls.__instance
 
+    # @staticmethod
+    # def _to_str(value: str) -> str:
+    #     if not isinstance(value, str):
+    #         raise TypeError(f"Expected str, got {type(value).__name__}")
+    #     return value.strip()
 
-    @staticmethod
-    def _to_str(value: str) -> str:
-        if not isinstance(value, str):
-            raise TypeError(f"Expected str, got {type(value).__name__}")
-        return value.strip()
+    # @staticmethod
+    # def _to_bool(value: bool) -> bool:
+    #     if not isinstance(value, bool):
+    #         raise TypeError(f"Expected bool, got {type(value).__name__}")
+    #     return value
 
-    @staticmethod
-    def _to_bool(value: bool) -> bool:
-        if not isinstance(value, bool):
-            raise TypeError(f"Expected bool, got {type(value).__name__}")
-        return value
-
-    @staticmethod
-    def _to_dict(value: dict) -> dict:
-        if not isinstance(value, dict):
-            raise TypeError(f"Expected dict, got {type(value).__name__}")
-        return value
+    # @staticmethod
+    # def _to_dict(value: dict) -> dict:
+    #     if not isinstance(value, dict):
+    #         raise TypeError(f"Expected dict, got {type(value).__name__}")
+    #     return value
 
     # ------------------ FILE SEPARATORS ------------------
 
@@ -178,7 +177,7 @@ class Parameters(DataFrames):
 
     @ELECT_SEP.setter
     def ELECT_SEP(self, value: str) -> None:
-        self.__ELECT_SEP = self._to_str(value)
+        self.__ELECT_SEP = value
 
     @property
     def GRAPH_SEP(self) -> str:
@@ -187,7 +186,7 @@ class Parameters(DataFrames):
 
     @GRAPH_SEP.setter
     def GRAPH_SEP(self, value: str) -> None:
-        self.__GRAPH_SEP = self._to_str(value)
+        self.__GRAPH_SEP = value
 
     @property
     def SERVER_SEP(self) -> str:
@@ -196,7 +195,7 @@ class Parameters(DataFrames):
 
     @SERVER_SEP.setter
     def SERVER_SEP(self, value: str) -> None:
-        self.__SERVER_SEP = self._to_str(value)
+        self.__SERVER_SEP = value
 
     # ------------------ PATHS ------------------
 
@@ -207,7 +206,7 @@ class Parameters(DataFrames):
 
     @TEMPLATE_JSON.setter
     def TEMPLATE_JSON(self, value: str) -> None:
-        self.__TEMPLATE_JSON = self._to_str(value)
+        self.__TEMPLATE_JSON = value
 
     @property
     def INPUT_FILE_PATH(self) -> str:
@@ -216,7 +215,7 @@ class Parameters(DataFrames):
 
     @INPUT_FILE_PATH.setter
     def INPUT_FILE_PATH(self, value: str) -> None:
-        self.__INPUT_FILE_PATH = self._to_str(value)
+        self.__INPUT_FILE_PATH = value
 
     @property
     def OUTPUT_FILES_DIR(self) -> str:
@@ -225,7 +224,7 @@ class Parameters(DataFrames):
 
     @OUTPUT_FILES_DIR.setter
     def OUTPUT_FILES_DIR(self, value: str) -> None:
-        self.__OUTPUT_FILES_DIR = self._to_str(value)
+        self.__OUTPUT_FILES_DIR = value
 
     # ------------------ SIM PARAMETERS ------------------
 
@@ -236,7 +235,7 @@ class Parameters(DataFrames):
 
     @ICCID.setter
     def ICCID(self, value: str) -> None:
-        self.__ICCID = self._to_str(value)
+        self.__ICCID = value
 
     @property
     def IMSI(self) -> str:
@@ -245,7 +244,7 @@ class Parameters(DataFrames):
 
     @IMSI.setter
     def IMSI(self, value: str) -> None:
-        self.__IMSI = self._to_str(value)
+        self.__IMSI = value
 
     @property
     def PIN1(self) -> str:
@@ -254,7 +253,7 @@ class Parameters(DataFrames):
 
     @PIN1.setter
     def PIN1(self, value: str) -> None:
-        self.__PIN1 = self._to_str(value)
+        self.__PIN1 = value
 
     @property
     def PUK1(self) -> str:
@@ -263,7 +262,7 @@ class Parameters(DataFrames):
 
     @PUK1.setter
     def PUK1(self, value: str) -> None:
-        self.__PUK1 = self._to_str(value)
+        self.__PUK1 = value
 
     @property
     def PIN2(self) -> str:
@@ -272,7 +271,7 @@ class Parameters(DataFrames):
 
     @PIN2.setter
     def PIN2(self, value: str) -> None:
-        self.__PIN2 = self._to_str(value)
+        self.__PIN2 = value
 
     @property
     def PUK2(self) -> str:
@@ -281,7 +280,7 @@ class Parameters(DataFrames):
 
     @PUK2.setter
     def PUK2(self, value: str) -> None:
-        self.__PUK2 = self._to_str(value)
+        self.__PUK2 = value
 
     @property
     def OP(self) -> str:
@@ -290,7 +289,7 @@ class Parameters(DataFrames):
 
     @OP.setter
     def OP(self, value: str) -> None:
-        self.__OP = self._to_str(value)
+        self.__OP = value
 
     @property
     def K4(self) -> str:
@@ -299,7 +298,7 @@ class Parameters(DataFrames):
 
     @K4.setter
     def K4(self, value: str) -> None:
-        self.__K4 = self._to_str(value)
+        self.__K4 = value
 
     # ------------------ FLAGS ------------------
 
@@ -310,7 +309,7 @@ class Parameters(DataFrames):
 
     @ELECT_CHECK.setter
     def ELECT_CHECK(self, value: bool) -> None:
-        self.__ELECT_CHECK = self._to_bool(value)
+        self.__ELECT_CHECK = value
 
     @property
     def GRAPH_CHECK(self) -> bool:
@@ -319,7 +318,7 @@ class Parameters(DataFrames):
 
     @GRAPH_CHECK.setter
     def GRAPH_CHECK(self, value: bool) -> None:
-        self.__GRAPH_CHECK = self._to_bool(value)
+        self.__GRAPH_CHECK = value
 
     @property
     def SERVER_CHECK(self) -> bool:
@@ -328,7 +327,7 @@ class Parameters(DataFrames):
 
     @SERVER_CHECK.setter
     def SERVER_CHECK(self, value: bool) -> None:
-        self.__SERVER_CHECK = self._to_bool(value)
+        self.__SERVER_CHECK = value
 
     # ------------------ RANDOMIZATION FLAGS ------------------
 
@@ -339,7 +338,7 @@ class Parameters(DataFrames):
 
     @PIN1_RAND.setter
     def PIN1_RAND(self, value: bool) -> None:
-        self.__pin1_rand = self._to_bool(value)
+        self.__pin1_rand = value
 
     # (Repeat this pattern for PUK1_RAND, PIN2_RAND, etc.)
 
@@ -352,7 +351,7 @@ class Parameters(DataFrames):
 
     @ELECT_DICT.setter
     def ELECT_DICT(self, value: dict) -> None:
-        self.__ELECT_DICT = self._to_dict(value)
+        self.__ELECT_DICT = value
 
     # (Repeat for GRAPH_DICT, SERVER_DICT, etc.)
 
@@ -374,7 +373,7 @@ class Parameters(DataFrames):
 
     @PUK1_RAND.setter
     def PUK1_RAND(self, value: bool) -> None:
-        self.__puk1_rand = self._to_bool(value)
+        self.__puk1_rand = value
 
     @property
     def PIN2_RAND(self) -> bool:
@@ -383,7 +382,7 @@ class Parameters(DataFrames):
 
     @PIN2_RAND.setter
     def PIN2_RAND(self, value: bool) -> None:
-        self.__pin2_rand = self._to_bool(value)
+        self.__pin2_rand = value
 
     @property
     def PUK2_RAND(self) -> bool:
@@ -392,7 +391,7 @@ class Parameters(DataFrames):
 
     @PUK2_RAND.setter
     def PUK2_RAND(self, value: bool) -> None:
-        self.__puk2_rand = self._to_bool(value)
+        self.__puk2_rand = value
 
     @property
     def ADM1_RAND(self) -> bool:
@@ -401,7 +400,7 @@ class Parameters(DataFrames):
 
     @ADM1_RAND.setter
     def ADM1_RAND(self, value: bool) -> None:
-        self.__adm1_rand = self._to_bool(value)
+        self.__adm1_rand = value
 
     @property
     def ADM6_RAND(self) -> bool:
@@ -410,7 +409,7 @@ class Parameters(DataFrames):
 
     @ADM6_RAND.setter
     def ADM6_RAND(self, value: bool) -> None:
-        self.__adm6_rand = self._to_bool(value)
+        self.__adm6_rand = value
 
     @property
     def ACC_RAND(self) -> bool:
@@ -419,7 +418,7 @@ class Parameters(DataFrames):
 
     @ACC_RAND.setter
     def ACC_RAND(self, value: bool) -> None:
-        self.__acc_rand = self._to_bool(value)
+        self.__acc_rand = value
 
     @property
     def GRAPH_DICT(self) -> dict:
@@ -428,7 +427,7 @@ class Parameters(DataFrames):
 
     @GRAPH_DICT.setter
     def GRAPH_DICT(self, value: dict) -> None:
-        self.__GRAPH_DICT = self._to_dict(value)
+        self.__GRAPH_DICT = value
 
     @property
     def SERVER_DICT(self) -> dict:
@@ -437,7 +436,7 @@ class Parameters(DataFrames):
 
     @SERVER_DICT.setter
     def SERVER_DICT(self, value: dict) -> None:
-        self.__SERVER_DICT = self._to_dict(value)
+        self.__SERVER_DICT = value
 
     @property
     def SERVR_SEP(self) -> str:
@@ -446,7 +445,7 @@ class Parameters(DataFrames):
 
     @SERVR_SEP.setter
     def SERVR_SEP(self, value: str) -> None:
-        self.__SERVR_SEP = self._to_str(value)
+        self.__SERVR_SEP = value
 
     @property
     def ADM1(self) -> str:
@@ -455,7 +454,7 @@ class Parameters(DataFrames):
 
     @ADM1.setter
     def ADM1(self, value: str) -> None:
-        self.__ADM1 = self._to_str(value)
+        self.__ADM1 = value
 
     @property
     def ADM6(self) -> str:
@@ -464,7 +463,7 @@ class Parameters(DataFrames):
 
     @ADM6.setter
     def ADM6(self, value: str) -> None:
-        self.__ADM6 = self._to_str(value)
+        self.__ADM6 = value
 
     @property
     def ACC(self) -> str:
@@ -473,7 +472,7 @@ class Parameters(DataFrames):
 
     @ACC.setter
     def ACC(self, value: str) -> None:
-        self.__ACC = self._to_str(value)
+        self.__ACC = value
 
     @property
     def DATA_SIZE(self) -> str:
@@ -482,7 +481,8 @@ class Parameters(DataFrames):
 
     @DATA_SIZE.setter
     def DATA_SIZE(self, value: str) -> None:
-        self.__DATA_SIZE = self._to_str(value)
+        self.__DATA_SIZE = value
+
     # @property
     # def ELECT_SEP(self) -> str:
     #     """
@@ -758,16 +758,16 @@ class Parameters(DataFrames):
     #     """
     #     self.__pin1_rand = value
 
-    # def get_PIN1_RAND(self) -> bool:
-    #     """
-    #     Get the current randomization status of PIN1.
+    def get_PIN1_RAND(self) -> bool:
+        """
+        Get the current randomization status of PIN1.
 
-    #     Returns:
-    #         bool:
-    #             - True if PIN1 randomization is enabled.
-    #             - False if PIN1 is fixed/manual.
-    #     """
-    #     return self.__pin1_rand
+        Returns:
+            bool:
+                - True if PIN1 randomization is enabled.
+                - False if PIN1 is fixed/manual.
+        """
+        return self.__pin1_rand
 
     # def set_PUK1_RAND(self, value: bool):
     #     """
@@ -919,7 +919,6 @@ class Parameters(DataFrames):
     #     """
     #     return self.__INPUT_PATH
 
-
     # def set_LASER_EXT_PATH(self, value: str) -> None:
     #     """
     #     Set the laser extraction path.
@@ -937,7 +936,6 @@ class Parameters(DataFrames):
     #         str: Current laser extraction path.
     #     """
     #     return self.__LASER_EXT_PATH
-
 
     # def set_ELECT_DICT(self, value: dict) -> None:
     #     """
@@ -957,7 +955,6 @@ class Parameters(DataFrames):
     #     """
     #     return self.__ELECT_DICT
 
-
     # def set_GRAPH_DICT(self, value: dict) -> None:
     #     """
     #     Set the GRAPH dictionary configuration.
@@ -976,7 +973,6 @@ class Parameters(DataFrames):
     #     """
     #     return self.__GRAPH_DICT
 
-
     # def set_SERVER_DICT(self, value: dict) -> None:
     #     """
     #     Set the SERVER dictionary configuration.
@@ -994,7 +990,6 @@ class Parameters(DataFrames):
     #         dict: SERVER data dictionary.
     #     """
     #     return self.__SERVER_DICT
-
 
     # def set_file_name(self, value: str) -> None:
     #     """
@@ -1030,7 +1025,7 @@ class Parameters(DataFrames):
             "ADM6": self.ADM6,
             "ACC": self.ACC,
             "DATA_SIZE": self.DATA_SIZE,
-#            "INPUT_PATH": self.INPUT_PATH,
+            #            "INPUT_PATH": self.INPUT_PATH,
         }
         print(param_dict)
         return param_dict
@@ -1075,44 +1070,44 @@ class Parameters(DataFrames):
                 # Default behavior if param_name doesn't match any known case
                 return False
 
-    def check_params(self, production: bool = False) -> bool:
-        """
-        Validate the critical parameters based on the mode.
+    # def check_params(self, production: bool = False) -> bool:
+    #     """
+    #     Validate the critical parameters based on the mode.
 
-        Args:
-            production (bool): 
-                - True → Validate minimal production parameters.
-                - False → Validate full demo parameters (default).
+    #     Args:
+    #         production (bool):
+    #             - True → Validate minimal production parameters.
+    #             - False → Validate full demo parameters (default).
 
-        Returns:
-            bool: True if all required parameters are valid, else False.
-        """
-        print("===============Production===============" if production else "=================Demo===================")
+    #     Returns:
+    #         bool: True if all required parameters are valid, else False.
+    #     """
+    #     print("===============Production===============" if production else "=================Demo===================")
 
-        # Common parameters in both modes
-        params_to_check = [
-            ("PIN1", self.PIN1),
-            ("PUK1", self.PUK1),
-            ("PIN2", self.PIN2),
-            ("PUK2", self.PUK2),
-            ("ADM1", self.ADM1),
-            ("ADM6", self.ADM6),
-            ("OP", self.OP),
-            ("K4", self.K4),
-            ("ELECT_DICT", self.ELECT_DICT),
-            ("GRAPH_DICT", self.GRAPH_DICT),
-            ("SERVER_DICT", self.SERVER_DICT),
-        ]
+    #     # Common parameters in both modes
+    #     params_to_check = [
+    #         ("PIN1", self.PIN1),
+    #         ("PUK1", self.PUK1),
+    #         ("PIN2", self.PIN2),
+    #         ("PUK2", self.PUK2),
+    #         ("ADM1", self.ADM1),
+    #         ("ADM6", self.ADM6),
+    #         ("OP", self.OP),
+    #         ("K4", self.K4),
+    #         ("ELECT_DICT", self.ELECT_DICT),
+    #         ("GRAPH_DICT", self.GRAPH_DICT),
+    #         ("SERVER_DICT", self.SERVER_DICT),
+    #     ]
 
-        # Additional checks for demo mode
-        if not production:
-            params_to_check.extend([
-                ("IMSI", self.IMSI),
-                ("ICCID", self.ICCID),
-                ("DATA_SIZE", self.DATA_SIZE),
-            ])
+    #     # Additional checks for demo mode
+    #     if not production:
+    #         params_to_check.extend([
+    #             ("IMSI", self.IMSI),
+    #             ("ICCID", self.ICCID),
+    #             ("DATA_SIZE", self.DATA_SIZE),
+    #         ])
 
-        return all(self.is_valid(value, name) for name, value in params_to_check)
+    #     return all(self.is_valid(value, name) for name, value in params_to_check)
 
     def print_all_global_parameters(self) -> None:
         """
@@ -1138,44 +1133,44 @@ class Parameters(DataFrames):
         for key, value in params.items():
             print(f"{key}: {value}")
 
-    # def check_params(self) -> bool:
-    #     #        if not self.get_PRODUCTION_CHECK():
-    #     if False:
-    #         print("===============Production===============")
-    #         result = (
-    #             #                self.is_valid(self.get_IMSI(), "IMSI")
-    #             #                and self.is_valid(self.get_ICCID(), "ICCID")
-    #             self.is_valid(self.get_PIN1(), "PIN1")
-    #             and self.is_valid(self.get_PUK1(), "PUK1")
-    #             and self.is_valid(self.get_PIN2(), "PIN2")
-    #             and self.is_valid(self.get_PUK2(), "PUK2")
-    #             and self.is_valid(self.get_ADM1(), "ADM1")
-    #             and self.is_valid(self.get_ADM6(), "ADM6")
-    #             and self.is_valid(self.get_OP(), "OP")
-    #             and self.is_valid(self.get_K4(), "K4")
-    #             #                and self.is_valid(self.get_DATA_SIZE(), "SIZE")
-    #             and self.is_valid(self.get_ELECT_DICT(), "DICT")
-    #             and self.is_valid(self.get_GRAPH_DICT(), "DICT")
-    #         )
-    #     else:
-    #         print("=================Demo===================")
-    #         result = (
-    #             self.is_valid(self.get_IMSI(), "IMSI")
-    #             and self.is_valid(self.get_ICCID(), "ICCID")
-    #             and self.is_valid(self.get_DATA_SIZE(), "SIZE")
-    #             and self.is_valid(self.get_PIN1(), "PIN1")
-    #             and self.is_valid(self.get_PUK1(), "PUK1")
-    #             and self.is_valid(self.get_PIN2(), "PIN2")
-    #             and self.is_valid(self.get_PUK2(), "PUK2")
-    #             and self.is_valid(self.get_ADM1(), "ADM1")
-    #             and self.is_valid(self.get_ADM6(), "ADM6")
-    #             and self.is_valid(self.get_OP(), "OP")
-    #             and self.is_valid(self.get_K4(), "K4")
-    #             and self.is_valid(self.get_ELECT_DICT(), "DICT")
-    #             and self.is_valid(self.get_GRAPH_DICT(), "DICT")
-    #             # TO DO add server dict here
-    #         )
-    #     return result
+    def check_params(self) -> bool:
+        #        if not self.get_PRODUCTION_CHECK():
+        if False:
+            print("===============Production===============")
+            result = (
+                #                self.is_valid(self.get_IMSI(), "IMSI")
+                #                and self.is_valid(self.get_ICCID(), "ICCID")
+                self.is_valid(self.PIN1, "PIN1")
+                and self.is_valid(self.PUK1, "PUK1")
+                and self.is_valid(self.PIN2, "PIN2")
+                and self.is_valid(self.PUK2, "PUK2")
+                and self.is_valid(self.ADM1, "ADM1")
+                and self.is_valid(self.ADM6, "ADM6")
+                and self.is_valid(self.OP, "OP")
+                and self.is_valid(self.K4, "K4")
+                #                and self.is_valid(self.DATA_SIZE,  "SIZE")
+                and self.is_valid(self.ELECT_DICT, "DICT")
+                and self.is_valid(self.GRAPH_DICT, "DICT")
+            )
+        else:
+            print("=================Demo===================")
+            result = (
+                self.is_valid(self.IMSI, "IMSI")
+                and self.is_valid(self.ICCID, "ICCID")
+                and self.is_valid(self.DATA_SIZE, "SIZE")
+                and self.is_valid(self.PIN1, "PIN1")
+                and self.is_valid(self.PUK1, "PUK1")
+                and self.is_valid(self.PIN2, "PIN2")
+                and self.is_valid(self.PUK2, "PUK2")
+                and self.is_valid(self.ADM1, "ADM1")
+                and self.is_valid(self.ADM6, "ADM6")
+                and self.is_valid(self.OP, "OP")
+                and self.is_valid(self.K4, "K4")
+                and self.is_valid(self.ELECT_DICT, "DICT")
+                and self.is_valid(self.GRAPH_DICT, "DICT")
+                # TO DO add server dict here
+            )
+        return result
 
     # def print_all_global_parameters(self):
     #     print("PIN1", self.get_PIN1())
@@ -1185,5 +1180,3 @@ class Parameters(DataFrames):
 
 
 __all__ = ["Parameters", "DataFrames"]
-
-
