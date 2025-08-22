@@ -19,49 +19,85 @@ class DataGenerationScript:
         self.data_processor = DataProcessing()
         self.df_processor = DataFrameProcessor()
         self.dep_data_generator = DependentDataGenerator()
+    def json_to_global_params(self) -> None:
+        self.params.SERVER_SEP = self.config_holder.DISP.server_data_sep
+        self.params.ELECT_SEP = self.config_holder.DISP.elect_data_sep
+        self.params.GRAPH_SEP = self.config_holder.DISP.graph_data_sep
+        self.params.K4 = self.config_holder.DISP.K4
+        self.params.OP = self.config_holder.DISP.op
+        self.params.IMSI = self.config_holder.DISP.imsi
+        self.params.ICCID = self.config_holder.DISP.iccid
+        self.params.PIN1 = self.config_holder.DISP.pin1
+        self.params.PUK1 = self.config_holder.DISP.puk1
+        self.params.PIN2 = self.config_holder.DISP.pin2
+        self.params.PUK2 = self.config_holder.DISP.puk2
+        self.params.ADM1 = self.config_holder.DISP.adm1
+        self.params.ADM6 = self.config_holder.DISP.adm6
+        self.params.DATA_SIZE = self.config_holder.DISP.size
 
-    def json_to_global_params(self):
-        self.params.set_SERVER_SEP(self.config_holder.DISP.server_data_sep)
-        self.params.set_ELECT_SEP(self.config_holder.DISP.elect_data_sep)
-        self.params.set_GRAPH_SEP(self.config_holder.DISP.graph_data_sep)
-        self.params.set_K4(self.config_holder.DISP.K4)
-        self.params.set_OP(self.config_holder.DISP.op)
-        self.params.set_IMSI(self.config_holder.DISP.imsi)
-        self.params.set_ICCID(self.config_holder.DISP.iccid)
-        self.params.set_PIN1(self.config_holder.DISP.pin1)
-        self.params.set_PUK1(self.config_holder.DISP.puk1)
-        self.params.set_PIN2(self.config_holder.DISP.pin2)
-        self.params.set_PUK2(self.config_holder.DISP.puk2)
-        self.params.set_ADM1(self.config_holder.DISP.adm1)
-        self.params.set_ADM6(self.config_holder.DISP.adm6)
-        self.params.set_DATA_SIZE(self.config_holder.DISP.size)
+        # self.params.PRODUCTION_CHECK = False
 
-        #        self.params.set_PRODUCTION_CHECK(False)
+        self.params.ELECT_CHECK = self.config_holder.DISP.elect_check
+        self.params.GRAPH_CHECK = self.config_holder.DISP.graph_check
+        self.params.SERVER_CHECK = self.config_holder.DISP.server_check
 
-        self.params.set_ELECT_CHECK(self.config_holder.DISP.elect_check)
-        self.params.set_GRAPH_CHECK(self.config_holder.DISP.graph_check)
-        self.params.set_SERVER_CHECK(self.config_holder.DISP.server_check)
-
-        self.params.set_ELECT_DICT(
-            list_2_dict(self.config_holder.PARAMETERS.data_variables)
+        self.params.ELECT_DICT = list_2_dict(
+            self.config_holder.PARAMETERS.data_variables
         )
-        self.params.set_GRAPH_DICT(self.config_holder.PARAMETERS.laser_variables)
-        self.params.set_SERVER_DICT(
-            list_2_dict(self.config_holder.PARAMETERS.server_variables)
+        self.params.GRAPH_DICT = self.config_holder.PARAMETERS.laser_variables
+        self.params.SERVER_DICT = list_2_dict(
+            self.config_holder.PARAMETERS.server_variables
         )
 
-        self.params.set_PIN1_RAND(self.config_holder.DISP.pin1_fix)
-        self.params.set_PUK1_RAND(self.config_holder.DISP.puk1_fix)
-        self.params.set_PIN2_RAND(self.config_holder.DISP.pin2_fix)
-        self.params.set_PUK2_RAND(self.config_holder.DISP.puk2_fix)
-        self.params.set_ADM1_RAND(self.config_holder.DISP.adm1_fix)
-        self.params.set_ADM6_RAND(self.config_holder.DISP.adm6_fix)
+        self.params.PIN1_RAND = self.config_holder.DISP.pin1_fix
+        self.params.PUK1_RAND = self.config_holder.DISP.puk1_fix
+        self.params.PIN2_RAND = self.config_holder.DISP.pin2_fix
+        self.params.PUK2_RAND = self.config_holder.DISP.puk2_fix
+        self.params.ADM1_RAND = self.config_holder.DISP.adm1_fix
+        self.params.ADM6_RAND = self.config_holder.DISP.adm6_fix
+
+    # def json_to_global_params(self):
+    #     self.params.set_SERVER_SEP(self.config_holder.DISP.server_data_sep)
+    #     self.params.ELECT_SEP =self.config_holder.DISP.elect_data_sep
+    #     self.params.set_GRAPH_SEP(self.config_holder.DISP.graph_data_sep)
+    #     self.params.set_K4(self.config_holder.DISP.K4)
+    #     self.params.set_OP(self.config_holder.DISP.op)
+    #     self.params.set_IMSI(self.config_holder.DISP.imsi)
+    #     self.params.set_ICCID(self.config_holder.DISP.iccid)
+    #     self.params.set_PIN1(self.config_holder.DISP.pin1)
+    #     self.params.set_PUK1(self.config_holder.DISP.puk1)
+    #     self.params.set_PIN2(self.config_holder.DISP.pin2)
+    #     self.params.set_PUK2(self.config_holder.DISP.puk2)
+    #     self.params.set_ADM1(self.config_holder.DISP.adm1)
+    #     self.params.set_ADM6(self.config_holder.DISP.adm6)
+    #     self.params.set_DATA_SIZE(self.config_holder.DISP.size)
+
+    #     #        self.params.set_PRODUCTION_CHECK(False)
+
+    #     self.params.set_ELECT_CHECK(self.config_holder.DISP.elect_check)
+    #     self.params.set_GRAPH_CHECK(self.config_holder.DISP.graph_check)
+    #     self.params.set_SERVER_CHECK(self.config_holder.DISP.server_check)
+
+    #     self.params.set_ELECT_DICT(
+    #         list_2_dict(self.config_holder.PARAMETERS.data_variables)
+    #     )
+    #     self.params.set_GRAPH_DICT(self.config_holder.PARAMETERS.laser_variables)
+    #     self.params.set_SERVER_DICT(
+    #         list_2_dict(self.config_holder.PARAMETERS.server_variables)
+    #     )
+
+    #     self.params.set_PIN1_RAND(self.config_holder.DISP.pin1_fix)
+    #     self.params.set_PUK1_RAND(self.config_holder.DISP.puk1_fix)
+    #     self.params.set_PIN2_RAND(self.config_holder.DISP.pin2_fix)
+    #     self.params.set_PUK2_RAND(self.config_holder.DISP.puk2_fix)
+    #     self.params.set_ADM1_RAND(self.config_holder.DISP.adm1_fix)
+    #     self.params.set_ADM6_RAND(self.config_holder.DISP.adm6_fix)
 
     def generate_eki(self, ki):
-        return self.dep_data_generator.calculate_eki(self.params.get_K4(), ki)
+        return self.dep_data_generator.calculate_eki(self.params.K4, ki)
 
     def generate_opc(self, ki):
-        return self.dep_data_generator.calculate_opc(self.params.get_OP(), ki)
+        return self.dep_data_generator.calculate_opc(self.params.OP, ki)
 
     def generate_pin(self, pin_type):
         if getattr(self.params, f"get_{pin_type}_RAND")():
@@ -114,13 +150,13 @@ class DataGenerationScript:
         df = self.df_processor.generate_empty_dataframe(
             DEFAULT_HEADER, self.params.get_DATA_SIZE()  # type: ignore
         )
-        self.df_processor.initialize_column(df, "ICCID", self.params.get_ICCID())
-        self.df_processor.initialize_column(df, "IMSI", self.params.get_IMSI())
+        self.df_processor.initialize_column(df, "ICCID", self.params.ICCID)
+        self.df_processor.initialize_column(df, "IMSI", self.params.IMSI)
         self.df_processor.initialize_column(
-            df, "OP", self.params.get_OP(), increment=False
+            df, "OP", self.params.OP, increment=False
         )
         self.df_processor.initialize_column(
-            df, "K4", self.params.get_K4(), increment=False
+            df, "K4", self.params.K4, increment=False
         )
         return self.apply_functions(df)
 
@@ -128,10 +164,10 @@ class DataGenerationScript:
         input_df = self.dataframes.get_input_df()
         df = self.df_processor.generate_empty_dataframe(DEFAULT_HEADER, len(input_df))  # type: ignore
         self.df_processor.initialize_column(
-            df, "OP", self.params.get_OP(), increment=False
+            df, "OP", self.params.OP, increment=False
         )
         self.df_processor.initialize_column(
-            df, "K4", self.params.get_K4(), increment=False
+            df, "K4", self.params.K4, increment=False
         )
         df["ICCID"] = input_df["ICCID"]
         df["IMSI"] = input_df["IMSI"]
@@ -142,8 +178,8 @@ class DataGenerationScript:
             if is_demo:
                 demo_data = self.generate_demo_data()
 
-                k4 = self.params.get_K4()
-                op = self.params.get_OP()
+                k4 = self.params.K4
+                op = self.params.OP
 
                 # Validate required parameters
                 if not k4 or not isinstance(k4, str):
@@ -240,20 +276,20 @@ class DataGenerationScript:
 
         data_types = {
             "SERVER": (
-                self.params.get_SERVER_CHECK(),
-                self.params.get_SERVER_DICT(),
+                self.params.SERVER_CHECK,
+                self.params.SERVER_DICT,
                 False,
                 False,
             ),
             "GRAPH": (
-                self.params.get_GRAPH_CHECK(),
-                self.params.get_GRAPH_DICT(),
+                self.params.GRAPH_CHECK,
+                self.params.GRAPH_DICT,
                 True,
                 False,
             ),
             "ELECT": (
-                self.params.get_ELECT_CHECK(),
-                self.params.get_ELECT_DICT(),
+                self.params.ELECT_CHECK,
+                self.params.ELECT_DICT,
                 False,
                 True,
             ),

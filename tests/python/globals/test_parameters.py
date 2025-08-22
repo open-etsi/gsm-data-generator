@@ -50,6 +50,7 @@ def test_is_valid_df(params):
     df2 = pd.DataFrame({"a": [1, 2]})
     assert Parameters.is_valid_df(df2, "DF") is False
 
+
 def test_get_all_params_dict(params):
     params.set_PIN1("1234")
     params.set_PUK1("12345678")
@@ -67,6 +68,7 @@ def test_get_all_params_dict(params):
     assert "ICCID" in d
     assert "PIN1" in d
     assert isinstance(d, dict)
+
 
 def test_check_params_production(params):
     # Production mode (False means Production in your code)

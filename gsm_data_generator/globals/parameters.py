@@ -150,552 +150,887 @@ class Parameters(DataFrames):
                 cls.__instance = Parameters()
             return cls.__instance
 
-    def set_ELECT_SEP(self, value: str) -> None:
-        """
-        Set the separator string for ELECT file generation.
 
-        Args:
-            value (str): Separator string to be used.
-        """
-        self.__ELECT_SEP = str(value)
+    @staticmethod
+    def _to_str(value: str) -> str:
+        if not isinstance(value, str):
+            raise TypeError(f"Expected str, got {type(value).__name__}")
+        return value.strip()
 
-    def get_ELECT_SEP(self) -> str:
-        """
-        Get the separator string for ELECT file generation.
+    @staticmethod
+    def _to_bool(value: bool) -> bool:
+        if not isinstance(value, bool):
+            raise TypeError(f"Expected bool, got {type(value).__name__}")
+        return value
 
-        Returns:
-            str: Current ELECT separator string.
-        """
+    @staticmethod
+    def _to_dict(value: dict) -> dict:
+        if not isinstance(value, dict):
+            raise TypeError(f"Expected dict, got {type(value).__name__}")
+        return value
+
+    # ------------------ FILE SEPARATORS ------------------
+
+    @property
+    def ELECT_SEP(self) -> str:
+        """Separator string for ELECT file generation."""
         return self.__ELECT_SEP
 
-    def set_GRAPH_SEP(self, value: str) -> None:
-        """
-        Set the separator string for GRAPH file generation.
+    @ELECT_SEP.setter
+    def ELECT_SEP(self, value: str) -> None:
+        self.__ELECT_SEP = self._to_str(value)
 
-        Args:
-            value (str): Separator string to be used.
-        """
-        self.__GRAPH_SEP = str(value)
-
-    def get_GRAPH_SEP(self) -> str:
-        """
-        Get the separator string for GRAPH file generation.
-
-        Returns:
-            str: Current GRAPH separator string.
-        """
+    @property
+    def GRAPH_SEP(self) -> str:
+        """Separator string for GRAPH file generation."""
         return self.__GRAPH_SEP
 
-    def set_SERVER_SEP(self, value: str) -> None:
-        """
-        Set the separator string for SERVER file generation.
+    @GRAPH_SEP.setter
+    def GRAPH_SEP(self, value: str) -> None:
+        self.__GRAPH_SEP = self._to_str(value)
 
-        Args:
-            value (str): Separator string to be used.
-        """
-        self.__SERVR_SEP = str(value)
+    @property
+    def SERVER_SEP(self) -> str:
+        """Separator string for SERVER file generation."""
+        return self.__SERVER_SEP
 
-    def get_SERVER_SEP(self) -> str:
-        """
-        Get the separator string for SERVER file generation.
+    @SERVER_SEP.setter
+    def SERVER_SEP(self, value: str) -> None:
+        self.__SERVER_SEP = self._to_str(value)
 
-        Returns:
-            str: Current SERVER separator string.
-        """
-        return self.__SERVR_SEP
+    # ------------------ PATHS ------------------
 
-    def set_TEMPLATE_JSON(self, value: str) -> None:
-        """
-        Set the path to the template JSON file.
-
-        Args:
-            value (str): Path to template JSON file.
-        """
-        self.__TEMPLATE_JSON = str(value)
-
-    def get_TEMPLATE_JSON(self) -> str:
-        """
-        Get the path to the template JSON file.
-
-        Returns:
-            str: Path of template JSON file.
-        """
+    @property
+    def TEMPLATE_JSON(self) -> str:
+        """Path to the template JSON file."""
         return self.__TEMPLATE_JSON
 
-    def set_INPUT_FILE_PATH(self, value: str) -> None:
-        """
-        Set the input file path.
+    @TEMPLATE_JSON.setter
+    def TEMPLATE_JSON(self, value: str) -> None:
+        self.__TEMPLATE_JSON = self._to_str(value)
 
-        Args:
-            value (str): Path to the input file.
-        """
-        self.__INPUT_FILE_PATH = str(value)
-
-    def get_INPUT_FILE_PATH(self) -> str:
-        """
-        Get the input file path.
-
-        Returns:
-            str: Path of input file.
-        """
+    @property
+    def INPUT_FILE_PATH(self) -> str:
+        """Path to the input file."""
         return self.__INPUT_FILE_PATH
 
-    def set_OUTPUT_FILES_DIR(self, value: str) -> None:
-        """
-        Set the output directory for generated files.
+    @INPUT_FILE_PATH.setter
+    def INPUT_FILE_PATH(self, value: str) -> None:
+        self.__INPUT_FILE_PATH = self._to_str(value)
 
-        Args:
-            value (str): Directory path.
-        """
-        self.__OUTPUT_FILES_DIR = str(value)
-
-    def get_OUTPUT_FILES_DIR(self) -> str:
-        """
-        Get the output directory for generated files.
-
-        Returns:
-            str: Path of output files directory.
-        """
+    @property
+    def OUTPUT_FILES_DIR(self) -> str:
+        """Directory for generated output files."""
         return self.__OUTPUT_FILES_DIR
+
+    @OUTPUT_FILES_DIR.setter
+    def OUTPUT_FILES_DIR(self, value: str) -> None:
+        self.__OUTPUT_FILES_DIR = self._to_str(value)
 
     # ------------------ SIM PARAMETERS ------------------
 
-    def set_ICCID(self, value: str) -> None:
-        """Set the ICCID value."""
-        self.__ICCID = str(value)
-
-    def get_ICCID(self) -> str:
-        """Get the ICCID value."""
+    @property
+    def ICCID(self) -> str:
+        """ICCID value (Integrated Circuit Card Identifier)."""
         return self.__ICCID
 
-    def set_IMSI(self, value: str) -> None:
-        """Set the IMSI value."""
-        self.__IMSI = str(value)
+    @ICCID.setter
+    def ICCID(self, value: str) -> None:
+        self.__ICCID = self._to_str(value)
 
-    def get_IMSI(self) -> str:
-        """Get the IMSI value."""
+    @property
+    def IMSI(self) -> str:
+        """IMSI value (International Mobile Subscriber Identity)."""
         return self.__IMSI
 
-    def set_PIN1(self, value: str) -> None:
-        """Set the PIN1 value."""
-        self.__PIN1 = str(value)
+    @IMSI.setter
+    def IMSI(self, value: str) -> None:
+        self.__IMSI = self._to_str(value)
 
-    def get_PIN1(self) -> str:
-        """Get the PIN1 value."""
+    @property
+    def PIN1(self) -> str:
+        """PIN1 value."""
         return self.__PIN1
 
-    def set_PUK1(self, value: str) -> None:
-        """Set the PUK1 value."""
-        self.__PUK1 = str(value)
+    @PIN1.setter
+    def PIN1(self, value: str) -> None:
+        self.__PIN1 = self._to_str(value)
 
-    def get_PUK1(self) -> str:
-        """Get the PUK1 value."""
+    @property
+    def PUK1(self) -> str:
+        """PUK1 value."""
         return self.__PUK1
 
-    def set_PIN2(self, value: str) -> None:
-        """Set the PIN2 value."""
-        self.__PIN2 = str(value)
+    @PUK1.setter
+    def PUK1(self, value: str) -> None:
+        self.__PUK1 = self._to_str(value)
 
-    def get_PIN2(self) -> str:
-        """Get the PIN2 value."""
+    @property
+    def PIN2(self) -> str:
+        """PIN2 value."""
         return self.__PIN2
 
-    def set_PUK2(self, value: str) -> None:
-        """Set the PUK2 value."""
-        self.__PUK2 = str(value)
+    @PIN2.setter
+    def PIN2(self, value: str) -> None:
+        self.__PIN2 = self._to_str(value)
 
-    def get_PUK2(self) -> str:
-        """Get the PUK2 value."""
+    @property
+    def PUK2(self) -> str:
+        """PUK2 value."""
         return self.__PUK2
 
-    def set_OP(self, value: str) -> None:
-        """Set the Operator Code (OP)."""
-        self.__OP = str(value)
+    @PUK2.setter
+    def PUK2(self, value: str) -> None:
+        self.__PUK2 = self._to_str(value)
 
-    def get_OP(self) -> str:
-        """Get the Operator Code (OP)."""
+    @property
+    def OP(self) -> str:
+        """Operator Code (OP)."""
         return self.__OP
 
-    def set_K4(self, value: str) -> None:
-        """Set the K4 (Transport Key)."""
-        self.__K4 = str(value)
+    @OP.setter
+    def OP(self, value: str) -> None:
+        self.__OP = self._to_str(value)
 
-    def get_K4(self) -> str:
-        """Get the K4 (Transport Key)."""
+    @property
+    def K4(self) -> str:
+        """K4 Transport Key."""
         return self.__K4
 
-    def set_ADM1(self, value: str) -> None:
-        """Set the ADM1 value."""
-        self.__ADM1 = str(value)
-
-    def get_ADM1(self) -> str:
-        """Get the ADM1 value."""
-        return self.__ADM1
-
-    def set_ADM6(self, value: str) -> None:
-        """Set the ADM6 value."""
-        self.__ADM6 = str(value)
-
-    def get_ADM6(self) -> str:
-        """Get the ADM6 value."""
-        return self.__ADM6
-
-    def set_ACC(self, value: str) -> None:
-        """Set the ACC (Access Control Class)."""
-        self.__ACC = str(value)
-
-    def get_ACC(self) -> str:
-        """Get the ACC (Access Control Class)."""
-        return self.__ACC
+    @K4.setter
+    def K4(self, value: str) -> None:
+        self.__K4 = self._to_str(value)
 
     # ------------------ FLAGS ------------------
 
-    def set_ELECT_CHECK(self, value: bool) -> None:
-        """Enable or disable ELECT check flag."""
-        self.__ELECT_CHECK = value
-
-    def get_ELECT_CHECK(self) -> bool:
-        """Get the ELECT check flag status."""
+    @property
+    def ELECT_CHECK(self) -> bool:
+        """Flag to enable or disable ELECT check."""
         return self.__ELECT_CHECK
 
-    def set_GRAPH_CHECK(self, value: bool) -> None:
-        """Enable or disable GRAPH check flag."""
-        self.__GRAPH_CHECK = value
+    @ELECT_CHECK.setter
+    def ELECT_CHECK(self, value: bool) -> None:
+        self.__ELECT_CHECK = self._to_bool(value)
 
-    def get_GRAPH_CHECK(self) -> bool:
-        """Get the GRAPH check flag status."""
+    @property
+    def GRAPH_CHECK(self) -> bool:
+        """Flag to enable or disable GRAPH check."""
         return self.__GRAPH_CHECK
 
-    def set_SERVER_CHECK(self, value: bool) -> None:
-        """Enable or disable SERVER check flag."""
-        self.__SERVER_CHECK = value
+    @GRAPH_CHECK.setter
+    def GRAPH_CHECK(self, value: bool) -> None:
+        self.__GRAPH_CHECK = self._to_bool(value)
 
-    def get_SERVER_CHECK(self) -> bool:
-        """Get the SERVER check flag status."""
+    @property
+    def SERVER_CHECK(self) -> bool:
+        """Flag to enable or disable SERVER check."""
         return self.__SERVER_CHECK
+
+    @SERVER_CHECK.setter
+    def SERVER_CHECK(self, value: bool) -> None:
+        self.__SERVER_CHECK = self._to_bool(value)
+
+    # ------------------ RANDOMIZATION FLAGS ------------------
+
+    @property
+    def PIN1_RAND(self) -> bool:
+        """Enable/disable randomization of PIN1."""
+        return self.__pin1_rand
+
+    @PIN1_RAND.setter
+    def PIN1_RAND(self, value: bool) -> None:
+        self.__pin1_rand = self._to_bool(value)
+
+    # (Repeat this pattern for PUK1_RAND, PIN2_RAND, etc.)
+
+    # ------------------ DICTIONARIES ------------------
+
+    @property
+    def ELECT_DICT(self) -> dict:
+        """Dictionary containing ELECT data."""
+        return self.__ELECT_DICT
+
+    @ELECT_DICT.setter
+    def ELECT_DICT(self, value: dict) -> None:
+        self.__ELECT_DICT = self._to_dict(value)
+
+    # (Repeat for GRAPH_DICT, SERVER_DICT, etc.)
 
     # ------------------ OTHER ------------------
 
-    def set_DATA_SIZE(self, value: str) -> None:
-        """
-        Set the data size configuration.
+    # @property
+    # def file_name(self) -> str:
+    #     """Current file name."""
+    #     return self._file_name
 
-        Args:
-            value (int): Data size value.
-        """
-        self.__DATA_SIZE = value
+    # @file_name.setter
+    # def file_name(self, value: str) -> None:
+    #     self._file_name = self._to_str(value)
 
-    def get_DATA_SIZE(self) -> str:
-        """
-        Get the data size configuration.
-
-        Returns:
-            int: Current data size value.
-        """
-        return self.__DATA_SIZE
-
-    # def set_DEFAULT_HEADER(self, value: list) -> None:
-    #     """
-    #     Set the default header configuration.
-
-    #     Args:
-    #         value (list): List of header values.
-    #     """
-    #     self.__def_head = value
-
-    # def get_DEFAULT_HEADER(self) -> list:
-    #     """
-    #     Get the default header configuration.
-
-    #     Returns:
-    #         list: List of header values.
-    #     """
-    #     return self.__def_head
-
-    def set_PIN1_RAND(self, value: bool):
-        """
-        Enable or disable randomization of PIN1.
-
-        Args:
-            value (bool):
-                - True → PIN1 will be randomly generated.
-                - False → PIN1 will use a fixed/manual value.
-        """
-        self.__pin1_rand = value
-
-    def get_PIN1_RAND(self) -> bool:
-        """
-        Get the current randomization status of PIN1.
-
-        Returns:
-            bool:
-                - True if PIN1 randomization is enabled.
-                - False if PIN1 is fixed/manual.
-        """
-        return self.__pin1_rand
-
-    def set_PUK1_RAND(self, value: bool):
-        """
-        Enable or disable randomization of PUK1.
-
-        Args:
-            value (bool):
-                - True → PUK1 will be randomly generated.
-                - False → PUK1 will use a fixed/manual value.
-        """
-        self.__puk1_rand = value
-
-    def get_PUK1_RAND(self) -> bool:
-        """
-        Get the current randomization status of PUK1.
-
-        Returns:
-            bool:
-                - True if PUK1 randomization is enabled.
-                - False if PUK1 is fixed/manual.
-        """
+    @property
+    def PUK1_RAND(self) -> bool:
+        """Enable/disable randomization of PUK1."""
         return self.__puk1_rand
 
-    def set_PIN2_RAND(self, value: bool):
-        """
-        Enable or disable randomization of PIN2.
+    @PUK1_RAND.setter
+    def PUK1_RAND(self, value: bool) -> None:
+        self.__puk1_rand = self._to_bool(value)
 
-        Args:
-            value (bool):
-                - True → PIN2 will be randomly generated.
-                - False → PIN2 will use a fixed/manual value.
-        """
-        self.__pin2_rand = value
-
-    def get_PIN2_RAND(self) -> bool:
-        """
-        Get the current randomization status of PIN2.
-
-        Returns:
-            bool:
-                - True if PIN2 randomization is enabled.
-                - False if PIN2 is fixed/manual.
-        """
+    @property
+    def PIN2_RAND(self) -> bool:
+        """Enable/disable randomization of PIN2."""
         return self.__pin2_rand
 
-    def set_PUK2_RAND(self, value: bool):
-        """
-        Enable or disable randomization of PUK2.
+    @PIN2_RAND.setter
+    def PIN2_RAND(self, value: bool) -> None:
+        self.__pin2_rand = self._to_bool(value)
 
-        Args:
-            value (bool):
-                - True → PUK2 will be randomly generated.
-                - False → PUK2 will use a fixed/manual value.
-        """
-        self.__puk2_rand = value
-
-    def get_PUK2_RAND(self) -> bool:
-        """
-        Get the current randomization status of PUK2.
-
-        Returns:
-            bool:
-                - True if PUK2 randomization is enabled.
-                - False if PUK2 is fixed/manual.
-        """
+    @property
+    def PUK2_RAND(self) -> bool:
+        """Enable/disable randomization of PUK2."""
         return self.__puk2_rand
 
-    def set_ADM1_RAND(self, value: bool):
-        """
-        Enable or disable randomization of ADM1.
+    @PUK2_RAND.setter
+    def PUK2_RAND(self, value: bool) -> None:
+        self.__puk2_rand = self._to_bool(value)
 
-        Args:
-            value (bool):
-                - True → ADM1 will be randomly generated.
-                - False → ADM1 will use a fixed/manual value.
-        """
-        self.__adm1_rand = value
-
-    def get_ADM1_RAND(self) -> bool:
-        """
-        Get the current randomization status of ADM1.
-
-        Returns:
-            bool:
-                - True if ADM1 randomization is enabled.
-                - False if ADM1 is fixed/manual.
-        """
+    @property
+    def ADM1_RAND(self) -> bool:
+        """Enable/disable randomization of ADM1."""
         return self.__adm1_rand
 
-    def set_ADM6_RAND(self, value: bool):
-        """
-        Enable or disable randomization of ADM6.
+    @ADM1_RAND.setter
+    def ADM1_RAND(self, value: bool) -> None:
+        self.__adm1_rand = self._to_bool(value)
 
-        Args:
-            value (bool):
-                - True → ADM6 will be randomly generated.
-                - False → ADM6 will use a fixed/manual value.
-        """
-        self.__adm6_rand = value
-
-    def get_ADM6_RAND(self) -> bool:
-        """
-        Get the current randomization status of ADM6.
-
-        Returns:
-            bool:
-                - True if ADM6 randomization is enabled.
-                - False if ADM6 is fixed/manual.
-        """
+    @property
+    def ADM6_RAND(self) -> bool:
+        """Enable/disable randomization of ADM6."""
         return self.__adm6_rand
 
-    def set_ACC_RAND(self, value: bool):
-        """
-        Enable or disable randomization of ACC.
+    @ADM6_RAND.setter
+    def ADM6_RAND(self, value: bool) -> None:
+        self.__adm6_rand = self._to_bool(value)
 
-        Args:
-            value (bool):
-                - True → ACC will be randomly generated.
-                - False → ACC will use a fixed/manual value.
-        """
-        self.__acc_rand = value
-
-    def get_ACC_RAND(self) -> bool:
-        """
-        Get the current randomization status of ACC.
-
-        Returns:
-            bool:
-                - True if ACC randomization is enabled.
-                - False if ACC is fixed/manual.
-        """
+    @property
+    def ACC_RAND(self) -> bool:
+        """Enable/disable randomization of ACC."""
         return self.__acc_rand
 
-    def set_INPUT_PATH(self, value: str) -> None:
-        """
-        Set the input path.
+    @ACC_RAND.setter
+    def ACC_RAND(self, value: bool) -> None:
+        self.__acc_rand = self._to_bool(value)
 
-        Args:
-            value (str): Path to the input resource.
-        """
-        self.__INPUT_PATH = value
-
-    def get_INPUT_PATH(self) -> str:
-        """
-        Get the input path.
-
-        Returns:
-            str: Current input path.
-        """
-        return self.__INPUT_PATH
-
-
-    def set_LASER_EXT_PATH(self, value: str) -> None:
-        """
-        Set the laser extraction path.
-
-        Args:
-            value (str): Path for laser extraction data.
-        """
-        self.__LASER_EXT_PATH = value
-
-    def get_LASER_EXT_PATH(self) -> str:
-        """
-        Get the laser extraction path.
-
-        Returns:
-            str: Current laser extraction path.
-        """
-        return self.__LASER_EXT_PATH
-
-
-    def set_ELECT_DICT(self, value: dict) -> None:
-        """
-        Set the ELECT dictionary configuration.
-
-        Args:
-            value (dict): Dictionary containing ELECT data.
-        """
-        self.__ELECT_DICT = value
-
-    def get_ELECT_DICT(self) -> dict:
-        """
-        Get the ELECT dictionary configuration.
-
-        Returns:
-            dict: ELECT data dictionary.
-        """
-        return self.__ELECT_DICT
-
-
-    def set_GRAPH_DICT(self, value: dict) -> None:
-        """
-        Set the GRAPH dictionary configuration.
-
-        Args:
-            value (dict): Dictionary containing GRAPH data.
-        """
-        self.__GRAPH_DICT = value
-
-    def get_GRAPH_DICT(self) -> dict:
-        """
-        Get the GRAPH dictionary configuration.
-
-        Returns:
-            dict: GRAPH data dictionary.
-        """
+    @property
+    def GRAPH_DICT(self) -> dict:
+        """Graph configuration dictionary."""
         return self.__GRAPH_DICT
 
+    @GRAPH_DICT.setter
+    def GRAPH_DICT(self, value: dict) -> None:
+        self.__GRAPH_DICT = self._to_dict(value)
 
-    def set_SERVER_DICT(self, value: dict) -> None:
-        """
-        Set the SERVER dictionary configuration.
-
-        Args:
-            value (dict): Dictionary containing SERVER data.
-        """
-        self.__SERVER_DICT = value
-
-    def get_SERVER_DICT(self) -> dict:
-        """
-        Get the SERVER dictionary configuration.
-
-        Returns:
-            dict: SERVER data dictionary.
-        """
+    @property
+    def SERVER_DICT(self) -> dict:
+        """Server configuration dictionary."""
         return self.__SERVER_DICT
 
+    @SERVER_DICT.setter
+    def SERVER_DICT(self, value: dict) -> None:
+        self.__SERVER_DICT = self._to_dict(value)
 
-    def set_file_name(self, value: str) -> None:
-        """
-        Set the file name.
+    @property
+    def SERVR_SEP(self) -> str:
+        """Separator string for server file generation."""
+        return self.__SERVR_SEP
 
-        Args:
-            value (str): Name of the file.
-        """
-        self.file_name = value
+    @SERVR_SEP.setter
+    def SERVR_SEP(self, value: str) -> None:
+        self.__SERVR_SEP = self._to_str(value)
 
-    def get_file_name(self) -> str:
-        """
-        Get the file name.
+    @property
+    def ADM1(self) -> str:
+        """ADM1 code string."""
+        return self.__ADM1
 
-        Returns:
-            str: Current file name.
-        """
-        return self.file_name
+    @ADM1.setter
+    def ADM1(self, value: str) -> None:
+        self.__ADM1 = self._to_str(value)
+
+    @property
+    def ADM6(self) -> str:
+        """ADM6 code string."""
+        return self.__ADM6
+
+    @ADM6.setter
+    def ADM6(self, value: str) -> None:
+        self.__ADM6 = self._to_str(value)
+
+    @property
+    def ACC(self) -> str:
+        """ACC code string."""
+        return self.__ACC
+
+    @ACC.setter
+    def ACC(self, value: str) -> None:
+        self.__ACC = self._to_str(value)
+
+    @property
+    def DATA_SIZE(self) -> str:
+        """Size of the data block or record."""
+        return self.__DATA_SIZE
+
+    @DATA_SIZE.setter
+    def DATA_SIZE(self, value: str) -> None:
+        self.__DATA_SIZE = self._to_str(value)
+    # @property
+    # def ELECT_SEP(self) -> str:
+    #     """
+    #     Get the separator string for ELECT file generation.
+
+    #     Returns:
+    #         str: Current ELECT separator string.
+    #     """
+    #     return self.__ELECT_SEP
+
+    # @ELECT_SEP.setter
+    # def ELECT_SEP(self, value: str) -> None:
+    #     """
+    #     Set the separator string for ELECT file generation.
+
+    #     Args:
+    #         value (str): Separator string to be used.
+    #     """
+    #     self.__ELECT_SEP = str(value)
+
+    # def set_GRAPH_SEP(self, value: str) -> None:
+    #     """
+    #     Set the separator string for GRAPH file generation.
+
+    #     Args:
+    #         value (str): Separator string to be used.
+    #     """
+    #     self.__GRAPH_SEP = str(value)
+
+    # def get_GRAPH_SEP(self) -> str:
+    #     """
+    #     Get the separator string for GRAPH file generation.
+
+    #     Returns:
+    #         str: Current GRAPH separator string.
+    #     """
+    #     return self.__GRAPH_SEP
+
+    # def set_SERVER_SEP(self, value: str) -> None:
+    #     """
+    #     Set the separator string for SERVER file generation.
+
+    #     Args:
+    #         value (str): Separator string to be used.
+    #     """
+    #     self.__SERVR_SEP = str(value)
+
+    # def get_SERVER_SEP(self) -> str:
+    #     """
+    #     Get the separator string for SERVER file generation.
+
+    #     Returns:
+    #         str: Current SERVER separator string.
+    #     """
+    #     return self.__SERVR_SEP
+
+    # def set_TEMPLATE_JSON(self, value: str) -> None:
+    #     """
+    #     Set the path to the template JSON file.
+
+    #     Args:
+    #         value (str): Path to template JSON file.
+    #     """
+    #     self.__TEMPLATE_JSON = str(value)
+
+    # def get_TEMPLATE_JSON(self) -> str:
+    #     """
+    #     Get the path to the template JSON file.
+
+    #     Returns:
+    #         str: Path of template JSON file.
+    #     """
+    #     return self.__TEMPLATE_JSON
+
+    # def set_INPUT_FILE_PATH(self, value: str) -> None:
+    #     """
+    #     Set the input file path.
+
+    #     Args:
+    #         value (str): Path to the input file.
+    #     """
+    #     self.__INPUT_FILE_PATH = str(value)
+
+    # def get_INPUT_FILE_PATH(self) -> str:
+    #     """
+    #     Get the input file path.
+
+    #     Returns:
+    #         str: Path of input file.
+    #     """
+    #     return self.__INPUT_FILE_PATH
+
+    # def set_OUTPUT_FILES_DIR(self, value: str) -> None:
+    #     """
+    #     Set the output directory for generated files.
+
+    #     Args:
+    #         value (str): Directory path.
+    #     """
+    #     self.__OUTPUT_FILES_DIR = str(value)
+
+    # def get_OUTPUT_FILES_DIR(self) -> str:
+    #     """
+    #     Get the output directory for generated files.
+
+    #     Returns:
+    #         str: Path of output files directory.
+    #     """
+    #     return self.__OUTPUT_FILES_DIR
+
+    # # ------------------ SIM PARAMETERS ------------------
+
+    # def set_ICCID(self, value: str) -> None:
+    #     """Set the ICCID value."""
+    #     self.__ICCID = str(value)
+
+    # def get_ICCID(self) -> str:
+    #     """Get the ICCID value."""
+    #     return self.__ICCID
+
+    # def set_IMSI(self, value: str) -> None:
+    #     """Set the IMSI value."""
+    #     self.__IMSI = str(value)
+
+    # def get_IMSI(self) -> str:
+    #     """Get the IMSI value."""
+    #     return self.__IMSI
+
+    # def set_PIN1(self, value: str) -> None:
+    #     """Set the PIN1 value."""
+    #     self.__PIN1 = str(value)
+
+    # def get_PIN1(self) -> str:
+    #     """Get the PIN1 value."""
+    #     return self.__PIN1
+
+    # def set_PUK1(self, value: str) -> None:
+    #     """Set the PUK1 value."""
+    #     self.__PUK1 = str(value)
+
+    # def get_PUK1(self) -> str:
+    #     """Get the PUK1 value."""
+    #     return self.__PUK1
+
+    # def set_PIN2(self, value: str) -> None:
+    #     """Set the PIN2 value."""
+    #     self.__PIN2 = str(value)
+
+    # def get_PIN2(self) -> str:
+    #     """Get the PIN2 value."""
+    #     return self.__PIN2
+
+    # def set_PUK2(self, value: str) -> None:
+    #     """Set the PUK2 value."""
+    #     self.__PUK2 = str(value)
+
+    # def get_PUK2(self) -> str:
+    #     """Get the PUK2 value."""
+    #     return self.__PUK2
+
+    # def set_OP(self, value: str) -> None:
+    #     """Set the Operator Code (OP)."""
+    #     self.__OP = str(value)
+
+    # def get_OP(self) -> str:
+    #     """Get the Operator Code (OP)."""
+    #     return self.__OP
+
+    # def set_K4(self, value: str) -> None:
+    #     """Set the K4 (Transport Key)."""
+    #     self.__K4 = str(value)
+
+    # def get_K4(self) -> str:
+    #     """Get the K4 (Transport Key)."""
+    #     return self.__K4
+
+    # def set_ADM1(self, value: str) -> None:
+    #     """Set the ADM1 value."""
+    #     self.__ADM1 = str(value)
+
+    # def get_ADM1(self) -> str:
+    #     """Get the ADM1 value."""
+    #     return self.__ADM1
+
+    # def set_ADM6(self, value: str) -> None:
+    #     """Set the ADM6 value."""
+    #     self.__ADM6 = str(value)
+
+    # def get_ADM6(self) -> str:
+    #     """Get the ADM6 value."""
+    #     return self.__ADM6
+
+    # def set_ACC(self, value: str) -> None:
+    #     """Set the ACC (Access Control Class)."""
+    #     self.__ACC = str(value)
+
+    # def get_ACC(self) -> str:
+    #     """Get the ACC (Access Control Class)."""
+    #     return self.__ACC
+
+    # # ------------------ FLAGS ------------------
+
+    # def set_ELECT_CHECK(self, value: bool) -> None:
+    #     """Enable or disable ELECT check flag."""
+    #     self.__ELECT_CHECK = value
+
+    # def get_ELECT_CHECK(self) -> bool:
+    #     """Get the ELECT check flag status."""
+    #     return self.__ELECT_CHECK
+
+    # def set_GRAPH_CHECK(self, value: bool) -> None:
+    #     """Enable or disable GRAPH check flag."""
+    #     self.__GRAPH_CHECK = value
+
+    # def get_GRAPH_CHECK(self) -> bool:
+    #     """Get the GRAPH check flag status."""
+    #     return self.__GRAPH_CHECK
+
+    # def set_SERVER_CHECK(self, value: bool) -> None:
+    #     """Enable or disable SERVER check flag."""
+    #     self.__SERVER_CHECK = value
+
+    # def get_SERVER_CHECK(self) -> bool:
+    #     """Get the SERVER check flag status."""
+    #     return self.__SERVER_CHECK
+
+    # # ------------------ OTHER ------------------
+
+    # def set_DATA_SIZE(self, value: str) -> None:
+    #     """
+    #     Set the data size configuration.
+
+    #     Args:
+    #         value (int): Data size value.
+    #     """
+    #     self.__DATA_SIZE = value
+
+    # def get_DATA_SIZE(self) -> str:
+    #     """
+    #     Get the data size configuration.
+
+    #     Returns:
+    #         int: Current data size value.
+    #     """
+    #     return self.__DATA_SIZE
+
+    # # def set_DEFAULT_HEADER(self, value: list) -> None:
+    # #     """
+    # #     Set the default header configuration.
+
+    # #     Args:
+    # #         value (list): List of header values.
+    # #     """
+    # #     self.__def_head = value
+
+    # # def get_DEFAULT_HEADER(self) -> list:
+    # #     """
+    # #     Get the default header configuration.
+
+    # #     Returns:
+    # #         list: List of header values.
+    # #     """
+    # #     return self.__def_head
+
+    # def set_PIN1_RAND(self, value: bool):
+    #     """
+    #     Enable or disable randomization of PIN1.
+
+    #     Args:
+    #         value (bool):
+    #             - True → PIN1 will be randomly generated.
+    #             - False → PIN1 will use a fixed/manual value.
+    #     """
+    #     self.__pin1_rand = value
+
+    # def get_PIN1_RAND(self) -> bool:
+    #     """
+    #     Get the current randomization status of PIN1.
+
+    #     Returns:
+    #         bool:
+    #             - True if PIN1 randomization is enabled.
+    #             - False if PIN1 is fixed/manual.
+    #     """
+    #     return self.__pin1_rand
+
+    # def set_PUK1_RAND(self, value: bool):
+    #     """
+    #     Enable or disable randomization of PUK1.
+
+    #     Args:
+    #         value (bool):
+    #             - True → PUK1 will be randomly generated.
+    #             - False → PUK1 will use a fixed/manual value.
+    #     """
+    #     self.__puk1_rand = value
+
+    # def get_PUK1_RAND(self) -> bool:
+    #     """
+    #     Get the current randomization status of PUK1.
+
+    #     Returns:
+    #         bool:
+    #             - True if PUK1 randomization is enabled.
+    #             - False if PUK1 is fixed/manual.
+    #     """
+    #     return self.__puk1_rand
+
+    # def set_PIN2_RAND(self, value: bool):
+    #     """
+    #     Enable or disable randomization of PIN2.
+
+    #     Args:
+    #         value (bool):
+    #             - True → PIN2 will be randomly generated.
+    #             - False → PIN2 will use a fixed/manual value.
+    #     """
+    #     self.__pin2_rand = value
+
+    # def get_PIN2_RAND(self) -> bool:
+    #     """
+    #     Get the current randomization status of PIN2.
+
+    #     Returns:
+    #         bool:
+    #             - True if PIN2 randomization is enabled.
+    #             - False if PIN2 is fixed/manual.
+    #     """
+    #     return self.__pin2_rand
+
+    # def set_PUK2_RAND(self, value: bool):
+    #     """
+    #     Enable or disable randomization of PUK2.
+
+    #     Args:
+    #         value (bool):
+    #             - True → PUK2 will be randomly generated.
+    #             - False → PUK2 will use a fixed/manual value.
+    #     """
+    #     self.__puk2_rand = value
+
+    # def get_PUK2_RAND(self) -> bool:
+    #     """
+    #     Get the current randomization status of PUK2.
+
+    #     Returns:
+    #         bool:
+    #             - True if PUK2 randomization is enabled.
+    #             - False if PUK2 is fixed/manual.
+    #     """
+    #     return self.__puk2_rand
+
+    # def set_ADM1_RAND(self, value: bool):
+    #     """
+    #     Enable or disable randomization of ADM1.
+
+    #     Args:
+    #         value (bool):
+    #             - True → ADM1 will be randomly generated.
+    #             - False → ADM1 will use a fixed/manual value.
+    #     """
+    #     self.__adm1_rand = value
+
+    # def get_ADM1_RAND(self) -> bool:
+    #     """
+    #     Get the current randomization status of ADM1.
+
+    #     Returns:
+    #         bool:
+    #             - True if ADM1 randomization is enabled.
+    #             - False if ADM1 is fixed/manual.
+    #     """
+    #     return self.__adm1_rand
+
+    # def set_ADM6_RAND(self, value: bool):
+    #     """
+    #     Enable or disable randomization of ADM6.
+
+    #     Args:
+    #         value (bool):
+    #             - True → ADM6 will be randomly generated.
+    #             - False → ADM6 will use a fixed/manual value.
+    #     """
+    #     self.__adm6_rand = value
+
+    # def get_ADM6_RAND(self) -> bool:
+    #     """
+    #     Get the current randomization status of ADM6.
+
+    #     Returns:
+    #         bool:
+    #             - True if ADM6 randomization is enabled.
+    #             - False if ADM6 is fixed/manual.
+    #     """
+    #     return self.__adm6_rand
+
+    # def set_ACC_RAND(self, value: bool):
+    #     """
+    #     Enable or disable randomization of ACC.
+
+    #     Args:
+    #         value (bool):
+    #             - True → ACC will be randomly generated.
+    #             - False → ACC will use a fixed/manual value.
+    #     """
+    #     self.__acc_rand = value
+
+    # def get_ACC_RAND(self) -> bool:
+    #     """
+    #     Get the current randomization status of ACC.
+
+    #     Returns:
+    #         bool:
+    #             - True if ACC randomization is enabled.
+    #             - False if ACC is fixed/manual.
+    #     """
+    #     return self.__acc_rand
+
+    # def set_INPUT_PATH(self, value: str) -> None:
+    #     """
+    #     Set the input path.
+
+    #     Args:
+    #         value (str): Path to the input resource.
+    #     """
+    #     self.__INPUT_PATH = value
+
+    # def get_INPUT_PATH(self) -> str:
+    #     """
+    #     Get the input path.
+
+    #     Returns:
+    #         str: Current input path.
+    #     """
+    #     return self.__INPUT_PATH
+
+
+    # def set_LASER_EXT_PATH(self, value: str) -> None:
+    #     """
+    #     Set the laser extraction path.
+
+    #     Args:
+    #         value (str): Path for laser extraction data.
+    #     """
+    #     self.__LASER_EXT_PATH = value
+
+    # def get_LASER_EXT_PATH(self) -> str:
+    #     """
+    #     Get the laser extraction path.
+
+    #     Returns:
+    #         str: Current laser extraction path.
+    #     """
+    #     return self.__LASER_EXT_PATH
+
+
+    # def set_ELECT_DICT(self, value: dict) -> None:
+    #     """
+    #     Set the ELECT dictionary configuration.
+
+    #     Args:
+    #         value (dict): Dictionary containing ELECT data.
+    #     """
+    #     self.__ELECT_DICT = value
+
+    # def get_ELECT_DICT(self) -> dict:
+    #     """
+    #     Get the ELECT dictionary configuration.
+
+    #     Returns:
+    #         dict: ELECT data dictionary.
+    #     """
+    #     return self.__ELECT_DICT
+
+
+    # def set_GRAPH_DICT(self, value: dict) -> None:
+    #     """
+    #     Set the GRAPH dictionary configuration.
+
+    #     Args:
+    #         value (dict): Dictionary containing GRAPH data.
+    #     """
+    #     self.__GRAPH_DICT = value
+
+    # def get_GRAPH_DICT(self) -> dict:
+    #     """
+    #     Get the GRAPH dictionary configuration.
+
+    #     Returns:
+    #         dict: GRAPH data dictionary.
+    #     """
+    #     return self.__GRAPH_DICT
+
+
+    # def set_SERVER_DICT(self, value: dict) -> None:
+    #     """
+    #     Set the SERVER dictionary configuration.
+
+    #     Args:
+    #         value (dict): Dictionary containing SERVER data.
+    #     """
+    #     self.__SERVER_DICT = value
+
+    # def get_SERVER_DICT(self) -> dict:
+    #     """
+    #     Get the SERVER dictionary configuration.
+
+    #     Returns:
+    #         dict: SERVER data dictionary.
+    #     """
+    #     return self.__SERVER_DICT
+
+
+    # def set_file_name(self, value: str) -> None:
+    #     """
+    #     Set the file name.
+
+    #     Args:
+    #         value (str): Name of the file.
+    #     """
+    #     self.file_name = value
+
+    # def get_file_name(self) -> str:
+    #     """
+    #     Get the file name.
+
+    #     Returns:
+    #         str: Current file name.
+    #     """
+    #     return self.file_name
 
     def get_all_params_dict(self) -> dict:
         param_dict = {
             #            "Demo Data": self.get_PRODUCTION_CHECK(),
             "Demo Data": True,
-            "OP": self.get_OP(),
-            "K4": self.get_K4(),
-            "ICCID": self.get_ICCID(),
-            "IMSI": self.get_IMSI(),
-            "PIN1": self.get_PIN1(),
-            "PUK1": self.get_PUK1(),
-            "PIN2": self.get_PIN2(),
-            "PUK2": self.get_PUK2(),
-            "ADM1": self.get_ADM1(),
-            "ADM6": self.get_ADM6(),
-            "ACC": self.get_ACC(),
-            "DATA_SIZE": self.get_DATA_SIZE(),
-            "INPUT_PATH": self.get_INPUT_PATH(),
+            "OP": self.OP,
+            "K4": self.K4,
+            "ICCID": self.ICCID,
+            "IMSI": self.IMSI,
+            "PIN1": self.PIN1,
+            "PUK1": self.PUK1,
+            "PIN2": self.PIN2,
+            "PUK2": self.PUK2,
+            "ADM1": self.ADM1,
+            "ADM6": self.ADM6,
+            "ACC": self.ACC,
+            "DATA_SIZE": self.DATA_SIZE,
+#            "INPUT_PATH": self.INPUT_PATH,
         }
         print(param_dict)
         return param_dict
@@ -740,50 +1075,113 @@ class Parameters(DataFrames):
                 # Default behavior if param_name doesn't match any known case
                 return False
 
-    def check_params(self) -> bool:
-        #        if not self.get_PRODUCTION_CHECK():
-        if False:
-            print("===============Production===============")
-            result = (
-                #                self.is_valid(self.get_IMSI(), "IMSI")
-                #                and self.is_valid(self.get_ICCID(), "ICCID")
-                self.is_valid(self.get_PIN1(), "PIN1")
-                and self.is_valid(self.get_PUK1(), "PUK1")
-                and self.is_valid(self.get_PIN2(), "PIN2")
-                and self.is_valid(self.get_PUK2(), "PUK2")
-                and self.is_valid(self.get_ADM1(), "ADM1")
-                and self.is_valid(self.get_ADM6(), "ADM6")
-                and self.is_valid(self.get_OP(), "OP")
-                and self.is_valid(self.get_K4(), "K4")
-                #                and self.is_valid(self.get_DATA_SIZE(), "SIZE")
-                and self.is_valid(self.get_ELECT_DICT(), "DICT")
-                and self.is_valid(self.get_GRAPH_DICT(), "DICT")
-            )
-        else:
-            print("=================Demo===================")
-            result = (
-                self.is_valid(self.get_IMSI(), "IMSI")
-                and self.is_valid(self.get_ICCID(), "ICCID")
-                and self.is_valid(self.get_DATA_SIZE(), "SIZE")
-                and self.is_valid(self.get_PIN1(), "PIN1")
-                and self.is_valid(self.get_PUK1(), "PUK1")
-                and self.is_valid(self.get_PIN2(), "PIN2")
-                and self.is_valid(self.get_PUK2(), "PUK2")
-                and self.is_valid(self.get_ADM1(), "ADM1")
-                and self.is_valid(self.get_ADM6(), "ADM6")
-                and self.is_valid(self.get_OP(), "OP")
-                and self.is_valid(self.get_K4(), "K4")
-                and self.is_valid(self.get_ELECT_DICT(), "DICT")
-                and self.is_valid(self.get_GRAPH_DICT(), "DICT")
-                # TO DO add server dict here
-            )
-        return result
+    def check_params(self, production: bool = False) -> bool:
+        """
+        Validate the critical parameters based on the mode.
 
-    def print_all_global_parameters(self):
-        print("PIN1", self.get_PIN1())
-        print("PIN2", self.get_PIN2())
-        print("PIN2", self.get_PIN2())
-        print("DATA SIZE", self.get_DATA_SIZE())
+        Args:
+            production (bool): 
+                - True → Validate minimal production parameters.
+                - False → Validate full demo parameters (default).
+
+        Returns:
+            bool: True if all required parameters are valid, else False.
+        """
+        print("===============Production===============" if production else "=================Demo===================")
+
+        # Common parameters in both modes
+        params_to_check = [
+            ("PIN1", self.PIN1),
+            ("PUK1", self.PUK1),
+            ("PIN2", self.PIN2),
+            ("PUK2", self.PUK2),
+            ("ADM1", self.ADM1),
+            ("ADM6", self.ADM6),
+            ("OP", self.OP),
+            ("K4", self.K4),
+            ("ELECT_DICT", self.ELECT_DICT),
+            ("GRAPH_DICT", self.GRAPH_DICT),
+            ("SERVER_DICT", self.SERVER_DICT),
+        ]
+
+        # Additional checks for demo mode
+        if not production:
+            params_to_check.extend([
+                ("IMSI", self.IMSI),
+                ("ICCID", self.ICCID),
+                ("DATA_SIZE", self.DATA_SIZE),
+            ])
+
+        return all(self.is_valid(value, name) for name, value in params_to_check)
+
+    def print_all_global_parameters(self) -> None:
+        """
+        Print all major configuration parameters for debugging.
+        """
+        print("======= Current Global Parameters =======")
+        params = {
+            "IMSI": self.IMSI,
+            "ICCID": self.ICCID,
+            "PIN1": self.PIN1,
+            "PUK1": self.PUK1,
+            "PIN2": self.PIN2,
+            "PUK2": self.PUK2,
+            "ADM1": self.ADM1,
+            "ADM6": self.ADM6,
+            "OP": self.OP,
+            "K4": self.K4,
+            "DATA_SIZE": self.DATA_SIZE,
+            "ELECT_DICT": self.ELECT_DICT,
+            "GRAPH_DICT": self.GRAPH_DICT,
+            "SERVER_DICT": self.SERVER_DICT,
+        }
+        for key, value in params.items():
+            print(f"{key}: {value}")
+
+    # def check_params(self) -> bool:
+    #     #        if not self.get_PRODUCTION_CHECK():
+    #     if False:
+    #         print("===============Production===============")
+    #         result = (
+    #             #                self.is_valid(self.get_IMSI(), "IMSI")
+    #             #                and self.is_valid(self.get_ICCID(), "ICCID")
+    #             self.is_valid(self.get_PIN1(), "PIN1")
+    #             and self.is_valid(self.get_PUK1(), "PUK1")
+    #             and self.is_valid(self.get_PIN2(), "PIN2")
+    #             and self.is_valid(self.get_PUK2(), "PUK2")
+    #             and self.is_valid(self.get_ADM1(), "ADM1")
+    #             and self.is_valid(self.get_ADM6(), "ADM6")
+    #             and self.is_valid(self.get_OP(), "OP")
+    #             and self.is_valid(self.get_K4(), "K4")
+    #             #                and self.is_valid(self.get_DATA_SIZE(), "SIZE")
+    #             and self.is_valid(self.get_ELECT_DICT(), "DICT")
+    #             and self.is_valid(self.get_GRAPH_DICT(), "DICT")
+    #         )
+    #     else:
+    #         print("=================Demo===================")
+    #         result = (
+    #             self.is_valid(self.get_IMSI(), "IMSI")
+    #             and self.is_valid(self.get_ICCID(), "ICCID")
+    #             and self.is_valid(self.get_DATA_SIZE(), "SIZE")
+    #             and self.is_valid(self.get_PIN1(), "PIN1")
+    #             and self.is_valid(self.get_PUK1(), "PUK1")
+    #             and self.is_valid(self.get_PIN2(), "PIN2")
+    #             and self.is_valid(self.get_PUK2(), "PUK2")
+    #             and self.is_valid(self.get_ADM1(), "ADM1")
+    #             and self.is_valid(self.get_ADM6(), "ADM6")
+    #             and self.is_valid(self.get_OP(), "OP")
+    #             and self.is_valid(self.get_K4(), "K4")
+    #             and self.is_valid(self.get_ELECT_DICT(), "DICT")
+    #             and self.is_valid(self.get_GRAPH_DICT(), "DICT")
+    #             # TO DO add server dict here
+    #         )
+    #     return result
+
+    # def print_all_global_parameters(self):
+    #     print("PIN1", self.get_PIN1())
+    #     print("PIN2", self.get_PIN2())
+    #     print("PIN2", self.get_PIN2())
+    #     print("DATA SIZE", self.get_DATA_SIZE())
 
 
 __all__ = ["Parameters", "DataFrames"]
