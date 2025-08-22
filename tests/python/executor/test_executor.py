@@ -13,37 +13,62 @@ from gsm_data_generator.globals import Parameters
 
 p = Parameters.get_instance()
 
+p.ELECT_SEP = ","
+p.GRAPH_SEP = ","
+p.SERVR_SEP = ","
 
-p.set_ELECT_SEP(",")
-p.set_GRAPH_SEP(",")
-p.set_SERVER_SEP(",")
+p.K4 = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+p.OP = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+p.IMSI = "111111111121111"
+p.ICCID = "111111111121221111"
+p.PIN1 = "1111"
+p.PUK1 = "11111111"
+p.PIN2 = "1111"
+p.PUK2 = "11111111"
+p.ADM1 = "11111111"
+p.ADM6 = "11111111"
+p.ACC = "1111"
+p.DATA_SIZE = "5"
+# p.PRODUCTION_CHECK = True
+p.GRAPH_CHECK = True
+p.ELECT_CHECK = True
+p.SERVER_CHECK = True
+p.PIN1_RAND = False
+p.PIN2_RAND = False
+p.PUK1_RAND = False
+p.PUK2_RAND = False
+p.ADM1_RAND = False
+p.ADM6_RAND = False
 
-p.set_K4("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
-p.set_OP("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
-p.set_IMSI("111111111121111")
-p.set_ICCID("111111111121221111")
-p.set_PIN1("1111")
-p.set_PUK1("11111111")
-p.set_PIN2("1111")
-p.set_PUK2("11111111")
-p.set_ADM1("11111111")
-p.set_ADM6("11111111")
-p.set_ACC("1111")
-p.set_DATA_SIZE("5")
-# p.set_PRODUCTION_CHECK(True)
-p.set_GRAPH_CHECK(True)
-p.set_ELECT_CHECK(True)
-p.set_SERVER_CHECK(True)
-p.set_PIN1_RAND(False)
-p.set_PIN2_RAND(False)
+# p.ELECT_SEP = ","
+# p.set_GRAPH_SEP(",")
+# p.set_SERVER_SEP(",")
 
-p.set_PUK1_RAND(False)
-p.set_PUK2_RAND(False)
-p.set_ADM1_RAND(False)
-p.set_ADM6_RAND(False)
+# p.set_K4("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+# p.set_OP("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+# p.set_IMSI("111111111121111")
+# p.set_ICCID("111111111121221111")
+# p.set_PIN1("1111")
+# p.set_PUK1("11111111")
+# p.set_PIN2("1111")
+# p.set_PUK2("11111111")
+# p.set_ADM1("11111111")
+# p.set_ADM6("11111111")
+# p.set_ACC("1111")
+# p.set_DATA_SIZE("5")
+# # p.set_PRODUCTION_CHECK(True)
+# p.set_GRAPH_CHECK(True)
+# p.set_ELECT_CHECK(True)
+# p.set_SERVER_CHECK(True)
+# p.set_PIN1_RAND(False)
+# p.set_PIN2_RAND(False)
 
-p.set_ELECT_DF(
-    list_2_dict(
+# p.set_PUK1_RAND(False)
+# p.set_PUK2_RAND(False)
+# p.set_ADM1_RAND(False)
+# p.set_ADM6_RAND(False)
+
+p.ELECT_DF=    list_2_dict(
         [
             "IMSI",
             "ICCID",
@@ -67,10 +92,9 @@ p.set_ELECT_DF(
             "KIK3",
         ]
     )
-)
 
-p.set_SERVER_DICT(
-    list_2_dict(
+
+p.SERVER_DICT =list_2_dict(
         [
             "IMSI",
             "EKI",
@@ -93,9 +117,8 @@ p.set_SERVER_DICT(
             "KIK3",
         ]
     )
-)
-p.set_GRAPH_DICT(
-    {
+
+p.GRAPH_DICT= {
         "0": ["ICCID", "Normal", "0-20"],
         "1": ["ICCID", "Normal", "0-20"],
         "2": ["ICCID", "Normal", "0-3"],
@@ -110,7 +133,6 @@ p.set_GRAPH_DICT(
         "11": ["IMSI", "Normal", "0-5"],
         "12": ["IMSI", "Normal", "6-15"],
     }
-)
 
 
 def global_params_to_json():
@@ -240,8 +262,8 @@ def test_data_generation_script_runs(params_dict, tmp_path):
     p = Parameters.get_instance()
 
     # sanity checks
-    assert p.get_IMSI() == "111111111121111"
-    assert p.get_PIN1() == "1111"
+    assert p.IMSI == "111111111121111"
+    assert p.PIN1 == "1111"
 
     # Step 2: run data generation (should not raise)
     script.generate_all_data()
