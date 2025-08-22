@@ -1,49 +1,21 @@
-# from Crypto.Cipher import AES
-# import binascii
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
 
 
-# class CryptoUtils:
-#     @staticmethod
-#     def aes_128_cbc_encrypt(key: str, text: str) -> str:
-#         iv = binascii.unhexlify("00000000000000000000000000000000")
-#         key_bytes = binascii.unhexlify(key)
-#         text_bytes = binascii.unhexlify(text)
-#         encryptor = AES.new(key_bytes, AES.MODE_CBC, IV=iv)
-#         ciphertext = encryptor.encrypt(text_bytes)
-#         return ciphertext.hex().upper()
-
-#     @staticmethod
-#     def xor_str(s: bytes, t: bytes) -> bytes:
-#         return bytes([_a ^ _b for _a, _b in zip(s, t)])
-
-#     @staticmethod
-#     def calc_opc_hex(k_hex: str, op_hex: str) -> str:
-#         iv = binascii.unhexlify(16 * "00")
-#         ki = binascii.unhexlify(k_hex)
-#         op = binascii.unhexlify(op_hex)
-#         aes_crypt = AES.new(ki, mode=AES.MODE_CBC, IV=iv)
-#         data = op
-#         o_pc = CryptoUtils.xor_str(data, aes_crypt.encrypt(data))
-#         return o_pc.hex().upper()
-
-
-# class DependentDataGenerator:
-#     @staticmethod
-#     def calculate_opc(op: str, ki: str) -> str:
-#         return CryptoUtils.calc_opc_hex(ki, op).upper()
-
-#     @staticmethod
-#     def calculate_eki(transport: str, ki: str) -> str:
-#         return CryptoUtils.aes_128_cbc_encrypt(transport, ki)
-
-#     @staticmethod
-#     def calculate_acc(imsi: str) -> str:
-#         last_digit = int(imsi[-1])
-#         acc_binary = bin(1 << last_digit)[2:].zfill(16)
-#         return format(int(acc_binary, 2), "04x")
-
-
-# __all__ = ["DependentDataGenerator", "CryptoUtils"]
 from Crypto.Cipher import AES
 import binascii
 
