@@ -15,6 +15,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
+
 def list_2_dict(list: list) -> dict:
     dict = {}
     for index in range(0, len(list)):

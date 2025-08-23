@@ -36,17 +36,36 @@ import json
 
 
 def read_json(file_path: str):
+    """
+    Read a JSON file from the given file path and return its contents as a dictionary.
+
+    Args:
+        file_path (str): Path to the JSON file.
+
+    Returns:
+        dict: Parsed JSON data as a dictionary, or None if the file is not found
+        or cannot be decoded.
+    """
     try:
         with open(file_path, "r") as json_file:
             data = json.load(json_file)
         return dict(data)
     except FileNotFoundError:
         print(f"Error: File '{file_path}' not found.")
-        return None  # You can choose to return None or raise a custom exception here
+        return None
     except json.JSONDecodeError as e:
         print(f"Error decoding JSON in '{file_path}': {e}")
-        return None  # You can choose to return None or raise a custom exception here
+        return None
 
 
 def copy_function(x):
+    """
+    Convert the input to its string representation.
+
+    Args:
+        x: Any input value.
+
+    Returns:
+        str: String representation of the input.
+    """
     return str(x)

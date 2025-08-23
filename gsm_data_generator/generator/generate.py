@@ -15,11 +15,14 @@
 # specific language governing permissions and limitations
 # under the License.
 
+"""GENERATE"""
 import secrets
 from typing import Literal
 
 
 class DataGenerator:
+    """Base class for generating primitive data; serves as the foundation for all data patterns."""
+
     @staticmethod
     def generate_ki() -> str:
         """

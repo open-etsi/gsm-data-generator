@@ -7,7 +7,7 @@ gsm_data_generator/algorithm/encode.py
 gsm_data_generator/algorithm/encrypt.py
 
 gsm_data_generator/exception/__init__.py
-gsm_data_generator/exception/exception.py
+gsm_data_generator/exception/exceptions.py
 
 
 gsm_data_generator/executor/__init__.py

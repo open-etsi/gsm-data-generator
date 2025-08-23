@@ -9,6 +9,7 @@ from gsm_data_generator.parser.utils import (
     ConfigHolder,
     json_loader,
     json_loader_2_ConfigHolder,
+    gui_loader,
 )
 
 
@@ -114,3 +115,9 @@ def test_json_loader1_invalid():
         json_loader_2_ConfigHolder(123)  # type: ignore # not dict or str
     with pytest.raises(ValueError):
         json_loader_2_ConfigHolder("{bad json}")  # invalid JSON string
+
+
+# def test_gui_loader(valid_config_dict):
+#     holder = gui_loader(valid_config_dict)
+#     assert isinstance(holder, ConfigHolder)
+#     assert holder.PATHS.OUTPUT_FILES_DIR == "/tmp"
