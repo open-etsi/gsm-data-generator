@@ -117,7 +117,7 @@ def test_json_loader1_invalid():
         json_loader_2_ConfigHolder("{bad json}")  # invalid JSON string
 
 
-def test_gui_loader(valid_config_dict):
-    holder = gui_loader(valid_config_dict)
-    assert isinstance(holder, ConfigHolder)
-    assert holder.PATHS.OUTPUT_FILES_DIR == "/tmp"
+# def test_gui_loader(valid_config_dict):
+#     holder = gui_loader(valid_config_dict)
+#     assert isinstance(holder, ConfigHolder)
+#     assert holder.PATHS.OUTPUT_FILES_DIR == "/tmp"

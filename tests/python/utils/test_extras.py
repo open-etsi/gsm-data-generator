@@ -17,22 +17,6 @@ def test_read_json_valid():
     os.remove(tmp_file.name)
 
 
-# def test_read_json_file_not_found():
-#     with pytest.raises(FileNotFoundError):
-#         read_json("nonexistent.json")
-
-
-# def test_read_json_invalid_json():
-#     tmp_file = tempfile.NamedTemporaryFile(delete=False, mode="w")
-#     tmp_file.write("{invalid json}")
-#     tmp_file.close()
-
-#     with pytest.raises(ValueError):
-#         read_json(tmp_file.name)
-
-#     os.remove(tmp_file.name)
-
-
 def test_copy_function():
     assert copy_function(123) == "123"
     assert copy_function(True) == "True"
