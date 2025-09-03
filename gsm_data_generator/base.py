@@ -19,8 +19,11 @@
 """Base library for DATAGEN."""
 import sys
 
-from . import libinfo
+from prometheus_client import Info
+from requests_toolbelt import ImproperBodyPartContentException
 
+from . import libinfo
+from .libinfo import LibraryInfo
 # ----------------------------
 # Python3 version.
 # ----------------------------
@@ -50,8 +53,12 @@ try:
 except ImportError:
     pass
 
+
+
 # version number
-__version__ = libinfo.__version__
+#__version__ = libinfo.__version__
+__version__ = LibraryInfo.__version__
+
 # library instance
 # _LIB, _LIB_NAME = _load_lib()
 

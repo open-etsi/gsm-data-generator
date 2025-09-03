@@ -10,3 +10,15 @@ def test_import_module():
     assert hasattr(gsm_data_generator, "__version__")
     assert isinstance(gsm_data_generator.__version__, str)
     print("gsm_data_generator version:", gsm_data_generator.__version__)
+
+
+
+def test_supported_types():
+    import gsm_data_generator
+    assert gsm_data_generator is not None
+    assert hasattr(gsm_data_generator, "__version__")
+    assert isinstance(gsm_data_generator.__version__, str)
+    print("gsm_data_generator version:", gsm_data_generator.__version__)
+
+
+
